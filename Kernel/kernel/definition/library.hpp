@@ -30,6 +30,7 @@
 #include <time.h>
 #include <type_traits>
 #include "kernel/dependencies/fmt.hpp"
+#include "kernel/dependencies/quickjs.hpp"
 #include "kernel/dependencies/base64.hpp"
 #include "kernel/dependencies/json.hpp"
 #include "kernel/dependencies/md5.hpp"

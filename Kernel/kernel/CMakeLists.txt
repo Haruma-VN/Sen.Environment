@@ -16,6 +16,7 @@ add_library(
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
 	./dependencies/md5.hpp
+	./dependencies/quickjs.hpp
 	./dependencies/base64.hpp
 	./dependencies/Rijndael.hpp
 	./interface/interface.cpp
@@ -65,6 +66,7 @@ target_link_libraries(
 	fmt
 	base64
 	Rijndael
+	quickjs
 )
 
 set(CMAKE_CXX_STANDARD 23)
