@@ -111,4 +111,26 @@ namespace Sen::Kernel::String {
 		return spanT;
 	}
 
+	// str: string need replace
+	// from: from which string
+	// to: which string to replace
+	// return: replaced string
+
+	inline auto replaceAll(
+		string str, 
+		const string& from,
+		const string& to
+	) -> string
+	{
+		if(from.empty()){
+			return str;
+		}
+		auto start_pos = static_cast<size_t>(0);
+		while((start_pos = str.find(from, start_pos)) != string::npos) {
+			str.replace(start_pos, from.length(), to);
+			start_pos += to.length();
+		}
+		return str;
+	}
+
 }

@@ -1,5 +1,6 @@
 project(
 	kernel
+	VERSION 1
 	LANGUAGES CXX
 )
 
@@ -10,6 +11,7 @@ add_library(
 	./definition/assert.hpp
 	./definition/filesystem/common.hpp
 	./definition/string/common.hpp
+	./definition/path/common.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/base64/common.hpp
 	./definition/encryption/Rijndael/common.hpp
@@ -18,7 +20,9 @@ add_library(
 	./dependencies/md5.hpp
 	./dependencies/quickjs.hpp
 	./dependencies/base64.hpp
+	./dependencies/zlib.hpp
 	./dependencies/Rijndael.hpp
+	./interface/data.hpp
 	./interface/interface.cpp
 )
 

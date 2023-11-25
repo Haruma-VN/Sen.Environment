@@ -11,6 +11,13 @@ endif()
 
 project ("Shell")
 
+if(MSVC)
+    add_compile_options(/utf-8)
+else()
+    add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
+endif()
+
+
 # Add source to this project's executable.
 add_executable (Shell "Shell.cpp" "Shell.h")
 

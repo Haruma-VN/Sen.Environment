@@ -258,7 +258,12 @@ namespace Sen::Kernel::FileSystem {
 
 	using std::runtime_error;
 
+	// stream size
+
 	using std::streamsize;
+
+	// filePath: the path to read
+	// return: the binary file readed
 
 	
 	template <typename T>
@@ -281,6 +286,79 @@ namespace Sen::Kernel::FileSystem {
 		}
 		file.close();
 		return data;	
+	}
+
+	// dirPath: directory to read
+	// return: everything inside it even directory or file
+
+	inline auto readDirectory(
+		string directoryPath
+	) -> vector<string>
+	{
+		auto result = vector<string>{};
+		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		{
+			result.push_back(String::toPosixStyle(c.path().string()));
+		}
+		return result;
+	}
+
+	// dirPath: directory to read
+	// return: only files inside
+
+	inline auto readDirectoryOnlyFile(
+		string directoryPath
+	) -> vector<string>
+	{
+		auto result = vector<string>{};
+		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		{
+			if(c.is_regular_file()){
+				result.push_back(String::toPosixStyle(c.path().string()));
+			}
+		}
+		return result;
+	}
+
+	// dirPath: directory to read
+	// return: only dirs inside
+
+	inline auto readDirectoryOnlyDirectory(
+		string directoryPath
+	) -> vector<string>
+	{
+		auto result = vector<string>{};
+		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		{
+			if(c.is_directory()){
+				result.push_back(String::toPosixStyle(c.path().string()));
+			}
+		}
+		return result;
+	}
+
+
+	// dirPath: directory to read
+	// return: only files inside nested directories
+
+	inline auto readWholeDirectory(
+		string directoryPath
+	) -> vector<string>
+	{
+		auto result = vector<string>{};
+		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		{
+			if(c.is_directory()){
+				for(auto &e : readWholeDirectory(String::toPosixStyle(c.path().string())))
+				{
+					result.push_back(String::toPosixStyle(e));
+				}
+			}
+			else{
+				result.push_back(String::toPosixStyle(c.path().string()));
+			}
+		}
+		return result;
 	}
 
 }

@@ -1,27 +1,39 @@
 ﻿#include "kernel/definition/utility.hpp"
+#include "kernel/interface/data.hpp"
 
 using namespace Sen::Kernel;
 using std::exception;
 
 M_EXPORT_API
-int execute(int size, char** argc)
+int execute(
+    Interface::Argument* argument, 
+    Interface::Parameter* params, 
+    Interface::callback sendMessage, 
+    Interface::callback sendSubmessage,
+    Interface::input input
+)
 {
     try{
-        debug(Encryption::MD5::hashData(String::convertStringToSpan<unsigned char>("Hello World")));
+        auto arguments = Interface::convertArgumentToVectorString(argument);
+        auto parameters = Interface::convertParameterToVectorString(params);
+        for(auto &c : FileSystem::readWholeDirectory("D:/Code/Sen.Environment/Kernel/build/kernel"))
+        {
+            sendMessage(c.c_str());
+        }
     }
     catch(exception &ex)
     {
-        debug(ex.what());
+        sendMessage(ex.what());
         return 1;
     }
     catch(int errorCode)
     {
-        debug(fmt::format("Error caught with error code: {}", errorCode));
+        sendMessage(fmt::format("Error caught with error code: {}", errorCode).c_str());
         return 1;
     }
     catch(...)
     {
-        debug("An error occured during runtime");
+        sendMessage("An error occured during runtime");
         return 1;
     }
     return 0;
