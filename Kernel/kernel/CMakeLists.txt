@@ -1,6 +1,5 @@
 project(
 	kernel
-	VERSION 1
 	LANGUAGES CXX
 )
 
@@ -18,7 +17,6 @@ add_library(
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
 	./dependencies/md5.hpp
-	./dependencies/quickjs.hpp
 	./dependencies/base64.hpp
 	./dependencies/zlib.hpp
 	./dependencies/Rijndael.hpp
@@ -70,7 +68,6 @@ target_link_libraries(
 	fmt
 	base64
 	Rijndael
-	quickjs
 )
 
 set(CMAKE_CXX_STANDARD 23)

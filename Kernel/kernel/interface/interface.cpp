@@ -2,7 +2,6 @@
 #include "kernel/interface/data.hpp"
 
 using namespace Sen::Kernel;
-using std::exception;
 
 M_EXPORT_API
 int execute(
@@ -16,12 +15,12 @@ int execute(
     try{
         auto arguments = Interface::convertArgumentToVectorString(argument);
         auto parameters = Interface::convertParameterToVectorString(params);
-        for(auto &c : FileSystem::readWholeDirectory("D:/Code/Sen.Environment/Kernel/build/kernel"))
-        {
-            sendMessage(c.c_str());
-        }
+        // for(auto &c : FileSystem::readWholeDirectory("D:/Code/Sen.Environment/Kernel/build/kernel"))
+        // {
+        //     sendMessage(c.c_str());
+        // }
     }
-    catch(exception &ex)
+    catch(std::exception &ex)
     {
         sendMessage(ex.what());
         return 1;
