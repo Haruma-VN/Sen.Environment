@@ -3,8 +3,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 
-namespace Sen::Kernel::Interface 
-{
+namespace Sen::Kernel::Interface {
 
 	// basic string view
 	
@@ -31,7 +30,7 @@ namespace Sen::Kernel::Interface
 	// parameter
 
 	struct Parameter {
-		Argument* data;
+		BasicStringView* data;
 		size_t size;
 	};
 
@@ -60,18 +59,22 @@ namespace Sen::Kernel::Interface
 
 	inline static auto convertParameterToVectorString(
 		Parameter* param
-	) -> vector<vector<string>>
+	) -> vector<string>
 	{
-        auto result = vector<vector<string>> {};
-        for (auto i = 0; i < param->size; i++)
-		{
-			result.at(i) = vector<string>{};
-			for (auto j = 0; j < param->data[i].size; j++)
-			{
-				result.at(i).push_back(string {param->data[i].data->data, param->data[i].data->size});
-			}
-		}
+        auto result = vector<string> {};
+        for (auto i = 0; i < param->size; i++){
+            result.push_back(string {param->data[i].data, param->data[i].size});
+        }
         return result;
     }
+
+	// C Struct -> C++ String
+
+	inline static auto convertBasicStringViewToString(
+		BasicStringView* argument
+	) -> string
+	{
+		return string{argument->data, argument->size};
+	}
 
 }

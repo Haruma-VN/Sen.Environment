@@ -1,24 +1,23 @@
-﻿#include "kernel/definition/utility.hpp"
-#include "kernel/interface/data.hpp"
+﻿#include "kernel/interface/callback.h"
 
 using namespace Sen::Kernel;
 
 M_EXPORT_API
 int execute(
-    Interface::Argument* argument, 
+    Interface::BasicStringView* argument, 
     Interface::Parameter* params, 
     Interface::callback sendMessage, 
     Interface::callback sendSubmessage,
-    Interface::input input
+    Interface::input input,
+    Interface::CliCallBack command
 )
 {
     try{
-        auto arguments = Interface::convertArgumentToVectorString(argument);
+        auto process = Interface::convertBasicStringViewToString(argument);
         auto parameters = Interface::convertParameterToVectorString(params);
-        // for(auto &c : FileSystem::readWholeDirectory("D:/Code/Sen.Environment/Kernel/build/kernel"))
-        // {
-        //     sendMessage(c.c_str());
-        // }
+        auto* callback = new Interface::Callback(command, process, parameters, input, sendMessage, sendSubmessage);
+        callback->execute();
+        delete callback;
     }
     catch(std::exception &ex)
     {

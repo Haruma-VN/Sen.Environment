@@ -4,7 +4,7 @@
 #include "kernel/definition/assert.hpp"
 #include "kernel/definition/macro.hpp"
 
-namespace Sen::Kernel::Encryption {
+namespace Sen::Kernel::Encryption::MD5 {
 
 	// Byte definition
 
@@ -18,79 +18,17 @@ namespace Sen::Kernel::Encryption {
 
 	using std::span;
 
-	struct MD5 {
-		private:
+	// provide message to hash
 
-			// hash data
-
-			string dataHash;
-
-			// input data
-
-			span<byte> data;
-
-		public:
-
-			// constructor
-
-			explicit MD5(
-				const span<byte> &message
-			);
-
-			// destructor
-
-			~MD5(
-
-			) = default;
-
-			// getter
-
-			inline auto getData(
-
-			) -> string;
-
-			// call to hash md5 string
-
-			inline auto hash(
-
-			) -> void;
-
-			
-
-			// msg: Provide message to hash
-			// return: the hashed string
-
-			inline static auto hashData(
-				const span<byte> &message
-			) -> string
-			{
-				auto *md5 = new Encryption::MD5(message);
-				md5->hash();
-				auto result = md5->getData();
-				delete md5;
-				return result;
-			}
-	};
-
-	MD5::MD5(const span<byte> &message){
-		thiz.data = message;
-	}
-
-	inline auto MD5::getData(
-
+	
+	inline static auto hash(
+		const span<const byte> &message
 	) -> string
 	{
-		return thiz.dataHash;
-	}
-
-	inline auto MD5::hash(
-
-	) -> void
-	{
-		auto* md5 = new Dependencies::md5::MD5(thiz.data);
-		thiz.dataHash = md5->toStr();
+		auto* md5 = new Dependencies::md5::MD5(message);
+		auto result = md5->toStr();
 		delete md5;
-		return;
+		return result;
 	}
 
 }

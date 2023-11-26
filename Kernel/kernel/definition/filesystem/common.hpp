@@ -218,8 +218,11 @@ namespace Sen::Kernel::FileSystem {
 		string directoryPath
 	) -> void
 	{
+		if(fs::is_directory(directoryPath)){
+			return;
+		}
 		auto status = fs::create_directories(directoryPath);
-		try_assert(!status, fmt::format("Cannot make directory: {}", directoryPath));
+		try_assert(status, fmt::format("Cannot make directory: {}", directoryPath));
 		return;
 	}
 

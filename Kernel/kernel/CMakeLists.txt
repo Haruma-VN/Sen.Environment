@@ -12,15 +12,20 @@ add_library(
 	./definition/string/common.hpp
 	./definition/path/common.hpp
 	./definition/encryption/md5/common.hpp
-	./definition/encryption/base64/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
 	./dependencies/md5.hpp
-	./dependencies/base64.hpp
 	./dependencies/zlib.hpp
 	./dependencies/Rijndael.hpp
+
+	./support/popcap/resource_group/common.hpp
+	./support/utility.hpp
+
 	./interface/data.hpp
+	./interface/cli.hpp
+	./interface/callback.h
+	./interface/callback.cpp
 	./interface/interface.cpp
 )
 
@@ -66,7 +71,6 @@ target_link_libraries(
 	zlib
 	json
 	fmt
-	base64
 	Rijndael
 )
 

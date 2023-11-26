@@ -19,7 +19,12 @@ endif()
 
 
 # Add source to this project's executable.
-add_executable (Shell "Shell.cpp" "Shell.h")
+add_executable (
+    ${PROJECT_NAME} 
+    "Shell.cpp" 
+    "Shell.h"
+    "./callback/method.hpp"
+)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Shell PROPERTY CXX_STANDARD 20)

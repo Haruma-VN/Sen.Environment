@@ -18,6 +18,7 @@ inline auto static print(
 ) -> void
 {
     std::cout << message << std::endl;
+    return;
 }
 
 inline auto static printSubmessage(
@@ -25,6 +26,7 @@ inline auto static printSubmessage(
 ) -> void
 {
     std::cout << message;
+    return;
 }
 
 MAIN_FUNCTION
@@ -36,20 +38,26 @@ MAIN_FUNCTION
     std::setlocale(LC_ALL, "C");
     auto hinstLib = LoadLibrary(TEXT("D:/Code/Sen.Environment/Kernel/build/kernel/Release/kernel.dll"));
     if (hinstLib == NULL) {
-        print("Unable to load DLL!");
+        print("Kernel cannot be loaded");
         return 1;
     }
     auto execute = (KernelExecute)GetProcAddress(hinstLib, "execute");
     if (execute == NULL) {
-        print("Unable to load function!");
+        print("Method not found");
         FreeLibrary(hinstLib);
         return 1;
     }
-    auto* argument = new Argument{};
+    auto path1 = (std::string)"D:/test/m.json";
+    auto path2 = (std::string)"D:/test/m.res";
+    auto* argument = new BasicStringView{};
+    strcpy_s(argument->data, path1.c_str());
+    argument->size = path1.size();
     auto* parameter = new Parameter{};
-    execute(argument, parameter, print, printSubmessage, getLine);
+    strcpy_s(parameter->data[0].data, path2.c_str());
+    parameter->data[0].size = path2.size();
+    auto result = execute(argument, parameter, print, printSubmessage, getLine, Sen::Shell::CliCallBack::RESOURCE_GROUP_SPLIT);
     FreeLibrary(hinstLib);
     delete argument;
     delete parameter;
-    return 0;
+    return result;
 }
