@@ -47,15 +47,15 @@ MAIN_FUNCTION
         FreeLibrary(hinstLib);
         return 1;
     }
-    auto path1 = (std::string)"D:/test/m.json";
-    auto path2 = (std::string)"D:/test/m.res";
+    auto path1 = (std::string)"D:/test/m.bin";
+    auto path2 = (std::string)"D:/test/m.data";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
     auto* parameter = new Parameter{};
     strcpy_s(parameter->data[0].data, path2.c_str());
     parameter->data[0].size = path2.size();
-    auto result = execute(argument, parameter, print, printSubmessage, getLine, Sen::Shell::CliCallBack::RESOURCE_GROUP_SPLIT);
+    auto result = execute(argument, parameter, print, printSubmessage, getLine, Sen::Shell::CliCallBack::BASE64_DECODE);
     FreeLibrary(hinstLib);
     delete argument;
     delete parameter;

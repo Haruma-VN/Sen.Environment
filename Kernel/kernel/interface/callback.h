@@ -35,13 +35,13 @@ namespace Sen::Kernel::Interface
 
 			Interface::callback print;
 
-			void parameter_require_input(
+			auto parameter_require_input(
 				size_t index
-			);
+			) -> void;
 
-			void argument_require_input(
+			auto argument_require_input(
 
-			);
+			) -> void;
 
 		public:
 
@@ -58,9 +58,9 @@ namespace Sen::Kernel::Interface
 
 			) = default;
 
-			void execute(
+			auto execute(
 
-			);
+			) -> void;
 	};
 
 }

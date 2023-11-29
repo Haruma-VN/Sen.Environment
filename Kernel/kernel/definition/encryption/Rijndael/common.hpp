@@ -5,7 +5,8 @@
 #include "kernel/definition/assert.hpp"
 #include "kernel/dependencies/Rijndael.hpp"
 
-namespace Sen::Kernel::Encryption {
+namespace Sen::Kernel::Encryption 
+{
 
 	// Rijndael Mode
 

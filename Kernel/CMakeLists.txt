@@ -14,6 +14,8 @@ add_subdirectory("./dependencies/zlib")
 add_subdirectory("./dependencies/fmt")
 add_subdirectory("./dependencies/Rijndael")
 add_subdirectory("./dependencies/SHA224CryptoServiceProvider")
+add_subdirectory("./dependencies/SHA256")
+add_subdirectory("./dependencies/cpp-base64")
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

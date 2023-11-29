@@ -14,13 +14,18 @@ add_library(
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp
+	./definition/encryption/sha256/common.hpp
+	./definition/encryption/base64/common.hpp
+	./definition/encryption/XOR/common.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
 	./dependencies/md5.hpp
 	./dependencies/zlib.hpp
+	./dependencies/SHA256.hpp
 	./dependencies/Rijndael.hpp
 	./dependencies/SHA224CryptoServiceProvider.hpp
+	./dependencies/cpp-base64.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/utility.hpp
@@ -76,6 +81,8 @@ target_link_libraries(
 	fmt
 	Rijndael
 	SHA224CryptoServiceProvider
+	SHA256
+	cpp-base64
 )
 
 set(CMAKE_CXX_STANDARD 23)

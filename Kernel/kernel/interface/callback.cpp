@@ -20,9 +20,9 @@ namespace Sen::Kernel::Interface
 		thiz.print = print;
 	}
 
-	void Callback::parameter_require_input(
+	auto Callback::parameter_require_input(
 		size_t index
-	)
+	) -> void
 	{
 		if(index < thiz.params.size()){
 			return;
@@ -32,11 +32,11 @@ namespace Sen::Kernel::Interface
 		return;
 	}
 
-	void Callback::argument_require_input(
+	auto Callback::argument_require_input(
 
-	)
+	) -> void
 	{
-		if(std::filesystem::exists(Path::toPosixStyle(thiz.argument)))
+		if(std::filesystem::exists(Path::normalize(thiz.argument)))
 		{
 			return;
 		}
@@ -45,17 +45,33 @@ namespace Sen::Kernel::Interface
 		return;
 	}
 
-	void Callback::execute(
+	auto Callback::execute(
 
-	)
+	) -> void
 	{
 		switch(thiz.command){
 			case Interface::MD5_HASH:{
-				thiz.printline(Sen::Kernel::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)).c_str());
+				thiz.printline(Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)).c_str());
 				break;
 			}
 			case Interface::SHA224_HASH:{
 				thiz.printline(Sen::Kernel::Definition::Encryption::Sha224::hash(thiz.argument).c_str());
+				break;
+			}
+			case Interface::SHA256_HASH:{
+				thiz.printline(Sen::Kernel::Definition::Encryption::SHA256::hash(thiz.argument).c_str());
+				break;
+			}
+			case Interface::BASE64_ENCODE:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Encryption::Base64::encode_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
+			case Interface::BASE64_DECODE:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Encryption::Base64::decode_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Interface::RESOURCE_GROUP_SPLIT:{

@@ -4,7 +4,8 @@
 #include "kernel/definition/assert.hpp"
 #include "kernel/definition/string/common.hpp"
 
-namespace Sen::Kernel::FileSystem {
+namespace Sen::Kernel::FileSystem
+{
 
 	// ifstream is using without namespace std
 
@@ -222,7 +223,6 @@ namespace Sen::Kernel::FileSystem {
 			return;
 		}
 		auto status = fs::create_directories(directoryPath);
-		try_assert(status, fmt::format("Cannot make directory: {}", directoryPath));
 		return;
 	}
 

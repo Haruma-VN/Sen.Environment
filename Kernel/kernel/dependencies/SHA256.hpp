@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dependencies/md5/md5.h"
+#include "dependencies/SHA256/SHA256.h"
 
 #if defined MSVC_COMPILER
 #pragma warning(pop)
@@ -9,11 +9,11 @@
 #pragma clang diagnostic pop
 #endif
 
-namespace Sen::Kernel::Dependencies::md5 
-{
+namespace Sen::Kernel::Dependencies::SHA256 {
 
-	// class MD5 from MD5 library
+	// include deps
+
+	using SHA256 = ::SHA256;
+
 	
-	using MD5 = ::MD5;
-
 }
