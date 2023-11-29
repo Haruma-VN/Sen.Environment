@@ -15,3 +15,5 @@
 #include "kernel/dependencies/fmt.hpp"
 #include "kernel/dependencies/json.hpp"
 #include "kernel/dependencies/md5.hpp"
+#include "kernel/dependencies/Rijndael.hpp"
+#include "kernel/dependencies/SHA224CryptoServiceProvider.hpp"

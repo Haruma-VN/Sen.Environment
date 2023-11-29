@@ -8,4 +8,5 @@
 #include "kernel/definition/string/common.hpp"
 #include "kernel/definition/path/common.hpp"
 #include "kernel/definition/encryption/md5/common.hpp"
+#include "kernel/definition/encryption/sha224/common.hpp"
 #include "kernel/definition/encryption/Rijndael/common.hpp"

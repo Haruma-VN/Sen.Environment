@@ -4,12 +4,12 @@ namespace Sen::Kernel::Interface
 {
 	
 	Callback::Callback(
-		Interface::CliCallBack command, 
-		string argument, 
-		vector<string> params,
-		Interface::input input,
-		Interface::callback printline,
-		Interface::callback print
+		Interface::CliCallBack &command, 
+		string &argument, 
+		vector<string> &params,
+		Interface::input &input,
+		Interface::callback &printline,
+		Interface::callback &print
 	)
 	{
 		thiz.command = command;
@@ -50,6 +50,14 @@ namespace Sen::Kernel::Interface
 	)
 	{
 		switch(thiz.command){
+			case Interface::MD5_HASH:{
+				thiz.printline(Sen::Kernel::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)).c_str());
+				break;
+			}
+			case Interface::SHA224_HASH:{
+				thiz.printline(Sen::Kernel::Definition::Encryption::Sha224::hash(thiz.argument).c_str());
+				break;
+			}
 			case Interface::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);

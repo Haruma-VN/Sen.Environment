@@ -6,6 +6,8 @@ namespace Sen::Kernel::Interface
 	enum CliCallBack
 	{
 
+		MD5_HASH,
+		SHA224_HASH,
 		RESOURCE_GROUP_SPLIT,
 		RESOURCE_GROUP_MERGE,
 		RES_INFO_SPLIT,

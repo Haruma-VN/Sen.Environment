@@ -46,12 +46,12 @@ namespace Sen::Kernel::Interface
 		public:
 
 			Callback(
-				Interface::CliCallBack command, 
-				string argument, 
-				vector<string> params,
-				Interface::input input,
-				Interface::callback printline,
-				Interface::callback print
+				Interface::CliCallBack &command, 
+				string &argument, 
+				vector<string> &params,
+				Interface::input &input,
+				Interface::callback &printline,
+				Interface::callback &print
 			);
 
 			~Callback(
