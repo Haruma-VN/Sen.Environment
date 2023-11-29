@@ -55,7 +55,7 @@ MAIN_FUNCTION
     auto* parameter = new Parameter{};
     strcpy_s(parameter->data[0].data, path2.c_str());
     parameter->data[0].size = path2.size();
-    auto result = execute(argument, parameter, print, printSubmessage, getLine, Sen::Shell::CliCallBack::BASE64_DECODE);
+    auto result = execute(argument, parameter, print, printSubmessage, getLine, Sen::Shell::CliCallBack::MD5_HASH);
     FreeLibrary(hinstLib);
     delete argument;
     delete parameter;

@@ -11,6 +11,7 @@ add_library(
 	./definition/filesystem/common.hpp
 	./definition/string/common.hpp
 	./definition/path/common.hpp
+	./definition/pointer/common.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp

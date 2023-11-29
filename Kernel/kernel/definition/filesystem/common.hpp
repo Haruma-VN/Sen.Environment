@@ -27,8 +27,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the file data as string
 
 	inline auto readFile(
-		string filepath
-	) -> string
+		const string &filepath
+	) -> string const
 	{
 		auto file = ifstream{};
 		file.open(filepath);
@@ -46,8 +46,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written
 
 	inline auto writeFile(
-		string filepath, 
-		string content
+		const string &filepath, 
+		const string &content
 	) -> void 
 	{
 		auto file = ofstream(filepath);
@@ -64,8 +64,8 @@ namespace Sen::Kernel::FileSystem
 	// return: if the json is valid, the json data will be parsed as object
 
 	inline auto readJson(
-		string filePath
-	) -> json 
+		const string &filePath
+	) -> json const
 	{
 		auto file = ifstream(filePath);
 		auto jsonData = json::parse(file);
@@ -78,8 +78,8 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline auto writeJson(
-		string filePath,
-		json content
+		const string &filePath,
+		const json &content
 	) -> void
 	{
 		writeFile(filePath, content.dump(1, '\t'));
@@ -93,10 +93,10 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline auto writeJson(
-		string filePath,
-		json content,
-		int indent,
-		char indent_char
+		const string &filePath,
+		const json &content,
+		const int &indent,
+		const char &indent_char
 	) -> void
 	{
 		writeFile(filePath, content.dump(indent, indent_char));
@@ -109,9 +109,9 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline auto writeJson(
-		string filePath,
-		json content,
-		char indent_char
+		const string &filePath,
+		const json &content,
+		const char &indent_char
 	) -> void
 	{
 		writeFile(filePath, content.dump(1, indent_char));
@@ -126,11 +126,11 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline auto writeJson(
-		string filePath,
-		json content,
-		int indent,
-		char indent_char,
-		bool ensureAscii
+		const string &filePath,
+		const json &content,
+		const int &indent,
+		const char &indent_char,
+		const bool &ensureAscii
 	) -> void
 	{
 		writeFile(filePath, content.dump(indent, indent_char, ensureAscii));
@@ -168,8 +168,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the utf16le string
 
 	inline auto readFileByUtf16LE(
-		string filePath
-	) -> wstring
+		const string &filePath
+	) -> wstring const
 	{
 		auto wif = wifstream(filePath, ios::binary);
 		try_assert(!wif.fail(), fmt::format("Could not open file: {}", filePath));
@@ -196,8 +196,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the data has been written
 
 	inline auto writeFileByUtf16LE(
-		string filePath,
-		wstring data
+		const string &filePath,
+		const wstring &data
 	) -> void
 	{
 		auto utf16le_locale = static_cast<locale>(locale(locale::classic(), new codecvt_utf16<wchar_t, 0x10ffff, little_endian>));
@@ -216,7 +216,7 @@ namespace Sen::Kernel::FileSystem
 	// return: create directory
 
 	inline auto createDirectory(
-		string directoryPath
+		const string &directoryPath
 	) -> void
 	{
 		if(fs::is_directory(directoryPath)){
@@ -231,12 +231,12 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written
 
 	inline auto outFile(
-		string filePath,
-		string content
+		const string &filePath,
+		const string &content
 	) -> void
 	{
-		filePath = String::toPosixStyle(filePath);
-		auto data = String::split(filePath, "/");
+		auto temporary = String::toPosixStyle(filePath);
+		auto data = String::split(temporary, "/");
 		auto last = data.at(data.size() - 1);
 		data.pop_back();
 		createDirectory(String::join(data, "/"));
@@ -249,8 +249,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written to json
 
 	inline auto outJson(
-		string filePath,
-		json content
+		const string &filePath,
+		const json &content
 	) -> void
 	{
 		outFile(filePath, content.dump(1, '\t'));
@@ -271,8 +271,8 @@ namespace Sen::Kernel::FileSystem
 	
 	template <typename T>
 	inline auto readBinary(
-		string filePath
-	) -> vector<T>
+		const string &filePath
+	) -> vector<T> const
 	{
 		auto file = ifstream(filePath, ios::binary);
 		if(!file)
@@ -295,8 +295,8 @@ namespace Sen::Kernel::FileSystem
 	// return: everything inside it even directory or file
 
 	inline auto readDirectory(
-		string directoryPath
-	) -> vector<string>
+		const string &directoryPath
+	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
@@ -310,8 +310,8 @@ namespace Sen::Kernel::FileSystem
 	// return: only files inside
 
 	inline auto readDirectoryOnlyFile(
-		string directoryPath
-	) -> vector<string>
+		const string &directoryPath
+	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
@@ -327,8 +327,8 @@ namespace Sen::Kernel::FileSystem
 	// return: only dirs inside
 
 	inline auto readDirectoryOnlyDirectory(
-		string directoryPath
-	) -> vector<string>
+		const string &directoryPath
+	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
@@ -345,8 +345,8 @@ namespace Sen::Kernel::FileSystem
 	// return: only files inside nested directories
 
 	inline auto readWholeDirectory(
-		string directoryPath
-	) -> vector<string>
+		const string &directoryPath
+	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))

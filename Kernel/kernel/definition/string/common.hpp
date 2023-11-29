@@ -20,8 +20,8 @@ namespace Sen::Kernel::String {
 
 	inline auto split(
 		string str,
-		string delimiter
-	) -> vector<string>
+		const string &delimiter
+	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		auto pos = string::size_type(0);
@@ -39,7 +39,7 @@ namespace Sen::Kernel::String {
 
 	inline auto toPosixStyle(
 		string str
-	) -> string
+	) -> string const
 	{
 		for(auto &c : str)
 		{
@@ -55,7 +55,7 @@ namespace Sen::Kernel::String {
 
 	inline auto toWindowsStyle(
 		string str
-	) -> string
+	) -> string const
 	{
 		for(auto &c : str)
 		{
@@ -73,9 +73,9 @@ namespace Sen::Kernel::String {
 	*/
 
 	inline auto join(
-		vector<string> data,
-		string delimiter
-	) -> string
+		const vector<string> &data,
+		const string &delimiter
+	) -> string const
 	{
 		auto result = string{};
 		for(auto &c : data)
@@ -101,8 +101,8 @@ namespace Sen::Kernel::String {
 
 	template <typename T>
 	inline auto convertStringToSpan(
-		string str
-	) -> span<T>
+		string &str
+	) -> span<T> const
 	{
 		static_assert(is_same_v<T, char> || is_same_v<T, unsigned char>,
 					"Template argument T must be char or unsigned char"

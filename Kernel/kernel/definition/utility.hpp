@@ -5,6 +5,7 @@
 #include "kernel/definition/macro.hpp"
 #include "kernel/definition/encryption/md5/common.hpp"
 #include "kernel/definition/filesystem/common.hpp"
+#include "kernel/definition/pointer/common.hpp"
 #include "kernel/definition/string/common.hpp"
 #include "kernel/definition/path/common.hpp"
 #include "kernel/definition/encryption/md5/common.hpp"
