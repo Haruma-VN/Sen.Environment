@@ -1,7 +1,14 @@
-﻿
-project ("Kernel")
+﻿cmake_minimum_required (VERSION 3.20)
+project (
+  Kernel
+  VERSION 1
+  HOMEPAGE_URL https://github.com/Haruma-VN/Sen.Environment
+  LANGUAGES CXX
+)
 
-cmake_minimum_required (VERSION 3.14)
+add_definitions(-w)
+add_compile_options(/w)
+
 
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -16,6 +23,12 @@ add_subdirectory("./dependencies/Rijndael")
 add_subdirectory("./dependencies/SHA224CryptoServiceProvider")
 add_subdirectory("./dependencies/SHA256")
 add_subdirectory("./dependencies/cpp-base64")
+add_subdirectory("./dependencies/RectangleBinPack")
+add_subdirectory("./dependencies/PVRTCCompressor")
+add_subdirectory("./dependencies/libpng")
+add_subdirectory("./dependencies/etcpak")
+add_subdirectory("./dependencies/tinyxml2")
+add_subdirectory("./dependencies/ETCPACK")
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

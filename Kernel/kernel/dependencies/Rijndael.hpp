@@ -1,5 +1,13 @@
 #pragma once
 
+#if defined MSVC_COMPILER
+#pragma warning(push)
+#endif
+#if defined CLANG_COMPILER
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+#endif
+
 #include "dependencies/Rijndael/Rijndael.h"
 
 #if defined MSVC_COMPILER

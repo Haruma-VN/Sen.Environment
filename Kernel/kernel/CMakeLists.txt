@@ -27,6 +27,12 @@ add_library(
 	./dependencies/Rijndael.hpp
 	./dependencies/SHA224CryptoServiceProvider.hpp
 	./dependencies/cpp-base64.hpp
+	./dependencies/RectangleBinPack.hpp
+	./dependencies/PVRTCCompressor.hpp
+	./dependencies/libpng.hpp
+	./dependencies/etcpak.hpp
+	./dependencies/tinyxml2.hpp
+	./dependencies/ETCPACK.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/utility.hpp
@@ -84,6 +90,12 @@ target_link_libraries(
 	SHA224CryptoServiceProvider
 	SHA256
 	cpp-base64
+	RectangleBinPack
+	PVRTCCompressor
+	libpng
+	etcpak
+	tinyxml2
+	ETCPACK
 )
 
 set(CMAKE_CXX_STANDARD 23)
