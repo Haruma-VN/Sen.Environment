@@ -31,27 +31,30 @@ namespace Sen::Kernel::Interface
 
 			Interface::input input;
 
-			Interface::callback printline;
-
 			Interface::callback print;
 
 			auto parameter_require_input(
-				size_t index
+				const size_t &index
 			) -> void;
 
 			auto argument_require_input(
 
 			) -> void;
 
+			auto printc(
+				const string &title,
+				const string &message,
+				const Interface::Color &color
+			) -> void;
+
 		public:
 
 			Callback(
-				Interface::CliCallBack &command, 
-				string &argument, 
-				vector<string> &params,
-				Interface::input &input,
-				Interface::callback &printline,
-				Interface::callback &print
+				const Interface::CliCallBack &command, 
+				const string &argument, 
+				const vector<string> &params,
+				const Interface::input &input,
+				const Interface::callback &print
 			);
 
 			~Callback(

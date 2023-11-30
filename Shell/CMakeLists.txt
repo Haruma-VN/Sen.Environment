@@ -21,9 +21,10 @@ endif()
 # Add source to this project's executable.
 add_executable (
     ${PROJECT_NAME} 
-    "Shell.cpp" 
-    "Shell.h"
-    "./callback/method.hpp"
+    ./callback/method.hpp
+    ./interactive/color.hpp
+    Shell.h
+    Shell.cpp 
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

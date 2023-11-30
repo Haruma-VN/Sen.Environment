@@ -19,5 +19,12 @@ namespace Sen::Kernel::Interface
 		RES_INFO_TO_RESOURCE_GROUP,
 
 	};
+
+	enum Color {
+		GREEN = 10,
+		CYAN = 11,
+		RED = 12,
+		YELLOW = 14,
+	};
 	
 }

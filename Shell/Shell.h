@@ -5,16 +5,16 @@
 #include <string>
 #include <stdio.h>
 #include "callback/method.hpp"
+#include "interactive/color.hpp"
 
 #if WIN32
 #include <windows.h>
+#else
+#include <dlfcn.h>
 #endif
 
-#if WIN32
-#define MAIN_FUNCTION inline auto wmain(int size, char** argc) -> int
-#else
+
 #define MAIN_FUNCTION int main(int size, char** argc)
-#endif
 
 struct BasicStringView {
 	char data[700];
@@ -63,9 +63,9 @@ struct Parameter {
 
 };
 
-typedef void (*callback)(const char*);
+typedef void (*callback)(const char*, const char*, const Sen::Shell::Interactive::Color);
 
 typedef BasicStringView (*input)();
 
 typedef int (*KernelExecute)
-(BasicStringView* argument, Parameter* params, callback sendMessage, callback sendSubmessage, input inputW, Sen::Shell::CliCallBack);
+(BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, Sen::Shell::CliCallBack);

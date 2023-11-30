@@ -4,24 +4,22 @@ namespace Sen::Kernel::Interface
 {
 	
 	Callback::Callback(
-		Interface::CliCallBack &command, 
-		string &argument, 
-		vector<string> &params,
-		Interface::input &input,
-		Interface::callback &printline,
-		Interface::callback &print
+		const Interface::CliCallBack &command, 
+		const string &argument, 
+		const vector<string> &params,
+		const Interface::input &input,
+		const Interface::callback &print
 	)
 	{
 		thiz.command = command;
 		thiz.argument = argument;
 		thiz.params = params;
 		thiz.input = input;
-		thiz.printline = printline;
 		thiz.print = print;
 	}
 
 	auto Callback::parameter_require_input(
-		size_t index
+		const size_t &index
 	) -> void
 	{
 		if(index < thiz.params.size()){
@@ -45,21 +43,32 @@ namespace Sen::Kernel::Interface
 		return;
 	}
 
+	auto Callback::printc(
+		const string & title,
+		const string & message,
+		const Interface::Color &color
+	) -> void
+	{
+		thiz.print(fmt::format("{}\n\t", title).c_str(), message.c_str(), color);
+		return;
+		return;
+	}
+
 	auto Callback::execute(
 
 	) -> void
 	{
 		switch(thiz.command){
 			case Interface::MD5_HASH:{
-				thiz.printline(Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)).c_str());
+				thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
 			case Interface::SHA224_HASH:{
-				thiz.printline(Sen::Kernel::Definition::Encryption::Sha224::hash(thiz.argument).c_str());
+				thiz.printc(fmt::format("SHA-224 Hash result:"), Sen::Kernel::Definition::Encryption::Sha224::hash(thiz.argument), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
 			case Interface::SHA256_HASH:{
-				thiz.printline(Sen::Kernel::Definition::Encryption::SHA256::hash(thiz.argument).c_str());
+				thiz.printc(fmt::format("SHA-256 Hash result:"),Sen::Kernel::Definition::Encryption::SHA256::hash(thiz.argument), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
 			case Interface::BASE64_ENCODE:{
@@ -81,6 +90,9 @@ namespace Sen::Kernel::Interface
 				break;
 			}
 			case Interface::RESOURCE_GROUP_MERGE:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Support::PopCap::ResourceGroup::merge(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Interface::RES_INFO_SPLIT: {

@@ -6,8 +6,7 @@ M_EXPORT_API
 int execute(
     Interface::BasicStringView* argument, 
     Interface::Parameter* params, 
-    Interface::callback sendMessage, 
-    Interface::callback sendSubmessage,
+    Interface::callback sendMessage,
     Interface::input input,
     Interface::CliCallBack command
 )
@@ -15,23 +14,23 @@ int execute(
     try{
         auto process = Interface::convertBasicStringViewToString(argument);
         auto parameters = Interface::convertParameterToVectorString(params);
-        auto* callback = new Interface::Callback(command, process, parameters, input, sendMessage, sendSubmessage);
+        auto* callback = new Interface::Callback(command, process, parameters, input, sendMessage);
         callback->execute();
         delete callback;
     }
     catch(std::exception &ex)
     {
-        sendMessage(ex.what());
+        sendMessage("Runtime Exception found: ", ex.what(), Sen::Kernel::Interface::Color::RED);
         return 1;
     }
     catch(int errorCode)
     {
-        sendMessage(fmt::format("Error caught with error code: {}", errorCode).c_str());
+        sendMessage("Exception found: ", fmt::format("Error caught with error code: {}", errorCode).c_str(), Sen::Kernel::Interface::Color::RED);
         return 1;
     }
     catch(...)
     {
-        sendMessage("An error occured during runtime");
+        sendMessage("Assertation Error", "An error occured during runtime", Sen::Kernel::Interface::Color::RED);
         return 1;
     }
     return 0;

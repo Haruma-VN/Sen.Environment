@@ -14,7 +14,7 @@ namespace Sen::Kernel::Interface {
 
 	// call back
 
-	typedef void (*callback)(const char*);
+	typedef void (*callback)(const char*, const char*, const Sen::Kernel::Interface::Color);
 
 	// input
 
