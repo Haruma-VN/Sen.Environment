@@ -47,6 +47,8 @@ namespace Sen::Kernel::Interface
 				const Interface::Color &color
 			) -> void;
 
+			static auto constexpr emptyString = "";
+
 		public:
 
 			Callback(

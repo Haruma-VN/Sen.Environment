@@ -7,3 +7,9 @@ add_library(
     ./SHA256.h
     ./SHA256.cpp
 )
+
+if (MSVC)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+else ()
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()

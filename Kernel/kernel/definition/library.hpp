@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <codecvt>
 #include <type_traits>
+#include <chrono>
+#include <source_location>
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"
 #include "kernel/dependencies/json.hpp"
@@ -25,3 +27,4 @@
 #include "kernel/dependencies/etcpak.hpp"
 #include "kernel/dependencies/tinyxml2.hpp"
 #include "kernel/dependencies/ETCPACK.hpp"
+#include "kernel/dependencies/backward-cpp.hpp"

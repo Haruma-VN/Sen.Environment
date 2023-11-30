@@ -23,10 +23,10 @@ namespace Sen::Kernel::Support::PopCap {
 			{
 				auto slot_group = std::map<std::string, unsigned int>();
 				for(auto &e : resource["groups"]){
-					if(e["resources"].is_null()){
+					if(e.find("resources") == e.end()){
 						continue;
 					}
-					for(auto &c : resource["groups"][e]){
+					for(auto &c : e["resources"]){
 						if(slot_group.find(c["id"]) == slot_group.end()){
 							c["slot"] = slot_group.size();
 							slot_group.insert(std::pair<std::string, unsigned int>(c["id"], slot_group.size()));
@@ -36,6 +36,7 @@ namespace Sen::Kernel::Support::PopCap {
 						}
 					}
 				}
+				resource["slot_count"] = slot_group.size();
 				return;
 			}
 
@@ -58,19 +59,19 @@ namespace Sen::Kernel::Support::PopCap {
 				auto content = json{};
 				for(auto &c : resource["groups"])
 				{
-					if(!(c["resources"].is_null()))
+					if(c.find("resources") != c.end())
 					{
 						for(auto &e : c["resources"])
 						{
 							e.erase("slot");
 						}
 					}
-					if(!(c["resources"].is_null()) && !(c["parent"].is_null()))
+					if((c.find("resources") != c.end()) && (c.find("parent") != c.end()))
 					{
 						FileSystem::writeJson(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
 					}
-					if((!c["subgroups"].is_null()) || (!c["resources"].is_null() && c["parent"].is_null())){
-						if(!c["subgroups"].is_null())
+					if((c.find("subgroups") != c.end()) || (c.find("resources") != c.end() && c.find("parent") == c.end())){
+						if(c.find("subgroups") != c.end())
 						{
 							content[c["id"]]["is_composite"] = true;
 							for(auto &e : c["subgroups"]){
@@ -108,7 +109,7 @@ namespace Sen::Kernel::Support::PopCap {
 				auto resources_json = nlohmann::json{
 					{"version", 1},
 					{"content_version", 1},
-					{"slot_count", 0l},
+					{"slot_count", 0},
 					{"groups", nlohmann::json::array()}
 				};
 				for(auto & [parent, parent_value] : content.items()){
@@ -118,22 +119,19 @@ namespace Sen::Kernel::Support::PopCap {
 							{"type", "composite"},
 							{"subgroups", nlohmann::json::array()}
 						};
-						for(auto & [subgroup, subgroup_value] : content[parent].items()){
+						for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 							auto resource_for_subgroup = nlohmann::json{{"id", subgroup}};
 							if(!content[parent]["subgroups"][subgroup]["type"].is_null()){
 								resource_for_subgroup["res"] = content[parent]["subgroups"][subgroup]["type"];
 							}
-							composite_object.push_back(resource_for_subgroup);
+							composite_object["subgroups"].push_back(resource_for_subgroup);
 						}
 						resources_json["groups"].push_back(composite_object);
 					}
-					for(auto & [subgroup, subgroup_value] : content[parent].items()){
-						auto resource_json_path = Path::normalize(fmt::format("{}/{}", directoryPath, subgroup));
+					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
+						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
 						auto resource_content = FileSystem::readJson(resource_json_path);
-						try_assert(!resource_content["resources"].is_null(), fmt::format("Property \"{}\" cannot be null", "groups"));
-						for(auto &element : resource_content["resources"]){
-							element["slot"] = 0;
-						}
+						try_assert(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"));
 						resources_json["groups"].push_back(resource_content);
 					}
 				}

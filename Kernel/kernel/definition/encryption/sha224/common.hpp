@@ -16,8 +16,8 @@ namespace Sen::Kernel::Definition::Encryption::Sha224
 	*/
 
 	inline static auto hash(
-		const std::string &message
-	) -> std::string
+		const string &message
+	) -> string const
 	{
 		auto *sha224 = new Dependencies::SHA224CryptoServiceProvider::sha224();
 		auto result = sha224->Hashing(message);

@@ -25,7 +25,7 @@ namespace Sen::Kernel::Definition::Encryption::MD5
 	
 	inline static auto hash(
 		const span<const byte> &message
-	) -> string
+	) -> string const
 	{
 		auto* md5 = new Dependencies::md5::MD5(message);
 		auto result = md5->toStr();

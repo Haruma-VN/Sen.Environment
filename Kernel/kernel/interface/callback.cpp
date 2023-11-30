@@ -49,7 +49,7 @@ namespace Sen::Kernel::Interface
 		const Interface::Color &color
 	) -> void
 	{
-		thiz.print(fmt::format("{}\n\t", title).c_str(), message.c_str(), color);
+		thiz.print(fmt::format("{}\n  ", title).c_str(), message.c_str(), color);
 		return;
 		return;
 	}
@@ -58,32 +58,38 @@ namespace Sen::Kernel::Interface
 
 	) -> void
 	{
+		auto const before = Sen::Kernel::Definition::Timer::start();
 		switch(thiz.command){
-			case Interface::MD5_HASH:{
+			case Sen::Kernel::Interface::CliCallBack::MD5_HASH:{
+				thiz.print(fmt::format("Method loaded: {}", "MD5 Hash").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
-			case Interface::SHA224_HASH:{
+			case Sen::Kernel::Interface::CliCallBack::SHA224_HASH:{
+				thiz.print(fmt::format("Method loaded: {}", "SHA-224 Hash").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.printc(fmt::format("SHA-224 Hash result:"), Sen::Kernel::Definition::Encryption::Sha224::hash(thiz.argument), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
-			case Interface::SHA256_HASH:{
+			case Sen::Kernel::Interface::CliCallBack::SHA256_HASH:{
+				thiz.print(fmt::format("Method loaded: {}", "SHA-256 Hash").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.printc(fmt::format("SHA-256 Hash result:"),Sen::Kernel::Definition::Encryption::SHA256::hash(thiz.argument), Sen::Kernel::Interface::Color::GREEN);
 				break;
 			}
-			case Interface::BASE64_ENCODE:{
+			case Sen::Kernel::Interface::CliCallBack::BASE64_ENCODE:{
+				thiz.print(fmt::format("Method loaded: {}", "Base64 Encode").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
 				Sen::Kernel::Definition::Encryption::Base64::encode_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
-			case Interface::BASE64_DECODE:{
+			case Sen::Kernel::Interface::CliCallBack::BASE64_DECODE:{
+				thiz.print(fmt::format("Method loaded: {}", "Base64 Decode").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
 				Sen::Kernel::Definition::Encryption::Base64::decode_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
-			case Interface::RESOURCE_GROUP_SPLIT:{
+			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
 				Sen::Kernel::Support::PopCap::ResourceGroup::split(thiz.argument, thiz.params.at(0));
@@ -111,6 +117,9 @@ namespace Sen::Kernel::Interface
 				throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
 			}
 		}
+		auto const after = Sen::Kernel::Definition::Timer::start();
+		auto const time_spent = Sen::Kernel::Definition::Timer::calculate(before, after);
+		thiz.print(fmt::format("Time spent: {}s", time_spent).c_str(), Sen::Kernel::Interface::Callback::emptyString,Sen::Kernel::Interface::Color::GREEN);
 		return;
 	}
 }

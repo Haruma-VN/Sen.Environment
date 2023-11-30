@@ -1,14 +1,12 @@
 project(
-	tinyxml2
-	VERSION 9.0.0
-	HOMEPAGE_URL https://github.com/leethomason/tinyxml2
-	LANGUAGES CXX C
+	backward-cpp
+	LANGUAGES CXX
 )
 
 add_library(
 	${PROJECT_NAME} STATIC
-	./tinyxml2.h
-	./tinyxml2.cpp
+	./backward.hpp
+	./backward.cpp
 )
 
 if (MSVC)
@@ -17,10 +15,18 @@ else ()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif ()
 
+
 # Set Kind
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
+# Disable Narrowing
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")
+endif()
 
 # UTF8 Support
 if(MSVC)
@@ -31,5 +37,5 @@ else()
   add_compile_options(-finput-charset=UTF-8)
 endif()
 
-set_target_properties(tinyxml2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)

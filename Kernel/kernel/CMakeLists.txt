@@ -12,6 +12,7 @@ add_library(
 	./definition/string/common.hpp
 	./definition/path/common.hpp
 	./definition/pointer/common.hpp
+	./definition/timer/common.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp
@@ -33,6 +34,7 @@ add_library(
 	./dependencies/etcpak.hpp
 	./dependencies/tinyxml2.hpp
 	./dependencies/ETCPACK.hpp
+	./dependencies/backward-cpp.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/utility.hpp
@@ -53,6 +55,13 @@ target_include_directories(
 	${PROJECT_NAME} PRIVATE
 	..
 )
+
+if (MSVC)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+else ()
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
+
 
 set(MSVC_COMPILER  0)
 set(CLANG_COMPILER 0)
@@ -96,6 +105,7 @@ target_link_libraries(
 	etcpak
 	tinyxml2
 	ETCPACK
+	backward-cpp
 )
 
 set(CMAKE_CXX_STANDARD 23)

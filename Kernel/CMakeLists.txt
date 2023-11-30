@@ -29,6 +29,7 @@ add_subdirectory("./dependencies/libpng")
 add_subdirectory("./dependencies/etcpak")
 add_subdirectory("./dependencies/tinyxml2")
 add_subdirectory("./dependencies/ETCPACK")
+add_subdirectory("./dependencies/backward-cpp")
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
@@ -37,6 +38,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /NOIMPLIB")
     set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /NOIMPLIB")
 endif()
+
+if (MSVC)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+else ()
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
+
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
