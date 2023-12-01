@@ -19,6 +19,7 @@ add_library(
 	./definition/encryption/sha256/common.hpp
 	./definition/encryption/base64/common.hpp
 	./definition/encryption/XOR/common.hpp
+	./definition/compression/zlib.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp

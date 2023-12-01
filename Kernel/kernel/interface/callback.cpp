@@ -89,6 +89,20 @@ namespace Sen::Kernel::Interface
 				Sen::Kernel::Definition::Encryption::Base64::decode_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
+			case Sen::Kernel::Interface::CliCallBack::ZLIB_COMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Zlib Compress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Zlib::compress_fs(thiz.argument, thiz.params.at(0), Sen::Kernel::Definition::Compression::ZlibLevel::LEVEL_9);
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::ZLIB_UNCOMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Zlib Uncompress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);

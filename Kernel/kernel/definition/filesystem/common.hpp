@@ -364,4 +364,26 @@ namespace Sen::Kernel::FileSystem
 		return result;
 	}
 
+	/**
+	 * outFile: the output file to write
+	 * data: data to write
+	 * return: the written file
+	*/
+
+
+	template <typename T>
+	inline auto writeBinary(
+		const string &outFile,
+		const vector<T> &data
+	) -> void
+	{
+		auto out = ofstream(outFile, ios::binary);
+		if(!out.is_open()){
+			throw runtime_error(fmt::format("Unable to open: {}", outFile));
+		}
+		out.write(reinterpret_cast<const char *>(data.data()), data.size());
+		out.close();
+		return;
+	}
+
 }
