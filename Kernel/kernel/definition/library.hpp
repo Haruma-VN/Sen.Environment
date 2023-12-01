@@ -28,3 +28,4 @@
 #include "kernel/dependencies/tinyxml2.hpp"
 #include "kernel/dependencies/ETCPACK.hpp"
 #include "kernel/dependencies/backward-cpp.hpp"
+#include "kernel/dependencies/SHA.hpp"

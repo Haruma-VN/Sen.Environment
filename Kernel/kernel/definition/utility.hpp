@@ -11,6 +11,8 @@
 #include "kernel/definition/timer/common.hpp"
 #include "kernel/definition/encryption/md5/common.hpp"
 #include "kernel/definition/encryption/sha224/common.hpp"
+#include "kernel/definition/encryption/sha384/common.hpp"
+#include "kernel/definition/encryption/sha512/common.hpp"
 #include "kernel/definition/encryption/XOR/common.hpp"
 #include "kernel/definition/encryption/sha256/common.hpp"
 #include "kernel/definition/encryption/base64/common.hpp"

@@ -35,6 +35,7 @@ add_library(
 	./dependencies/tinyxml2.hpp
 	./dependencies/ETCPACK.hpp
 	./dependencies/backward-cpp.hpp
+	./dependencies/SHA.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/utility.hpp
@@ -106,6 +107,7 @@ target_link_libraries(
 	tinyxml2
 	ETCPACK
 	backward-cpp
+	SHA
 )
 
 set(CMAKE_CXX_STANDARD 23)
