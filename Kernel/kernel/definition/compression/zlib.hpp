@@ -12,6 +12,7 @@ namespace Sen::Kernel::Definition::Compression {
 
 	enum ZlibLevel
 	{
+		DEFAULT = -1,
 		LEVEL_0,
 		LEVEL_1,
 		LEVEL_2,
@@ -30,11 +31,15 @@ namespace Sen::Kernel::Definition::Compression {
 
 			// zlib compression check
 
-			static constexpr auto Z_COMPRESS_END = 0;
+			inline static constexpr auto Z_COMPRESS_END = 0;
+
+			// zlib compression check
+
+			inline static constexpr auto Z_UNCOMPRESS_END = 0;
 
 			// chunk
 
-			static constexpr auto CHUNK = 32768;
+			inline static constexpr auto CHUNK = 32768;
 
 		public:
 			/**
@@ -89,7 +94,7 @@ namespace Sen::Kernel::Definition::Compression {
 							return std::vector<unsigned char>();
 					}
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
-				} while (zlib_init.avail_out == Zlib::Z_COMPRESS_END);
+				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
 				return result;
 			}
@@ -106,7 +111,7 @@ namespace Sen::Kernel::Definition::Compression {
 				const ZlibLevel &level
 			) ->  std::vector<unsigned char>
 			{
-				auto zlib_outdata = std::vector<unsigned char>(compressBound(static_cast<uLong>(data.size())));
+				auto zlib_outdata = std::vector<unsigned char>(static_cast<size_t>(compressBound(static_cast<uLong>(data.size()))));
 				auto zlib_init = z_stream{
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
@@ -134,6 +139,80 @@ namespace Sen::Kernel::Definition::Compression {
 				zlib_outdata.resize(zlib_outdata.size() - zlib_init.avail_out);
 				deflateEnd(&zlib_init);
 				return zlib_outdata;
+			}
+
+			/**
+			 * data: data stream
+			 * level: zlib level
+			 * return: compressed data
+			*/
+
+			static auto compress_gzip(
+				const std::vector<unsigned char> &data,
+				const ZlibLevel &level
+			) -> std::vector<unsigned char>
+			{
+				auto zlib_init = z_stream{
+					.zalloc = Z_NULL,
+					.zfree = Z_NULL,
+					.opaque = Z_NULL
+				};
+				zlib_init.avail_in = static_cast<uInt>(data.size());
+				zlib_init.next_in = const_cast<Bytef *>(data.data());
+				deflateInit2(&zlib_init, level, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
+				auto result = std::vector<unsigned char>();
+				unsigned char out_chunk[Zlib::CHUNK];
+				do {
+					zlib_init.avail_out = sizeof(out_chunk);
+					zlib_init.next_out = out_chunk;
+					auto ret = deflate(&zlib_init, Z_FINISH);
+					assert(ret != Z_STREAM_ERROR);
+					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
+				} while (zlib_init.avail_out == Zlib::Z_COMPRESS_END);
+				deflateEnd(&zlib_init);
+				return result;
+			}
+
+			/**
+			 * data: data stream
+			 * result: output stream
+			*/
+
+			static auto uncompress_gzip(
+				const std::vector<unsigned char> &data
+			) -> std::vector<unsigned char>
+			{
+				auto zlib_init = z_stream{
+					.zalloc = Z_NULL,
+					.zfree = Z_NULL,
+					.opaque = Z_NULL
+				};
+				zlib_init.avail_in = 0;
+				zlib_init.next_in = Z_NULL;
+				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
+					throw std::runtime_error("Uncompress initialize failed");
+				}
+				zlib_init.avail_in = static_cast<uInt>(data.size());
+				zlib_init.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data.data()));
+				auto result = std::vector<unsigned char>();
+				do {
+					unsigned char out_chunk[32768];
+					zlib_init.avail_out = sizeof(out_chunk);
+					zlib_init.next_out = reinterpret_cast<Bytef *>(out_chunk);
+					auto ret = inflate(&zlib_init, 0);
+					if(result.size() < zlib_init.total_out){
+						result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
+					}
+					if(ret == Z_STREAM_END){
+						break;
+					}
+					if(ret != Z_OK){
+						inflateEnd(&zlib_init);
+						throw std::runtime_error("Uncompress failed"); 
+					}
+				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
+				inflateEnd(&zlib_init);
+				return result;
 			}
 
 			/**
@@ -168,7 +247,62 @@ namespace Sen::Kernel::Definition::Compression {
 			{
 				auto data = FileSystem::readBinary<unsigned char>(fileIn);
 				auto uncompressedData = Zlib::uncompress(data);
+				if(uncompressedData.empty()){
+					throw std::runtime_error(fmt::format("The specific file cannot be uncompressed: {}", fileIn));
+				}
 				FileSystem::writeBinary<unsigned char>(fileOut, uncompressedData);
+				return;
+			}
+
+			/**
+			 * file in: file path
+			 * file out: output path
+			 * return: compressed gzip file
+			*/
+
+			static auto compress_gzip_fs(
+				const string &fileIn,
+				const string &fileOut
+			) -> void
+			{
+				auto data = FileSystem::readBinary<unsigned char>(fileIn);
+				auto compressed_data = Zlib::compress_gzip(data, ZlibLevel::DEFAULT);
+				FileSystem::writeBinary<unsigned char>(fileOut, compressed_data);
+				return;
+			}
+
+			/**
+			 * filePath: input file
+			 * fileOut: output file
+			 * level: zlib level
+			 * return: compress file
+			*/
+
+			static auto compress_deflate_fs(
+				const string &filePath,
+				const string &fileOut
+			) -> void
+			{
+				auto data = FileSystem::readBinary<unsigned char>(filePath);
+				auto compressedData = Zlib::compress_deflate(data, ZlibLevel::DEFAULT);
+				FileSystem::writeBinary<unsigned char>(fileOut, compressedData);
+				return;
+			}
+
+			/**
+			 * fileIn: file path
+			 * file out: output path
+			 * return: uncompressed file
+			*/
+
+			static auto uncompress_gzip_fs(
+				const string &fileIn,
+				const string &fileOut
+			) -> void
+			{
+				auto data = FileSystem::readBinary<unsigned char>(fileIn);
+				auto compressed_data = Zlib::uncompress_gzip(data);
+				FileSystem::writeBinary<unsigned char>(fileOut, compressed_data);
 				return;
 			}
 

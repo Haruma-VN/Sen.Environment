@@ -103,6 +103,20 @@ namespace Sen::Kernel::Interface
 				Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
+			case Sen::Kernel::Interface::CliCallBack::GZIP_COMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Gzip Compress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::GZIP_UNCOMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Gzip Uncompress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
