@@ -18,3 +18,4 @@
 #include "kernel/definition/encryption/base64/common.hpp"
 #include "kernel/definition/encryption/Rijndael/common.hpp"
 #include "kernel/definition/compression/zlib.hpp"
+#include "kernel/definition/compression/lzma.hpp"

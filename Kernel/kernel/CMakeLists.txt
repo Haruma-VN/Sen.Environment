@@ -20,6 +20,7 @@ add_library(
 	./definition/encryption/base64/common.hpp
 	./definition/encryption/XOR/common.hpp
 	./definition/compression/zlib.hpp
+	./definition/compression/lzma.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
@@ -37,6 +38,7 @@ add_library(
 	./dependencies/ETCPACK.hpp
 	./dependencies/backward-cpp.hpp
 	./dependencies/SHA.hpp
+	./dependencies/lzma.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/utility.hpp
@@ -109,6 +111,7 @@ target_link_libraries(
 	ETCPACK
 	backward-cpp
 	SHA
+	lzma
 )
 
 set(CMAKE_CXX_STANDARD 23)

@@ -29,3 +29,4 @@
 #include "kernel/dependencies/ETCPACK.hpp"
 #include "kernel/dependencies/backward-cpp.hpp"
 #include "kernel/dependencies/SHA.hpp"
+#include "kernel/dependencies/lzma.hpp"

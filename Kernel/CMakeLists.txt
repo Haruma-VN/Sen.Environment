@@ -31,6 +31,7 @@ add_subdirectory("./dependencies/tinyxml2")
 add_subdirectory("./dependencies/ETCPACK")
 add_subdirectory("./dependencies/backward-cpp")
 add_subdirectory("./dependencies/SHA")
+add_subdirectory("./dependencies/lzma")
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

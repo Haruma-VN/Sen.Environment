@@ -93,7 +93,7 @@ namespace Sen::Kernel::Interface
 				thiz.print(fmt::format("Method loaded: {}", "Zlib Compress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
-				Sen::Kernel::Definition::Compression::Zlib::compress_fs(thiz.argument, thiz.params.at(0), Sen::Kernel::Definition::Compression::ZlibLevel::LEVEL_9);
+				Sen::Kernel::Definition::Compression::Zlib::compress_fs(thiz.argument, thiz.params.at(0), Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9);
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::ZLIB_UNCOMPRESS:{

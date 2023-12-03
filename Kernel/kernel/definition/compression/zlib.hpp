@@ -6,25 +6,6 @@
 
 namespace Sen::Kernel::Definition::Compression {
 
-	/**
-	 * Zlib compression level supported by zlib.h
-	*/
-
-	enum ZlibLevel
-	{
-		DEFAULT = -1,
-		LEVEL_0,
-		LEVEL_1,
-		LEVEL_2,
-		LEVEL_3,
-		LEVEL_4,
-		LEVEL_5,
-		LEVEL_6,
-		LEVEL_7,
-		LEVEL_8,
-		LEVEL_9
-	};
-
 	class Zlib {
 
 		private:
@@ -42,6 +23,27 @@ namespace Sen::Kernel::Definition::Compression {
 			inline static constexpr auto CHUNK = 32768;
 
 		public:
+			
+
+			/**
+			 * Zlib compression level supported by zlib.h
+			*/
+
+			enum Level
+			{
+				DEFAULT = -1,
+				LEVEL_0,
+				LEVEL_1,
+				LEVEL_2,
+				LEVEL_3,
+				LEVEL_4,
+				LEVEL_5,
+				LEVEL_6,
+				LEVEL_7,
+				LEVEL_8,
+				LEVEL_9
+			};
+
 			/**
 			 * data: the binary data to compress
 			 * level: zlib compression level
@@ -50,7 +52,7 @@ namespace Sen::Kernel::Definition::Compression {
 
 			static auto compress(
 				const std::vector<unsigned char> &data,
-				const ZlibLevel &level
+				const Level &level
 			) -> std::vector<unsigned char> 
 			{
 				auto destLen = compressBound(data.size());
@@ -108,7 +110,7 @@ namespace Sen::Kernel::Definition::Compression {
 
 			static auto compress_deflate(
 				const std::vector<unsigned char> &data,
-				const ZlibLevel &level
+				const Level &level
 			) ->  std::vector<unsigned char>
 			{
 				auto zlib_outdata = std::vector<unsigned char>(static_cast<size_t>(compressBound(static_cast<uLong>(data.size()))));
@@ -149,7 +151,7 @@ namespace Sen::Kernel::Definition::Compression {
 
 			static auto compress_gzip(
 				const std::vector<unsigned char> &data,
-				const ZlibLevel &level
+				const Level &level
 			) -> std::vector<unsigned char>
 			{
 				auto zlib_init = z_stream{
@@ -225,7 +227,7 @@ namespace Sen::Kernel::Definition::Compression {
 			static auto compress_fs(
 				const string &filePath,
 				const string &fileOut,
-				const ZlibLevel &level
+				const Level &level
 			) -> void
 			{
 				auto data = FileSystem::readBinary<unsigned char>(filePath);
@@ -266,7 +268,7 @@ namespace Sen::Kernel::Definition::Compression {
 			) -> void
 			{
 				auto data = FileSystem::readBinary<unsigned char>(fileIn);
-				auto compressed_data = Zlib::compress_gzip(data, ZlibLevel::DEFAULT);
+				auto compressed_data = Zlib::compress_gzip(data, Zlib::Level::DEFAULT);
 				FileSystem::writeBinary<unsigned char>(fileOut, compressed_data);
 				return;
 			}
@@ -284,7 +286,7 @@ namespace Sen::Kernel::Definition::Compression {
 			) -> void
 			{
 				auto data = FileSystem::readBinary<unsigned char>(filePath);
-				auto compressedData = Zlib::compress_deflate(data, ZlibLevel::DEFAULT);
+				auto compressedData = Zlib::compress_deflate(data, Zlib::Level::DEFAULT);
 				FileSystem::writeBinary<unsigned char>(fileOut, compressedData);
 				return;
 			}
