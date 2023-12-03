@@ -3,6 +3,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/assert.hpp"
 #include "kernel/definition/string/common.hpp"
+#include "kernel/definition/path/common.hpp"
 
 namespace Sen::Kernel::FileSystem
 {
@@ -235,7 +236,7 @@ namespace Sen::Kernel::FileSystem
 		const string &content
 	) -> void
 	{
-		auto temporary = String::toPosixStyle(filePath);
+		auto temporary = Path::normalize(filePath);
 		auto data = String::split(temporary, "/");
 		auto last = data.at(data.size() - 1);
 		data.pop_back();
@@ -299,9 +300,9 @@ namespace Sen::Kernel::FileSystem
 	) -> vector<string> const
 	{
 		auto result = vector<string>{};
-		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
-			result.push_back(String::toPosixStyle(c.path().string()));
+			result.push_back(Path::normalize(c.path().string()));
 		}
 		return result;
 	}
@@ -314,10 +315,10 @@ namespace Sen::Kernel::FileSystem
 	) -> vector<string> const
 	{
 		auto result = vector<string>{};
-		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_regular_file()){
-				result.push_back(String::toPosixStyle(c.path().string()));
+				result.push_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -331,10 +332,10 @@ namespace Sen::Kernel::FileSystem
 	) -> vector<string> const
 	{
 		auto result = vector<string>{};
-		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_directory()){
-				result.push_back(String::toPosixStyle(c.path().string()));
+				result.push_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -349,16 +350,16 @@ namespace Sen::Kernel::FileSystem
 	) -> vector<string> const
 	{
 		auto result = vector<string>{};
-		for(auto &c : fs::directory_iterator(String::toPosixStyle(directoryPath)))
+		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_directory()){
-				for(auto &e : readWholeDirectory(String::toPosixStyle(c.path().string())))
+				for(auto &e : readWholeDirectory(Path::normalize(c.path().string())))
 				{
-					result.push_back(String::toPosixStyle(e));
+					result.push_back(Path::normalize(e));
 				}
 			}
 			else{
-				result.push_back(String::toPosixStyle(c.path().string()));
+				result.push_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -383,6 +384,41 @@ namespace Sen::Kernel::FileSystem
 		}
 		out.write(reinterpret_cast<const char *>(data.data()), data.size());
 		out.close();
+		return;
+	}
+
+	/**
+	 * file path: the file path to read
+	 * return: xml document
+	*/
+
+	inline auto readXML(
+		const string &filePath
+	) -> tinyxml2::XMLDocument* const
+	{
+		auto* xml = new tinyxml2::XMLDocument{};
+		auto data = FileSystem::readFile(filePath);
+		auto eResult = xml->Parse(data.c_str(), data.size());
+		try_assert(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath));
+		return xml;
+	}
+
+	/**
+	 * file path: the file path to write
+	 * xml document: the xml document
+	 * notice: the function will delete the xml document after write
+	 * return: xml dumped data
+	*/
+
+	inline auto writeXML(
+		const string &filePath,
+		tinyxml2::XMLDocument* &data
+	) -> void
+	{
+		auto printer = tinyxml2::XMLPrinter{};
+		data->Print(&printer);
+		FileSystem::writeFile(filePath, std::string{printer.CStr()});
+		delete data;
 		return;
 	}
 
