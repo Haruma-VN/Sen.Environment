@@ -133,4 +133,174 @@ namespace Sen::Kernel::String {
 		return str;
 	}
 
+	/**
+	 * s: string to convert (utf16)
+	 * return: utf-8 string
+	*/
+
+	inline auto to_utf8(
+		const std::u16string &s
+		) -> std::string
+	{
+		std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> conv;
+		return conv.to_bytes(s);
+	}
+
+	/**
+	 * s: string to convert (utf32)
+	 * return: utf8 string
+	*/
+
+	inline auto to_utf8(
+		const std::u32string &s
+	) -> std::string
+	{
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+		return conv.to_bytes(s);
+	}
+
+	/**
+	 * s: string to convert (utf8)
+	 * return: utf16 string
+	*/
+
+	inline auto to_utf16(
+		const std::string &s
+	) -> std::u16string
+	{
+		std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> convert;
+		return convert.from_bytes(s);
+	}
+
+	/**
+	 * s: string to convert (utf8)
+	 * return: utf32 string
+	*/
+
+	inline auto to_utf32(
+		const std::string &s
+	) -> std::u32string
+	{
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+		return conv.from_bytes(s);
+	}
+
+	/**
+	 * s: string to convert (utf32)
+	 * return: utf16 string
+	*/
+
+	inline auto to_utf16(
+		const std::u32string &s
+	) -> std::u16string
+	{
+		return to_utf16(to_utf8(s));
+	}
+
+	/**
+	 * s: string to convert (utf16)
+	 * return: utf32 string
+	*/
+
+	inline auto to_utf32(
+		const std::u16string &s
+	) -> std::u32string 
+	{
+		return to_utf32(to_utf8(s));
+	}
+
+	/**
+	 * src: source
+	 * return: utf32 string
+	*/
+
+	inline auto read_with_bom(
+		std::istream & src
+	) -> std::u32string
+	{
+
+		enum encoding {
+			encoding_utf32be = 0,
+			encoding_utf32le,
+			encoding_utf16be,
+			encoding_utf16le,
+			encoding_utf8,
+			encoding_ascii,
+		};
+
+		auto boms = std::vector<std::string>{
+			std::string("\x00\x00\xFE\xFF", 4),
+			std::string("\xFF\xFE\x00\x00", 4),
+			std::string("\xFE\xFF", 2),
+			std::string("\xFF\xFE", 2),
+			std::string("\xEF\xBB\xBF", 3)
+		};
+
+		auto buffer = std::string((std::istreambuf_iterator<char>(src)), std::istreambuf_iterator<char>());
+
+		auto enc = encoding_ascii;
+
+		for (auto i = 0; i < boms.size(); ++i) {
+			auto testBom = boms[i];
+			if (buffer.compare(0, testBom.length(), testBom) == 0) {
+				enc = encoding(i);
+				buffer = buffer.substr(testBom.length());
+				break;
+			}
+		}
+
+		switch (enc) {
+			case encoding_utf32be:
+			{
+				if (buffer.length() % 4 != 0) {
+					throw std::logic_error("size in bytes must be a multiple of 4");
+				}
+				auto count = buffer.length() / 4;
+				auto temp = std::u32string(count, 0);
+				for (auto i = 0; i < count; ++i) {
+					temp[i] = static_cast<char32_t>(buffer[i * 4 + 3] << 0 | buffer[i * 4 + 2] << 8 | buffer[i * 4 + 1] << 16 | buffer[i * 4 + 0] << 24);
+				}
+				return temp;
+			}
+			case encoding_utf32le:
+			{
+				if (buffer.length() % 4 != 0) {
+					throw std::logic_error("size in bytes must be a multiple of 4");
+				}
+				auto count = buffer.length() / 4;
+				auto temp = std::u32string(count, 0);
+				for (auto i = 0; i < count; ++i) {
+					temp[i] = static_cast<char32_t>(buffer[i * 4 + 0] << 0 | buffer[i * 4 + 1] << 8 | buffer[i * 4 + 2] << 16 | buffer[i * 4 + 3] << 24);
+				}
+				return temp;
+			}
+			case encoding_utf16be:
+			{
+				if (buffer.length() % 2 != 0) {
+					throw std::logic_error("size in bytes must be a multiple of 2");
+				}
+				auto count = buffer.length() / 2;
+				auto temp = std::u16string(count, 0);
+				for (auto i = 0; i < count; ++i) {
+					temp[i] = static_cast<char16_t>(buffer[i * 2 + 1] << 0 | buffer[i * 2 + 0] << 8);
+				}
+				return to_utf32(temp);
+			}
+			case encoding_utf16le:
+			{
+				if (buffer.length() % 2 != 0) {
+					throw std::logic_error("size in bytes must be a multiple of 2");
+				}
+				auto count = buffer.length() / 2;
+				auto temp = std::u16string(count, 0);
+				for (auto i = 0; i < count; ++i) {
+					temp[i] = static_cast<char16_t>(buffer[i * 2 + 0] << 0 | buffer[i * 2 + 1] << 8);
+				}
+				return to_utf32(temp);
+			}
+			default:
+				return to_utf32(buffer);
+			}
+	}
+
 }
