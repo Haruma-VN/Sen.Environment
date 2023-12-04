@@ -143,7 +143,7 @@ namespace Sen::Kernel::Definition
 				if (setjmp(png_jmpbuf(png_ptr))) {
 					png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 					fclose(fp);
-					throw std::runtime_error("set jmp failed");
+					throw std::runtime_error("unknown error");
 				}
 				png_init_io(png_ptr, fp);
 				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
@@ -190,19 +190,20 @@ namespace Sen::Kernel::Definition
 				auto png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
 					fclose(fp);
-					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", filepath));
+					throw std::runtime_error(fmt::format("PNG Pointer initialize failed: {}", filepath));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);
 				if (!info_ptr) {
 					png_destroy_write_struct(&png_ptr, NULL);
 					fclose(fp);
+					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", filepath));
 				}
 				#define PNG_WRITE_SETJMP(png_ptr, info_ptr, fp) \
 				if (setjmp(png_jmpbuf(png_ptr)))  \
 				{ \
 					png_destroy_write_struct(&png_ptr, &info_ptr);   \
 					fclose(fp);     \
-					return;    \
+					throw std::runtime_error("unknown error"); \
 				}
 				PNG_WRITE_SETJMP(png_ptr, info_ptr, fp);
 				png_init_io(png_ptr, fp);
