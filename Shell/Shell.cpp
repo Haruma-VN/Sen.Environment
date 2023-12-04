@@ -84,7 +84,7 @@ MAIN_FUNCTION
         return 1;
     }
     auto path1 = (std::string)"D:/test/1.png";
-    auto path2 = (std::string)"D:/test/2.png";
+    auto path2 = (std::string)"D:/test/2.ptx";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();

@@ -42,6 +42,7 @@ add_library(
 	./dependencies/lzma.hpp
 
 	./support/popcap/resource_group/common.hpp
+	./support/texture/encode.hpp
 	./support/utility.hpp
 
 	./interface/data.hpp

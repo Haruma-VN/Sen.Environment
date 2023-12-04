@@ -4,8 +4,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 
-namespace Sen::Kernel::Definition
-{
+namespace Sen::Kernel::Definition {
 	
 	/**
 	 * Dimension struct
@@ -42,10 +41,10 @@ namespace Sen::Kernel::Definition
 
 	struct Color {
 		public:
-			std::vector<unsigned int> red;
-			std::vector<unsigned int> green;
-			std::vector<unsigned int> blue;
-			std::vector<unsigned int> alpha;
+			std::vector<unsigned char> red;
+			std::vector<unsigned char> green;
+			std::vector<unsigned char> blue;
+			std::vector<unsigned char> alpha;
 
 			~Color(
 
@@ -55,10 +54,10 @@ namespace Sen::Kernel::Definition
 
 			) 
 			{
-				thiz.red = std::vector<unsigned int>();
-				thiz.green = std::vector<unsigned int>();
-				thiz.blue = std::vector<unsigned int>();
-				thiz.alpha = std::vector<unsigned int>();
+				thiz.red = std::vector<unsigned char>();
+				thiz.green = std::vector<unsigned char>();
+				thiz.blue = std::vector<unsigned char>();
+				thiz.alpha = std::vector<unsigned char>();
 			}
 	};
 
@@ -152,6 +151,7 @@ namespace Sen::Kernel::Definition
 				return dz;
 			}
 	};
+
 
 	struct ImageIO {
 

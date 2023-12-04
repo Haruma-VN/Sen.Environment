@@ -4,7 +4,7 @@
 #include "kernel/interface/data.hpp"
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
-#include "kernel/support/popcap/resource_group/common.hpp"
+#include "kernel/support/utility.hpp"
 
 namespace Sen::Kernel::Interface 
 {
