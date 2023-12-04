@@ -37,6 +37,32 @@ namespace Sen::Kernel::Definition
 	};
 
 	/**
+	 * Image color
+	*/
+
+	struct Color {
+		public:
+			std::vector<unsigned int> red;
+			std::vector<unsigned int> green;
+			std::vector<unsigned int> blue;
+			std::vector<unsigned int> alpha;
+
+			~Color(
+
+			) = default;
+
+			Color(
+
+			) 
+			{
+				thiz.red = std::vector<unsigned int>();
+				thiz.green = std::vector<unsigned int>();
+				thiz.blue = std::vector<unsigned int>();
+				thiz.alpha = std::vector<unsigned int>();
+			}
+	};
+
+	/**
 	 * Image struct
 	*/
 	
@@ -91,6 +117,21 @@ namespace Sen::Kernel::Definition
 			{
 				thiz._data = std::move(data);
 				return;
+			}
+
+			auto color(
+
+			) -> Color
+			{
+				auto c = Color{};
+				for (auto i = static_cast<size_t>(0); i < thiz._data.size(); i += 4)
+				{
+					c.red.push_back(thiz._data.at(i));
+					c.green.push_back(thiz._data.at(i + 1));
+					c.blue.push_back(thiz._data.at(i + 2));
+					c.alpha.push_back(thiz._data.at(i + 3));
+				}
+				return c;
 			}
 
 			Image(
