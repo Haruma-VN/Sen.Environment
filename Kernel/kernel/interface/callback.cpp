@@ -130,8 +130,6 @@ namespace Sen::Kernel::Interface
 				break;
 			}
 			case Interface::RES_INFO_SPLIT: {
-				auto img = Sen::Kernel::Definition::ImageIO::read_png(thiz.argument);
-				Sen::Kernel::Definition::ImageIO::write_png(thiz.params.at(0), img);
 				break;
 			}
 			case Interface::RES_INFO_MERGE:{

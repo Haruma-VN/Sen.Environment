@@ -6,6 +6,10 @@
 
 namespace Sen::Kernel::Definition
 {
+	
+	/**
+	 * Dimension struct
+	*/
 
 	template <typename T>
 	struct Dimension{
@@ -31,6 +35,10 @@ namespace Sen::Kernel::Definition
 
 				) = default;
 	};
+
+	/**
+	 * Image struct
+	*/
 	
 	template <typename T>
 	struct Image {
@@ -97,16 +105,21 @@ namespace Sen::Kernel::Definition
 
 			) -> Dimension<T>
 			{
-				return Dimension<T>{
-					.width = thiz.width,
-					.height = thiz.height
-				};
+				auto dz = Dimension<T>{};
+				dz.width = thiz.width;
+				dz.height = thiz.height;
+				return dz;
 			}
 	};
 
 	struct ImageIO {
 
 		public:
+
+			/**
+			 * file path: provide file path to read
+			 * return: image data
+			*/
 			
 			static auto read_png(
 				const string &filePath
@@ -158,6 +171,12 @@ namespace Sen::Kernel::Definition
 				fclose(fp);
 				return image;
 			}
+
+			/**
+			 * file path: output path to write
+			 * data: the image data
+			 * return: written image
+			*/
 
 			static auto write_png(
 				const std::string &filepath, 
