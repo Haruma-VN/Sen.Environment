@@ -83,15 +83,15 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto path1 = (std::string)"D:/test/mRes.bin";
-    auto path2 = (std::string)"D:/test/mRes.test.json";
+    auto path1 = (std::string)"D:/test/1.png";
+    auto path2 = (std::string)"D:/test/2.png";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
     auto* parameter = new Parameter{};
     strcpy_s(parameter->data[0].data, path2.c_str());
     parameter->data[0].size = path2.size();
-    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::ZLIB_UNCOMPRESS);
+    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::RES_INFO_SPLIT);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

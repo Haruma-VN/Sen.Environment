@@ -19,7 +19,7 @@ int execute(
     }
     catch(std::exception &ex)
     {
-        sendMessage("Runtime Exception found:\n  ", parse_exception().c_str(), Sen::Kernel::Interface::Color::RED);
+        sendMessage("Runtime Exception found:\n  ", ex.what(), Sen::Kernel::Interface::Color::RED);
         return 1;
     }
     catch(int errorCode)

@@ -13,6 +13,7 @@ add_library(
 	./definition/path/common.hpp
 	./definition/pointer/common.hpp
 	./definition/timer/common.hpp
+	./definition/image/common.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp
