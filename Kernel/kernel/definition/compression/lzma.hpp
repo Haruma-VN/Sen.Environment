@@ -6,7 +6,6 @@
 
 namespace Sen::Kernel::Definition::Compression {
 
-	
 
 	class Lzma {
 
@@ -128,4 +127,5 @@ namespace Sen::Kernel::Definition::Compression {
 			}
 
 	};
+
 }

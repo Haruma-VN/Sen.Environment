@@ -14,7 +14,7 @@ namespace Sen::Kernel::Definition::Compression {
 
 			inline static constexpr auto Z_COMPRESS_END = 0;
 
-			// zlib compression check
+			// zlib uncompression check
 
 			inline static constexpr auto Z_UNCOMPRESS_END = 0;
 
