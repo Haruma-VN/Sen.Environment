@@ -4,17 +4,34 @@
 
 namespace Sen::Kernel::Support::Texture {
 
+	/**
+	 * Texture format supported by Kernel
+	*/
+
 	enum Format
 	{
 		RGBA_8888 = 1,
 		ARGB_8888,
 	};
 
+	/**
+	 * Invoke method class
+	*/
+
 	class InvokeMethod {
 
 		public:
 
 			#pragma region decode
+
+			/**
+			 * source: the input file path
+			 * destination: the output file path
+			 * width: image width
+			 * height: image height
+			 * format: texture format
+			 * return: decoded image
+			*/
 
 			static auto decode_fs(
 				const std::string &source,
@@ -45,6 +62,13 @@ namespace Sen::Kernel::Support::Texture {
 
 
 			#pragma region encode
+
+			/**
+			 * source: the input file
+			 * destination: the output file
+			 * format: texture format
+			 * return: encoded file
+			*/
 
 			static auto encode_fs(
 				const std::string &source,

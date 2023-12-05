@@ -32,7 +32,21 @@ namespace Sen::Kernel::Definition {
 
 			~Dimension(
 
-				) = default;
+			) = default;
+
+			auto circumference(
+
+			) -> double
+			{
+				return static_cast<double>(thiz.width * 2 + thiz.height * 2);
+			}
+
+			auto area(
+
+			) -> T
+			{
+				return thiz.width * thiz.height;
+			}
 	};
 
 	/**
@@ -89,7 +103,7 @@ namespace Sen::Kernel::Definition {
 				T interlace_type, 
 				T channels, 
 				T rowbytes, 
-				std::vector<unsigned char>
+				std::vector<unsigned char> data
 			) : 
 			width(width), 
 			height(height), 
@@ -131,6 +145,14 @@ namespace Sen::Kernel::Definition {
 					c.alpha.push_back(thiz._data.at(i + 3));
 				}
 				return c;
+			}
+
+			Image(
+				T width, 
+				T height, 
+				std::vector<unsigned char> data
+			) : width(width), height(height), _data(std::move(data)) 
+			{
 			}
 
 			Image(

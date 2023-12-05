@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <chrono>
 #include <source_location>
+#include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"
 #include "kernel/dependencies/json.hpp"

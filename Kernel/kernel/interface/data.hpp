@@ -72,7 +72,7 @@ namespace Sen::Kernel::Interface {
 
 	inline static auto convertBasicStringViewToString(
 		BasicStringView* argument
-	) -> string const
+	) -> std::string const
 	{
 		return std::string{argument->data, argument->size};
 	}

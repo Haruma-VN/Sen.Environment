@@ -6,6 +6,7 @@ project(
 add_library(
 	${PROJECT_NAME} SHARED
 	./definition/macro.hpp
+	./definition/range.hpp
 	./definition/library.hpp
 	./definition/assert.hpp
 	./definition/filesystem/common.hpp

@@ -129,15 +129,19 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			case Interface::RES_INFO_SPLIT: {
+				// todo
 				break;
 			}
 			case Interface::RES_INFO_MERGE:{
+				// todo
 				break;
 			}
 			case Interface::RESOURCE_GROUP_TO_RES_INFO:{
+				// todo
 				break;
 			}
 			case Interface::RES_INFO_TO_RESOURCE_GROUP:{
+				// todo
 				break;
 			}
 			case Interface::TEXTURE_DECODE: {
