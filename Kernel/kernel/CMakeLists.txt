@@ -43,6 +43,8 @@ add_library(
 
 	./support/popcap/resource_group/common.hpp
 	./support/texture/encode.hpp
+	./support/texture/decode.hpp
+	./support/texture/invoke.hpp
 	./support/utility.hpp
 
 	./interface/data.hpp

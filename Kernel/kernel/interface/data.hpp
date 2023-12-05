@@ -46,11 +46,11 @@ namespace Sen::Kernel::Interface {
 
     inline static auto convertArgumentToVectorString(
 		Argument* argument
-	) -> vector<string>
+	) -> std::vector<std::string>
 	{
-        auto result = vector<string> {};
+        auto result = std::vector<std::string> {};
         for (auto i = 0; i < argument->size; i++){
-            result.push_back(string {argument->data[i].data, argument->data[i].size});
+            result.push_back(std::string {argument->data[i].data, argument->data[i].size});
         }
         return result;
     }
@@ -59,11 +59,11 @@ namespace Sen::Kernel::Interface {
 
 	inline static auto convertParameterToVectorString(
 		Parameter* param
-	) -> vector<string>
+	) -> std::vector<std::string>
 	{
-        auto result = vector<string> {};
+        auto result = std::vector<std::string> {};
         for (auto i = 0; i < param->size; i++){
-            result.push_back(string {param->data[i].data, param->data[i].size});
+            result.push_back(std::string {param->data[i].data, param->data[i].size});
         }
         return result;
     }
@@ -72,9 +72,9 @@ namespace Sen::Kernel::Interface {
 
 	inline static auto convertBasicStringViewToString(
 		BasicStringView* argument
-	) -> string
+	) -> string const
 	{
-		return string{argument->data, argument->size};
+		return std::string{argument->data, argument->size};
 	}
 
 }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <stdio.h>
+#include <vector>
 #include "callback/method.hpp"
 #include "interactive/color.hpp"
 
@@ -51,6 +52,19 @@ struct Parameter {
 		this->size = 1;
 		this->data = new BasicStringView[this->size];
 		this->data[0] =  BasicStringView{};
+	}
+
+	Parameter(
+		const std::vector<std::string>& data
+	)
+	{
+		this->size = data.size();
+		this->data = new BasicStringView[data.size()];
+		for (auto i = 0; i < data.size(); ++i) {
+			this->data[i] = BasicStringView{};
+			strcpy_s(this->data[i].data, data.at(i).c_str());
+			this->data[i].size = data.at(i).size();
+		}
 	}
 
 	~Parameter(

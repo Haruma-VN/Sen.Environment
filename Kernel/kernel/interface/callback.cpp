@@ -1,12 +1,11 @@
 #include "kernel/interface/callback.h"
 
-namespace Sen::Kernel::Interface 
-{
+namespace Sen::Kernel::Interface {
 	
 	Callback::Callback(
 		const Interface::CliCallBack &command, 
-		const string &argument, 
-		const vector<string> &params,
+		const std::string &argument, 
+		const std::vector<std::string> &params,
 		const Interface::input &input,
 		const Interface::callback &print
 	)
@@ -19,7 +18,7 @@ namespace Sen::Kernel::Interface
 	}
 
 	auto Callback::parameter_require_input(
-		const size_t &index
+		size_t index
 	) -> void
 	{
 		if(index < thiz.params.size()){
@@ -44,9 +43,9 @@ namespace Sen::Kernel::Interface
 	}
 
 	auto Callback::printc(
-		const string & title,
-		const string & message,
-		const Interface::Color &color
+		const std::string & title,
+		const std::string & message,
+		Interface::Color color
 	) -> void
 	{
 		thiz.print(fmt::format("{}\n  ", title).c_str(), message.c_str(), color);
@@ -139,6 +138,14 @@ namespace Sen::Kernel::Interface
 				break;
 			}
 			case Interface::RES_INFO_TO_RESOURCE_GROUP:{
+				break;
+			}
+			case Interface::TEXTURE_DECODE: {
+				Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(thiz.argument, thiz.params.at(0), std::stoi(thiz.params.at(1)), std::stoi(thiz.params.at(2)), static_cast<Sen::Kernel::Support::Texture::Format>(std::stoi(thiz.params.at(3))));
+				break;
+			}
+			case Interface::TEXTURE_ENCODE: {
+				Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(thiz.argument, thiz.params.at(0), static_cast<Sen::Kernel::Support::Texture::Format>(std::stoi(thiz.params.at(1))));
 				break;
 			}
 			default:{

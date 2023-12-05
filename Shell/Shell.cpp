@@ -83,15 +83,15 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto path1 = (std::string)"D:/test/1.png";
-    auto path2 = (std::string)"D:/test/2.ptx";
+    auto path1 = (std::string)"D:/test/2.ptx";
+    auto path2 = (std::string)"D:/test/3.png";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
-    auto* parameter = new Parameter{};
-    strcpy_s(parameter->data[0].data, path2.c_str());
-    parameter->data[0].size = path2.size();
-    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::RES_INFO_SPLIT);
+    auto* parameter = new Parameter{
+        std::vector<std::string>{path2, std::string{"850"}, std::string{"820"}, std::string{"2"}}
+    };
+    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::TEXTURE_DECODE);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

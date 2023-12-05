@@ -1,7 +1,10 @@
 #pragma once
 
-namespace Sen::Kernel::Interface 
-{
+namespace Sen::Kernel::Interface {
+
+	/**
+	 * Call back method
+	*/
 
 	enum CliCallBack
 	{
@@ -21,8 +24,13 @@ namespace Sen::Kernel::Interface
 		RES_INFO_MERGE,
 		RESOURCE_GROUP_TO_RES_INFO,
 		RES_INFO_TO_RESOURCE_GROUP,
-
+		TEXTURE_ENCODE,
+		TEXTURE_DECODE,
 	};
+
+	/**
+	 * Color picker
+	*/
 
 	enum Color {
 		GREEN = 10,

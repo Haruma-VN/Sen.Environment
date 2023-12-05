@@ -18,7 +18,7 @@ namespace Sen::Kernel {
 
 	inline auto try_assert(
 		bool conditional, 
-		string message
+		const std::string &message
 	) -> void
 	{
 		if (!conditional) {
