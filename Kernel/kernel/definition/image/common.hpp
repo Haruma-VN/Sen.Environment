@@ -5,12 +5,17 @@
 #include "kernel/definition/macro.hpp"
 
 namespace Sen::Kernel::Definition {
+
+	// Integral typename
+
+	template <typename Type>
+	concept Integral = std::is_integral_v<Type>;
 	
 	/**
 	 * Dimension struct
 	*/
 
-	template <typename T>
+	template <Integral T>
 
 	struct Dimension {
 
@@ -66,7 +71,7 @@ namespace Sen::Kernel::Definition {
 	 * Rectangle Struct
 	*/
 
-	template <typename T>
+	template <Integral T>
 	struct Rectangle : Dimension<T> {
 		public:
 
@@ -191,8 +196,8 @@ namespace Sen::Kernel::Definition {
 	/**
 	 * Image struct
 	*/
-	
-	template <typename T>
+
+	template <Integral T>
 	struct Image : Rectangle<T> {
 
 		private:
@@ -393,7 +398,7 @@ namespace Sen::Kernel::Definition {
 	 * Rectangle with destination
 	*/
 
-	template <typename T>
+	template <Integral T>
 
 	struct RectangleFileIO : Rectangle<T> {
 		

@@ -8,6 +8,9 @@
 namespace Sen::Kernel::FileSystem
 {
 
+	template <typename T>
+	concept CharacterBufferView = std::is_same_v<T, char> || std::is_same_v<T, unsigned char>;
+
 	// ifstream is using without namespace std
 
 	using std::ifstream;
@@ -270,7 +273,7 @@ namespace Sen::Kernel::FileSystem
 	// return: the binary file readed
 
 	
-	template <typename T>
+	template <CharacterBufferView T> 
 	inline auto readBinary(
 		const string &filePath
 	) -> vector<T> const
@@ -372,7 +375,7 @@ namespace Sen::Kernel::FileSystem
 	*/
 
 
-	template <typename T>
+	template <CharacterBufferView T>
 	inline auto writeBinary(
 		const string &outFile,
 		const vector<T> &data
