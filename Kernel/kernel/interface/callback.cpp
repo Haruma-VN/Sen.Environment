@@ -129,7 +129,7 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			case Interface::RES_INFO_SPLIT: {
-				// todo
+				thiz.argument_require_input();
 				break;
 			}
 			case Interface::RES_INFO_MERGE:{

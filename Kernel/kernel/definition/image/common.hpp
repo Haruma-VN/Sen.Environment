@@ -50,6 +50,51 @@ namespace Sen::Kernel::Definition {
 	};
 
 	/**
+	 * Rectangle Struct
+	*/
+
+	template <typename T>
+	struct Rectangle : Dimension<T> {
+		public:
+			T x;
+			T y;
+
+			Rectangle(
+
+			) = default;
+
+			~Rectangle(
+
+			) = default;
+
+			Rectangle(
+				T x, 
+				T y,
+				T width,
+				T height
+			) : x(x), y(y), Dimension<T>(width, height)
+			{
+
+			}
+
+			Rectangle(
+				const Dimension<T> &that,
+				T x, 
+				T y
+			) : x(x), y(y), Dimension<T>(that.width, that.height)
+			{
+
+			}
+
+			auto area(
+
+			) -> T
+			{
+				return thiz.width * thiz.height;
+			}
+	};
+
+	/**
 	 * Image color
 	*/
 
@@ -80,15 +125,13 @@ namespace Sen::Kernel::Definition {
 	*/
 	
 	template <typename T>
-	struct Image {
+	struct Image : Dimension<T> {
 
 		private:
 			
 			std::vector<unsigned char> _data;
 
 		public:
-			T width;
-			T height;
 			T bit_depth;
 			T color_type;
 			T interlace_type;
@@ -105,8 +148,7 @@ namespace Sen::Kernel::Definition {
 				T rowbytes, 
 				std::vector<unsigned char> data
 			) : 
-			width(width), 
-			height(height), 
+			Dimension<T>(width, height), 
 			bit_depth(bit_depth),
 			color_type(color_type), 
 			interlace_type(interlace_type), 
@@ -151,7 +193,7 @@ namespace Sen::Kernel::Definition {
 				T width, 
 				T height, 
 				std::vector<unsigned char> data
-			) : width(width), height(height), _data(std::move(data)) 
+			) : Dimension<T>(width, height), _data(std::move(data)) 
 			{
 			}
 
@@ -172,7 +214,28 @@ namespace Sen::Kernel::Definition {
 				dz.height = thiz.height;
 				return dz;
 			}
+
+			static auto composite(
+				const Image<int>& input_image, 
+				Rectangle<int> rectangle
+			) -> Image<int> const
+			{
+				auto data = std::vector<unsigned char>{};
+				data.reserve(rectangle.area() * 4);
+				for (auto j : Range<int>(rectangle.y, rectangle.y + rectangle.height, 1)) {
+					for (auto i : Range<int>(rectangle.x, rectangle.x + rectangle.width, 1)) {
+						auto index = (j * input_image.width + i) * 4;
+						data.insert(data.end(), &input_image.data()[index], &input_image.data()[index + 4]);
+					}
+				}
+				auto result = Image<int>(rectangle.width, rectangle.height, data);
+				return result;
+			}
 	};
+
+	/**
+	 * In/Out Image struct
+	*/
 
 
 	struct ImageIO {

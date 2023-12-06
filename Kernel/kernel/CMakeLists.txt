@@ -15,6 +15,7 @@ add_library(
 	./definition/pointer/common.hpp
 	./definition/timer/common.hpp
 	./definition/image/common.hpp
+	./definition/json/object.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp
@@ -120,4 +121,5 @@ target_link_libraries(
 )
 
 set(CMAKE_CXX_STANDARD 23)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
