@@ -1,4 +1,5 @@
 #pragma once
+
 #include "kernel/support/texture/decode.hpp"
 #include "kernel/support/texture/encode.hpp"
 

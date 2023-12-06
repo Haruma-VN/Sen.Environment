@@ -11,8 +11,8 @@ namespace Sen::Kernel::Definition {
 	*/
 
 	template <typename T>
-	
-	struct Dimension{
+
+	struct Dimension {
 
 		public:
 
@@ -353,12 +353,16 @@ namespace Sen::Kernel::Definition {
 	struct RectangleFileIO : Rectangle<T> {
 		
 		public:
-
+			// destination file
 			std::string destination;
+
+			// constructor
 
 			RectangleFileIO(
 
 			) = default;
+
+			// constructor
 
 			RectangleFileIO(
 				T x,
@@ -368,16 +372,18 @@ namespace Sen::Kernel::Definition {
 				const std::string &destination
 			) : Rectangle<T>(x, y, width, height), destination(destination)
 			{
-
 			}
+
+			// constructor
 
 			RectangleFileIO(
 				const Rectangle<T> &that,
 				const std::string &destination
 			) : Rectangle<T>(that), destination(destination)
 			{
-
 			}
+
+			// destructor
 
 			~RectangleFileIO(
 

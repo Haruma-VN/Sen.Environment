@@ -25,7 +25,7 @@ namespace Sen::Kernel::Interface {
 			return;
 		}
 		auto input_data = thiz.input();
-		thiz.params.push_back(string {input_data.data, input_data.size});
+		thiz.params.push_back(std::string {input_data.data, input_data.size});
 		return;
 	}
 
