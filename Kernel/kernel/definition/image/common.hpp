@@ -193,7 +193,7 @@ namespace Sen::Kernel::Definition {
 	*/
 	
 	template <typename T>
-	struct Image : Dimension<T> {
+	struct Image : Rectangle<T> {
 
 		private:
 
@@ -286,7 +286,7 @@ namespace Sen::Kernel::Definition {
 				T width, 
 				T height, 
 				std::vector<unsigned char> data
-			) : Dimension<T>(width, height), _data(std::move(data)) 
+			) : Rectangle<T>(0, 0, width, height), _data(std::move(data)) 
 			{
 			}
 
@@ -343,6 +343,50 @@ namespace Sen::Kernel::Definition {
 				auto result = Image<int>(rectangle.width, rectangle.height, data);
 				return result;
 			}
+
+			/**
+			 * Dimension: dimension (width and height)
+			 * return: transparent image
+			*/
+
+			static auto transparent(
+				Dimension<T> dimension
+			) -> Image<T>
+			{
+				return Image<T>(dimension.width, dimension.height, std::vector<unsigned char>(dimension.area() * 4, 0x00));
+			}
+
+			/**
+			 * Algorithm to join image - Reverse from split
+			 * source: source image
+			 * data: data to join
+			 * return: the new source
+			 */
+
+			static auto join(
+				Image<T> &source,
+				const std::vector<Image<T>> &data
+			) -> void
+			{
+				auto source_data = source.data();
+				for (const auto& img : data) {
+					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
+						throw std::runtime_error("Image does not fit within the source image");
+					}
+					for (auto j : Range<T>(img.height)) {
+						for (auto i : Range<T>(img.width)) {
+							auto source_index = ((j + img.y) * source.width + (i + img.x)) * 4;
+							auto img_index = (j * img.width + i) * 4; 
+							source_data[source_index] = img.data()[img_index];
+							source_data[source_index + 1] = img.data()[img_index + 1];
+							source_data[source_index + 2] = img.data()[img_index + 2];
+							source_data[source_index + 3] = img.data()[img_index + 3];
+						}
+					}
+				}
+				source.set_data(source_data);
+				return;
+			}
 	};
 
 	/**
@@ -350,6 +394,7 @@ namespace Sen::Kernel::Definition {
 	*/
 
 	template <typename T>
+
 	struct RectangleFileIO : Rectangle<T> {
 		
 		public:
@@ -517,6 +562,7 @@ namespace Sen::Kernel::Definition {
 			}
 
 			/**
+			 * Should use to split one image
 			 * source: source file
 			 * destination: destination file
 			 * rectangle: the area to composite
@@ -534,6 +580,7 @@ namespace Sen::Kernel::Definition {
 			}
 
 			/**
+			 * Should be used to split images
 			 * source: source file
 			 * data: list of rectangle file
 			 * return: the composite 
@@ -547,6 +594,48 @@ namespace Sen::Kernel::Definition {
 				for(auto &c : data) {
 					ImageIO::composite_png(source, c.destination, c);
 				}
+				return;
+			}
+
+			/**
+			 * TEST FUNCTION : THIS IS A TEST METHOD THAT SHOULD NOT BE USED
+			 * destination: the destination of file to write
+			 * width: image width
+			 * height: image height
+			 * pixel data: all filled with 0x00
+			 * return: the written transparent png
+			*/
+
+			static auto transparent_png(
+				const std::string &destination,
+				int width,
+				int height
+			) -> void
+			{
+				ImageIO::write_png(destination, Image<int>::transparent(Dimension<int>(width, height)));
+				return;
+			}
+
+			/**
+			 * Should be used to join image
+			 * destination: the file output destination
+			 * dimension: output file dimension
+			 * data: the image data
+			 * return: the file output png
+			 */
+
+			static auto join_png(
+				const std::string &destination,
+				const Dimension<int> &dimension,
+				const std::vector<Image<int>> &data
+			) -> void
+			{
+				// create new transparent source
+				auto source = Image<int>::transparent(dimension);
+				// join to source
+				Image<int>::join(source, data);
+				// write png
+				ImageIO::write_png(destination, source);
 				return;
 			}
 

@@ -122,33 +122,33 @@ namespace Sen::Kernel::Interface {
 				Sen::Kernel::Support::PopCap::ResourceGroup::split(thiz.argument, thiz.params.at(0));
 				break;
 			}
-			case Interface::RESOURCE_GROUP_MERGE:{
+			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_MERGE:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
 				Sen::Kernel::Support::PopCap::ResourceGroup::merge(thiz.argument, thiz.params.at(0));
 				break;
 			}
-			case Interface::RES_INFO_SPLIT: {
-				thiz.argument_require_input();
+			case Sen::Kernel::Interface::CliCallBack::RES_INFO_SPLIT: {
+				// thiz.argument_require_input();
 				break;
 			}
-			case Interface::RES_INFO_MERGE:{
+			case Sen::Kernel::Interface::CliCallBack::RES_INFO_MERGE:{
 				// todo
 				break;
 			}
-			case Interface::RESOURCE_GROUP_TO_RES_INFO:{
+			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_TO_RES_INFO:{
 				// todo
 				break;
 			}
-			case Interface::RES_INFO_TO_RESOURCE_GROUP:{
+			case Sen::Kernel::Interface::CliCallBack::RES_INFO_TO_RESOURCE_GROUP:{
 				// todo
 				break;
 			}
-			case Interface::TEXTURE_DECODE: {
+			case Sen::Kernel::Interface::CliCallBack::TEXTURE_DECODE: {
 				Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(thiz.argument, thiz.params.at(0), std::stoi(thiz.params.at(1)), std::stoi(thiz.params.at(2)), static_cast<Sen::Kernel::Support::Texture::Format>(std::stoi(thiz.params.at(3))));
 				break;
 			}
-			case Interface::TEXTURE_ENCODE: {
+			case Sen::Kernel::Interface::CliCallBack::TEXTURE_ENCODE: {
 				Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(thiz.argument, thiz.params.at(0), static_cast<Sen::Kernel::Support::Texture::Format>(std::stoi(thiz.params.at(1))));
 				break;
 			}

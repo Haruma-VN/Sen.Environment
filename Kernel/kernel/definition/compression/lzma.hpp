@@ -6,6 +6,9 @@
 
 namespace Sen::Kernel::Definition::Compression {
 
+	/**
+	 * Lzma compression and uncompression
+	*/
 
 	class Lzma {
 
