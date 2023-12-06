@@ -11,16 +11,23 @@ namespace Sen::Kernel::Definition {
 	*/
 
 	template <typename T>
+	
 	struct Dimension{
+
 		public:
+
+			// width and height
+
 			T width;
 			T height;
+
+			// constructor
+
 			Dimension(
 
-			)
-			{
+			) = default;
 
-			}
+			// constructor
 
 			Dimension(
 				T width,
@@ -30,16 +37,22 @@ namespace Sen::Kernel::Definition {
 
 			}
 
+			// destructor
+
 			~Dimension(
 
 			) = default;
 
+			// get circumference
+
 			auto circumference(
 
-			) -> double
+			) -> T
 			{
-				return static_cast<double>(thiz.width * 2 + thiz.height * 2);
+				return thiz.width * 2 + thiz.height * 2;
 			}
+			
+			// get area
 
 			auto area(
 
@@ -56,16 +69,31 @@ namespace Sen::Kernel::Definition {
 	template <typename T>
 	struct Rectangle : Dimension<T> {
 		public:
+
+			// position in image
+
 			T x;
 			T y;
+
+			/**
+			 * constructor
+			*/
 
 			Rectangle(
 
 			) = default;
 
+			/**
+			 * destructor
+			*/
+
 			~Rectangle(
 
 			) = default;
+
+			/**
+			 * constructor
+			*/
 
 			Rectangle(
 				T x, 
@@ -77,6 +105,10 @@ namespace Sen::Kernel::Definition {
 
 			}
 
+			/**
+			 * constructor
+			*/
+
 			Rectangle(
 				const Dimension<T> &that,
 				T x, 
@@ -86,11 +118,37 @@ namespace Sen::Kernel::Definition {
 
 			}
 
+			/**
+			 * constructor
+			*/
+
+			Rectangle(
+				const Rectangle &that
+			) : x(that.x), y(that.y), Dimension<T>(that.width, that.height)
+			{
+
+			}
+
+			/**
+			 * get area
+			*/
+
 			auto area(
 
 			) -> T
 			{
 				return thiz.width * thiz.height;
+			}
+
+			/**
+			 * get circumference
+			*/
+
+			auto circumference(
+
+			) -> T
+			{
+				return thiz.width * 2 + thiz.height * 2;
 			}
 	};
 
@@ -99,15 +157,25 @@ namespace Sen::Kernel::Definition {
 	*/
 
 	struct Color {
+
 		public:
+
+			// RGBA 
+			
+			// 0 - 1 - 2 - 3
+
 			std::vector<unsigned char> red;
 			std::vector<unsigned char> green;
 			std::vector<unsigned char> blue;
 			std::vector<unsigned char> alpha;
+			
+			// destructor
 
 			~Color(
 
 			) = default;
+
+			// constructor
 
 			Color(
 
@@ -128,15 +196,24 @@ namespace Sen::Kernel::Definition {
 	struct Image : Dimension<T> {
 
 		private:
+
+			// pixel data should not be accessible
 			
 			std::vector<unsigned char> _data;
 
 		public:
+
+			// easy accessible data
+
 			T bit_depth;
 			T color_type;
 			T interlace_type;
 			T channels;
 			T rowbytes;
+
+			/**
+			 * constructor
+			*/
 
 			Image(
 				T width, 
@@ -159,12 +236,20 @@ namespace Sen::Kernel::Definition {
 
 			}
 
+			/**
+			 * get pixel data
+			*/
+
 			auto data(
 
 			) const -> const std::vector<unsigned char> & 
 			{
 				return thiz._data;
 			}
+
+			/**
+			 * set pixel data
+			*/
 
 			auto set_data(
 				const std::vector<unsigned char> &data
@@ -173,6 +258,10 @@ namespace Sen::Kernel::Definition {
 				thiz._data = std::move(data);
 				return;
 			}
+
+			/**
+			 * get color
+			*/
 
 			auto color(
 
@@ -189,6 +278,10 @@ namespace Sen::Kernel::Definition {
 				return c;
 			}
 
+			/**
+			 * default constructor
+			*/
+
 			Image(
 				T width, 
 				T height, 
@@ -197,13 +290,25 @@ namespace Sen::Kernel::Definition {
 			{
 			}
 
+			/**
+			 * init blank
+			*/
+
 			Image(
 
 			) = default;
 
+			/**
+			 * destructor
+			*/
+
 			~Image(
 
 			) = default;
+
+			/**
+			 * get the image dimension
+			*/
 
 			auto dimension(
 
@@ -215,8 +320,15 @@ namespace Sen::Kernel::Definition {
 				return dz;
 			}
 
+			/**
+			 * composite image by copying pixel
+			 * image: this struct
+			 * rectangle: area to cut
+			 * return: newly struct with other data 
+			*/
+
 			static auto composite(
-				const Image<int>& input_image, 
+				const Image<int>& image, 
 				Rectangle<int> rectangle
 			) -> Image<int> const
 			{
@@ -224,13 +336,52 @@ namespace Sen::Kernel::Definition {
 				data.reserve(rectangle.area() * 4);
 				for (auto j : Range<int>(rectangle.y, rectangle.y + rectangle.height, 1)) {
 					for (auto i : Range<int>(rectangle.x, rectangle.x + rectangle.width, 1)) {
-						auto index = (j * input_image.width + i) * 4;
-						data.insert(data.end(), &input_image.data()[index], &input_image.data()[index + 4]);
+						auto index = (j * image.width + i) * 4;
+						data.insert(data.end(), &image.data()[index], &image.data()[index + 4]);
 					}
 				}
 				auto result = Image<int>(rectangle.width, rectangle.height, data);
 				return result;
 			}
+	};
+
+	/**
+	 * Rectangle with destination
+	*/
+
+	template <typename T>
+	struct RectangleFileIO : Rectangle<T> {
+		
+		public:
+
+			std::string destination;
+
+			RectangleFileIO(
+
+			) = default;
+
+			RectangleFileIO(
+				T x,
+				T y,
+				T width,
+				T height,
+				const std::string &destination
+			) : Rectangle<T>(x, y, width, height), destination(destination)
+			{
+
+			}
+
+			RectangleFileIO(
+				const Rectangle<T> &that,
+				const std::string &destination
+			) : Rectangle<T>(that), destination(destination)
+			{
+
+			}
+
+			~RectangleFileIO(
+
+			) = default;
 	};
 
 	/**
@@ -356,6 +507,40 @@ namespace Sen::Kernel::Definition {
 				png_write_end(png_ptr, NULL);
 				png_destroy_write_struct(&png_ptr, &info_ptr);
 				fclose(fp);
+				return;
+			}
+
+			/**
+			 * source: source file
+			 * destination: destination file
+			 * rectangle: the area to composite
+			 * return: the new image
+			*/
+
+			static auto composite_png(
+				const std::string &source,
+				const std::string &destination,
+				Rectangle<int> rectangle
+			) -> void
+			{
+				ImageIO::write_png(destination, Image<int>::composite(ImageIO::read_png(source), rectangle));
+				return;
+			}
+
+			/**
+			 * source: source file
+			 * data: list of rectangle file
+			 * return: the composite 
+			*/
+
+			static auto composite_pngs(
+				const std::string &source,
+				const std::vector<RectangleFileIO<int>> &data
+			) -> void
+			{
+				for(auto &c : data) {
+					ImageIO::composite_png(source, c.destination, c);
+				}
 				return;
 			}
 
