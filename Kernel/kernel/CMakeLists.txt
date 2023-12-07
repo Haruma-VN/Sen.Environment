@@ -42,6 +42,7 @@ add_library(
 	./dependencies/backward-cpp.hpp
 	./dependencies/SHA.hpp
 	./dependencies/lzma.hpp
+	./dependencies/avir.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/texture/encode.hpp
@@ -118,6 +119,7 @@ target_link_libraries(
 	backward-cpp
 	SHA
 	lzma
+	avir
 )
 
 set(CMAKE_CXX_STANDARD 23)

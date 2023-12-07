@@ -83,15 +83,15 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto path1 = (std::string)"D:/test/10.png";
-    auto path2 = (std::string)"D:/test/5.png";
+    auto path1 = (std::string)"D:/test/image2.png";
+    auto path2 = (std::string)"D:/test/image_2_2.png";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
     auto* parameter = new Parameter{
-        std::vector<std::string>{path2}
+        std::vector<std::string>{path2, "2"}
     };
-    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::RES_INFO_SPLIT);
+    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::IMAGE_SCALE);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

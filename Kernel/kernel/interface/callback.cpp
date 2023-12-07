@@ -128,8 +128,15 @@ namespace Sen::Kernel::Interface {
 				Sen::Kernel::Support::PopCap::ResourceGroup::merge(thiz.argument, thiz.params.at(0));
 				break;
 			}
-			case Sen::Kernel::Interface::CliCallBack::RES_INFO_SPLIT: {
-				// thiz.argument_require_input();
+			case Sen::Kernel::Interface::CliCallBack::IMAGE_SCALE: {
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				thiz.parameter_require_input(1);
+				Sen::Kernel::Definition::ImageIO::scale_png(thiz.argument, thiz.params.at(0), std::stoi(thiz.params.at(1)));
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::RES_INFO_SPLIT:{
+				// todo
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_MERGE:{

@@ -172,9 +172,20 @@ namespace Sen::Kernel::Definition {
 			
 			// 0 - 1 - 2 - 3
 
+			// red (i = 0)
+
 			std::vector<unsigned char> red;
+
+			// green (i = 1)
+
 			std::vector<unsigned char> green;
+
+			// blue (i = 2)
+
 			std::vector<unsigned char> blue;
+
+			// alpha (i = 3)
+
 			std::vector<unsigned char> alpha;
 			
 			// destructor
@@ -435,6 +446,71 @@ namespace Sen::Kernel::Definition {
 				}
 				return Image<T>(new_width, new_height, resized_image_data);
 			}
+
+			/**
+			 * Rotate image algorithm
+			 * Image: current image
+			 * angle: angle to rotate
+			 * return: newly image after rotate
+			*/
+
+			static auto rotate(
+				const Image<T>& image, 
+				double angle
+			) -> Image<T> const
+			{
+				auto new_width = static_cast<int>(std::abs(image.width * std::cos(angle)) + std::abs(image.height * std::sin(angle)));
+				auto new_height = static_cast<int>(std::abs(image.height * std::cos(angle)) + std::abs(image.width * std::sin(angle)));
+				auto data = std::vector<unsigned char>(new_width * new_height * 4, 0);
+				auto center_x = static_cast<double>(image.width) / 2.0;
+				auto center_y = static_cast<double>(image.height) / 2.0;
+				for (auto j : Range<int>(new_height)) {
+					for (auto i : Range<int>(new_width)) {
+						auto old_i = static_cast<int>((i - new_width / 2.0) * std::cos(angle) + (j - new_height / 2.0) * std::sin(angle) + center_x);
+						auto old_j = static_cast<int>((j - new_height / 2.0) * std::cos(angle) - (i - new_width / 2.0) * std::sin(angle) + center_y);
+						if (old_i >= 0 && old_i < image.width && old_j >= 0 && old_j < image.height) {
+							auto old_index = (old_j * image.width + old_i) * 4;
+							auto new_index = (j * new_width + i) * 4; 
+							std::copy(&image.data()[old_index], &image.data()[old_index + 4], &data[new_index]);
+						}
+					}
+				}
+				return Image<T>(new_width, new_height, data);
+			}
+
+			/**
+			 * Scale image using avir.h
+			 * source: image source
+			 * percentage: percentage to upscale
+			 * return: new image 
+			*/
+
+			static auto scale(
+				const Image<int> &source,
+				int percentage
+			) -> Image<int> const
+			{
+				auto new_width = source.width * percentage;
+				auto new_height = source.height * percentage;
+				const auto area = (new_width * new_height * 4);
+				auto data = new uint8_t[area];
+				avir::CImageResizer<>{8}.resizeImage(
+					source.data().data(), 
+					static_cast<int>(source.width), 
+					static_cast<int>(source.height), 
+					0, 
+					data, 
+					static_cast<int>(new_width), 
+					static_cast<int>(new_height), 
+					4, 
+					0.0, 
+					nullptr
+				);
+				auto vec = std::vector<uint8_t>(data, data + area);
+				delete[] data;
+				data = nullptr;
+				return Image<int>(new_width, new_height, vec);
+			}
 	};
 
 	/**
@@ -495,6 +571,7 @@ namespace Sen::Kernel::Definition {
 	};
 
 	/**
+	 * File System Image
 	 * In/Out Image struct
 	*/
 
@@ -715,6 +792,42 @@ namespace Sen::Kernel::Definition {
 			) -> void
 			{
 				ImageIO::write_png(destination, Image<int>::resize(ImageIO::read_png(source), percent));
+				return;
+			}
+
+			/**
+			 * Rotate image
+			 * @param source: image input source
+			 * @param destination: image output destination
+			 * @param angle: angle to rotate
+			 * return: the newly image after rotate
+			*/
+
+			static auto rotate_png(
+				const std::string &source,
+				const std::string &destination,
+				double angle
+			) -> void
+			{
+				ImageIO::write_png(destination, Image<int>::rotate(ImageIO::read_png(source), angle));
+				return;
+			}
+
+			/**
+			 * Scale image
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @param percent: upscale percentage
+			 * @return: written file to destination
+			*/
+
+			static auto scale_png(
+				const std::string & source,
+				const std::string & destination,
+				int percent
+			) -> void
+			{
+				ImageIO::write_png(destination, Image<int>::scale(ImageIO::read_png(source), percent));
 				return;
 			}
 

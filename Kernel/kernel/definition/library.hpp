@@ -31,3 +31,4 @@
 #include "kernel/dependencies/backward-cpp.hpp"
 #include "kernel/dependencies/SHA.hpp"
 #include "kernel/dependencies/lzma.hpp"
+#include "kernel/dependencies/avir.hpp"
