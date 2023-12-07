@@ -8,11 +8,20 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 	enum PathStyle
 	{
+
 		// old path style
+
 		ArrayStyle,
+
 		// new path style
+
 		WindowStyle,
+
 	};
+
+	/**
+	 * Common class
+	*/
 
 	class Common {
 
@@ -39,19 +48,29 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			inline static auto const String = std::string{"string"};
 	};
 
+	/**
+	 * Convert class
+	*/
+
 	class Convert : Common {
 
 		private:
 
-			// use windows path
+			// use windows path : new style
 
 			bool use_string_for_style;
+
+			/**
+			 * This function will convert atlas
+			 * subgroup: the subgroup json object
+			 * return: the newly converted json
+			*/
 
 			auto convert_atlas(
 				const nlohmann::json & subgroup
 			) -> nlohmann::json
 			{
-				auto result = nlohmann::json{
+				auto result = nlohmann::json {
 					{"type", subgroup["res"]}
 				};
 				auto atlas = std::vector<nlohmann::json>{};
@@ -63,7 +82,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				for(auto & parent : atlas) {
 					auto atlas_data = nlohmann::json {
 						{"type", parent["type"]},
-						{"path", thiz.use_string_for_style ? parent["path"].get<std::vector<std::string>>() : String::split(parent["path"], Common::WindowStyle) },
+						{"path", thiz.use_string_for_style ? String::split(parent["path"], Common::WindowStyle) : parent["path"].get<std::vector<std::string>>() },
 						{"dimension", nlohmann::json {
 							{"width", parent["width"] },
 							{"height", parent["height"] }
@@ -75,16 +94,16 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							children_in_current_parent.push_back(element);
 						}
 					}
-					for(auto & element : children_in_current_parent){
+					for(auto & element : children_in_current_parent) {
 						auto children_data = nlohmann::json {
 							{"type", element["type"]},
-							{"path", thiz.use_string_for_style ? element["path"].get<std::vector<std::string>>() : String::split(element["path"], Common::WindowStyle) },
+							{"path", thiz.use_string_for_style ? String::split(element["path"], Common::WindowStyle) : element["path"].get<std::vector<std::string>>() },
 							{
 								"default", nlohmann::json {
-								{"ax", element["ax"]},
-								{"ay", element["ay"]},
-								{"aw", element["aw"]},
-								{"ah", element["ah"]}
+									{"ax", element["ax"]},
+									{"ay", element["ay"]},
+									{"aw", element["aw"]},
+									{"ah", element["ah"]}
 							}}
 						};
 						if(element.find("x") != element.end() and element["x"] != Common::DefaultCoordinateOffset){
@@ -107,13 +126,19 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						}
 						atlas_data["data"][element["id"]] = children_data;
 					}
-					result["packet"][parent['id']] = atlas_data;
+					result["packet"][parent["id"]] = atlas_data;
 				}
 				return result;
 			}
 
+			/**
+			 * This function will convert common data to json map
+			 * subgroup: subgroup data
+			 * return: map
+			*/
+
 			auto convert_common(
-				const nlohmann::json &subgroup
+				const nlohmann::json & subgroup
 			) -> nlohmann::json
 			{
 				auto result = nlohmann::json {
@@ -123,22 +148,29 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}}
 				};
 				auto data = nlohmann::json{};
-				for(auto & element : subgroup) {
+				for(auto & element : subgroup["resources"]) {
 					auto data_s = nlohmann::json {
 						{"type", element["type"]},
-						{"path", thiz.use_string_for_style ? element["path"].get<std::vector<std::string>>() : String::split(element["path"], Common::WindowStyle)}
+						{"path", thiz.use_string_for_style ? String::split(element["path"], Common::WindowStyle) : element["path"].get<std::vector<std::string>>() }
 					};
 					if(element.find("forceOriginalVectorSymbolSize") != element.end()) {
 						data_s["forceOriginalVectorSymbolSize"] = element["forceOriginalVectorSymbolSize"];
 					}
 					if(element.find("srcpath") != element.end()) {
-						data_s["srcpath"] = thiz.use_string_for_style ? element["srcpath"].get<std::vector<std::string>>() : String::split(element["srcpath"], Common::WindowStyle);
+						data_s["srcpath"] = thiz.use_string_for_style ? String::split(element["srcpath"], Common::WindowStyle) : element["srcpath"].get<std::vector<std::string>>();
 					}
 					data[element["id"]] = data_s;
 				}
 				result["packet"]["data"] = data;
 				return result;
 			}
+
+			/**
+			 * This function will find the first subgroup in the resource group
+			 * resource_group: resource group
+			 * id: the parent id
+			 * return: the subgroup
+			*/
 
 			auto first_where(
 				const nlohmann::json & resource_group,
@@ -155,6 +187,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 		
 		public:
+
+			/**
+			 * This function will convert whole resource group to res info
+			 * source: resource group after deserialized
+			 * return: res info
+			*/
 
 			auto convert_whole(
 				const nlohmann::json & resource_group
@@ -184,6 +222,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							{"is_composite", false}
 						};
 						subgroup["subgroup"][element["id"]] = thiz.convert_common(element);
+						result["groups"][element["id"]] = subgroup;
 					}
 					
 				}
@@ -192,13 +231,21 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 			// convert method
 
+			/**
+			 * This is a quick method to call to convert resource group to res info
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @param style: resource path style
+			 * @return: Resource group in source converted to Res-Info in destination
+			*/
+
 			static auto convert_fs(
 				const std::string & source,
 				const std::string & destination,
 				PathStyle style
 			) -> void 
 			{
-				auto *convert_c = new Sen::Kernel::Support::PopCap::ResourceGroup::Convert{style};
+				auto *convert_c = new ResourceGroup::Convert{style};
 				FileSystem::writeJson(destination, convert_c->convert_whole(FileSystem::readJson(source)));
 				delete convert_c;
 				convert_c = nullptr;

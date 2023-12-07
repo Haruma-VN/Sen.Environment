@@ -135,7 +135,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						resources_json["groups"].push_back(resource_content);
 					}
 				}
-				ResourceGroup::BasicConversion::rewrite_slot_count(resources_json);
+				BasicConversion::rewrite_slot_count(resources_json);
 				FileSystem::writeJson(fileOutput, resources_json);
 				return;
 			}
