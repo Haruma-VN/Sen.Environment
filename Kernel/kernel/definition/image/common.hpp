@@ -24,6 +24,7 @@ namespace Sen::Kernel::Definition {
 			// width and height
 
 			T width;
+
 			T height;
 
 			// constructor
@@ -72,7 +73,9 @@ namespace Sen::Kernel::Definition {
 	*/
 
 	template <Integral T>
+
 	struct Rectangle : Dimension<T> {
+
 		public:
 
 			// position in image
@@ -230,13 +233,24 @@ namespace Sen::Kernel::Definition {
 				T rowbytes, 
 				std::vector<unsigned char> data
 			) : 
-			Dimension<T>(width, height), 
+			Rectangle<T>(0, 0, width, height), 
 			bit_depth(bit_depth),
 			color_type(color_type), 
 			interlace_type(interlace_type), 
 			channels(channels), 
 			rowbytes(rowbytes), 
 			_data(std::move(data))
+			{
+
+			}
+
+			/**
+			 * constructor
+			*/
+
+			Image(
+				const Image &that
+			) : Image<T>(that.width, that.height, that.bit_depth, that.color_type, that.interlace_type, that.channels, that.rowbytes, that.data())
 			{
 
 			}
@@ -265,8 +279,10 @@ namespace Sen::Kernel::Definition {
 			}
 
 			/**
+			 *
 			 * get color
-			*/
+			 * return: must be RGBA vector of Struct
+			 */
 
 			auto color(
 
@@ -392,10 +408,37 @@ namespace Sen::Kernel::Definition {
 				source.set_data(source_data);
 				return;
 			}
+
+			/**
+			 * Resize image algorithm
+			 * source: source image
+			 * percent: the new image percent to resize
+			 * return: the newly image
+			*/
+
+			static auto resize(
+				const Image<T>& source,
+				float percent
+			) -> Image<T> const
+			{
+				auto new_width = static_cast<int>(ceil(source.width * percent));
+				auto new_height = static_cast<int>(ceil(source.height * percent));
+				auto resized_image_data = std::vector<unsigned char>(new_width * new_height * 4);
+				for (auto j : Range<int>(new_height)) {
+					for (auto i : Range<int>(new_width)) {
+						auto old_i = static_cast<int>(i / percent);
+						auto old_j = static_cast<int>(j / percent);
+						auto old_index = (old_j * source.width + old_i) * 4;
+						auto new_index = (j * new_width + i) * 4;
+						std::copy(&source.data()[old_index], &source.data()[old_index + 4], &resized_image_data[new_index]);
+					}
+				}
+				return Image<T>(new_width, new_height, resized_image_data);
+			}
 	};
 
 	/**
-	 * Rectangle with destination
+	 * Rectangle with destination path
 	*/
 
 	template <Integral T>
@@ -403,6 +446,7 @@ namespace Sen::Kernel::Definition {
 	struct RectangleFileIO : Rectangle<T> {
 		
 		public:
+
 			// destination file
 			std::string destination;
 
@@ -421,6 +465,16 @@ namespace Sen::Kernel::Definition {
 				T height,
 				const std::string &destination
 			) : Rectangle<T>(x, y, width, height), destination(destination)
+			{
+			}
+
+			/**
+			 * constructor
+			*/
+
+			RectangleFileIO(
+				const RectangleFileIO& that
+			) : Rectangle<T>(that.x, that.y, that.width, that.height), destination(that.destination)
 			{
 			}
 
@@ -450,6 +504,7 @@ namespace Sen::Kernel::Definition {
 		public:
 
 			/**
+			 * libpng readpng adapation -> C++ implementation
 			 * file path: provide file path to read
 			 * return: image data
 			*/
@@ -486,8 +541,8 @@ namespace Sen::Kernel::Definition {
 				auto height = static_cast<int>(png_get_image_height(png_ptr, info_ptr));
 				auto bit_depth = static_cast<int>(png_get_bit_depth(png_ptr, info_ptr));
 				auto channels = static_cast<int>(png_get_channels(png_ptr, info_ptr));
-				for (auto y = 0; y < height; ++y) {
-					for (auto x = 0; x < width * bit_depth * channels / 8; ++x) {
+				for (auto y : Range<int>(height)) {
+					for (auto x : Range<int>(width * bit_depth * channels / 8)) {
 						data.push_back(row_pointers[y][x]);
 					}
 				}
@@ -506,6 +561,7 @@ namespace Sen::Kernel::Definition {
 			}
 
 			/**
+			 * libpng write png adaptation
 			 * file path: output path to write
 			 * data: the image data
 			 * return: written image
@@ -552,7 +608,7 @@ namespace Sen::Kernel::Definition {
 					PNG_FILTER_TYPE_DEFAULT
 				);
 				auto row_pointers = std::vector<png_bytep>(data.height);
-				for (auto y = 0; y < data.height; ++y) {
+				for (auto y : Range<int>(data.height)) {
 					row_pointers[y] = const_cast<unsigned char*>(&data.data()[y * data.width * 4]);
 				}
 				png_write_info(png_ptr, info_ptr);
@@ -641,6 +697,24 @@ namespace Sen::Kernel::Definition {
 				Image<int>::join(source, data);
 				// write png
 				ImageIO::write_png(destination, source);
+				return;
+			}
+
+			/**
+			 * Resize image method
+			 * @param source : image source
+			 * @param destination : output file destination
+			 * @param percent: percentage to resize
+			 * @return the newly image
+			 */
+
+			static auto resize_png(
+				const std::string &source,
+				const std::string &destination,
+				float percent
+			) -> void
+			{
+				ImageIO::write_png(destination, Image<int>::resize(ImageIO::read_png(source), percent));
 				return;
 			}
 
