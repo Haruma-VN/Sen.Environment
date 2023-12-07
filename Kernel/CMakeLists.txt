@@ -7,7 +7,10 @@ project (
 )
 
 add_definitions(-w)
+
+if (WIN32)
 add_compile_options(/w)
+endif()
 
 
 if (POLICY CMP0141)
@@ -29,7 +32,6 @@ add_subdirectory("./dependencies/libpng")
 add_subdirectory("./dependencies/etcpak")
 add_subdirectory("./dependencies/tinyxml2")
 add_subdirectory("./dependencies/ETCPACK")
-add_subdirectory("./dependencies/backward-cpp")
 add_subdirectory("./dependencies/SHA")
 add_subdirectory("./dependencies/lzma")
 add_subdirectory("./dependencies/avir")
@@ -42,44 +44,33 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /NOIMPLIB")
 endif()
 
+if(ANDROID)
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    ANDROID_STL c++_shared
+  )
+endif()
+
+# Symbol visibility
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
+# Pos Independent
+set(CMAKE_POSITION_INDEPENDENT_CODE true)
+
+
+if(ANDROID)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
 else ()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif ()
 
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(
-      ${PROJECT_NAME} PRIVATE
-        -Weverything
-        -Wno-c++98-compat
-        -Wno-c++98-compat-pedantic
-        -Wno-pre-c++14-compat
-        -Wno-pre-c++17-compat
-        -Wno-c++20-compat
-        -Wno-c99-extensions
-        -Wno-padded
-        -Wno-redundant-parens
-        -Wno-missing-field-initializers
-        -Wno-unused-parameter
-        -Wno-unused-variable
-        -Wno-missing-noreturn
-        -Wno-gnu-zero-variadic-macro-arguments
-        -Wno-ctad-maybe-unsupported
-        -Wno-global-constructors
-        -Wno-exit-time-destructors
-        -Wno-weak-vtables
-        -Wno-self-assign
-        -Wno-switch-enum
-        -Wno-shadow-field 
-        -Wno-shadow-field-in-constructor 
-        -Wno-shadow-uncaptured-local 
-        -Wno-unsafe-buffer-usage 
-        -Wno-float-equal 
-        -Wno-gnu-line-marker 
-)
-
-endif()
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

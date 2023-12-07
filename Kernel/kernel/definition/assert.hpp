@@ -26,19 +26,4 @@ namespace Sen::Kernel {
 		}
 		return;
 	}
-
-	inline auto parse_exception(
-		
-	) -> std::string
-	{
-		auto destination = std::string{};
-		auto st = backward::StackTrace{};
-		st.load_here(32);
-		auto p = backward::Printer{};
-		auto ss = std::stringstream{};
-		p.print(st, ss);
-		destination += ss.str();
-		return destination;
-	}
-
 }

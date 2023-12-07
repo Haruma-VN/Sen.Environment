@@ -1,7 +1,7 @@
 #pragma once
 #include "kernel/definition/utility.hpp"
 
-namespace Sen::Kernel::Support::PopCap {
+namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 	// using string
 
@@ -13,7 +13,7 @@ namespace Sen::Kernel::Support::PopCap {
 
 	// Resource Group class
 
-	class ResourceGroup {
+	class BasicConversion {
 
 		private:
 
@@ -135,7 +135,7 @@ namespace Sen::Kernel::Support::PopCap {
 						resources_json["groups"].push_back(resource_content);
 					}
 				}
-				ResourceGroup::rewrite_slot_count(resources_json);
+				ResourceGroup::BasicConversion::rewrite_slot_count(resources_json);
 				FileSystem::writeJson(fileOutput, resources_json);
 				return;
 			}

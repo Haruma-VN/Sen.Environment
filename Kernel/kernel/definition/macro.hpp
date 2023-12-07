@@ -20,7 +20,7 @@
 
 #define MACINTOSH __MACH__
 
-#ifdef WINDOWS
+#if WINDOWS
 #define M_EXPORT_API extern "C" __declspec(dllexport)
 #else
 #define M_EXPORT_API extern "C" __attribute__((visibility("default")))

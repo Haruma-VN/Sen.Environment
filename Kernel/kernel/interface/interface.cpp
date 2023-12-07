@@ -1,4 +1,5 @@
 ﻿#include "kernel/interface/callback.h"
+
 using namespace Sen::Kernel;
 
 M_EXPORT_API
@@ -16,6 +17,7 @@ int execute(
         auto* callback = new Interface::Callback(command, process, parameters, input, sendMessage);
         callback->execute();
         delete callback;
+	    callback = nullptr;
     }
     catch(std::exception &ex)
     {
@@ -24,7 +26,7 @@ int execute(
     }
     catch(int errorCode)
     {
-        sendMessage("Exception found:\n  ", fmt::format("Error caught with error code: {}", parse_exception()).c_str(), Sen::Kernel::Interface::Color::RED);
+        sendMessage("Exception found:\n  ", fmt::format("Error caught with error code: {}", errorCode).c_str(), Sen::Kernel::Interface::Color::RED);
         return 1;
     }
     catch(...)

@@ -1,6 +1,8 @@
 #include "kernel/interface/callback.h"
 
 namespace Sen::Kernel::Interface {
+
+	// constructor
 	
 	Callback::Callback(
 		const Interface::CliCallBack &command, 
@@ -16,6 +18,12 @@ namespace Sen::Kernel::Interface {
 		thiz.input = input;
 		thiz.print = print;
 	}
+
+	/**
+	 * 
+	 * @param index: the index in the parameter need input
+	 * @return: the input value
+	*/
 
 	auto Callback::parameter_require_input(
 		size_t index
@@ -119,13 +127,13 @@ namespace Sen::Kernel::Interface {
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
-				Sen::Kernel::Support::PopCap::ResourceGroup::split(thiz.argument, thiz.params.at(0));
+				Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::split(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_MERGE:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
-				Sen::Kernel::Support::PopCap::ResourceGroup::merge(thiz.argument, thiz.params.at(0));
+				Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::merge(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::IMAGE_SCALE: {
@@ -144,7 +152,7 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_TO_RES_INFO:{
-				// todo
+				Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(thiz.argument, thiz.params.at(0), static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(std::stoi(thiz.params.at(1))));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_TO_RESOURCE_GROUP:{

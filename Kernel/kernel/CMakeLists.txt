@@ -39,12 +39,12 @@ add_library(
 	./dependencies/etcpak.hpp
 	./dependencies/tinyxml2.hpp
 	./dependencies/ETCPACK.hpp
-	./dependencies/backward-cpp.hpp
 	./dependencies/SHA.hpp
 	./dependencies/lzma.hpp
 	./dependencies/avir.hpp
 
 	./support/popcap/resource_group/common.hpp
+	./support/popcap/resource_group/convert.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
 	./support/texture/invoke.hpp
@@ -116,11 +116,45 @@ target_link_libraries(
 	etcpak
 	tinyxml2
 	ETCPACK
-	backward-cpp
 	SHA
 	lzma
 	avir
 )
+
+
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(
+      ${PROJECT_NAME} PRIVATE
+        -Weverything
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-pre-c++14-compat
+        -Wno-pre-c++17-compat
+        -Wno-c++20-compat
+        -Wno-c99-extensions
+        -Wno-padded
+        -Wno-redundant-parens
+        -Wno-missing-field-initializers
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-missing-noreturn
+        -Wno-gnu-zero-variadic-macro-arguments
+        -Wno-ctad-maybe-unsupported
+        -Wno-global-constructors
+        -Wno-exit-time-destructors
+        -Wno-weak-vtables
+        -Wno-self-assign
+        -Wno-switch-enum
+        -Wno-shadow-field 
+        -Wno-shadow-field-in-constructor 
+        -Wno-shadow-uncaptured-local 
+        -Wno-unsafe-buffer-usage 
+        -Wno-float-equal 
+        -Wno-gnu-line-marker 
+)
+
+endif()
 
 set(CMAKE_CXX_STANDARD 23)
 

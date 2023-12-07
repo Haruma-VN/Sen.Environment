@@ -8,6 +8,7 @@ namespace Sen::Kernel {
 	template <typename T> 
 	struct Temporary {
 		public:
+		
 			T value;
 
 			Temporary(

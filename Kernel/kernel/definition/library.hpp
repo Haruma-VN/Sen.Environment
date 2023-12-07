@@ -12,6 +12,8 @@
 #include <codecvt>
 #include <type_traits>
 #include <chrono>
+#include <math.h>
+#include <cmath>
 #include <source_location>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
@@ -28,7 +30,6 @@
 #include "kernel/dependencies/etcpak.hpp"
 #include "kernel/dependencies/tinyxml2.hpp"
 #include "kernel/dependencies/ETCPACK.hpp"
-#include "kernel/dependencies/backward-cpp.hpp"
 #include "kernel/dependencies/SHA.hpp"
 #include "kernel/dependencies/lzma.hpp"
 #include "kernel/dependencies/avir.hpp"
