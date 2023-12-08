@@ -26,6 +26,18 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 	class Common {
 
 		public:
+
+			// constructor
+
+			Common(
+
+			) = default;
+
+			// destructor
+
+			~Common(
+
+			) = default;
 			
 			// x and y
 
@@ -75,54 +87,54 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				};
 				auto atlas = std::vector<nlohmann::json>{};
 				for(auto & element : subgroup["resources"]){
-					if(element.find("atlas") != element.end() && element["atlas"]){
+					if(element.find("atlas") != element.end() && element["atlas"].get<bool>()){
 						atlas.push_back(element);
 					}
 				}
 				for(auto & parent : atlas) {
 					auto atlas_data = nlohmann::json {
-						{"type", parent["type"]},
-						{"path", thiz.use_string_for_style ? String::split(parent["path"], Common::WindowStyle) : parent["path"].get<std::vector<std::string>>() },
+						{"type", parent["type"].get<std::string>()},
+						{"path", thiz.use_string_for_style ? String::split(parent["path"].get<std::string>(), Common::WindowStyle) : parent["path"].get<std::vector<std::string>>() },
 						{"dimension", nlohmann::json {
-							{"width", parent["width"] },
-							{"height", parent["height"] }
+							{"width", parent["width"].get<int>() },
+							{"height", parent["height"].get<int>() }
 						}}
 					};
 					auto children_in_current_parent = std::vector<nlohmann::json>{};
 					for(auto & element : subgroup["resources"]) {
-						if(element["parent"] == parent["id"]) {
+						if(element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
 							children_in_current_parent.push_back(element);
 						}
 					}
 					for(auto & element : children_in_current_parent) {
 						auto children_data = nlohmann::json {
-							{"type", element["type"]},
-							{"path", thiz.use_string_for_style ? String::split(element["path"], Common::WindowStyle) : element["path"].get<std::vector<std::string>>() },
+							{"type", element["type"].get<std::string>()},
+							{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() },
 							{
 								"default", nlohmann::json {
-									{"ax", element["ax"]},
-									{"ay", element["ay"]},
-									{"aw", element["aw"]},
-									{"ah", element["ah"]}
+									{"ax", element["ax"].get<int>()},
+									{"ay", element["ay"].get<int>()},
+									{"aw", element["aw"].get<int>()},
+									{"ah", element["ah"].get<int>()}
 							}}
 						};
 						if(element.find("x") != element.end() and element["x"] != Common::DefaultCoordinateOffset){
-							children_data["default"]["x"] = element["x"];
+							children_data["default"]["x"] = element["x"].get<int>();
 						}
 						else{
 							children_data["default"]["x"] = Common::DefaultCoordinateOffset;
 						}
 						if(element.find("y") != element.end() and element["y"] != Common::DefaultCoordinateOffset){
-							children_data["default"]["y"] = element["y"];
+							children_data["default"]["y"] = element["y"].get<int>();
 						}
 						else{
 							children_data["default"]["y"] = Common::DefaultCoordinateOffset;
 						}
 						if(element.find("rows") != element.end() and element["rows"] != Common::DefaultLayoutOffset){
-							children_data["default"]["rows"] = element["rows"];
+							children_data["default"]["rows"] = element["rows"].get<int>();
 						}
 						if(element.find("cols") != element.end() and element["cols"] != Common::DefaultLayoutOffset){
-							children_data["default"]["cols"] = element["cols"];
+							children_data["default"]["cols"] = element["cols"].get<int>();
 						}
 						atlas_data["data"][element["id"]] = children_data;
 					}
@@ -150,14 +162,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				auto data = nlohmann::json{};
 				for(auto & element : subgroup["resources"]) {
 					auto data_s = nlohmann::json {
-						{"type", element["type"]},
-						{"path", thiz.use_string_for_style ? String::split(element["path"], Common::WindowStyle) : element["path"].get<std::vector<std::string>>() }
+						{"type", element["type"].get<std::string>()},
+						{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() }
 					};
 					if(element.find("forceOriginalVectorSymbolSize") != element.end()) {
-						data_s["forceOriginalVectorSymbolSize"] = element["forceOriginalVectorSymbolSize"];
+						data_s["forceOriginalVectorSymbolSize"] = element["forceOriginalVectorSymbolSize"].get<bool>();
 					}
 					if(element.find("srcpath") != element.end()) {
-						data_s["srcpath"] = thiz.use_string_for_style ? String::split(element["srcpath"], Common::WindowStyle) : element["srcpath"].get<std::vector<std::string>>();
+						data_s["srcpath"] = thiz.use_string_for_style ? String::split(element["srcpath"].get<std::string>(), Common::WindowStyle) : element["srcpath"].get<std::vector<std::string>>();
 					}
 					data[element["id"]] = data_s;
 				}
@@ -209,20 +221,20 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						};
 						for(auto & k : element["subgroups"]) {
 							if (k.find("res") != k.end() and k["res"].get<std::string>() != "0") {
-								subgroup["subgroup"][k["id"]] = thiz.convert_atlas(thiz.first_where(resource_group, k["id"]));
+								subgroup["subgroup"][k["id"].get<std::string>()] = thiz.convert_atlas(thiz.first_where(resource_group, k["id"]));
 							}
 							else {
-								subgroup["subgroup"][k["id"]] = thiz.convert_common(thiz.first_where(resource_group, k["id"]));
+								subgroup["subgroup"][k["id"].get<std::string>()] = thiz.convert_common(thiz.first_where(resource_group, k["id"]));
 							}
 						}
-						result["groups"][element["id"]] = subgroup;
+						result["groups"][element["id"].get<std::string>()] = subgroup;
 					}
 					if(element.find("parent") == element.end() && element.find("resources") != element.end()) {
 						auto subgroup = nlohmann::json {
 							{"is_composite", false}
 						};
-						subgroup["subgroup"][element["id"]] = thiz.convert_common(element);
-						result["groups"][element["id"]] = subgroup;
+						subgroup["subgroup"][element["id"].get<std::string>()] = thiz.convert_common(element);
+						result["groups"][element["id"].get<std::string>()] = subgroup;
 					}
 					
 				}

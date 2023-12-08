@@ -72,7 +72,7 @@ namespace Sen::Kernel::Definition {
 	 * Rectangle Struct
 	*/
 
-	template <Integral T>
+	template <typename T> requires Integral<T>
 
 	struct Rectangle : Dimension<T> {
 
@@ -211,7 +211,7 @@ namespace Sen::Kernel::Definition {
 	 * Image struct
 	*/
 
-	template <Integral T>
+	template <typename T> requires Integral<T>
 	struct Image : Rectangle<T> {
 
 		private:
@@ -517,7 +517,7 @@ namespace Sen::Kernel::Definition {
 	 * Rectangle with destination path
 	*/
 
-	template <Integral T>
+	template <typename T> requires Integral<T>
 
 	struct RectangleFileIO : Rectangle<T> {
 		

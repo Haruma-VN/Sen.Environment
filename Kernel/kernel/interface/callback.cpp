@@ -124,6 +124,21 @@ namespace Sen::Kernel::Interface {
 				Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
+			case Sen::Kernel::Interface::CliCallBack::LZMA_COMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Lzma Compress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Lzma::compress_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::LZMA_UNCOMPRESS:{
+				thiz.print(fmt::format("Method loaded: {}", "Lzma Uncompress").c_str(), Sen::Kernel::Interface::Callback::emptyString, Sen::Kernel::Interface::Color::CYAN);
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				thiz.parameter_require_input(1);
+				Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(thiz.argument, thiz.params.at(0), std::stoull(thiz.params.at(1)));
+				break;
+			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
@@ -144,11 +159,15 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_SPLIT:{
-				// todo
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::split_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_MERGE:{
-				// todo
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::merge_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_TO_RES_INFO:{

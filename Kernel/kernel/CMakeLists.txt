@@ -45,6 +45,8 @@ add_library(
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
+	./support/popcap/res_info/common.hpp
+	./support/popcap/res_info/convert.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
 	./support/texture/invoke.hpp
