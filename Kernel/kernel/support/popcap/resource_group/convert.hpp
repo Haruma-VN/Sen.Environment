@@ -58,6 +58,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			// String
 
 			inline static auto const String = std::string{"string"};
+
+			// empty string
+
+			inline static auto const emptyString = std::string{""};
+
+			// empty type
+
+			inline static auto const emptyType = std::string{"0"};
 	};
 
 	/**

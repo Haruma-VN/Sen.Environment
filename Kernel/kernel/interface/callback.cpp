@@ -175,7 +175,7 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_TO_RESOURCE_GROUP:{
-				// todo
+				Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(thiz.argument, thiz.params.at(0));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::TEXTURE_DECODE: {

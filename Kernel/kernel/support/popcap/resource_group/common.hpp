@@ -13,9 +13,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 	// Resource Group class
 
-	class BasicConversion {
+	class RewriteSlot {
 
-		private:
+		protected:
 
 			static auto rewrite_slot_count(
 				nlohmann::json &resource
@@ -40,6 +40,18 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				return;
 			}
 
+		public:
+
+			RewriteSlot(
+
+			) = default;
+
+			~RewriteSlot(
+
+			) = default;
+	};
+
+	class BasicConversion : public RewriteSlot {
 
 		public:
 
@@ -57,11 +69,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				try_assert(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"));
 				FileSystem::createDirectory(fmt::format("{}/{}", Path::toPosixStyle(output), "subgroup"));
 				auto content = json{};
-				for(auto &c : resource["groups"])
+				for(auto & c : resource["groups"])
 				{
 					if(c.find("resources") != c.end())
 					{
-						for(auto &e : c["resources"])
+						for(auto & e : c["resources"])
 						{
 							e.erase("slot");
 						}
