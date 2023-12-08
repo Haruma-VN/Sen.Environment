@@ -186,6 +186,18 @@ namespace Sen::Kernel::Interface {
 				Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(thiz.argument, thiz.params.at(0), static_cast<Sen::Kernel::Support::Texture::Format>(std::stoi(thiz.params.at(1))));
 				break;
 			}
+			case Sen::Kernel::Interface::CliCallBack::POPCAP_ZLIB_COMPRESS:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(thiz.argument, thiz.params.at(0), false);
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::POPCAP_ZLIB_UNCOMPRESS:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Support::PopCap::Zlib::Uncompress::uncompress_fs(thiz.argument, thiz.params.at(0), false);
+				break;
+			}
 			default:{
 				throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
 			}

@@ -16,6 +16,7 @@ add_library(
 	./definition/timer/common.hpp
 	./definition/image/common.hpp
 	./definition/json/object.hpp
+	./definition/buffer/vector.hpp
 	./definition/encryption/md5/common.hpp
 	./definition/encryption/Rijndael/common.hpp
 	./definition/encryption/sha224/common.hpp
@@ -47,6 +48,9 @@ add_library(
 	./support/popcap/resource_group/convert.hpp
 	./support/popcap/res_info/common.hpp
 	./support/popcap/res_info/convert.hpp
+	./support/popcap/zlib/common.hpp
+	./support/popcap/zlib/uncompress.hpp
+	./support/popcap/zlib/compress.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
 	./support/texture/invoke.hpp
