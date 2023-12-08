@@ -486,12 +486,12 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			static auto scale(
-				const Image<int> &source,
-				int percentage
+				const Image<int> & source,
+				float percentage
 			) -> Image<int> const
 			{
-				auto new_width = source.width * percentage;
-				auto new_height = source.height * percentage;
+				auto new_width = static_cast<int>(source.width * percentage);
+				auto new_height = static_cast<int>(source.height * percentage);
 				const auto area = (new_width * new_height * 4);
 				auto data = new uint8_t[area];
 				avir::CImageResizer<>{8}.resizeImage(
@@ -824,7 +824,7 @@ namespace Sen::Kernel::Definition {
 			static auto scale_png(
 				const std::string & source,
 				const std::string & destination,
-				int percent
+				float percent
 			) -> void
 			{
 				ImageIO::write_png(destination, Image<int>::scale(ImageIO::read_png(source), percent));

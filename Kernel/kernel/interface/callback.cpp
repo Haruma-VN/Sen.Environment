@@ -155,7 +155,7 @@ namespace Sen::Kernel::Interface {
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);
 				thiz.parameter_require_input(1);
-				Sen::Kernel::Definition::ImageIO::scale_png(thiz.argument, thiz.params.at(0), std::stoi(thiz.params.at(1)));
+				Sen::Kernel::Definition::ImageIO::scale_png(thiz.argument, thiz.params.at(0), std::stof(thiz.params.at(1)));
 				break;
 			}
 			case Sen::Kernel::Interface::CliCallBack::RES_INFO_SPLIT:{

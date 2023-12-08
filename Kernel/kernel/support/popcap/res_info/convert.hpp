@@ -130,16 +130,17 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			{
 				auto result = nlohmann::json{
 					{ "type", Convert::Composite },
-					{ "id", composite["id"].get<std::string>() },
+					{ "id", id },
 					{ "subgroups", nlohmann::json::array() }
 				};
-				for(auto & element : composite["subgroup"].get<std::vector<std::string>>()) {
+				for(auto & [element, value] : composite["subgroup"].items()) {
 					auto subgroup = nlohmann::json {
 						{"id", element}
 					};
-					if(composite["subgroup"][element].find("type") != composite["subgroup"][element].end() && composite["subgroup"][element]["type"].get<std::string>() != Convert::emptyType){
+					if(!composite["subgroup"][element]["type"].is_null() and composite["subgroup"][element]["type"].get<std::string>() != Convert::emptyType){
 						subgroup["res"] = composite["subgroup"][element]["type"].get<std::string>();
 					}
+					result["subgroups"].push_back(subgroup);
 				}
 				return result;
 			}
@@ -253,10 +254,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						if (sub_value["default"].find("cols") != sub_value["default"].end() and sub_value["default"]["cols"].get<int>() != ResourceGroup::Common::DefaultLayoutOffset) {
 							sub_resource["cols"] =  sub_value["default"]["cols"].get<int>();
 						}
-						sub_resource["ax"] =  sub_value["default"]["ax"].get<int>();
-						sub_resource["ay"] =  sub_value["default"]["ay"].get<int>();
-						sub_resource["aw"] =  sub_value["default"]["aw"].get<int>();
-						sub_resource["ah"] =  sub_value["default"]["ah"].get<int>();
+						sub_resource["ax"] = sub_value["default"]["ax"].get<int>();
+						sub_resource["ay"] = sub_value["default"]["ay"].get<int>();
+						sub_resource["aw"] = sub_value["default"]["aw"].get<int>();
+						sub_resource["ah"] = sub_value["default"]["ah"].get<int>();
 						result["resources"].push_back(sub_resource);
 					}
 				}
@@ -313,7 +314,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					if(group["is_composite"].get<bool>()){
         				result["groups"].push_back(thiz.generate_composite(composite_name, group));
 						for(auto & [subgroup_name, subgroup_value] : group["subgroup"].items()){
-							if (subgroup_value.find("type") != subgroup_value.end() and subgroup_value["type"].get<std::string>() != Convert::emptyType) {
+							if (!subgroup_value["type"].is_null() and subgroup_value["type"].get<std::string>() != Convert::emptyType) {
 								result["groups"].push_back(
 									thiz.generate_image(
 										SubInformation(subgroup_name, composite_name),
