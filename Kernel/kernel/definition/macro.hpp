@@ -25,3 +25,5 @@
 #else
 #define M_EXPORT_API extern "C" __attribute__((visibility("default")))
 #endif
+
+#define calculate_area(width, height) width * height

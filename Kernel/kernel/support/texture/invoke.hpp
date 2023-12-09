@@ -13,6 +13,7 @@ namespace Sen::Kernel::Support::Texture {
 	{
 		RGBA_8888 = 1,
 		ARGB_8888,
+		RGBA_4444,
 	};
 
 	/**
@@ -45,11 +46,15 @@ namespace Sen::Kernel::Support::Texture {
 				auto source_binary = FileSystem::readBinary<unsigned char>(source);
 				switch(format){
 					case Format::RGBA_8888: {
-						ImageIO::write_png(destination, Decode::rgba(source_binary, width, height));
+						ImageIO::write_png(destination, Decode::rgba_8888(source_binary, width, height));
 						break;
 					}
 					case Format::ARGB_8888: {
-						ImageIO::write_png(destination, Decode::argb(source_binary, width, height));
+						ImageIO::write_png(destination, Decode::argb_8888(source_binary, width, height));
+						break;
+					}
+					case Format::RGBA_4444:{
+						ImageIO::write_png(destination, Decode::rgba_4444(source_binary, width, height));
 						break;
 					}
 					default:{
