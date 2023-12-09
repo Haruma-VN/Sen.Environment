@@ -14,6 +14,8 @@ namespace Sen::Kernel::Support::Texture {
 		RGBA_8888 = 1,
 		ARGB_8888,
 		RGBA_4444,
+		RGB_ETC1_A_8,
+		RGBA_PVRTC_4BPP,
 	};
 
 	/**
@@ -55,6 +57,14 @@ namespace Sen::Kernel::Support::Texture {
 					}
 					case Format::RGBA_4444:{
 						ImageIO::write_png(destination, Decode::rgba_4444(source_binary, width, height));
+						break;
+					}
+					case Format::RGB_ETC1_A_8:{
+						ImageIO::write_png(destination, Decode::rgb_etc1_a_8(source_binary, width, height));
+						break;
+					}
+					case Format::RGBA_PVRTC_4BPP:{
+						ImageIO::write_png(destination, Decode::rgba_pvrtc_4bpp(source_binary, width, height));
 						break;
 					}
 					default:{

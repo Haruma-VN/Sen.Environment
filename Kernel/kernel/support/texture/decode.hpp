@@ -6,15 +6,15 @@ namespace Sen::Kernel::Support::Texture {
 
 	// set pixel
 
-	#define set_pixel(x, y, width) (y * width + x) * 4;
+	#define set_pixel(x, y, width) (y * width + x) * 4
 
 	// pixel area
 
-	#define pixel_area(area) area * 4;
+	#define pixel_area(area) area * 4
 
 	// pixel area rgba
 
-	#define pixel_area_rgba(width, height) pixel_area(calculate_area(width, height));
+	#define pixel_area_rgba(width, height) pixel_area(calculate_area(width, height))
 
 	// pixel color 
 
@@ -30,6 +30,21 @@ namespace Sen::Kernel::Support::Texture {
 
 			inline static constexpr auto ALPHA = static_cast<unsigned char>(0x00);
 
+			// k_block_width
+
+			inline static constexpr auto k_block_width = 4;
+
+			// k_none_size
+
+			inline static constexpr auto k_none_size = 0;
+
+			// k_begin_index
+
+			inline static constexpr auto k_begin_index = 0;
+
+			// k_bpp
+
+			inline static constexpr auto k_bpp = 4;
 	};
 
 	// use color
@@ -65,6 +80,35 @@ namespace Sen::Kernel::Support::Texture {
 					data.push_back(color[i]);
 				}
 				return data;
+			}
+
+			static auto readOneBit(
+				int & bitPostion,
+				unsigned char & buffer,
+				Buffer::Vector & image_bytes
+			) -> int
+			{
+				if (bitPostion == 0)
+				{
+					buffer = image_bytes.readUint8();
+				}
+				bitPostion = (bitPostion + 7) & 7;
+				return static_cast<int>((buffer >> bitPostion) & 1);
+			}
+
+			static auto readBits(
+				int bits,
+				int & bitPostion,
+				unsigned char & buffer,
+				Buffer::Vector & image_bytes
+			) -> int
+			{
+				auto ans = 0;
+				for (auto i = bits - 1; i >= 0; i--)
+				{
+					ans |= readOneBit(bitPostion, buffer, image_bytes) << i;
+				}
+				return ans;
 			}
 
 		public:
@@ -239,6 +283,175 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				return Image<int>{width, height, data};
 			}
+
+			static auto rgba_5551_tiled(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int>
+			{
+				auto sen = Buffer::Vector{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for(auto i : Range<int>(0, height, 32)){
+					for(auto w : Range<int>(0, width, 32)){
+						for(auto j : Range<int>(32)){
+							for(auto k : Range<int>(32)){
+            					auto temp_pixel = sen.readUint16LE();
+								if ((i + j) < height and (w + k) < width) {
+									auto red = temp_pixel >> 11;
+									auto green = (temp_pixel & 0x7C0) >> 6;
+									auto blue = (temp_pixel & 0x3E) >> 1;
+									auto index = set_pixel(w + k, i + j, width);
+									data[index] = static_cast<unsigned char>((red << 3) | (red >> 2));
+									data[index + 1] = static_cast<unsigned char>((green << 3) | (green >> 2));
+									data[index + 2] = static_cast<unsigned char>((blue << 3) | (blue >> 2));
+									data[index + 3] = static_cast<unsigned char>(-(temp_pixel & 0x1));
+								}
+							}
+						}
+					}
+				}
+				return Image<int>{width, height, data};
+			}
+
+			static auto rgb_etc1_a_8(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int>
+			{
+				auto sen = Buffer::Vector{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
+				for(auto block_y : Range<int>(height / k_block_width)){
+					for(auto block_x : Range<int>(width / k_block_width)){
+						auto block_part_1 = sen.readUint32BE();
+						auto block_part_2 = sen.readUint32BE();
+						decompressBlockETC2c(
+							static_cast<unsigned int>(block_part_1),
+							static_cast<unsigned int>(block_part_2),
+							image_block,
+							k_block_width,
+							k_block_width,
+							k_begin_index,
+							k_begin_index,
+							4
+						);
+						for (auto pixel_y : Range<int>(k_block_width)) {
+							for (auto pixel_x : Range<int>(k_block_width)) {
+								auto index = set_pixel((block_x * k_block_width + pixel_x), (block_y * k_block_width + pixel_y), width);
+								auto block_index = set_pixel(pixel_x, pixel_y, k_block_width);
+								data[index] = image_block[block_index];
+								data[index + 1] = image_block[block_index + 1];
+								data[index + 2] = image_block[block_index + 2];
+								data[index + 3] = image_block[block_index + 3];
+							}
+						}
+					}
+				}
+				delete[] image_block;
+				image_block = nullptr;
+				return Image<int>{width, height, data};
+			}
+
+			static auto rgb_etc1_a_palette(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int>
+			{
+				auto sen = Buffer::Vector{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
+				for(auto block_y : Range<int>(height / k_block_width)){
+					for(auto block_x : Range<int>(width / k_block_width)){
+						auto block_part_1 = sen.readUint32BE();
+						auto block_part_2 = sen.readUint32BE();
+						decompressBlockETC2c(
+							static_cast<unsigned int>(block_part_1),
+							static_cast<unsigned int>(block_part_2),
+							image_block,
+							k_block_width,
+							k_block_width,
+							k_begin_index,
+							k_begin_index,
+							4
+						);
+						for (auto pixel_y : Range<int>(k_block_width)) {
+							for (auto pixel_x : Range<int>(k_block_width)) {
+								auto index = set_pixel((block_x * k_block_width + pixel_x), (block_y * k_block_width + pixel_y), width);
+								auto block_index = set_pixel(pixel_x, pixel_y, k_block_width);
+								data[index] = image_block[block_index];
+								data[index + 1] = image_block[block_index + 1];
+								data[index + 2] = image_block[block_index + 2];
+							}
+						}
+					}
+				}
+				delete[] image_block;
+				image_block = nullptr;
+				auto num = sen.readUint8();
+    			auto index_table = new uint8_t[num == 0 ? 2 : num];
+            	auto bit_depth = int{};
+				if(num == 0){
+					index_table[0] = 0x0;
+					index_table[1] = 0xFF;
+					bit_depth = 1;
+				}
+				else{
+					for (auto i : Range(num))
+					{
+						auto p_byte = sen.readUint8();
+						index_table[i] = static_cast<unsigned char>((p_byte << 4) | p_byte);
+					}
+					auto tableSize = 2;
+					for (bit_depth = 1; num > tableSize; bit_depth++)
+					{
+						tableSize *= 2;
+					}
+				}
+				auto bitPostion = 0;
+				auto buffer = static_cast<unsigned char>(0x00);
+				for (auto y = 0; y < height; y++) {
+					for (auto x = 0; x < width; x++) {
+						auto index = set_pixel(x, y, width);
+						data[index + 3] = index_table[readBits(bit_depth, bitPostion, buffer, sen)];
+					}
+				}
+				delete[] index_table;
+				index_table = nullptr;
+				return Image<int>{width, height, data};
+			}
+
+			static auto rgba_pvrtc_4bpp(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int>
+			{
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(actual_data, Javelin::Point2<int>(width, height), color.data());
+				for (auto y : Range<int>(height)) {
+					for (auto x : Range<int>(width)) {
+						auto index = set_pixel(x, y, width);
+						auto block_index = y * width + x;
+						data[index] = actual_data[block_index].r;
+						data[index + 1] = actual_data[block_index].g;
+						data[index + 2] = actual_data[block_index].b;
+						data[index + 3] = actual_data[block_index].a;
+					}
+				}
+				delete[] actual_data;
+				actual_data = nullptr;
+				return Image<int>{width, height, data};
+			}
+
+
 
 	};
 }

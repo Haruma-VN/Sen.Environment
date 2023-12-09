@@ -89,7 +89,7 @@ MAIN_FUNCTION
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
     auto* parameter = new Parameter{
-        std::vector<std::string>{path2, "100", "100", "3"}
+        std::vector<std::string>{path2, "100", "100", "5"}
     };
     auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::TEXTURE_DECODE);
     #if WIN32

@@ -19,5 +19,9 @@
 namespace Sen::Kernel::Dependencies::ETCPACK {
 
 	// using third
+	
+	inline constexpr auto decompressBlockETC2c = ::decompressBlockETC2c;
+
+	inline constexpr auto decompressBlockAlphaC = ::decompressBlockAlphaC;
 
 }
