@@ -1,15 +1,11 @@
+cmake_minimum_required(VERSION 3.10)
+
 project(
 	libpng
 	VERSION 1.6.37
 	HOMEPAGE_URL http://www.libpng.org/pub/png/libpng.html
 	LANGUAGES C
 )
-
-if (MSVC)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
-else ()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-endif ()
 
 add_library(
 	${PROJECT_NAME} STATIC
@@ -47,5 +43,6 @@ target_link_libraries(
 	zlib
 )
 
-
-set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PNG_ARM_NEON_OPT=0)
+endif()

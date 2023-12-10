@@ -415,8 +415,8 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				auto bitPostion = 0;
 				auto buffer = static_cast<unsigned char>(0x00);
-				for (auto y = 0; y < height; y++) {
-					for (auto x = 0; x < width; x++) {
+				for (auto y : Range<int>(height)) {
+					for (auto x : Range<int>(width)) {
 						auto index = set_pixel(x, y, width);
 						data[index + 3] = index_table[readBits(bit_depth, bitPostion, buffer, sen)];
 					}
@@ -435,7 +435,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
-				Javelin::PvrTcDecoder::DecodeRgba4Bpp(actual_data, Javelin::Point2<int>(width, height), color.data());
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), color.data());
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {
 						auto index = set_pixel(x, y, width);
