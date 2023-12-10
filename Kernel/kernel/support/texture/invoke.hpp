@@ -138,6 +138,49 @@ namespace Sen::Kernel::Support::Texture {
 						result = std::move(Encode::argb(source_image));
 						break;
 					}
+					case Format::RGBA_4444:{
+						result = std::move(Encode::rgba_4444(source_image));
+						break;
+					}
+					case Format::RGB_565:{
+						result = std::move(Encode::rgb_565(source_image));
+						break;
+					}
+					case Format::RGBA_5551:{
+						result = std::move(Encode::rgba_5551(source_image));
+						break;
+					}
+					case Format::RGBA_4444_TILED:{
+						result = std::move(Encode::rgba_4444_tiled(source_image));
+						break;
+					}
+					case Format::RGB_565_TILED:{
+						result = std::move(Encode::rgb_565_tiled(source_image));
+						break;
+					}
+					case Format::RGBA_5551_TILED:{
+						result = std::move(Encode::rgba_5551_tiled(source_image));
+						break;
+					}
+					case Format::RGB_ETC1_A_8:{
+						result = std::move(Encode::rgba(source_image));
+						break;
+					}
+					case Format::RGB_ETC1_A_PALETTE:{
+						result = std::move(Encode::rgba(source_image));
+						break;
+					}
+					case Format::RGBA_PVRTC_4BPP:{
+						result = std::move(Encode::rgba(source_image));
+						break;
+					}
+					case Format::RGB_PVRTC_4BPP_A_8:{
+						result = std::move(Encode::rgba(source_image));
+						break;
+					}
+					default:{
+						throw std::runtime_error("Format is not supported");
+					}
 				}
 				FileSystem::writeBinary<unsigned char>(destination, result);
 				return;

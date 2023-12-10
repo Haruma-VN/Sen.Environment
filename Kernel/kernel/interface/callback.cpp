@@ -200,6 +200,7 @@ namespace Sen::Kernel::Interface {
 				break;
 			}
 			default:{
+				
 				throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
 			}
 		}
