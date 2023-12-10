@@ -14,6 +14,8 @@
 #include <chrono>
 #include <math.h>
 #include <cmath>
+#include <string.h>
+#include <stdlib.h>
 #include <source_location>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
