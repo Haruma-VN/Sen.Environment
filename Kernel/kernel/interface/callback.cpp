@@ -128,6 +128,18 @@ namespace Sen::Kernel::Interface {
 				Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(thiz.argument, thiz.params.at(0), std::stoull(thiz.params.at(1)));
 				break;
 			}
+			case Sen::Kernel::Interface::CliCallBack::BZIP2_COMPRESS:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Bzip2::compress_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
+			case Sen::Kernel::Interface::CliCallBack::BZIP2_UNCOMPRESS:{
+				thiz.argument_require_input();
+				thiz.parameter_require_input(0);
+				Sen::Kernel::Definition::Compression::Bzip2::uncompress_fs(thiz.argument, thiz.params.at(0));
+				break;
+			}
 			case Sen::Kernel::Interface::CliCallBack::RESOURCE_GROUP_SPLIT:{
 				thiz.argument_require_input();
 				thiz.parameter_require_input(0);

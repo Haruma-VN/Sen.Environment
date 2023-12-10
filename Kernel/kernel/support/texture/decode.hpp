@@ -1,20 +1,9 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
+#include "kernel/support/texture/common.hpp"
 
 namespace Sen::Kernel::Support::Texture {
-
-	// set pixel
-
-	#define set_pixel(x, y, width) (y * width + x) * 4
-
-	// pixel area
-
-	#define pixel_area(area) area * 4
-
-	// pixel area rgba
-
-	#define pixel_area_rgba(width, height) pixel_area(calculate_area(width, height))
 
 	// pixel color 
 
@@ -145,6 +134,13 @@ namespace Sen::Kernel::Support::Texture {
 				return rgba_8888(argb_to_rgba(color), width, height);
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgba_4444(
 				const std::vector<unsigned char> & color,
 				int width,
@@ -171,6 +167,13 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgb_565(
 				const std::vector<unsigned char> & color,
 				int width,
@@ -196,6 +199,13 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgba_5551(
 				const std::vector<unsigned char> & color,
 				int width,
@@ -220,6 +230,13 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				return Image<int>{width, height, data};
 			}
+
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
 
 			static auto rgba_4444_tiled(
 				const std::vector<unsigned char> & color,
@@ -253,6 +270,13 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgb_565_tiled(
 				const std::vector<unsigned char> & color,
 				int width,
@@ -284,6 +308,13 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgba_5551_tiled(
 				const std::vector<unsigned char> & color,
 				int width,
@@ -314,6 +345,13 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				return Image<int>{width, height, data};
 			}
+
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
 
 			static auto rgb_etc1_a_8(
 				const std::vector<unsigned char> & color,
@@ -355,6 +393,13 @@ namespace Sen::Kernel::Support::Texture {
 				image_block = nullptr;
 				return Image<int>{width, height, data};
 			}
+
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
 
 			static auto rgb_etc1_a_palette(
 				const std::vector<unsigned char> & color,
@@ -426,16 +471,24 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
 			static auto rgba_pvrtc_4bpp(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
 			) -> Image<int>
 			{
+				auto sen = Buffer::Vector{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
-				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), color.data());
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {
 						auto index = set_pixel(x, y, width);
@@ -451,6 +504,39 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			/**
+			 * color: stream color
+			 * width: image width
+			 * height: image height
+			 * return: Image struct
+			*/
+
+			static auto rgb_pvrtc_4bpp_a_8(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = Buffer::Vector{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
+				for (auto y : Range<int>(height)) {
+					for (auto x : Range<int>(width)) {
+						auto index = set_pixel(x, y, width);
+						auto block_index = y * width + x;
+						data[index] = actual_data[block_index].r;
+						data[index + 1] = actual_data[block_index].g;
+						data[index + 2] = actual_data[block_index].b;
+					}
+				}
+				delete[] actual_data;
+				actual_data = nullptr;
+
+				// todo
+				return Image<int>{width, height, data};
+			}
 
 
 	};

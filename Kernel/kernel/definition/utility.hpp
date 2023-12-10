@@ -21,4 +21,5 @@
 #include "kernel/definition/encryption/Rijndael/common.hpp"
 #include "kernel/definition/compression/zlib.hpp"
 #include "kernel/definition/compression/lzma.hpp"
+#include "kernel/definition/compression/bzip2.hpp"
 #include "kernel/definition/buffer/vector.hpp"

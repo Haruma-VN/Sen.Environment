@@ -25,6 +25,7 @@ add_library(
 	./definition/encryption/XOR/common.hpp
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp
+	./definition/compression/bzip2.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
@@ -53,6 +54,7 @@ add_library(
 	./support/popcap/zlib/common.hpp
 	./support/popcap/zlib/uncompress.hpp
 	./support/popcap/zlib/compress.hpp
+	./support/texture/common.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
 	./support/texture/invoke.hpp
