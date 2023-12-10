@@ -35,6 +35,8 @@ add_subdirectory("./dependencies/ETCPACK")
 add_subdirectory("./dependencies/SHA")
 add_subdirectory("./dependencies/lzma")
 add_subdirectory("./dependencies/avir")
+add_subdirectory("./dependencies/bzip2")
+add_subdirectory("./dependencies/open_vcdiff")
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

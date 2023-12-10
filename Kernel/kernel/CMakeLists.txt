@@ -43,6 +43,8 @@ add_library(
 	./dependencies/SHA.hpp
 	./dependencies/lzma.hpp
 	./dependencies/avir.hpp
+	./dependencies/open_vcdiff.hpp
+	./dependencies/bzip2.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -125,6 +127,8 @@ target_link_libraries(
 	SHA
 	lzma
 	avir
+	open_vcdiff
+	bzip2
 )
 
 
