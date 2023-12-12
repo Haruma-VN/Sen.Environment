@@ -74,7 +74,7 @@ namespace Sen::Kernel::Support::Texture {
 			static auto readOneBit(
 				int & bitPostion,
 				unsigned char & buffer,
-				Buffer::Vector & image_bytes
+				Buffer::Vector<unsigned char> & image_bytes
 			) -> int
 			{
 				if (bitPostion == 0)
@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::Texture {
 				int bits,
 				int & bitPostion,
 				unsigned char & buffer,
-				Buffer::Vector & image_bytes
+				Buffer::Vector<unsigned char> & image_bytes
 			) -> int
 			{
 				auto ans = 0;
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int> 
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -180,7 +180,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -212,7 +212,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -244,7 +244,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -283,7 +283,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -321,7 +321,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -359,7 +359,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
@@ -407,7 +407,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
@@ -484,7 +484,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
@@ -517,7 +517,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int> 
 			{
-				auto sen = Buffer::Vector{color};
+				auto sen = Buffer::Vector<unsigned char>{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];

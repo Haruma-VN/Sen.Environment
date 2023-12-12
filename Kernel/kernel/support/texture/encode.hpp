@@ -63,7 +63,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -80,7 +80,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -96,7 +96,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -115,7 +115,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {
@@ -143,7 +143,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {
@@ -170,7 +170,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {

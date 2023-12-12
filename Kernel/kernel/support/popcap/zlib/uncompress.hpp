@@ -69,7 +69,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				const std::vector<unsigned char> & source 
 			) -> std::vector<unsigned char> override final
 			{
-				auto* sen = new Buffer::Vector{source};
+				auto* sen = new Buffer::Vector<unsigned char>{source};
 				auto magic = sen->readUint32LE();
 				try_assert(magic == static_cast<uint32_t>(Uncompress::magic), fmt::format("Mismatch zlib magic, should begin with: 0x{:X}", Uncompress::magic));
 				auto cut_offset = static_cast<size_t>(8);

@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 				auto sprite_directory = Path::normalize(fmt::format("{}/{}", output_directory, "sprite"));
 				auto use_split_by_path = Method::SPLIT_BY_PATH;
 				auto png_table = std::map<std::string, Image<int>>{};
-				for(auto & subgroup_children : data["resources"].get<nlohmann::json>()){
+				for(auto & subgroup_children : data["resources"].get<std::vector<nlohmann::json>>()){
 					auto current_subgroup_parent = String::replaceAll(subgroup_children["parent"].get<std::string>(), std::string{"ATLASIMAGE_ATLAS_"}, std::string{""});
 					std::transform(current_subgroup_parent.begin(), current_subgroup_parent.end(), current_subgroup_parent.begin(), ::toupper);
 					#define find_subgroup_children(sub) subgroup_children.find(sub) != subgroup_children.end()
@@ -98,7 +98,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 							if (png_table.find(png) == png_table.end()) {
 								png_table[png] = ImageIO::read_png(png);
 							}
-							auto current_parent = std::regex_replace(png, std::regex{"\\.png$", std::regex_constants::icase}, "");
+							auto current_parent = std::regex_replace(png, std::regex{"\\.png$", std::regex_constants::icase}, std::string{""});
 							std::transform(current_parent.begin(), current_parent.end(), current_parent.begin(), ::toupper);
 							if (find_subgroup_children("parent") and (current_parent.size() >= current_subgroup_parent.size() and current_parent.substr(current_parent.size() >= current_subgroup_parent.size()) == current_subgroup_parent)){
 								subgroup_children["path"] = thiz.use_new_layout

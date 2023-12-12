@@ -78,7 +78,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				const std::vector<unsigned char> & source
 			) -> std::vector<unsigned char> override final
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = Buffer::Vector<unsigned char>{};
 				// magic
 				sen.writeUint32LE(static_cast<uint32_t>(thiz.magic));
 				if(thiz.use_64_bit_variant){
