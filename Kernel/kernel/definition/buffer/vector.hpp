@@ -11,8 +11,6 @@ namespace Sen::Kernel::Definition::Buffer {
     template <typename Type>
     concept CharacterOnView = std::is_same_v<Type, char> || std::is_same_v<Type, unsigned char>;
 
-    template <typename T> requires CharacterOnView<T>
-
     class Vector {
 
         private:
