@@ -11,7 +11,7 @@ namespace Sen::Kernel {
 		
 			T value;
 
-			Temporary(
+			explicit Temporary(
 				T value
 			) 
 			{

@@ -29,7 +29,7 @@ namespace Sen::Kernel::Definition {
 
 			// constructor
 
-			Dimension(
+			explicit Dimension(
 
 			) = default;
 
