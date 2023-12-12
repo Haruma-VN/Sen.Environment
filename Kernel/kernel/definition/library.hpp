@@ -16,6 +16,7 @@
 #include <cmath>
 #include <string.h>
 #include <stdlib.h>
+#include <regex>
 #include <source_location>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"

@@ -7,3 +7,4 @@
 #include "kernel/support/popcap/res_info/convert.hpp"
 #include "kernel/support/popcap/zlib/uncompress.hpp"
 #include "kernel/support/popcap/zlib/compress.hpp"
+#include "kernel/support/popcap/atlas/split.hpp"
