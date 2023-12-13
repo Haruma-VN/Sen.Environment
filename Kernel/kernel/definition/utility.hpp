@@ -23,3 +23,4 @@
 #include "kernel/definition/compression/lzma.hpp"
 #include "kernel/definition/compression/bzip2.hpp"
 #include "kernel/definition/buffer/vector.hpp"
+#include "kernel/definition/javascript/runtime.hpp"

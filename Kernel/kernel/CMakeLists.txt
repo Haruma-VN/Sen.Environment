@@ -26,6 +26,7 @@ add_library(
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp
 	./definition/compression/bzip2.hpp
+	./definition/javascript/runtime.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp
@@ -46,6 +47,7 @@ add_library(
 	./dependencies/avir.hpp
 	./dependencies/open_vcdiff.hpp
 	./dependencies/bzip2.hpp
+	./dependencies/quickjs.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -84,14 +86,15 @@ else ()
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif ()
 
-
-set(MSVC_COMPILER  0)
-set(CLANG_COMPILER 0)
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	set(MSVC_COMPILER 1)
+	target_compile_definitions(
+		${PROJECT_NAME} PRIVATE MSVC_COMPILER = 1
+	)
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set(CLANG_COMPILER 1)
+	target_compile_definitions(
+		${PROJECT_NAME} PRIVATE CLANG_COMPILER = 1
+	)
 endif()
 
 
@@ -132,6 +135,7 @@ target_link_libraries(
 	avir
 	open_vcdiff
 	bzip2
+	quickjs
 )
 
 
@@ -172,3 +176,10 @@ endif()
 set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(MSVC)
+	target_compile_definitions(
+		${PROJECT_NAME} PRIVATE
+		JS_STRICT_NAN_BOXING
+	)
+endif()

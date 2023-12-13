@@ -442,7 +442,7 @@ namespace Sen::Kernel::Definition::Buffer {
             ) -> std::vector<uint8_t>
             {
                 if (from < 0 || to > thiz.data.size()) {
-                    throw runtime_error("Invalid vector size");
+                    throw std::runtime_error("Invalid vector size");
                 }
                 return std::vector<unsigned char>(this->data.begin() + from, this->data.begin() + to);
             }
