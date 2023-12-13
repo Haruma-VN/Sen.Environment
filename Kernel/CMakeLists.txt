@@ -1,4 +1,5 @@
 ﻿cmake_minimum_required (VERSION 3.20)
+
 project (
   Kernel
   VERSION 1
@@ -37,13 +38,15 @@ add_subdirectory("./dependencies/lzma")
 add_subdirectory("./dependencies/avir")
 add_subdirectory("./dependencies/bzip2")
 add_subdirectory("./dependencies/open_vcdiff")
+
 if(UNIX OR APPLE OR ANDROID OR IOS)
-    add_subdirectory(./dependencies/quickjs)
+    add_subdirectory("./dependencies/quickjs")
 endif()
 
 if(WIN32)
-	add_subdirectory(./dependencies/quickjs.c_smile)
+	add_subdirectory("./dependencies/quickjs.c_smile")
 endif()
+
 add_subdirectory("./kernel")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

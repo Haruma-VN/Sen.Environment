@@ -1,8 +1,8 @@
 #pragma once
 
 #include "kernel/definition/library.hpp"
-#include "kernel/definition/filesystem/common.hpp"
-#include "kernel/definition/path/common.hpp"
+#include "kernel/definition/basic/filesystem.hpp"
+#include "kernel/definition/basic/path.hpp"
 #include "kernel/definition/macro.hpp"
 
 namespace Sen::Kernel::Definition::Encryption {

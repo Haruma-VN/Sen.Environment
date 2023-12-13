@@ -2,8 +2,8 @@
 
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/assert.hpp"
-#include "kernel/definition/string/common.hpp"
-#include "kernel/definition/path/common.hpp"
+#include "kernel/definition/basic/string.hpp"
+#include "kernel/definition/basic/path.hpp"
 
 namespace Sen::Kernel::FileSystem
 {

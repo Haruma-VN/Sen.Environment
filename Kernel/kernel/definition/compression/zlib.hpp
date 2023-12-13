@@ -2,7 +2,7 @@
 
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
-#include "kernel/definition/filesystem/common.hpp"
+#include "kernel/definition/basic/filesystem.hpp"
 
 namespace Sen::Kernel::Definition::Compression {
 

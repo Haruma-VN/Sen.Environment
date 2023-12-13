@@ -8,3 +8,4 @@
 #include "kernel/support/popcap/zlib/uncompress.hpp"
 #include "kernel/support/popcap/zlib/compress.hpp"
 #include "kernel/support/popcap/atlas/split.hpp"
+#include "kernel/support/popcap/rsb/unpack.hpp"

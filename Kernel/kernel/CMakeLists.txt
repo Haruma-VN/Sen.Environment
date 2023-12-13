@@ -9,20 +9,20 @@ add_library(
 	./definition/range.hpp
 	./definition/library.hpp
 	./definition/assert.hpp
-	./definition/filesystem/common.hpp
-	./definition/string/common.hpp
-	./definition/path/common.hpp
-	./definition/pointer/common.hpp
-	./definition/timer/common.hpp
-	./definition/image/common.hpp
-	./definition/json/object.hpp
-	./definition/buffer/vector.hpp
-	./definition/encryption/md5/common.hpp
-	./definition/encryption/Rijndael/common.hpp
-	./definition/encryption/sha224/common.hpp
-	./definition/encryption/sha256/common.hpp
-	./definition/encryption/base64/common.hpp
-	./definition/encryption/XOR/common.hpp
+	./definition/basic/filesystem.hpp
+	./definition/basic/string.hpp
+	./definition/basic/path.hpp
+	./definition/basic/pointer.hpp
+	./definition/basic/timer.hpp
+	./definition/basic/image.hpp
+	./definition/basic/json.hpp
+	./definition/basic/buffer.hpp
+	./definition/encryption/md5.hpp
+	./definition/encryption/Rijndael.hpp
+	./definition/encryption/sha224.hpp
+	./definition/encryption/sha256.hpp
+	./definition/encryption/base64.hpp
+	./definition/encryption/XOR.hpp
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp
 	./definition/compression/bzip2.hpp
@@ -57,6 +57,7 @@ add_library(
 	./support/popcap/zlib/uncompress.hpp
 	./support/popcap/zlib/compress.hpp
 	./support/popcap/atlas/split.hpp
+	./support/popcap/rsb/unpack.hpp
 	./support/texture/common.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp

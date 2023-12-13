@@ -2,7 +2,7 @@
 
 #include "kernel/definition/macro.hpp"
 #include "kernel/definition/library.hpp"
-#include "kernel/definition/string/common.hpp"
+#include "kernel/definition/basic/string.hpp"
 
 namespace Sen::Kernel::Path 
 {

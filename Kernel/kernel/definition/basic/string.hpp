@@ -724,6 +724,20 @@ namespace Sen::Kernel {
 				auto end = thiz.value.find_last_not_of(whitespace);
 				return (end == std::string::npos) ? String{std::string{""}} : String{thiz.value.substr(0, end + 1)};
 			}
+
+			auto concat(
+				const std::string & source
+			) -> std::string
+			{
+				return thiz.value + source;
+			}
+
+			auto concat(
+				const String & that
+			) -> String
+			{
+				return String{std::string{thiz.value + that.value}};
+			}
 			
 			// split by delimeter
 			// str: provide string
