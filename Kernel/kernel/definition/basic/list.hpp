@@ -207,11 +207,14 @@ namespace Sen::Kernel {
 				List<T> & that
 			) -> List<T>
 			{
-				auto list = List<T>{thiz};
-				for(auto & c : that){
-					list.add(c);
+				auto list = std::vector<T>{};
+				for(auto & c : thiz){
+					list.push_back(c);
 				}
-				return;
+				for(auto & c : that){
+					list.push_back(c);
+				}
+				return List<T>{list};
 			}
 
 			/**
