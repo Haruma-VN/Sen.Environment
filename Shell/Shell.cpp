@@ -91,7 +91,7 @@ MAIN_FUNCTION
     auto* parameter = new Parameter{
         std::vector<std::string>{path2, "100", "100", "5"}
     };
-    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::TEXTURE_DECODE);
+    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::MD5_HASH);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

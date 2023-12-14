@@ -8,7 +8,7 @@ namespace Sen::Kernel {
 
 
 	/**
-	 * Array class: Only for static array
+	 * Array class: Only for dynamic array
 	*/
 
 	template <class T> 
@@ -35,6 +35,16 @@ namespace Sen::Kernel {
 			) : List{that.value}
 			{
 
+			}
+
+			// constructor
+
+			List(
+				std::initializer_list<T> iList
+			) {
+				for (const auto & e : iList) {
+					thiz.value.push_back(e);
+				}
 			}
 
 			// constructor
@@ -142,7 +152,7 @@ namespace Sen::Kernel {
 
 			auto at(
 				size_t index
-			) -> T
+			) -> T&
 			{
 				return thiz.value.at(index);
 			}
@@ -270,7 +280,8 @@ namespace Sen::Kernel {
 				std::function<void(T& e, size_t i)> method
 			) -> void
 			{
-				for(auto i : Range<size_t>(thiz.value)){
+				for (auto i = 0; i < thiz.size(); ++i)
+				{
 					method(thiz[i], i);
 				}
 				return;
@@ -290,31 +301,31 @@ namespace Sen::Kernel {
 
 			// map
 
-			template <typename P, size_t Sz>
+			template <typename P>
 			auto map(
 				std::function<P(T& e)> method
-			) -> Array<P, Sz>
+			) -> List<P>
 			{
-				auto arr = Array<P, Sz>{};
-				for(auto i : Range<size_t>(thiz.value)){
-					arr[i] = method(thiz[i]);
+				auto arr = std::vector<P>{};
+				for(auto & c : thiz){
+					arr.push_back(method(c));
 				}
-				return arr;
+				return List<P>{arr};
 			}
 
 			
 			// map
 
-			template <typename P, size_t Sz>
+			template <typename P>
 			auto map(
 				std::function<P(T& e, size_t index)> method
-			) -> Array<P, Sz>
+			) -> List<P>
 			{
-				auto arr = Array<P, Sz>{};
+				auto arr = std::vector<P>{};
 				for(auto i : Range<size_t>(thiz.value)){
-					arr[i] = method(thiz[i], i);
+					arr.push_back(method(thiz[i], i));
 				}
-				return arr;
+				return List<P>{arr};
 			}
 
 			/**

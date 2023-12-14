@@ -53,6 +53,17 @@ namespace Sen::Kernel {
 				std::copy(that.begin(), that.end(), thiz.value.begin());
 			}
 
+			// constructor
+
+			Array(
+				std::initializer_list<T> iArray
+			) 
+			{
+				for (auto i : Range<size_t>(iArray)) {
+					thiz[i] = iArray[i];
+				}
+			}
+
 			// begin
 
 			auto begin(
