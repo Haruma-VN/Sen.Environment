@@ -699,28 +699,28 @@ namespace Sen::Kernel::Definition::Buffer
 
             ) -> std::string
         {
-            return this->readString(this->readInt16LE());
+            return this->readString(this->readUint16LE());
         }
 
         inline auto readStringByInt16(
 
             ) -> std::string
         {
-            return this->readString(this->readUint16LE());
+            return this->readString(this->readInt16LE());
         }
 
         inline auto readStringByUInt32(
 
             ) -> std::string
         {
-            return this->readString(this->readInt32LE());
+            return this->readString(this->readUint32LE());
         }
 
-        inline auto readStringByInt16(
+        inline auto readStringByInt32(
 
             ) -> std::string
         {
-            return this->readString(this->readUint32LE());
+            return this->readString(this->readInt32LE());
         }
 
         inline auto readStringByVarInt32(

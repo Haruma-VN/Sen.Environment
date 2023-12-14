@@ -17,6 +17,10 @@ add_library(
 	./definition/basic/image.hpp
 	./definition/basic/json.hpp
 	./definition/basic/buffer.hpp
+	./definition/basic/array.hpp
+	./definition/basic/list.hpp
+	./definition/basic/collections.hpp
+
 	./definition/encryption/md5.hpp
 	./definition/encryption/Rijndael.hpp
 	./definition/encryption/sha224.hpp

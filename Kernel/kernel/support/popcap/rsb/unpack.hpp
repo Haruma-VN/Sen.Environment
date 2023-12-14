@@ -40,7 +40,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         packet_name.erase(std::find(packet_name.begin(), packet_name.end(), '\0'), packet_name.end());
                         auto packet_pos = sen.readUint32LE();
                         auto packet_size = sen.readUint32LE();
-                        auto packet_data = sen.get_raw(packet_pos, packet_size);
+                        auto packet_data = sen.get_raw(packet_pos, packet_pos + packet_size);
                         FileSystem::writeBinary(Path::normalize(fmt::format("{}/{}/{}", folder_out, composite_name, packet_name)), packet_data);
                     }
 

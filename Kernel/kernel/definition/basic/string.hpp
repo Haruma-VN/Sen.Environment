@@ -725,6 +725,10 @@ namespace Sen::Kernel {
 				return (end == std::string::npos) ? String{std::string{""}} : String{thiz.value.substr(0, end + 1)};
 			}
 
+			/**
+			 * concat str
+			*/
+
 			auto concat(
 				const std::string & source
 			) -> std::string
@@ -732,11 +736,36 @@ namespace Sen::Kernel {
 				return thiz.value + source;
 			}
 
+			/**
+			 * concat str
+			*/
+
 			auto concat(
 				const String & that
 			) -> String
 			{
 				return String{std::string{thiz.value + that.value}};
+			}
+
+			/**
+			 * split a string by a delimeter
+			*/
+
+			auto split(
+				const string &delimiter
+			) -> vector<string> const
+			{
+				auto str = thiz.value;
+				auto result = vector<string>{};
+				auto pos = string::size_type(0);
+				auto token = string{};
+				while ((pos = str.find(delimiter)) != string::npos) {
+					token = str.substr(0, pos);
+					result.push_back(token);
+					str.erase(0, pos + delimiter.length());
+				}
+				result.push_back(str);
+				return result;
 			}
 			
 			// split by delimeter

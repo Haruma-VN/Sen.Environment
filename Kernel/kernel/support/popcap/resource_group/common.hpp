@@ -21,7 +21,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				nlohmann::json &resource
 			) -> void
 			{
-				auto slot_group = std::map<std::string, unsigned int>();
+				auto slot_group = std::map<std::string, size_t>();
 				for(auto &e : resource["groups"]){
 					if(e.find("resources") == e.end()){
 						continue;
@@ -29,7 +29,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					for(auto &c : e["resources"]){
 						if(slot_group.find(c["id"]) == slot_group.end()){
 							c["slot"] = slot_group.size();
-							slot_group.insert(std::pair<std::string, unsigned int>(c["id"], slot_group.size()));
+							slot_group.insert(std::pair<std::string, size_t>(c["id"], slot_group.size()));
 						}
 						else{
 							c["slot"] = slot_group[c["id"]];

@@ -100,7 +100,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 							}
 							auto current_parent = std::regex_replace(png, std::regex{"\\.png$", std::regex_constants::icase}, std::string{""});
 							std::transform(current_parent.begin(), current_parent.end(), current_parent.begin(), ::toupper);
-							if (find_subgroup_children("parent") and (current_parent.size() >= current_subgroup_parent.size() and current_parent.substr(current_parent.size() >= current_subgroup_parent.size()) == current_subgroup_parent)){
+							if (find_subgroup_children("parent") and (String{current_parent}.endsWith(current_subgroup_parent))){
 								subgroup_children["path"] = thiz.use_new_layout
 								? String::split(subgroup_children["path"].get<std::string>(), Common::WINDOWS_STYLE)
 								: subgroup_children['path'].get<std::vector<std::string>>();
