@@ -24,70 +24,48 @@ namespace Sen::Kernel::Encryption
 
 	using std::string;
 
-	struct RijndaelDataView {
-		private:
-			char *value;
-			size_t length;
-
-		public:
-
-			RijndaelDataView(char* value, size_t length)
-			{
-				thiz.length = length;
-				thiz.value = value;
-			}
-
-			inline auto getValue(
-
-			) -> char*
-			{
-				return thiz.value;
-			}
-
-			inline auto size(
-
-			) -> size_t
-			{
-				return thiz.length;
-			}
-	};
-
 	// Rijndael Struct
 
 	struct Rijndael {
 
 		public:
 
-			inline auto static encrypt(
+			static auto encrypt(
 				char const* plain,
 				const string key,
 				const string iv,
 				const size_t plain_size,
 				const RijndaelMode mode
-			) -> RijndaelDataView
+			) -> std::vector<unsigned char>
 			{			
 				auto* rijndael = new Dependencies::Rijndael::CRijndael{};
 				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = new char[plain_size];
 				rijndael->Encrypt(plain, result, plain_size, mode);
 				delete rijndael;
-				return RijndaelDataView{result, plain_size};
+				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result), reinterpret_cast<unsigned char*>(result + plain_size)};
+				delete[] result;
+				result = nullptr;
+				return m_result;
 			}
 
-			inline auto static decrypt(
+			static auto decrypt(
 				char const* cipher,
 				const string key,
 				const string iv,
 				const size_t cipher_len,
 				const RijndaelMode mode
-			) -> RijndaelDataView
+			) -> std::vector<unsigned char>
 			{			
 				auto* rijndael = new Dependencies::Rijndael::CRijndael{};
 				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = new char[cipher_len];
 				rijndael->Decrypt(cipher, result, cipher_len, mode);
 				delete rijndael;
-				return RijndaelDataView{result, cipher_len};
+				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result), reinterpret_cast<unsigned char*>(result + cipher_len)};
+				delete[] result;
+				result = nullptr;
+				return m_result;
 			}
 
 	};

@@ -62,6 +62,7 @@ add_library(
 	./support/popcap/zlib/compress.hpp
 	./support/popcap/atlas/split.hpp
 	./support/popcap/rsb/unpack.hpp
+	./support/popcap/rton/decode.hpp
 	./support/texture/common.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
@@ -70,8 +71,8 @@ add_library(
 
 	./interface/data.hpp
 	./interface/cli.hpp
-	./interface/callback.h
-	./interface/callback.cpp
+	./interface/callback.hpp
+	./interface/version.hpp
 	./interface/interface.cpp
 )
 

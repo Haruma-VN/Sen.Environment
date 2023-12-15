@@ -74,11 +74,22 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 			}
 
 		public:
+
+			Unpack(
+				bool use_new_layout
+			) : use_new_layout(use_new_layout)
+			{
+
+			}
+
+			~Unpack(
+
+			) = default;
 			
 
 			auto process(
 				const nlohmann::json & data,
-				const std::vector<std::string> & images,
+				 std::vector<std::string> & images,
 				Method split_method,
 				const std::string & output_directory
 			) -> void
@@ -111,6 +122,29 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 					}
 				}
 				FileSystem::writeJson(Path::normalize(fmt::format("{}/{}", output_directory, "sprite.json")), thiz.convert_from_resource_group(resource_used, use_split_by_path ? std::string{"path"} : std::string{"id"}));
+				return;
+			}
+
+			static auto process_fs(
+				List<std::string> & source,
+				const std::string & destination,
+				const std::string & expandPath,
+    			const std::string & method
+			) -> void
+			{
+				auto c = new Unpack{expandPath == std::string{"old"}};
+				auto source_jsons = source.filter([](auto e)
+				{ 
+					return std::regex_search(e, std::regex("\\.json$", std::regex_constants::icase));
+				});
+				auto source_pngs = source.filter([](auto e)
+				{ 
+					return std::regex_search(e, std::regex("\\.png$", std::regex_constants::icase)); 
+				});
+				for(auto & e : source_jsons){
+					c->process(FileSystem::readJson(e), source_pngs.value, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
+				}
+				delete c;
 				return;
 			}
 		

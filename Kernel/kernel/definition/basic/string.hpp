@@ -827,6 +827,17 @@ namespace Sen::Kernel {
 			}
 
 			/**
+			 * ==
+			*/
+
+			auto operator ==(
+				const std::string & that
+			) -> bool
+			{
+				return thiz.value == that;
+			}
+
+			/**
 			 * +=
 			*/
 

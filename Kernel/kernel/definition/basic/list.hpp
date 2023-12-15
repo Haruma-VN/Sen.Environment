@@ -448,13 +448,13 @@ namespace Sen::Kernel {
 				std::function<bool(T& e)> method
 			) -> List<T> 
 			{
-				auto list = List<T>{};
+				auto list = std::vector<T>{};
 				for(auto & c : thiz.value){
 					if(method(c)){
-						list.add(c);
+						list.push_back(c);
 					}
 				}
-				return list;
+				return List<T>{list};
 			}
 
 			/**
@@ -465,13 +465,13 @@ namespace Sen::Kernel {
 				T& e, size_t index)> method
 			) -> List<T> 
 			{
-				auto list = List<T>{};
+				auto list = std::vector<T>{};
 				for(auto i : Range<size_t>(value.size())){
 					if(method(value[i], i)){
-						list.add(value[i]);
+						list.push_back(value[i]);
 					}
 				}
-				return list;
+				return List<T>{list};
 			}
 
 	};

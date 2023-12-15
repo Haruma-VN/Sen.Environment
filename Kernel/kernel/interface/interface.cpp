@@ -1,6 +1,15 @@
-﻿#include "kernel/interface/callback.h"
+﻿#include "kernel/interface/callback.hpp"
+#include "kernel/interface/version.hpp"
 
 using namespace Sen::Kernel;
+
+M_EXPORT_API
+unsigned long long version(
+
+)
+{
+    return Sen::Kernel::version;
+}
 
 M_EXPORT_API
 int execute(
