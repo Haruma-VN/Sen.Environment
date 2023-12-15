@@ -767,6 +767,75 @@ namespace Sen::Kernel {
 				result.push_back(str);
 				return result;
 			}
+
+			/**
+			 * <<
+			*/
+
+			friend auto operator <<(
+				std::ostream& os, 
+				String &that
+			) -> std::ostream&
+			{
+				os << that.value;
+				return os;
+			}
+
+			/**
+			 * >>
+			*/
+
+			auto operator >>(
+				std::ifstream & is
+			) -> std::ifstream &
+			{
+				is >> thiz.value;
+				return is;
+			}
+
+			/**
+			 * +
+			*/
+
+			auto operator +(
+				const String & that
+			) -> String
+			{
+				return String{thiz.value + that.value};
+			}
+
+			/**
+			 * !=
+			*/
+
+			auto operator !=(
+				const String & that
+			) -> bool
+			{
+				return thiz.value != that.value;
+			}
+
+			/**
+			 * ==
+			*/
+
+			auto operator ==(
+				const String & that
+			) -> bool
+			{
+				return thiz.value == that.value;
+			}
+
+			/**
+			 * +=
+			*/
+
+			auto operator +=(
+				char c
+			) -> String
+			{
+				return String{thiz.value + c};
+			}
 			
 			// split by delimeter
 			// str: provide string

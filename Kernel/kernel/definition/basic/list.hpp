@@ -1,61 +1,53 @@
 #pragma once
 
-#include "kernel/definition/library.hpp"
-#include "kernel/definition/assert.hpp"
 #include "kernel/definition/macro.hpp"
+#include "kernel/definition/library.hpp"
 
 namespace Sen::Kernel {
-
-
-	/**
-	 * Array class: Only for dynamic array
-	*/
 
 	template <class T> 
 	class List {
 		public:
 
 			// value
-
+		
 			std::vector<T> value;
 
 			// constructor
 
 			explicit List(
 				const std::vector<T> & data
-			)
+			) : value(data) 
 			{
-				thiz.value.insert(thiz.value.end(), data.begin(), data.end());
+
 			}
-			
+
 			// constructor
 
 			explicit List(
 				const List &that
-			) : List{that.value}
+			) : value(that.value) 
 			{
 
 			}
-
+			
 			// constructor
 
 			List(
 				std::initializer_list<T> iList
-			) {
-				for (const auto & e : iList) {
-					thiz.value.push_back(e);
-				}
-			}
+			) : value(iList) 
+			{
 
+			}
+			
 			// constructor
 
-			List(
-
-			) : value{}
+			List() : value{} 
 			{
 
 			}
 
+			
 			// destructor
 
 			~List(
@@ -63,69 +55,67 @@ namespace Sen::Kernel {
 			) = default;
 
 			/**
-			 * size
+			 * get current list size
 			*/
 
 			auto size(
-				
-			) -> size_t
+
+			) const -> size_t
 			{
 				return thiz.value.size();
 			}
 
 			/**
-			 * fill
+			 * fill current list
 			*/
 
 			auto fill(
-				size_t count,
+				size_t count, 
 				const T &value
-			) -> void
+			) -> void 
 			{
-				for(auto i : Range<size_t>(count)){
-					thiz.value.push_back(value);
-				}
+				thiz.value = std::vector<T>(count, value);
 				return;
 			}
 
 			/**
-			 * add
+			 * add to current list
 			*/
 
 			auto add(
 				const T &value
-			) -> void
+			) -> void 
 			{
 				thiz.value.push_back(value);
-				return;
 			}
 
 			/**
-			 * pop
+			 * pop in current list
 			*/
 
 			auto pop(
 
-			) -> T
+			) -> T 
 			{
-				return thiz.value.pop_back();
+				auto back = thiz.value.back();
+				thiz.value.pop_back();
+				return back;
 			}
 
 			/**
-			 * insert
+			 * insert to current list
 			*/
 
 			auto insert(
-				size_t location,
+				size_t location, 
 				const T &value
-			) -> void
+			) -> void 
 			{
 				thiz.value.insert(thiz.value.begin() + location, value);
-				return;
 			}
 
 			/**
-			 * begin
+			 * begin iterator
 			*/
 
 			auto begin(
@@ -136,32 +126,32 @@ namespace Sen::Kernel {
 			}
 
 			/**
-			 * end
+			 * end iterator
 			*/
 
 			auto end(
 
-			) -> decltype(value.end())
+			) -> decltype(value.end()) 
 			{
 				return thiz.value.end();
 			}
 
 			/**
-			 * at
+			 * at 
 			*/
 
 			auto at(
 				size_t index
-			) -> T&
+			) -> T& 
 			{
 				return thiz.value.at(index);
 			}
 
 			/**
-			 * index
+			 * [i]
 			*/
 
-			auto operator [](
+			auto operator[](
 				size_t index
 			) -> T&
 			{
@@ -169,52 +159,88 @@ namespace Sen::Kernel {
 			}
 
 			/**
-			 * == operator
+			 * ==
 			*/
 
 			auto operator ==(
 				List & that
-			) -> bool
+			) const -> bool 
 			{
-				if(thiz.size() != that.size())
-				{
-					return false;
-				}
-				for(auto i : Range<size_t>(thiz)){
-					if(thiz[i] != that[i]){
-						return false;
-					}
-				}
-				return true;
+				return thiz.value == that.value;
 			}
 
 			/**
-			 * != operator
+			 * !=
 			*/
 
 			auto operator !=(
 				List & that
-			) -> bool
+			) const -> bool 
 			{
 				return !(thiz == that);
 			}
 
 			/**
-			 * + operator
+			 * +
 			*/
 
 			auto operator +(
 				List<T> & that
-			) -> List<T>
+			) const -> List
 			{
-				auto list = std::vector<T>{};
-				for(auto & c : thiz){
-					list.push_back(c);
+				auto result = List(thiz);
+				result.value.insert(result.value.end(), that.value.begin(), that.value.end());
+				return result;
+			}
+
+			/**
+			 * >>
+			*/
+
+			auto operator >> (
+				const T &value
+			) -> void
+			{
+				thiz.add(value);
+				return;
+			}
+
+			/**
+			 * >>
+			*/
+
+			friend auto operator >>(
+				std::istream& is,
+				List<T> &list
+			) -> std::istream&
+			{
+				auto val = T{};
+				is >> val;
+				list.add(val);
+				return is;
+			}
+
+			/**
+			 * <<
+			*/
+
+			friend auto operator << (
+				std::ostream& os, 
+				List<T>& list
+			) -> std::ostream&
+			{
+				os << "[";
+				for (auto i = 0; i < list.size(); ++i)
+				{
+					if(i == list.size() - 1){
+						os << list[i] << "";
+					}
+					else{
+						os << list[i] << ", ";
+					}
 				}
-				for(auto & c : that){
-					list.push_back(c);
-				}
-				return List<T>{list};
+				os << "]";
+				return os;
 			}
 
 			/**
@@ -223,7 +249,7 @@ namespace Sen::Kernel {
 
 			auto clear(
 
-			) -> void
+			) -> void 
 			{
 				thiz.value.clear();
 				return;
@@ -235,9 +261,10 @@ namespace Sen::Kernel {
 
 			auto erase(
 				size_t index
-			) -> void
+			) -> void 
 			{
-				thiz.value.erase(thiz.begin() + index);
+				thiz.value.erase(thiz.value.begin() + index);
+				return;
 			}
 
 			/**
@@ -246,22 +273,22 @@ namespace Sen::Kernel {
 
 			auto shift(
 
-			) -> T
+			) -> T 
 			{
-				auto c = thiz.at(0);
-				thiz.erase(thiz.begin());
-				return c;
+				auto front = thiz.value.front();
+				thiz.value.erase(thiz.value.begin());
+				return front;
 			}
-			
+
 			/**
 			 * unshift
 			*/
 
 			auto unshift(
 				const T &value
-			) -> void
+			) -> void 
 			{
-				thiz.insert(thiz.begin(), value);
+				thiz.value.insert(thiz.value.begin(), value);
 				return;
 			}
 
@@ -271,62 +298,67 @@ namespace Sen::Kernel {
 
 			auto reverse(
 
-			) -> void
+			) -> void 
 			{
-				std::reverse(thiz.begin(), thiz.end());
-				return;
-			}
-			
-			// for each
-			
-			auto forEach(
-				std::function<void(T& e, size_t i)> method
-			) -> void
-			{
-				for (auto i = 0; i < thiz.size(); ++i)
-				{
-					method(thiz[i], i);
-				}
+				std::reverse(thiz.value.begin(), thiz.value.end());
 				return;
 			}
 
-			// for each
+
+			/**
+			 * for each
+			*/
+
+			auto forEach(
+				std::function<void(T& e, size_t i)> method
+			) -> void 
+			{
+				for (auto i : Range<size_t>(thiz.value.size())) {
+					method(thiz[i], i);
+				}
+			}
+
+			/**
+			 * for each
+			*/
 
 			auto forEach(
 				std::function<void(T& e)> method
-			) -> void
+			) -> void 
 			{
 				for(auto & c : thiz.value){
 					method(c);
 				}
-				return;
 			}
 
-			// map
+			/**
+			 * map
+			*/
 
 			template <typename P>
 			auto map(
 				std::function<P(T& e)> method
-			) -> List<P>
+			) -> List<P> 
 			{
 				auto arr = std::vector<P>{};
-				for(auto & c : thiz){
+				for(auto & c : thiz.value){
 					arr.push_back(method(c));
 				}
 				return List<P>{arr};
 			}
 
-			
-			// map
+			/**
+			 * map
+			*/
 
 			template <typename P>
 			auto map(
 				std::function<P(T& e, size_t index)> method
-			) -> List<P>
+			) -> List<P> 
 			{
 				auto arr = std::vector<P>{};
-				for(auto i : Range<size_t>(thiz.value)){
-					arr.push_back(method(thiz[i], i));
+				for(auto i : Range<size_t>(thiz.value.size())){
+					arr.push_back(method(thiz.value[i], i));
 				}
 				return List<P>{arr};
 			}
@@ -337,9 +369,9 @@ namespace Sen::Kernel {
 
 			auto every(
 				std::function<bool(T& e)> method
-			) -> bool
+			) -> bool 
 			{
-				for(auto & c : thiz){
+				for(auto & c : thiz.value){
 					if(!method(c)){
 						return false;
 					}
@@ -353,10 +385,10 @@ namespace Sen::Kernel {
 
 			auto every(
 				std::function<bool(T& e, size_t index)> method
-			) -> bool
+			) -> bool 
 			{
-				for(auto & i : Range<size_t>(thiz)){
-					if(!method(thiz[i], i)){
+				for(auto i : Range<size_t>(thiz.value.size())){
+					if(!method(thiz.value[i], i)){
 						return false;
 					}
 				}
@@ -364,15 +396,15 @@ namespace Sen::Kernel {
 			}
 
 			/**
-			 * Sort method
+			 * sort
 			*/
 
 			template <typename P>
 			auto sort(
 				std::function<P(T& a, T& b)> method
-			) -> void
+			) -> void 
 			{
-				std::sort(thiz.begin(), thiz.end(), method);
+				std::sort(thiz.value.begin(), thiz.value.end(), method);
 				return;
 			}
 
@@ -382,9 +414,9 @@ namespace Sen::Kernel {
 
 			auto some(
 				std::function<bool(T& e)> method
-			) -> bool
+			) -> bool 
 			{
-				for(auto & c : thiz){
+				for(auto & c : thiz.value){
 					if(method(c)){
 						return true;
 					}
@@ -398,10 +430,10 @@ namespace Sen::Kernel {
 
 			auto some(
 				std::function<bool(T& e, size_t index)> method
-			) -> bool
+			) -> bool 
 			{
-				for(auto i : Range<size_t>(thiz)){
-					if(method(thiz[i], i)){
+				for(auto i : Range<size_t>(value.size())){
+					if(method(thiz.value[i], i)){
 						return true;
 					}
 				}
@@ -414,10 +446,10 @@ namespace Sen::Kernel {
 
 			auto filter(
 				std::function<bool(T& e)> method
-			) -> List<T>
+			) -> List<T> 
 			{
 				auto list = List<T>{};
-				for(auto & c : thiz){
+				for(auto & c : thiz.value){
 					if(method(c)){
 						list.add(c);
 					}
@@ -429,14 +461,14 @@ namespace Sen::Kernel {
 			 * filter
 			*/
 
-			auto filter(
-				std::function<bool(T& e, size_t index)> method
-			) -> List<T>
+			auto filter(std::function<bool(
+				T& e, size_t index)> method
+			) -> List<T> 
 			{
 				auto list = List<T>{};
-				for(auto i : Range<size_t>(thiz)){
-					if(method(thiz[i], i)){
-						list.add(thiz[i]);
+				for(auto i : Range<size_t>(value.size())){
+					if(method(value[i], i)){
+						list.add(value[i]);
 					}
 				}
 				return list;

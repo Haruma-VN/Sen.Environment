@@ -59,9 +59,7 @@ namespace Sen::Kernel {
 				std::initializer_list<T> iArray
 			) 
 			{
-				for (auto i : Range<size_t>(iArray)) {
-					thiz[i] = iArray[i];
-				}
+				std::copy(iArray.begin(), iArray.end(), value.begin());
 			}
 
 			// begin
@@ -106,7 +104,7 @@ namespace Sen::Kernel {
 
 			auto size(
 
-			) -> size_t
+			) const -> size_t
 			{
 				return thiz.value.size();
 			}
@@ -120,7 +118,7 @@ namespace Sen::Kernel {
 				if(thiz.size() != that.size()){
 					return false;
 				}
-				for(auto i : Range<size_t>(that)){
+				for(auto i : Range<size_t>(that.size())){
 					if(that[i] != thiz[i]){
 						return false;
 					}
@@ -143,7 +141,7 @@ namespace Sen::Kernel {
 				std::function<void(T& e, size_t i)> method
 			) -> void
 			{
-				for(auto i : Range<size_t>(thiz.value)){
+				for(auto i : Range<size_t>(thiz.value.size())){
 					method(thiz[i], i);
 				}
 				return;
@@ -163,28 +161,28 @@ namespace Sen::Kernel {
 
 			// map
 
-			template <typename P, size_t Sz>
+			template <typename P>
 			auto map(
 				std::function<P(T& e)> method
-			) -> Array<P, Sz>
+			) -> Array<P, n_size>
 			{
-				auto arr = Array<P, Sz>{};
-				for(auto i : Range<size_t>(thiz.value)){
+				auto arr = std::array<P, thiz.value.size()>();
+				for(auto i : Range<size_t>(thiz.value.size())){
 					arr[i] = method(thiz[i]);
 				}
-				return arr;
+				return Array{arr};
 			}
 
 			
 			// map
 
-			template <typename P, size_t Sz>
+			template <typename P>
 			auto map(
 				std::function<P(T& e, size_t index)> method
-			) -> Array<P, Sz>
+			) -> Array<P, n_size>
 			{
-				auto arr = Array<P, Sz>{};
-				for(auto i : Range<size_t>(thiz.value)){
+				auto arr = Array<P, thiz.value.size()>{};
+				for(auto i : Range<size_t>(thiz.value.size())){
 					arr[i] = method(thiz[i], i);
 				}
 				return arr;
@@ -214,7 +212,7 @@ namespace Sen::Kernel {
 				std::function<bool(T& e, size_t index)> method
 			) -> bool
 			{
-				for(auto & i : Range<size_t>(thiz)){
+				for(auto & i : Range<size_t>(thiz.size())){
 					if(!method(thiz[i], i)){
 						return false;
 					}
@@ -259,12 +257,35 @@ namespace Sen::Kernel {
 				std::function<bool(T& e, size_t index)> method
 			) -> bool
 			{
-				for(auto i : Range<size_t>(thiz)){
+				for(auto i : Range<size_t>(thiz.size())){
 					if(method(thiz[i], i)){
 						return true;
 					}
 				}
 				return false;
+			}
+
+			/**
+			 * <<
+			*/
+
+			friend auto operator << (
+				std::ostream& os, 
+				Array<T, n_size>& array
+			) -> std::ostream&
+			{
+				os << "[";
+				for (auto i : Range<size_t>(array.size()))
+				{
+					if(i == array.size() - 1){
+						os << array[i] << "";
+					}
+					else{
+						os << array[i] << ", ";
+					}
+				}
+				os << "]";
+				return os;
 			}
 	};
 }
