@@ -132,19 +132,18 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
     			const std::string & method
 			) -> void
 			{
-				auto c = new Unpack{expandPath == std::string{"old"}};
+				auto c = Unpack{expandPath == std::string{"old"}};
 				auto source_jsons = source.filter([](auto e)
 				{ 
-					return std::regex_search(e, std::regex("\\.json$", std::regex_constants::icase));
+					return String{e}.match(std::regex("\\.json$", std::regex_constants::icase));
 				});
 				auto source_pngs = source.filter([](auto e)
 				{ 
-					return std::regex_search(e, std::regex("\\.png$", std::regex_constants::icase)); 
+					return String{e}.match(std::regex("\\.png$", std::regex_constants::icase));
 				});
 				for(auto & e : source_jsons){
-					c->process(FileSystem::readJson(e), source_pngs.value, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
+					c.process(FileSystem::readJson(e), source_pngs.value, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
 				}
-				delete c;
 				return;
 			}
 		

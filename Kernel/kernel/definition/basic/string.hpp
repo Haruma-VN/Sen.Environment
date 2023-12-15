@@ -847,6 +847,17 @@ namespace Sen::Kernel {
 			{
 				return String{thiz.value + c};
 			}
+
+			/**
+			 * regex
+			*/
+
+			auto match(
+				const std::regex &reg
+			) -> bool
+			{
+				return std::regex_search(thiz.value, reg); 
+			}
 			
 			// split by delimeter
 			// str: provide string
