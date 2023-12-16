@@ -60,6 +60,7 @@ add_library(
 	./support/popcap/zlib/common.hpp
 	./support/popcap/zlib/uncompress.hpp
 	./support/popcap/zlib/compress.hpp
+	./support/popcap/newton/decode.hpp
 	./support/popcap/atlas/split.hpp
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp

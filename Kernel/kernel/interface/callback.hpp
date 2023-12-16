@@ -279,6 +279,10 @@ namespace Sen::Kernel::Interface {
 						Sen::Kernel::Support::PopCap::RTON::Decode::decrypt_and_decode_fs(thiz.argument, thiz.params.at(0), thiz.params.at(1), thiz.params.at(2));
 						break;
 					}
+					case Sen::Kernel::Interface::CliCallBack::NEWTON_DECODE:{
+						Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(thiz.argument, thiz.params.at(0));
+						break;
+					}
 					default:{
 						
 						throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
