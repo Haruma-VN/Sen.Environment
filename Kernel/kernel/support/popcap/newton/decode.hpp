@@ -192,7 +192,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							auto cols = thiz.read_integer();
 							auto rows = thiz.read_integer();
 							auto atlas = thiz.read_boolean();
-          					auto is_sprite = aw != 0x00 && ah != 0x00;
+          					auto is_sprite = aw != 0x00 and ah != 0x00;
 							sub_resources["slot"] = slot;
 							if(atlas){
 								sub_resources["width"] = width;
@@ -208,10 +208,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								sub_resources["atlas"] = true;
 								sub_resources["runtime"] = true;
 							}
-							if(x != 0x00 and x != 2147483647){
+							if(x != 0x00 and x != 0x7FFFFFFF){
 								sub_resources["x"] = x;
 							}
-							if(y != 0x00 and y != 2147483647){
+							if(y != 0x00 and y != 0x7FFFFFFF){
 								sub_resources["y"] = y;
 							}
 							if(cols != 0x01){
@@ -238,7 +238,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									break;
 								}
 							}
-							groups.push_back(group);
+							resources.push_back(sub_resources);
 						}
         				group["resources"] = resources;
 						groups.push_back(group);
@@ -266,6 +266,15 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			// constructor
 
 			explicit Decode(
+				const String & source
+			) : sen(source.value)
+			{
+
+			}
+
+			// constructor
+
+			explicit Decode(
 				Buffer::Vector & it
 			) : sen(it)
 			{
@@ -279,8 +288,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			) = default;
 
 			/**
+			 * This method will decode newton file
 			 * source: source file
 			 * destination: destination file
+			 * return: the decoded newton file
 			*/
 
 			static auto process_fs (

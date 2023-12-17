@@ -16,14 +16,24 @@ namespace Sen::Kernel {
 	// assert: condition & message
 	// if not condition, will throw message
 
-	inline auto try_assert(
-		bool conditional, 
-		const std::string &message
-	) -> void
-	{
-		if (!conditional) {
-			throw runtime_error(message);
-		}
-		return;
+	#define try_assert(conditional, message) \
+	if (!(conditional)) { \
+		throw std::runtime_error(message); \
 	}
+
+	/**
+	 * Object: nlohmann object
+	 * property: json property
+	*/
+
+	#define is_not_null_object(object, property) \
+		object.find(property) != object.end()
+
+	/**
+	 * Object: nlohmann object
+	 * property: json property
+	*/
+
+	#define is_null_object(object, property) \
+		object.find(property) == object.end()
 }

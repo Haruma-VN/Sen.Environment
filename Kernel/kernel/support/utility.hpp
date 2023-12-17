@@ -10,4 +10,5 @@
 #include "kernel/support/popcap/atlas/split.hpp"
 #include "kernel/support/popcap/rsb/unpack.hpp"
 #include "kernel/support/popcap/rton/decode.hpp"
+#include "kernel/support/popcap/newton/encode.hpp"
 #include "kernel/support/popcap/newton/decode.hpp"

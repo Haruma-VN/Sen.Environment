@@ -283,6 +283,10 @@ namespace Sen::Kernel::Interface {
 						Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(thiz.argument, thiz.params.at(0));
 						break;
 					}
+					case Sen::Kernel::Interface::CliCallBack::NEWTON_ENCODE:{
+						Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(thiz.argument, thiz.params.at(0));
+						break;
+					}
 					default:{
 						
 						throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
