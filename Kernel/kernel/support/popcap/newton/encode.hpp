@@ -10,6 +10,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 	using namespace Sen::Kernel::Definition; 
 
+	/**
+	 * Encode Newton class
+	*/
+
 	struct Encode {
 
 		private:
