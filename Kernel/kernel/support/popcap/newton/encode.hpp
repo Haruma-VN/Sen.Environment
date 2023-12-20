@@ -36,188 +36,224 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * Newton JSON
 			*/
 
-			nlohmann::json newton_resource;
-
-			/**
-			 * writer: sen writer
-			 * str: the string
-			*/ 
-
-			#define write_string(writer, str)    \
-				writer.writeInt32LE(static_cast<int32_t>(str.size())); \
-				writer.writeString(str);
-
-			/**
-			 * writer: sen writer
-			 * condition: boolean condition
-			*/
-
-			#define write_boolean(writer, condition) \
-			if (condition)                       \
-			{                                    \
-				writer.writeUint8(0x01); \
-			} \
-			else{ \
-				writer.writeUint8(0x00); \
-			}
+			nlohmann::json resource;
 
 	public :
 
-		// constructor
+			// constructor
 
-		Encode(
+			Encode(
 
-			) = default;
+				) = default;
 
-	// destructor
+			// destructor
 
-	~Encode(
+			~Encode(
 
-		) = default;
+				) = default;
 
-	// constructor
+			// constructor
 
-	explicit Encode(
-		const std::string &source) : newton_resource(FileSystem::readJson(source))
-	{
-	}
-
-	// constructor
-
-	explicit Encode(
-		const String &source) : newton_resource(FileSystem::readJson(source.value))
-	{
-	}
-
-	/**
-	 * process
-	 */
-
-	auto process(
-
-		) -> Buffer::Vector
-	{
-		auto sen = Buffer::Vector{};
-		try_assert(thiz.newton_resource.find("slot_count") != thiz.newton_resource.end(), "slot_count cannot be null");
-		sen.writeInt32LE(thiz.newton_resource["slot_count"].get<int32_t>());
-		try_assert(thiz.newton_resource.find("groups") != thiz.newton_resource.end(), "groups cannot be null");
-		try_assert(thiz.newton_resource["groups"].is_array(), "groups must be an array");
-		auto groups_count = static_cast<int32_t>(thiz.newton_resource["groups"].get<std::vector<nlohmann::json>>().size());
-		sen.writeInt32LE(groups_count);
-		for (auto group_index : Range<int>(groups_count))
-		{
-			auto m_data = thiz.newton_resource["groups"].get<std::vector<nlohmann::json>>()[group_index].get<nlohmann::json>();
-			if (m_data["type"].get<std::string>() == "composite")
+			explicit Encode(
+				const std::string &source) : resource(FileSystem::readJson(source))
 			{
-				sen.writeUint8(static_cast<uint8_t>(0x01));
 			}
-			else if (m_data["type"].get<std::string>() == "simple")
+
+			// constructor
+
+			explicit Encode(
+				const String &source) : resource(FileSystem::readJson(source.value))
 			{
-				sen.writeUint8(static_cast<uint8_t>(0x02));
 			}
-			else
+
+			/**
+			 * process
+			 */
+
+			auto process(
+
+			) -> Buffer::Vector
 			{
-				throw std::runtime_error(fmt::format("Unknown type {} at id {}", m_data["type"].get<std::string>(), m_data["id"].get<std::string>()));
-			}
-					#define is_defined_or(property, or_value) \
-						m_data.find(property) != m_data.end() ? static_cast<int>(m_data[property].size()) : or_value
-					auto subgroups_count = is_defined_or("subgroups", 0x00);
-					auto resources_count = is_defined_or("resources", 0x00);
-					sen.writeInt32LE(m_data.find("res") != m_data.end() ? std::stoi(m_data["res"].get<std::string>()) : 0x00);
+				auto sen = Buffer::Vector{};
+				try_assert(is_not_null_object(resource, "slot_count"), "slot_count cannot be null");
+				sen.writeInt32LE(resource["slot_count"].get<int>());
+				sen.writeInt32LE(static_cast<int>(resource["groups"].size()));
+				for(auto & m_data : thiz.resource["groups"]){
+					if(m_data["type"] == "composite"){
+						sen.writeUint8(0x01);
+					}
+					else if(m_data["type"] == "simple"){
+						sen.writeUint8(0x02);
+					}
+					else{
+						throw std::runtime_error(fmt::format("unknown type {} at id {}", m_data["type"], m_data["id"]));
+					}
+					auto subgroups_count = is_null_object(m_data, "subgroups") ? 0x00 : m_data["subgroups"].size();
+      				auto resources_count = is_null_object(m_data, "resources") ? 0x00 : m_data["resources"].size();
+					sen.writeInt32LE(is_null_object(m_data, "res") ? 0x00 : std::stoi(m_data["res"].get<std::string>()));
 					sen.writeInt32LE(subgroups_count);
 					sen.writeInt32LE(resources_count);
 					sen.writeUint8(0x01);
-					if (m_data.find("parent") != m_data.end()) {
+					if (is_not_null_object(m_data, "parent")) {
 						sen.writeUint8(0x01);
 					} 
 					else {
 						sen.writeUint8(0x00);
 					}
-					write_string(sen, m_data["id"].get<std::string>());
-					if (m_data.find("parent") != m_data.end()) {
-						write_string(sen, m_data["parent"].get<std::string>());
+					sen.writeUint32LE(m_data["id"].get<std::string>().size());
+					sen.writeString(m_data["id"]);
+					if (is_not_null_object(m_data, "parent")) {
+						sen.writeUint32LE(m_data["parent"].get<std::string>().size());
+						sen.writeString(m_data["parent"]);
 					}
-					if (m_data["type"].get<std::string>() == "composite") {
-						try_assert(m_data.find("resources") != m_data.end(), fmt::format("resources must be null at id {}", m_data["id"].get<std::string>()));
-						for (auto i : Range<int>(subgroups_count)) {
-							auto & current = m_data["subgroups"][i];
-							if (current.find("res") != current.end()) {
+					if(m_data["type"] == "composite"){
+						try_assert(is_null_object(m_data, "resources"), "resources must be null in composite object");
+						for(auto & current : m_data["subgroups"]){
+							if(is_not_null_object(current, "res")){
 								sen.writeInt32LE(std::stoi(current["res"].get<std::string>()));
-							} 
-							else {
+							}
+							else{
 								sen.writeInt32LE(0x00);
 							}
-							write_string(sen, current["id"].get<std::string>());
+							sen.writeUint32LE(current["id"].get<std::string>().size());
+							sen.writeString(current["id"]);
 						}
 					}
-					if (m_data["type"].get<std::string>() == "simple"){
-						for(auto resources_index : Range<int>(resources_count)){
-          					auto resource_x = m_data["resources"].get<std::vector<nlohmann::json>>()[resources_index].get<nlohmann::json>();
-							try_assert(ResourceTypeEnumeration.find(resource_x["type"].get<std::string>()) != ResourceTypeEnumeration.end(), fmt::format("Unsigned resources type enumeration: {}", resource_x["type"].get<std::string>()));
-							sen.writeUint8(ResourceTypeEnumeration[resource_x["type"].get<std::string>()]);
-							sen.writeInt32LE(resource_x["slot"].get<int>());
-							#define m_data_defined_or(property, value)                      \
-							if (resource_x.find(property) != resource_x.end())          \
-							{                                                           \
-								sen.writeInt32LE(resource_x[property].get<int>()); \
-							}                                                           \
-							else                                                        \
-							{                                                           \
-								sen.writeInt32LE(value);                           \
+					if(m_data["type"] == "simple"){
+						try_assert(is_null_object(m_data, "subgroups"), "subgroups must be null in simple object");
+						for(auto & resource_x : m_data["resources"]){
+							auto m_type = resource_x["type"].get<std::string>();
+							if(m_type == "Image"){
+								sen.writeUint8(0x01);
 							}
-							m_data_defined_or("width", 0x00);
-							m_data_defined_or("height", 0x00);
-							auto is_sprite = (is_not_null_object(resource_x, "aw") and resource_x["aw"] != 0x00) and (is_not_null_object(resource_x, "ah") and resource_x["ah"] != 0x00);
-							if(is_null_object(resource_x, "x")){
-								if(is_sprite){
+							else if(m_type == "PopAnim"){
+								sen.writeUint8(0x02);
+							}
+							else if(m_type == "SoundBank"){
+								sen.writeUint8(0x03);
+							}
+							else if(m_type == "File"){
+								sen.writeUint8(0x04);
+							}
+							else if(m_type == "PrimeFont"){
+								sen.writeUint8(0x05);
+							}
+							else if(m_type == "RenderEffect"){
+								sen.writeUint8(0x06);
+							}
+							else if(m_type == "DecodedSoundBank"){
+								sen.writeUint8(0x07);
+							}
+							else {
+								throw std::runtime_error(fmt::format("Invalid type"));
+							}
+							sen.writeInt32LE(resource_x["slot"]);
+							if (is_null_object(resource_x, "width")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["width"]);
+							}
+							if (is_null_object(resource_x, "height")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["height"]);
+							}
+							auto is_sprite = is_not_null_object(resource_x, "aw") and resource_x["aw"] != 0 and is_not_null_object(resource_x, "ah") and resource_x["ah"] != 0;
+							if (is_null_object(resource_x, "x")) {
+								if (is_sprite) {
 									sen.writeInt32LE(0x00);
-								}
-								else{
+								} 
+								else {
 									sen.writeInt32LE(0x7FFFFFFF);
 								}
+							} 
+							else {
+								sen.writeInt32LE(resource_x["x"]);
 							}
-							else{
-								sen.writeInt32LE(resource_x["x"].get<int>());
-							}
-							if(is_null_object(resource_x, "y")){
-								if(is_sprite){
+							if (is_null_object(resource_x, "y")) {
+								if (is_sprite) {
 									sen.writeInt32LE(0x00);
-								}
-								else{
+								} 
+								else {
 									sen.writeInt32LE(0x7FFFFFFF);
 								}
+							} 
+							else {
+								sen.writeInt32LE(resource_x["y"]);
 							}
-							else{
-								sen.writeInt32LE(resource_x["y"].get<int>());
+							if (is_null_object(resource_x, "ax")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["ax"]);
 							}
-							#define m_writer_defined_or(property, value) \
-							if(is_null_object(resource_x, property)){\
-								sen.writeInt32LE(value);\
-							} \
-							else{ \
-								sen.writeInt32LE(resource_x["property"].get<int>());\
+							if (is_null_object(resource_x, "ay")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["ay"]);
 							}
-							m_writer_defined_or("ax", 0x00);
-							m_writer_defined_or("ay", 0x00);
-							m_writer_defined_or("aw", 0x00);
-							m_writer_defined_or("ah", 0x00);
-							m_writer_defined_or("cols", 0x01);
-							m_writer_defined_or("rows", 0x01);
-							write_boolean(sen, is_not_null_object(resource_x, "atlas") and resource_x["atlas"].get<bool>());
+							if (is_null_object(resource_x, "aw")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["aw"]);
+							}
+							if (is_null_object(resource_x, "ah")) {
+								sen.writeInt32LE(0x00);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["ah"]);
+							}
+							if (is_null_object(resource_x, "cols")) {
+								sen.writeInt32LE(0x01);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["cols"]);
+							}
+							if (is_null_object(resource_x, "rows")) {
+								sen.writeInt32LE(0x01);
+							} 
+							else {
+								sen.writeInt32LE(resource_x["rows"]);
+							}
+							if (is_not_null_object(resource_x, "atlas") and resource_x["atlas"]) {
+								sen.writeUint8(0x01);
+							} 
+							else {
+								sen.writeUint8(0x00);
+							}
 							sen.writeUint8(0x01);
 							sen.writeUint8(0x01);
 							auto resource_has_parent = is_not_null_object(resource_x, "parent");
-							write_boolean(sen, resource_has_parent);
-							write_string(sen, resource_x["id"].get<std::string>());
-							write_string(sen, resource_x["path"].get<std::string>());
-							if(resource_has_parent){
-								write_string(sen, resource_x["parent"].get<std::string>());
+							if (resource_has_parent) {
+								sen.writeUint8(0x01);
+							} 
+							else {
+								sen.writeUint8(0x00);
+							}
+							sen.writeUint32LE(resource_x["id"].get<std::string>().size());
+							sen.writeString(resource_x["id"]);
+							sen.writeUint32LE(resource_x["path"].get<std::string>().size());
+							sen.writeString(resource_x["path"]);
+							if (resource_has_parent) {
+								sen.writeUint32LE(resource_x["parent"].get<std::string>().size());
+								sen.writeString(resource_x["parent"]);
 							}
 						}
 					}
 				}
 				return sen;
 			}
+
+			/**
+			 * Quick method for process file
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @returns: the output file after encoded
+			*/
 
 			static auto process_fs(
 				const std::string & source,
@@ -226,7 +262,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			{
 				auto encoder = Encode{source};
 				auto sen = encoder.process();
-				sen.outFile(destination);
+				FileSystem::writeBinary<unsigned char>(destination, sen.get());
 				return;
 			}
 
