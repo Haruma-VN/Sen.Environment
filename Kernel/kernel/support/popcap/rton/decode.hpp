@@ -15,7 +15,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
     {
     protected:
         auto decode_rton(
-            Buffer::Vector &sen
+            SenBuffer &sen
         ) -> nlohmann::json
         {
             auto magic = sen.readString(4) == "RTON";
@@ -30,9 +30,10 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline auto read_object(
-            Buffer::Vector &sen,
+            SenBuffer &sen,
             nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list) -> nlohmann::json
+            nlohmann::json &r0x92_list
+        ) -> nlohmann::json
         {
             auto object_json = nlohmann::json::object();
             auto bytecode = sen.readUint8();
@@ -46,9 +47,10 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline auto read_array(
-            Buffer::Vector &sen,
+            SenBuffer &sen,
             nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list) -> nlohmann::json
+            nlohmann::json &r0x92_list
+        ) -> nlohmann::json
         {
             auto bytecode = sen.readUint8();
             if (bytecode != 0xFD)
@@ -67,7 +69,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return array_json;
         }
 
-        inline auto read_RTID(Buffer::Vector &sen) -> std::string
+        inline auto read_RTID(
+            SenBuffer &sen
+        ) -> std::string
         {
             auto byte = sen.readUint8();
             switch (byte)
@@ -102,7 +106,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             }
         }
 
-        inline auto read_binary(Buffer::Vector &sen) -> std::string
+        inline auto read_binary(
+            SenBuffer &sen
+        ) -> std::string
         {
             sen.appendPosition(1);
             auto str = sen.readStringByVarInt32();
@@ -112,10 +118,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_bytecode(
             const uint8_t &bytecode,
-            Buffer::Vector &sen,
+            SenBuffer &sen,
             nlohmann::json &r0x90_list,
             nlohmann::json &r0x92_list,
-            nlohmann::json json) -> void
+            nlohmann::json json
+        ) -> void
         {
             std::string temp_string;
             switch (bytecode)
@@ -235,7 +242,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_bytecode_property(
             const uint8_t &bytecode,
-            Buffer::Vector &sen,
+            SenBuffer &sen,
             nlohmann::json &r0x90_list,
             nlohmann::json &r0x92_list) -> std::string
         {
@@ -282,7 +289,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             ) -> void
             {
                 auto c = Decode{};
-                auto sen = Buffer::Vector{source};
+                auto sen = SenBuffer{source};
                 auto result = c.decode_rton(sen);
                 FileSystem::writeJson(destination, result);
                 return;
@@ -295,10 +302,10 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const std::string & iv
             ) -> void
             {
-                auto source_buffer = Buffer::Vector{source};
-                auto source_iv = Buffer::Vector{iv};
+                auto source_buffer = SenBuffer{source};
+                auto source_iv = SenBuffer{iv};
                 fill_rijndael_block(source_buffer, source_iv);
-                FileSystem::writeBinary<unsigned char>(destination, Sen::Kernel::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Encryption::RijndaelMode::CBC));
+                FileSystem::writeBinary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
                 return;
             }
             
@@ -309,11 +316,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const std::string & iv
             ) -> void
             {
-                auto source_buffer = Buffer::Vector{source};
-                auto source_iv = Buffer::Vector{iv};
+                auto source_buffer = SenBuffer{source};
+                auto source_iv = SenBuffer{iv};
                 fill_rijndael_block(source_buffer, source_iv);
                 auto rton = Decode{};
-                auto sen = Buffer::Vector{Sen::Kernel::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Encryption::RijndaelMode::CBC)};
+                auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
                 FileSystem::writeBinary<unsigned char>(destination, rton.decode_rton(sen));
                 return;
             }

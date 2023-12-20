@@ -287,6 +287,10 @@ namespace Sen::Kernel::Interface {
 						Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(thiz.argument, thiz.params.at(0));
 						break;
 					}
+					case Sen::Kernel::Interface::CliCallBack::COMPILED_TEXT_DECODE:{
+						Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(thiz.argument, thiz.params.at(0), thiz.params.at(1), thiz.params.at(2), static_cast<bool>(std::stoi(thiz.params.at(3))));
+						break;
+					}
 					default:{
 						
 						throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));

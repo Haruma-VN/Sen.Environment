@@ -20,7 +20,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			// buffer reader
 
-			Buffer::Vector sen;
+			SenBuffer sen;
 
 			/**
 			 * read enumeration
@@ -275,7 +275,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			// constructor
 
 			explicit Decode(
-				Buffer::Vector & it
+				SenBuffer & it
 			) : sen(it)
 			{
 

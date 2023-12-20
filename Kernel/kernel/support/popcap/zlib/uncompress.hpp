@@ -45,7 +45,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 
 			// should use this
 
-			Uncompress(
+			explicit Uncompress(
 				bool use_64_bit_variant
 			) : use_64_bit_variant(use_64_bit_variant)
 			{
@@ -69,17 +69,16 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				const std::vector<unsigned char> & source 
 			) -> std::vector<unsigned char> override final
 			{
-				auto* sen = new Buffer::Vector{source};
-				auto magic = sen->readUint32LE();
+				auto sen = SenBuffer{source};
+				auto magic = sen.readUint32LE();
 				try_assert(magic == static_cast<uint32_t>(Uncompress::magic), fmt::format("Mismatch zlib magic, should begin with: 0x{:X}", Uncompress::magic));
 				auto cut_offset = static_cast<size_t>(8);
 				if(thiz.use_64_bit_variant){
 					cut_offset += 8;
-					sen->readUint32LE();
-					sen->readUint32LE();
+					sen.readUint32LE();
+					sen.readUint32LE();
 				}
-				auto result = Compression::Zlib::uncompress(sen->get_raw(cut_offset, sen->size()));
-				delete sen;
+				auto result = Compression::Zlib::uncompress(sen.get_raw(cut_offset, sen.size()));
 				return result;
 			}
 

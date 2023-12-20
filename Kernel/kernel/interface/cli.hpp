@@ -43,6 +43,8 @@ namespace Sen::Kernel::Interface {
 		RTON_ENCODE_AND_ENCRYPT,
 		NEWTON_DECODE,
 		NEWTON_ENCODE,
+		COMPILED_TEXT_DECODE,
+		COMPILED_TEXT_ENCODE,
 	};
 
 	/**

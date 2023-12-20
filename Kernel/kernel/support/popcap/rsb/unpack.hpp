@@ -14,7 +14,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 const std::string & folder_out
             ) -> void
             {
-                auto sen = Buffer::Vector{file_in};
+                auto sen = SenBuffer{file_in};
                 auto head_info = read_head(sen);
                 // test rsb unpack
                 FileSystem::createDirectory(folder_out);
@@ -49,7 +49,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             }
 
             auto read_head(
-                Buffer::Vector &sen) -> nlohmann::json
+                SenBuffer &sen
+            ) -> nlohmann::json
             {
                 auto magic = sen.readString(4);
                 if (magic != "1bsr")

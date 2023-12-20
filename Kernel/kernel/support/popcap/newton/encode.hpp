@@ -67,14 +67,16 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			}
 
 			/**
-			 * process
+			 * ---------------------
+			 * Process method
+			 * ---------------------
 			 */
 
 			auto process(
 
-			) -> Buffer::Vector
+			) -> SenBuffer
 			{
-				auto sen = Buffer::Vector{};
+				auto sen = SenBuffer{};
 				try_assert(is_not_null_object(resource, "slot_count"), "slot_count cannot be null");
 				sen.writeInt32LE(resource["slot_count"].get<int>());
 				sen.writeInt32LE(static_cast<int>(resource["groups"].size()));

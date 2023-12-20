@@ -12,3 +12,4 @@
 #include "kernel/support/popcap/rton/decode.hpp"
 #include "kernel/support/popcap/newton/encode.hpp"
 #include "kernel/support/popcap/newton/decode.hpp"
+#include "kernel/support/popcap/compiled_text/decode.hpp"
