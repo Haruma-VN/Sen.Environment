@@ -18,7 +18,7 @@ namespace Sen::Kernel::Interface {
 
 	// input
 
-	typedef BasicStringView (*input)();
+	typedef struct BasicStringView (*input)();
 
 	// argument
 

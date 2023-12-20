@@ -4,7 +4,7 @@
 using namespace Sen::Kernel;
 
 M_EXPORT_API
-unsigned long long version(
+int version(
 
 )
 {

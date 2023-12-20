@@ -89,19 +89,15 @@ namespace Sen::Kernel::Interface {
 
 		public:
 
-			Callback(
+			explicit Callback(
 				const Interface::CliCallBack &command, 
 				const std::string &argument, 
 				const std::vector<std::string> &params,
 				const Interface::input &input,
 				const Interface::callback &print
-			)
+			) : command(command), argument(argument), params(params), input(input), print(print)
 			{
-				thiz.command = command;
-				thiz.argument = argument;
-				thiz.params = params;
-				thiz.input = input;
-				thiz.print = print;
+
 			}
 
 			~Callback(
