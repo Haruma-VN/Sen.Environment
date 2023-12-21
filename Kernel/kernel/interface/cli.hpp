@@ -8,7 +8,7 @@ namespace Sen::Kernel::Interface {
 
 	enum CliCallBack
 	{
-
+		NULL_OPERATOR,
 		MD5_HASH,
 		SHA224_HASH,
 		SHA256_HASH,

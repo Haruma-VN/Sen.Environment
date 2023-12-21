@@ -190,10 +190,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const std::string & destination
 			) -> void
 			{
-				auto *c = new ResInfo::BasicConversion{};
-				c->split(source, destination);
-				delete c;
-				c = nullptr;
+				auto resource_handler = ResInfo::BasicConversion{};
+				resource_handler.split(source, destination);
 				return;
 			}
 
@@ -209,10 +207,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const std::string & destination
 			) -> void
 			{
-				auto *c = new ResInfo::BasicConversion{};
-				c->merge(source, destination);
-				delete c;
-				c = nullptr;
+				auto resource_handler = ResInfo::BasicConversion{};
+				resource_handler.merge(source, destination);
 				return;
 			}
 

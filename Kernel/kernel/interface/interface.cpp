@@ -23,10 +23,10 @@ int execute(
     try{
         auto process = Interface::convertBasicStringViewToString(argument);
         auto parameters = Interface::convertParameterToVectorString(params);
-        auto* callback = new Interface::Callback(command, process, parameters, input, sendMessage);
+        Interface::Shell::input = input;
+        Interface::Shell::print = sendMessage;
+        auto callback = std::make_shared<Interface::Callback>(command, process, parameters);
         callback->execute();
-        delete callback;
-	    callback = nullptr;
     }
     catch(std::exception &ex)
     {

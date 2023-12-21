@@ -19,6 +19,7 @@
 #include <regex>
 #include <source_location>
 #include <functional>
+#include <thread>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"

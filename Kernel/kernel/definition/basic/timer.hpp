@@ -38,6 +38,18 @@ namespace Sen::Kernel::Definition {
 				return clock::duration<double>(after - before).count();
 			}
 
+			/**
+			 * Sleep to wait for a thread
+			*/
+
+			static auto sleep(
+				long long m
+			) -> void
+			{
+				std::this_thread::sleep_for(clock::milliseconds(m));
+				return;
+			}
+
 	};
 	
 }

@@ -30,6 +30,7 @@ add_library(
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp
 	./definition/compression/bzip2.hpp
+	./definition/javascript/converter.hpp
 	./definition/javascript/runtime.hpp
 
 	./dependencies/fmt.hpp
@@ -76,6 +77,7 @@ add_library(
 	./interface/cli.hpp
 	./interface/callback.hpp
 	./interface/version.hpp
+	./interface/shell.hpp
 	./interface/interface.cpp
 )
 
