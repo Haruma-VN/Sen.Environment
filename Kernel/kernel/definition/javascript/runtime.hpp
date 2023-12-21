@@ -4,6 +4,9 @@
 
 namespace Sen::Kernel::Definition::JavaScript
 {
+	template <typename Type>
+	concept SpaceX = std::is_same_v<Type, int32_t> || std::is_same_v<Type, uint32_t>
+	|| std::is_same_v<Type, int64_t> || std::is_same_v<Type, uint64_t> || std::is_same_v<Type, float> || std::is_same_v<Type, double> || std::is_same_v<Type, std::string> || std::is_same_v<Type, bool>;
 
 	/**
 	 * JS Runtime Native Handler
@@ -554,6 +557,638 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
 				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the C string value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+
+			auto add_constant(
+				const std::string & value,
+				const std::string & var_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_SetPropertyStr(ctx, global_obj, var_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the integer 32 value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+
+			auto add_constant(
+				int32_t value,
+				const std::string & var_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_SetPropertyStr(ctx, global_obj, var_name.c_str(), JS_NewInt32(ctx, value));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the unsigned integer 32 value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+
+			auto add_constant(
+				uint32_t value,
+				const std::string & var_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_SetPropertyStr(ctx, global_obj, var_name.c_str(), JS_NewUint32(ctx, value));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the integer 64 value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+
+			auto add_constant(
+				int64_t value,
+				const std::string & var_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_SetPropertyStr(ctx, global_obj, var_name.c_str(), JS_NewInt64(ctx, value));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the unsigned integer 64 value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+
+			auto add_constant(
+				uint64_t value,
+				const std::string & var_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_SetPropertyStr(ctx, global_obj, var_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value to an object from C
+			 * @param value: the C string value
+			 * @param object_name: JS object name
+			 * @param property_name: JS property name
+			 * --------------------------------------
+			*/
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & object_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto myObject = JS_GetPropertyStr(ctx, global_obj, object_name.c_str());
+				if (JS_IsUndefined(myObject)) {
+					myObject = JS_NewObject(ctx);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, myObject, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_SetPropertyStr(ctx, global_obj, object_name.c_str(), myObject);
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & obj4_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				if (JS_IsUndefined(obj4)) {
+					obj4 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & obj4_name,
+				const std::string & obj5_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				if (JS_IsUndefined(obj4)) {
+					obj4 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+				}
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				if (JS_IsUndefined(obj5)) {
+					obj5 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & obj4_name,
+				const std::string & obj5_name,
+				const std::string & obj6_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				if (JS_IsUndefined(obj4)) {
+					obj4 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+				}
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				if (JS_IsUndefined(obj5)) {
+					obj5 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+				}
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				if (JS_IsUndefined(obj6)) {
+					obj6 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & obj4_name,
+				const std::string & obj5_name,
+				const std::string & obj6_name,
+				const std::string & obj7_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				if (JS_IsUndefined(obj4)) {
+					obj4 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+				}
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				if (JS_IsUndefined(obj5)) {
+					obj5 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+				}
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				if (JS_IsUndefined(obj6)) {
+					obj6 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+				}
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				if (JS_IsUndefined(obj7)) {
+					obj7 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			template <typename T> requires SpaceX<T>
+			auto add_space(
+				const T & value,
+				const std::string & obj1_name,
+				const std::string & obj2_name,
+				const std::string & obj3_name,
+				const std::string & obj4_name,
+				const std::string & obj5_name,
+				const std::string & obj6_name,
+				const std::string & obj7_name,
+				const std::string & obj8_name,
+				const std::string & property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+				}
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				if (JS_IsUndefined(obj3)) {
+					obj3 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+				}
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				if (JS_IsUndefined(obj4)) {
+					obj4 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+				}
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				if (JS_IsUndefined(obj5)) {
+					obj5 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+				}
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				if (JS_IsUndefined(obj6)) {
+					obj6 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+				}
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				if (JS_IsUndefined(obj7)) {
+					obj7 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+				}
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				if (JS_IsUndefined(obj8)) {
+					obj8 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+				}
+				if (std::is_same_v<T, std::string>::value)
+				{
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				}
+				else if(std::is_same_v<T, int32_t>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt32(ctx, value));
+				}
+				else if(std::is_same_v<T, uint32_t>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewUint32(ctx, value));
+				}
+				else if(std::is_same_v<T, int64_t>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt64(ctx, value));
+				}
+				else if(std::is_same_v<T, uint64_t>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				}
+				else if(std::is_same_v<T, double>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, value));
+				}
+				else if(std::is_same_v<T, float>::value){
+					JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				}
+				else if(std::is_same_v<T, bool>::value){
+					JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				}
+				else{
+					throw std::runtime_error(fmt::format("Cannot assign JS value, received value: {}", value));
+				}
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}

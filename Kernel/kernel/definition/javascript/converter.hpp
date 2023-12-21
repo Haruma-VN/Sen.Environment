@@ -63,6 +63,39 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
+			 * JS Number to C++ Float64
+			*/
+
+			static auto get_float64(
+				JSContext* context,
+				const JSValue & that
+			) -> double
+			{
+				auto m_value = double{};
+				if(JS_ToFloat64(context, &m_value, that) < 0){
+					throw std::runtime_error(fmt::format("Failed when converting JS number to double"));
+				}
+				return m_value;
+			}
+
+			/**
+			 * Should not use this
+			 * JS Number to C++ Float32
+			*/
+
+			static auto get_float32(
+				JSContext* context,
+				const JSValue & that
+			) -> float
+			{
+				auto m_value = double{};
+				if(JS_ToFloat64(context, &m_value, that) < 0){
+					throw std::runtime_error(fmt::format("Failed when converting JS number to float"));
+				}
+				return static_cast<float>(m_value);
+			}
+
+			/**
 			 * JS Number to C++ Int64
 			*/
 
