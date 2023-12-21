@@ -94,11 +94,11 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------
 			*/
 
-			auto eval_fs(
+			auto evaluate_fs(
 				const std::string & source
 			) -> JSValue
 			{
-				return thiz.eval(FileSystem::readFile(source), source);
+				return thiz.evaluate(FileSystem::readFile(source), source);
 			}
 
 			/**
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * ------------------------------------------------------------
 			*/
 
-			auto eval(
+			auto evaluate(
 				const std::string & source_data,
 				const std::string & source_file
 			) -> JSValue

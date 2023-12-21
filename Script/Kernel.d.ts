@@ -48,9 +48,100 @@ declare namespace Sen {
             export function write_file(destination: string, content: string): string;
         }
 
+        /**
+         * JavaScript Native Handler from Kernel
+         */
+
         declare namespace JavaScript {
-            export function evaluate(source: string): any;
-            export function evaluate_fs(source: string): any;
+            /**
+             * --------------------------------------------------
+             * @param code: code to execute
+             * @returns JS Value after evaluate
+             * --------------------------------------------------
+             */
+
+            export function evaluate<T>(code: string): T;
+            export function evaluate_fs<T>(source: string): T;
+        }
+
+        /**
+         * JavaScript Kernel interactive : Encryption
+         */
+
+        declare namespace Encryption {
+            /**
+             * JavaScript MD5 Hashing methods
+             */
+
+            declare namespace MD5 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): string;
+            }
+
+            /**
+             * JavaScript Base64 encode/decode methods
+             */
+
+            declare namespace Base64 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 encoding method
+                 * @param str - string to encode
+                 * @returns: encoded string
+                 * --------------------------------------------------
+                 */
+
+                export function encode(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 decoding method
+                 * @param str - string to encode
+                 * @returns: decoded string
+                 * --------------------------------------------------
+                 */
+
+                export function decode(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 encoding method
+                 * @param source - source file
+                 * @param destination - destination file
+                 * @returns: file has been encoded with base64
+                 * --------------------------------------------------
+                 */
+
+                export function encode_fs(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 decodng method
+                 * @param source - source file
+                 * @param destination - destination file
+                 * @returns: file has been decoded with base64
+                 * --------------------------------------------------
+                 */
+
+                export function decode_fs(source: string, destination: string): void;
+            }
         }
     }
 }

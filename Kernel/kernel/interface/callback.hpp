@@ -115,18 +115,44 @@ namespace Sen::Kernel::Interface {
 			) -> void
 			{
 				auto javascript = std::make_shared<JS::Runtime>();
+				// file system
 				{
+					// read file
 					javascript->add_proxy(Script::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
+					// write file
 					javascript->add_proxy(Script::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
 				}
+				// console
 				{
+					// console log
 					javascript->add_proxy(Script::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
 				}
+				// javascript
 				{
+					// evaluate
 					javascript->add_proxy(Script::evaluate, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate"});
+					// evaluate file
 					javascript->add_proxy(Script::evaluate_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate_fs"});
 				}
-				javascript->eval_fs("D:/Code/Sen.Environment/Script/build/main.js");
+				// md5
+				{
+					// hash method
+					javascript->add_proxy(Script::md5_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash"});
+					// hash file method
+					javascript->add_proxy(Script::md5_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash_fs"});
+				}
+				// base64
+				{
+					// encode base64
+					javascript->add_proxy(Script::base64_encode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode"});
+					// decode base64
+					javascript->add_proxy(Script::base64_decode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode"});
+					// encode base64 for file
+					javascript->add_proxy(Script::base64_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode_fs"});
+					// decode base64 for file
+					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
+				}
+				javascript->evaluate_fs("D:/Code/Sen.Environment/Script/build/main.js");
 				// switch(thiz.command){
 				// 	case Sen::Kernel::Interface::CliCallBack::MD5_HASH:{
 				// 		thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);
