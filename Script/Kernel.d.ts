@@ -61,6 +61,14 @@ declare namespace Sen {
              */
 
             export function evaluate<T>(code: string): T;
+
+            /**
+             * --------------------------------------------------
+             * @param source : source file to execute
+             * @returns JS Value after evaluate
+             * --------------------------------------------------
+             */
+
             export function evaluate_fs<T>(source: string): T;
         }
 
@@ -142,6 +150,10 @@ declare namespace Sen {
 
                 export function decode_fs(source: string, destination: string): void;
             }
+        }
+
+        declare namespace Home {
+            export const script_parent: string;
         }
     }
 }

@@ -115,6 +115,11 @@ namespace Sen::Kernel::Interface {
 			) -> void
 			{
 				auto javascript = std::make_shared<JS::Runtime>();
+				auto script_path = std::string{"D:/Code/Sen.Environment/Script/build/main.js"};
+				// home
+				{
+					javascript->add_constant(Path::getParents(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script_parent"});
+				}
 				// file system
 				{
 					// read file
@@ -152,7 +157,7 @@ namespace Sen::Kernel::Interface {
 					// decode base64 for file
 					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
-				javascript->evaluate_fs("D:/Code/Sen.Environment/Script/build/main.js");
+				javascript->evaluate_fs(script_path);
 				// switch(thiz.command){
 				// 	case Sen::Kernel::Interface::CliCallBack::MD5_HASH:{
 				// 		thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);
