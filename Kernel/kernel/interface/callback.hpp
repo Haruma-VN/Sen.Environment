@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kernel/interface/shell.hpp"
+#include "kernel/interface/script.hpp"
 
 namespace Sen::Kernel::Interface {
 
@@ -107,26 +107,6 @@ namespace Sen::Kernel::Interface {
 			) = default;
 
 			/**
-			 * JS Print method
-			*/
-
-			static auto print_js(
-				JSContext *ctx, 
-				JSValueConst this_val, 
-				int argc, 
-				JSValueConst *argv
-			) 
-			{
-				try_assert(argc > 2, "argument must be greater than 2");
-				const char* str = JS_ToCString(ctx, argv[0]);
-				if (str) {
-					Shell{}.print(JS::Converter::to_string(ctx, argv[0]).c_str(), JS::Converter::to_string(ctx, argv[1]).c_str(), static_cast<Sen::Kernel::Interface::Color>(JS::Converter::to_int32(ctx, argv[2])));
-					JS_FreeCString(ctx, str);
-				}
-				return JS_UNDEFINED;
-			}
-
-			/**
 			 * Execute method
 			*/
 
@@ -134,13 +114,19 @@ namespace Sen::Kernel::Interface {
 
 			) -> void
 			{
-				auto const before = Sen::Kernel::Definition::Timer::start();
-				auto js_runtime = std::make_shared<JS::Runtime>();
-				js_runtime->add_proxy(print_js, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
-				js_runtime->eval(
-					std::string{
-						"let a = 5; let b = 2; Sen.Kernel.Console.print(\"\", a + b, 12);"},
-					std::string{"./test.js"});
+				auto javascript = std::make_shared<JS::Runtime>();
+				{
+					javascript->add_proxy(Script::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
+					javascript->add_proxy(Script::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
+				}
+				{
+					javascript->add_proxy(Script::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
+				}
+				{
+					javascript->add_proxy(Script::evaluate, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate"});
+					javascript->add_proxy(Script::evaluate_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate_fs"});
+				}
+				javascript->eval_fs("D:/Code/Sen.Environment/Script/build/main.js");
 				// switch(thiz.command){
 				// 	case Sen::Kernel::Interface::CliCallBack::MD5_HASH:{
 				// 		thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);
@@ -320,9 +306,6 @@ namespace Sen::Kernel::Interface {
 				// 		throw std::runtime_error(fmt::format("Method not found: {}", thiz.command));
 				// 	}
 				// }
-				auto const after = Sen::Kernel::Definition::Timer::start();
-				auto const time_spent = Sen::Kernel::Definition::Timer::calculate(before, after);
-				shell.print(fmt::format("Time spent: {}s", time_spent).c_str(), Sen::Kernel::Interface::Callback::emptyString.c_str(), Sen::Kernel::Interface::Color::GREEN);
 				return;
 			}
 	};

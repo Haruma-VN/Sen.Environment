@@ -103,7 +103,7 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			/**
 			 * ------------------------------------------------------------
-			 * Evaluate JS
+			 * Evaluate JavaScript
 			 * @param source_data: the eval script data
 			 * @param source_file: the source file contains the script data
 			 * @return: JS eval data
@@ -158,13 +158,17 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto myObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, myObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto myObject = JS_GetPropertyStr(ctx, global_obj, object_name.c_str());
+				if (JS_IsUndefined(myObject)) {
+					myObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, myObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
 				JS_SetPropertyStr(ctx, global_obj, object_name.c_str(), myObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
+
 
 			/**
 			 * --------------------------------------
@@ -184,15 +188,22 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), innerObject);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), innerObject);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
+
 
 			/**
 			 * --------------------------------------
@@ -214,13 +225,22 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middleObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middleObject, obj3_name.c_str(), innerObject);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middleObject);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middleObject = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middleObject)) {
+					middleObject = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middleObject, obj3_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middleObject, obj3_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middleObject);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
@@ -248,15 +268,27 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middle2Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), innerObject);
-				auto middle1Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middle1Object = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middle1Object)) {
+					middle1Object = JS_NewObject(ctx);
+				}
+				auto middle2Object = JS_GetPropertyStr(ctx, middle1Object, obj3_name.c_str());
+				if (JS_IsUndefined(middle2Object)) {
+					middle2Object = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middle2Object, obj4_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
@@ -286,21 +318,37 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middle3Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), innerObject);
-				auto middle2Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
-				auto middle1Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middle1Object = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middle1Object)) {
+					middle1Object = JS_NewObject(ctx);
+				}
+				auto middle2Object = JS_GetPropertyStr(ctx, middle1Object, obj3_name.c_str());
+				if (JS_IsUndefined(middle2Object)) {
+					middle2Object = JS_NewObject(ctx);
+				}
+				auto middle3Object = JS_GetPropertyStr(ctx, middle2Object, obj4_name.c_str());
+				if (JS_IsUndefined(middle3Object)) {
+					middle3Object = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middle3Object, obj5_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
+				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
+
 
 			/**
 			 * --------------------------------------
@@ -328,19 +376,37 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middle4Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), innerObject);
-				auto middle3Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
-				auto middle2Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
-				auto middle1Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middle1Object = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middle1Object)) {
+					middle1Object = JS_NewObject(ctx);
+				}
+				auto middle2Object = JS_GetPropertyStr(ctx, middle1Object, obj3_name.c_str());
+				if (JS_IsUndefined(middle2Object)) {
+					middle2Object = JS_NewObject(ctx);
+				}
+				auto middle3Object = JS_GetPropertyStr(ctx, middle2Object, obj4_name.c_str());
+				if (JS_IsUndefined(middle3Object)) {
+					middle3Object = JS_NewObject(ctx);
+				}
+				auto middle4Object = JS_GetPropertyStr(ctx, middle3Object, obj5_name.c_str());
+				if (JS_IsUndefined(middle4Object)) {
+					middle4Object = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middle4Object, obj6_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
+				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
+				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
@@ -374,21 +440,42 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middle5Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle5Object, obj7_name.c_str(), innerObject);
-				auto middle4Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), middle5Object);
-				auto middle3Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
-				auto middle2Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
-				auto middle1Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middle1Object = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middle1Object)) {
+					middle1Object = JS_NewObject(ctx);
+				}
+				auto middle2Object = JS_GetPropertyStr(ctx, middle1Object, obj3_name.c_str());
+				if (JS_IsUndefined(middle2Object)) {
+					middle2Object = JS_NewObject(ctx);
+				}
+				auto middle3Object = JS_GetPropertyStr(ctx, middle2Object, obj4_name.c_str());
+				if (JS_IsUndefined(middle3Object)) {
+					middle3Object = JS_NewObject(ctx);
+				}
+				auto middle4Object = JS_GetPropertyStr(ctx, middle3Object, obj5_name.c_str());
+				if (JS_IsUndefined(middle4Object)) {
+					middle4Object = JS_NewObject(ctx);
+				}
+				auto middle5Object = JS_GetPropertyStr(ctx, middle4Object, obj6_name.c_str());
+				if (JS_IsUndefined(middle5Object)) {
+					middle5Object = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middle5Object, obj7_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middle5Object, obj7_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), middle5Object);
+				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
+				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
+				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
@@ -425,28 +512,51 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & function_name
 			) -> void 
 			{
-				auto innerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
-				auto middle6Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle6Object, obj8_name.c_str(), innerObject);
-				auto middle5Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle5Object, obj7_name.c_str(), middle6Object);
-				auto middle4Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), middle5Object);
-				auto middle3Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
-				auto middle2Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
-				auto middle1Object = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
-				auto outerObject = JS_NewObject(ctx);
-				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				auto global_obj = JS_GetGlobalObject(ctx);
+				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				if (JS_IsUndefined(outerObject)) {
+					outerObject = JS_NewObject(ctx);
+				}
+				auto middle1Object = JS_GetPropertyStr(ctx, outerObject, obj2_name.c_str());
+				if (JS_IsUndefined(middle1Object)) {
+					middle1Object = JS_NewObject(ctx);
+				}
+				auto middle2Object = JS_GetPropertyStr(ctx, middle1Object, obj3_name.c_str());
+				if (JS_IsUndefined(middle2Object)) {
+					middle2Object = JS_NewObject(ctx);
+				}
+				auto middle3Object = JS_GetPropertyStr(ctx, middle2Object, obj4_name.c_str());
+				if (JS_IsUndefined(middle3Object)) {
+					middle3Object = JS_NewObject(ctx);
+				}
+				auto middle4Object = JS_GetPropertyStr(ctx, middle3Object, obj5_name.c_str());
+				if (JS_IsUndefined(middle4Object)) {
+					middle4Object = JS_NewObject(ctx);
+				}
+				auto middle5Object = JS_GetPropertyStr(ctx, middle4Object, obj6_name.c_str());
+				if (JS_IsUndefined(middle5Object)) {
+					middle5Object = JS_NewObject(ctx);
+				}
+				auto middle6Object = JS_GetPropertyStr(ctx, middle5Object, obj7_name.c_str());
+				if (JS_IsUndefined(middle6Object)) {
+					middle6Object = JS_NewObject(ctx);
+				}
+				auto innerObject = JS_GetPropertyStr(ctx, middle6Object, obj8_name.c_str());
+				if (JS_IsUndefined(innerObject)) {
+					innerObject = JS_NewObject(ctx);
+				}
+				JS_SetPropertyStr(ctx, innerObject, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
+				JS_SetPropertyStr(ctx, middle6Object, obj8_name.c_str(), innerObject);
+				JS_SetPropertyStr(ctx, middle5Object, obj7_name.c_str(), middle6Object);
+				JS_SetPropertyStr(ctx, middle4Object, obj6_name.c_str(), middle5Object);
+				JS_SetPropertyStr(ctx, middle3Object, obj5_name.c_str(), middle4Object);
+				JS_SetPropertyStr(ctx, middle2Object, obj4_name.c_str(), middle3Object);
+				JS_SetPropertyStr(ctx, middle1Object, obj3_name.c_str(), middle2Object);
+				JS_SetPropertyStr(ctx, outerObject, obj2_name.c_str(), middle1Object);
 				JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), outerObject);
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
-
 
 
 			/**

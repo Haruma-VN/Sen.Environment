@@ -78,6 +78,7 @@ add_library(
 	./interface/callback.hpp
 	./interface/version.hpp
 	./interface/shell.hpp
+	./interface/script.hpp
 	./interface/interface.cpp
 )
 

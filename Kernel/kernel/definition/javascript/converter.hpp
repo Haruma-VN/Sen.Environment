@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS String to C++ String
 			*/
 
-			static auto to_string(
+			static auto get_string(
 				JSContext* context,
 				const JSValue & that
 			) -> std::string
@@ -47,10 +47,10 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
-			 * Int32 converter
+			 * JS Number to C++ Int32
 			*/
 
-			static auto to_int32(
+			static auto get_int32(
 				JSContext* context,
 				const JSValue & that
 			) -> int32_t
@@ -63,10 +63,10 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
-			 * Int64 converter
+			 * JS Number to C++ Int64
 			*/
 
-			static auto to_int64(
+			static auto get_int64(
 				JSContext* context,
 				const JSValue & that
 			) -> int64_t
@@ -79,10 +79,10 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
-			 * Uint32 converter
+			 * JS Number to C++ Uint32
 			*/
 
-			static auto to_uint32(
+			static auto get_uint32(
 				JSContext* context,
 				const JSValue & that
 			) -> uint32_t
@@ -95,10 +95,10 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
-			 * Uint64 converter
+			 * JS Number to C++ Uint64
 			*/
 
-			static auto to_uint64(
+			static auto get_uint64(
 				JSContext* context,
 				const JSValue & that
 			) -> uint64_t
@@ -111,10 +111,82 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
-			 * To Boolean
+			 * C++ String to JS String
+			*/
+
+			static auto to_string(
+				JSContext* context,
+				const std::string & content
+			) -> JSValue
+			{
+				return JS_NewStringLen(context, content.c_str(), content.size());
+			}
+
+			/**
+			 * C++ Bool to JS Bool
 			*/
 
 			static auto to_bool(
+				JSContext* context,
+				bool value
+			) -> JSValue
+			{
+				return JS_NewBool(context, value ? 1 : 0);
+			}
+
+			/**
+			 * C++ Int32 to JS Number
+			*/
+
+			static auto to_number(
+				JSContext* context,
+				int32_t value
+			) -> JSValue
+			{
+				return JS_NewInt32(context, value);
+			}
+
+			/**
+			 * C++ Int64 to JS Number
+			*/
+
+			static auto to_number(
+				JSContext* context,
+				int64_t value
+			) -> JSValue
+			{
+				return JS_NewInt64(context, value);
+			}
+
+			/**
+			 * C++ Uint32 to JS Number
+			*/
+
+			static auto to_number(
+				JSContext* context,
+				uint32_t value
+			) -> JSValue
+			{
+				return JS_NewUint32(context, value);
+			}
+
+			/**
+			 * C++ Uint64 to JS Number
+			*/
+
+			static auto to_number(
+				JSContext* context,
+				uint64_t value
+			) -> JSValue
+			{
+				return JS_NewBigUint64(context, value);
+			}
+
+			/**
+			 * JS Number to C++ boolean
+			*/
+
+			static auto get_bool(
 				JSContext* context,
 				const JSValue & that
 			) -> bool
@@ -127,19 +199,19 @@ namespace Sen::Kernel::Definition::JavaScript {
 			*/
 
 			template <typename T>
-			static auto to_vector(
+			static auto get_vector(
 				JSContext* context,
 				const JSValue & that
 			) -> std::vector<T>
 			{
 				auto len_val = JS_GetPropertyStr(context, that, "length");
-				auto length = Converter::to_int32(context, len_val);
+				auto length = Converter::get_int32(context, len_val);
 				JS_FreeValue(context, len_val);
 				if (std::is_same<T, std::string>::value){
 					auto m_list = std::vector<std::string>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_string(context, val));
+						m_list.push_back(Converter::get_string(context, val));
 					}
 					return m_list;
 				}
@@ -147,7 +219,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					auto m_list = std::vector<int>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_int32(context, val));
+						m_list.push_back(Converter::get_int32(context, val));
 					}
 					return m_list;
 				}
@@ -155,7 +227,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					auto m_list = std::vector<bool>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_bool(context, val));
+						m_list.push_back(Converter::get_bool(context, val));
 					}
 					return m_list;
 				}
@@ -163,7 +235,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					auto m_list = std::vector<long long>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_int64(context, val));
+						m_list.push_back(Converter::get_int64(context, val));
 					}
 					return m_list;
 				}
@@ -171,7 +243,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					auto m_list = std::vector<unsigned int>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_uint32(context, val));
+						m_list.push_back(Converter::get_uint32(context, val));
 					}
 					return m_list;
 				}
@@ -179,7 +251,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					auto m_list = std::vector<uint64_t>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::to_uint64(context, val));
+						m_list.push_back(Converter::get_uint64(context, val));
 					}
 					return m_list;
 				}
