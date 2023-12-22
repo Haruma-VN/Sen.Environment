@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kernel/interface/script.hpp"
+#include "kernel/interface/version.hpp"
 
 namespace Sen::Kernel::Interface {
 
@@ -117,6 +118,10 @@ namespace Sen::Kernel::Interface {
 			{
 				auto javascript = std::make_shared<JS::Runtime>();
 				auto script_path = std::string{"D:/Code/Sen.Environment/Script/build/main.js"};
+				// kernel version
+				{
+					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});
+				}
 				// home
 				{
 					javascript->add_constant(Path::getParents(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script_parent"});

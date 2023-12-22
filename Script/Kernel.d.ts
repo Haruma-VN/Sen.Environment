@@ -5,6 +5,12 @@ declare namespace Sen {
 
     declare namespace Kernel {
         /**
+         * Kernel version
+         */
+
+        declare const version: number;
+
+        /**
          * Console methods from Kernel export to Script through Callback interactive with Shell
          * Shell methods must implementing this, Script only need to call
          */

@@ -6,9 +6,12 @@ namespace Sen.Script {
         return;
     }
 
+    export const version = 1 as const;
+
     export function main(): void {
         let before = Date.now();
         Sen.Script.loadLibrary();
+        Sen.Kernel.Console.print(`Sen ~ Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`);
         Sen.Kernel.Compression.Zlib.compress_fs("D:/test/res.json", "D:/test/res.json.bin", Zlib.Level.LEVEL_9);
         let after = Date.now();
         Sen.Kernel.Console.print(`Time spent: ${((after - before) / 1000).toPrecision(3)}s`);

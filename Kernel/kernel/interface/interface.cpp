@@ -1,5 +1,4 @@
 ﻿#include "kernel/interface/callback.hpp"
-#include "kernel/interface/version.hpp"
 
 using namespace Sen::Kernel;
 
