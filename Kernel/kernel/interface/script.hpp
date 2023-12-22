@@ -176,8 +176,7 @@ namespace Sen::Kernel::Interface::Script {
 	{
 		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 		auto source = JS_ToCString(context, argv[0]);
-		auto str = FileSystem::readFile(source);
-		auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
+		auto result = Sen::Kernel::Definition::Encryption::MD5::hash_fs(source);
 		JS_FreeCString(context, source);
 		return JS::Converter::to_string(context, result);
 	}
@@ -271,6 +270,235 @@ namespace Sen::Kernel::Interface::Script {
 		Sen::Kernel::Definition::Encryption::Base64::decode_fs(source, destination);
 		JS_FreeCString(context, source);
 		JS_FreeCString(context, destination);
+		return JS_UNDEFINED;
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA224 Hash
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha224_hash(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA224 Hash File System
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha224_hash_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::Sha224::hash_fs(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA256 Hash
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha256_hash(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA256::hash(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA256 Hash File System
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha256_hash_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA256::hash_fs(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA384 Hash
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha384_hash(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA384::hash(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA384 Hash File System
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha384_hash_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA384::hash_fs(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA512 Hash
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha512_hash(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA512::hash(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript SHA512 Hash File System
+	 * @param argv[0]: source to encode
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto sha512_hash_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto result = Sen::Kernel::Definition::Encryption::SHA512::hash_fs(source);
+		JS_FreeCString(context, source);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript XOR Encryption
+	 * @param argv[0]: key
+	 * @param argv[1]: plain
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto xor_encrypt(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto plain = JS_ToCString(context, argv[0]);
+		auto key = JS_ToCString(context, argv[1]);
+		auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key);
+		JS_FreeCString(context, plain);
+		JS_FreeCString(context, key);
+		return JS::Converter::to_string(context, result);
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript XOR Encryption File System
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @param argv[2]: key
+	 * @returns: Encoded file
+	 * ----------------------------------------
+	*/
+
+	inline static auto xor_encrypt_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		auto key = JS_ToCString(context, argv[2]);
+		Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source, destination, key);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		JS_FreeCString(context, key);
 		return JS_UNDEFINED;
 	}
 }

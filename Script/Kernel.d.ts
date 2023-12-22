@@ -104,6 +104,139 @@ declare namespace Sen {
             }
 
             /**
+             * JavaScript SHA224 Hashing methods
+             */
+
+            declare namespace SHA224 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): string;
+            }
+
+            /**
+             * JavaScript SHA256 Hashing methods
+             */
+
+            declare namespace SHA256 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): string;
+            }
+
+            /**
+             * JavaScript SHA384 Hashing methods
+             */
+
+            declare namespace SHA384 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): string;
+            }
+
+            /**
+             * JavaScript SHA512 Hashing methods
+             */
+
+            declare namespace SHA512 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): string;
+            }
+
+            /**
+             * JavaScript XOR Hashing methods
+             */
+
+            declare namespace XOR {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param plain - string to encrypt
+                 * @param key - key to encrypt
+                 * @returns: encrypted string
+                 * --------------------------------------------------
+                 */
+
+                export function encrypt(str: string, key: string): string;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript encrypt method for file
+                 * @param source - source file to encrypt
+                 * @param destination - output file
+                 * @param key - key to encrypt
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function encrypt_fs(source: string, destination: string, key: string): string;
+            }
+
+            /**
              * JavaScript Base64 encode/decode methods
              */
 
@@ -152,7 +285,15 @@ declare namespace Sen {
             }
         }
 
+        /**
+         * JavaScript home declaration
+         */
+
         declare namespace Home {
+            /**
+             * Parent directories of script
+             */
+
             export const script_parent: string;
         }
     }

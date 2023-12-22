@@ -3,7 +3,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 
-namespace Sen::Kernel::Dependencies::Encryption {
+namespace Sen::Kernel::Definition::Encryption {
 
 	class SHA384 {
 
@@ -15,13 +15,24 @@ namespace Sen::Kernel::Dependencies::Encryption {
 			*/
 
 			static auto hash(
-				const std::string &message
-			) -> std::string const
+				const std::string & message
+			) -> std::string 
 			{
-				auto sha384 = new Sen::Kernel::Dependencies::SHA::SHA384{};
-				auto const result = sha384->hash(message);
-				delete sha384;
+				auto sha384 = std::make_shared<Sen::Kernel::Dependencies::SHA::SHA384>();
+				auto result = sha384->hash(message);
 				return result;
+			}
+
+			/**
+			 * @param source: source file
+			 * @return: hashed string
+			*/
+
+			static auto hash_fs(
+				const std::string & source
+			) -> std::string 
+			{
+				return SHA384::hash(FileSystem::readFile(source));
 			}
 
 	};

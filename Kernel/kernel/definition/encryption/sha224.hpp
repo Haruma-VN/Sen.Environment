@@ -3,8 +3,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 
-namespace Sen::Kernel::Definition::Encryption::Sha224 
-{
+namespace Sen::Kernel::Definition::Encryption::Sha224 {
 
 	// using C++ String
 
@@ -16,13 +15,25 @@ namespace Sen::Kernel::Definition::Encryption::Sha224
 	*/
 
 	inline static auto hash(
-		const string &message
-	) -> string const
+		const std::string & message
+	) -> std::string
 	{
-		auto *sha224 = new Dependencies::SHA224CryptoServiceProvider::sha224();
+		auto sha224 = std::make_shared<Dependencies::SHA224CryptoServiceProvider::sha224>();
 		auto result = sha224->Hashing(message);
-		delete sha224;
 		return result;
 	}
+
+	/**
+	 * message: the source file need to hash
+	 * return: hashed message
+	*/
+
+	inline static auto hash_fs(
+		const std::string & source
+	) -> std::string
+	{
+		return Sen::Kernel::Definition::Encryption::Sha224::hash(FileSystem::readFile(source));
+	}
+
 
 }

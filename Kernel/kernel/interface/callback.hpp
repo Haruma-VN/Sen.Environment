@@ -146,6 +146,41 @@ namespace Sen::Kernel::Interface {
 					// hash file method
 					javascript->add_proxy(Script::md5_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash_fs"});
 				}
+				// sha224
+				{
+					// hash method
+					javascript->add_proxy(Script::sha224_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash"});
+					// hash file method
+					javascript->add_proxy(Script::sha224_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash_fs"});
+				}
+				// sha256
+				{
+					// hash method
+					javascript->add_proxy(Script::sha256_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash"});
+					// hash file method
+					javascript->add_proxy(Script::sha256_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash_fs"});
+				}
+				// sha384
+				{
+					// hash method
+					javascript->add_proxy(Script::sha384_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash"});
+					// hash file method
+					javascript->add_proxy(Script::sha384_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash_fs"});
+				}
+				// sha512
+				{
+					// hash method
+					javascript->add_proxy(Script::sha512_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash"});
+					// hash file method
+					javascript->add_proxy(Script::sha512_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash_fs"});
+				}
+				// xor
+				{
+					// encrypt method
+					javascript->add_proxy(Script::xor_encrypt, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt"});
+					// encrypt file method
+					javascript->add_proxy(Script::xor_encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt_fs"});
+				}
 				// base64
 				{
 					// encode base64
