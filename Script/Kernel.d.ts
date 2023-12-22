@@ -5,7 +5,9 @@ declare namespace Sen {
 
     declare namespace Kernel {
         /**
+         * --------------------------------------------------
          * Kernel version
+         * --------------------------------------------------
          */
 
         declare const version: number;

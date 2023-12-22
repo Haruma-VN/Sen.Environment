@@ -1,4 +1,11 @@
 namespace Sen.Script {
+    /**
+     * --------------------------------------------------
+     * All JS modules need to be initialized
+     * @returns
+     * --------------------------------------------------
+     */
+
     export function loadLibrary(): void {
         for (const script of mScripts) {
             Sen.Kernel.JavaScript.evaluate_fs(`${script}.js`);
@@ -6,7 +13,20 @@ namespace Sen.Script {
         return;
     }
 
+    /**
+     * --------------------------------------------------
+     * Script version
+     * --------------------------------------------------
+     */
+
     export const version = 1 as const;
+
+    /**
+     * --------------------------------------------------
+     * Main function
+     * @returns
+     * --------------------------------------------------
+     */
 
     export function main(): void {
         let before = Date.now();
