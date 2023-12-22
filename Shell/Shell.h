@@ -77,7 +77,7 @@ struct Parameter {
 
 };
 
-typedef void (*callback)(const char*, const char*, const Sen::Shell::Interactive::Color);
+typedef void (*callback)(const char*, const Sen::Shell::Interactive::Color);
 
 typedef BasicStringView (*input)();
 

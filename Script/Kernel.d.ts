@@ -14,12 +14,27 @@ declare namespace Sen {
              * --------------------------------------------------
              * This method print the message to the debug console
              * @param title - The title of what you want to print
-             * @param message - Message what you want to print
              * @param color - Color message
              * --------------------------------------------------
              */
 
-            export function print(title: string, message: string, color: Script.Color): void;
+            export function print(title: string, color: Script.Console.Color): void;
+            /**
+             * --------------------------------------------------
+             * This method print the message to the debug console
+             * @param title - The title of what you want to print
+             * --------------------------------------------------
+             */
+
+            export function print(title: string): void;
+
+            /***
+             * --------------------------------------------------
+             * @returns: Input result
+             * --------------------------------------------------
+             */
+
+            export function readline(): string;
         }
 
         /**
@@ -282,6 +297,69 @@ declare namespace Sen {
                  */
 
                 export function decode_fs(source: string, destination: string): void;
+            }
+        }
+
+        /**
+         * JavaScript Compression from Kernel
+         */
+
+        declare namespace Compression {
+            /**
+             * ZLib compression from Kernel
+             */
+
+            declare namespace Zlib {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Zlib compression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @param level : level of compression
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function compress_fs(source: string, destination: string, level: Script.Zlib.Level): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Zlib uncompression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function uncompress_fs(source: string, destination: string): void;
+            }
+
+            /**
+             * Gzip compression from Kernel
+             */
+
+            declare namespace Gzip {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Gzip compression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function compress_fs(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Gzip uncompression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function uncompress_fs(source: string, destination: string): void;
             }
         }
 

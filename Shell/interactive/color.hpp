@@ -7,6 +7,7 @@ namespace Sen::Shell::Interactive {
 		CYAN = 11,
 		RED = 12,
 		YELLOW = 14,
+		DEFAULT = 7,
 	};
 
 }

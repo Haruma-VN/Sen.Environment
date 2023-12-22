@@ -24,8 +24,7 @@ namespace Sen::Kernel::Interface::Script {
 	 * ----------------------------------------
 	 * JS Print method
 	 * @param argv[0]: title
-	 * @param argv[1]: message
-	 * @param argv[2]: color
+	 * @param argv[1]: color
 	 * ----------------------------------------
 	*/
 
@@ -36,11 +35,36 @@ namespace Sen::Kernel::Interface::Script {
 		JSValueConst *argv
 	) -> JSValue
 	{
-		try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+		try_assert(argc == 2 or argc == 1, fmt::format("argument expected {} but received {}", "2 or 1", argc));
 		auto str = JS_ToCString(context, argv[0]);
-		Shell{}.print(JS::Converter::get_string(context, argv[0]).c_str(), JS::Converter::get_string(context, argv[1]).c_str(), static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])));
+		if(argc == 2){
+			Shell{}.print(JS::Converter::get_string(context, argv[0]).c_str(),static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[1])));
+		}
+		else{
+			Shell{}.print(JS::Converter::get_string(context, argv[0]).c_str(), Sen::Kernel::Interface::Color::DEFAULT);
+		}
 		JS_FreeCString(context, str);
-		return JS_UNDEFINED;
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JS Readline method
+	 * @returns: input data
+	 * ----------------------------------------
+	*/
+
+	inline static auto readline(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+		auto result = Shell{}.input();
+		auto m_result = std::string{result.data, result.size};
+		return JS::Converter::to_string(context, m_result);
 	}
 
 	/**
@@ -88,7 +112,7 @@ namespace Sen::Kernel::Interface::Script {
 		FileSystem::writeFile(destination, data);
 		JS_FreeCString(context, destination);
 		JS_FreeCString(context, data);
-		return JS_UNDEFINED;
+		return JS::Converter::get_undefined();
 	}
 
 	/**
@@ -246,7 +270,7 @@ namespace Sen::Kernel::Interface::Script {
 		Sen::Kernel::Definition::Encryption::Base64::encode_fs(source, destination);
 		JS_FreeCString(context, source);
 		JS_FreeCString(context, destination);
-		return JS_UNDEFINED;
+		return JS::Converter::get_undefined();
 	}
 
 	/**
@@ -270,7 +294,7 @@ namespace Sen::Kernel::Interface::Script {
 		Sen::Kernel::Definition::Encryption::Base64::decode_fs(source, destination);
 		JS_FreeCString(context, source);
 		JS_FreeCString(context, destination);
-		return JS_UNDEFINED;
+		return JS::Converter::get_undefined();
 	}
 
 	/**
@@ -499,6 +523,113 @@ namespace Sen::Kernel::Interface::Script {
 		JS_FreeCString(context, source);
 		JS_FreeCString(context, destination);
 		JS_FreeCString(context, key);
-		return JS_UNDEFINED;
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript Zlib Compression File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @param argv[2]: level
+	 * @returns: Compressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto zlib_compress_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		auto level = JS::Converter::get_int32(context, argv[2]);
+		if(!(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT <= level or level <= Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9)){
+			JS_FreeCString(context, source);
+			JS_FreeCString(context, destination);
+			throw std::invalid_argument(fmt::format("Invalid zlib level, expected level from 0 to 9, received {}", level));
+		}
+		Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript Zlib Uncompression File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto zlib_uncompress_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(source, destination);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript Gzip Compression File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Compressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto gzip_compress_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript Gzip Uncompression File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto gzip_uncompress_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(source, destination);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
 	}
 }

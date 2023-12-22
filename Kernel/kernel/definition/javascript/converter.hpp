@@ -228,6 +228,17 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
+			 * Return JS Undefined
+			*/
+
+			static auto constexpr get_undefined(
+
+			) -> JSValue
+			{
+				return JS_UNDEFINED;
+			}
+
+			/**
 			 * Convert JS Array to C++ Vector
 			*/
 

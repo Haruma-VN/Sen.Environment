@@ -77,7 +77,8 @@ namespace Sen::Kernel::Interface {
 				Interface::Color color
 			) -> void
 			{
-				shell.print(fmt::format("{}\n  ", title).c_str(), message.c_str(), color);
+				shell.print(fmt::format("{}\n  ", title).c_str(), color);
+				shell.print(fmt::format("{}\n  ", message).c_str(), Interface::Color::DEFAULT);
 				return;
 			}
 
@@ -129,8 +130,10 @@ namespace Sen::Kernel::Interface {
 				}
 				// console
 				{
-					// console log
+					// console log with color
 					javascript->add_proxy(Script::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
+					// console log
+					javascript->add_proxy(Script::readline, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"readline"});
 				}
 				// javascript
 				{
@@ -181,6 +184,20 @@ namespace Sen::Kernel::Interface {
 					// encrypt file method
 					javascript->add_proxy(Script::xor_encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt_fs"});
 				}
+				// zlib
+				{
+					// compress file method
+					javascript->add_proxy(Script::zlib_compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"compress_fs"});
+					// uncompress file method
+					javascript->add_proxy(Script::zlib_uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"uncompress_fs"});
+				}
+				// gzip
+				{
+					// compress file method
+					javascript->add_proxy(Script::gzip_compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"compress_fs"});
+					// uncompress file method
+					javascript->add_proxy(Script::gzip_uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"uncompress_fs"});
+				}
 				// base64
 				{
 					// encode base64
@@ -193,6 +210,7 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
 				javascript->evaluate_fs(script_path);
+				javascript->evaluate(std::string{"Sen.Script.main()"}, "<script>");
 				// switch(thiz.command){
 				// 	case Sen::Kernel::Interface::CliCallBack::MD5_HASH:{
 				// 		thiz.printc(fmt::format("MD5 Hash result:"), Sen::Kernel::Definition::Encryption::MD5::hash(Sen::Kernel::String::convertStringToSpan<unsigned char>(thiz.argument)), Sen::Kernel::Interface::Color::GREEN);

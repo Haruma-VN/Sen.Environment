@@ -15,30 +15,33 @@ inline auto static getLine(
 
 inline auto static print(
     char const* title,
-    char const* message,
     const Sen::Shell::Interactive::Color color
 ) -> void
 {
     #if WIN32
         auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, color);
-        std::cout << title;
+        std::cout << title << std::endl;
     #else
         switch (color) {
             case Sen::Shell::Interactive::Color::RED: {
-                std::cout << "\033[31m" << title << "\033[0m";
+                std::cout << "\033[31m" << title << "\033[0m" << std::endl;
                 break;
             }
             case Sen::Shell::Interactive::Color::GREEN: {
-                std::cout << "\033[32m" << title << "\033[0m";
+                std::cout << "\033[32m" << title << "\033[0m" << std::endl;
                 break;
             }
             case Sen::Shell::Interactive::Color::CYAN: {
-                std::cout << "\033[36m" << title << "\033[0m";
+                std::cout << "\033[36m" << title << "\033[0m" << std::endl;
                 break;
             }
             case Sen::Shell::Interactive::Color::YELLOW: {
-                std::cout << "\033[33m" << title << "\033[0m";
+                std::cout << "\033[33m" << title << "\033[0m" << std::endl;
+                break;
+            
+            case Sen::Shell::Interactive::Color::WHITE: {
+                std::cout << title << std::endl;
                 break;
             }
             default: {
@@ -47,9 +50,8 @@ inline auto static print(
         }
     #endif
     #if WIN32
-       SetConsoleTextAttribute(hConsole, 7);
+       SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
     #endif
-    std::cout << message << std::endl;
     return;
 }
 
@@ -66,7 +68,7 @@ MAIN_FUNCTION
         auto hinstLib = dlopen(argc[1], RTLD_LAZY);
     #endif
     if (hinstLib == NULL) {
-        print("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
+        print("Kernel cannot be loaded", Sen::Shell::Interactive::Color::RED);
         return 1;
     }
     #if WIN32
@@ -75,7 +77,7 @@ MAIN_FUNCTION
         auto execute = (KernelExecute)dlsym(hinstLib, "execute");
     #endif
     if (execute == NULL) {
-        print("Method not found", "", Sen::Shell::Interactive::Color::RED);
+        print("Method not found", Sen::Shell::Interactive::Color::RED);
         #if WIN32
                 FreeLibrary(hinstLib);
         #else

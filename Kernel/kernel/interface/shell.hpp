@@ -18,8 +18,7 @@ namespace Sen::Kernel::Interface {
 			}
 
 			inline static auto print_m(
-				const char* title, 
-				const char* message, 
+				const char* title,
 				const Sen::Kernel::Interface::Color color
 			) -> void
 			{
