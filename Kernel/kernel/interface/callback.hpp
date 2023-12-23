@@ -214,6 +214,9 @@ namespace Sen::Kernel::Interface {
 					// decode base64 for file
 					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
+				{
+					javascript->add_proxy(Script::rton_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
+				}
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate(std::string{"Sen.Script.main()"}, "<script>");
 				// switch(thiz.command){

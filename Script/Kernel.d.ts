@@ -382,5 +382,13 @@ declare namespace Sen {
 
             export const script_parent: string;
         }
+
+        declare namespace Support {
+            declare namespace PopCap {
+                declare namespace RTON {
+                    export function decode_fs(source: string, destination: string): void;
+                }
+            }
+        }
     }
 }

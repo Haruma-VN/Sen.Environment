@@ -18,6 +18,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             SenBuffer &sen
         ) -> nlohmann::json
         {
+            debug("decode rton");
             auto magic = sen.readString(4) == "RTON";
             if (!magic){
                 throw std::runtime_error("Invaild RTON head");
@@ -35,6 +36,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             nlohmann::json &r0x92_list
         ) -> nlohmann::json
         {
+            debug("read object");
             auto object_json = nlohmann::json::object();
             auto bytecode = sen.readUint8();
             while (bytecode != 0xFF)
@@ -52,6 +54,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             nlohmann::json &r0x92_list
         ) -> nlohmann::json
         {
+            debug("read array");
             auto bytecode = sen.readUint8();
             if (bytecode != 0xFD)
                 throw std::runtime_error("Invaild array start");
@@ -73,6 +76,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             SenBuffer &sen
         ) -> std::string
         {
+            debug("read rtid");
             auto byte = sen.readUint8();
             switch (byte)
             {
@@ -110,6 +114,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             SenBuffer &sen
         ) -> std::string
         {
+            debug("read binary");
             sen.appendPosition(1);
             auto str = sen.readStringByVarInt32();
             auto num = sen.readVarInt32();
@@ -124,6 +129,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             nlohmann::json json
         ) -> void
         {
+            debug("read bytecode");
             std::string temp_string;
             switch (bytecode)
             {
@@ -246,6 +252,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             nlohmann::json &r0x90_list,
             nlohmann::json &r0x92_list) -> std::string
         {
+            debug("read_bytecode_property");
             std::string temp_string;
             switch (bytecode)
             {

@@ -632,4 +632,20 @@ namespace Sen::Kernel::Interface::Script {
 		JS_FreeCString(context, destination);
 		return JS::Converter::get_undefined();
 	}
+
+	inline static auto rton_decode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source, destination);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
 }

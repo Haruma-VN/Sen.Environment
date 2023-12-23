@@ -32,6 +32,7 @@ namespace Sen.Script {
         const before: number = Date.now();
         Sen.Script.loadLibrary();
         Sen.Kernel.Console.print(`Sen ~ Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`);
+        Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/ARCADE_CONFIG.rton", "D:/test/ARCADE_CONFIG.json");
         const after: number = Date.now();
         Sen.Kernel.Console.print(`Time spent: ${((after - before) / 1000).toPrecision(3)}s`, Console.Color.GREEN);
         return;
