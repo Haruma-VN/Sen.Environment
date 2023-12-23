@@ -8,7 +8,7 @@ namespace Sen.Script {
 
     export function loadLibrary(): void {
         for (const script of mScripts) {
-            Sen.Kernel.JavaScript.evaluate_fs(`${script}.js`);
+            Sen.Kernel.JavaScript.evaluate_fs(`${Kernel.Home.script_parent}/${script}.js`);
         }
         return;
     }
@@ -29,14 +29,13 @@ namespace Sen.Script {
      */
 
     export function main(): void {
-        let before = Date.now();
+        const before: number = Date.now();
         Sen.Script.loadLibrary();
         Sen.Kernel.Console.print(`Sen ~ Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`);
-        Sen.Kernel.Compression.Zlib.compress_fs("D:/test/res.json", "D:/test/res.json.bin", Zlib.Level.LEVEL_9);
-        let after = Date.now();
-        Sen.Kernel.Console.print(`Time spent: ${((after - before) / 1000).toPrecision(3)}s`);
+        const after: number = Date.now();
+        Sen.Kernel.Console.print(`Time spent: ${((after - before) / 1000).toPrecision(3)}s`, Console.Color.GREEN);
         return;
     }
 
-    export const mScripts: Array<string> = [...new Set([`${Kernel.Home.script_parent}/utility/definition`])];
+    export const mScripts: Array<string> = [...new Set([`utility/definition`])];
 }

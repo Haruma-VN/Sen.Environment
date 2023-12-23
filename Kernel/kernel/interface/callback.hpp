@@ -117,7 +117,7 @@ namespace Sen::Kernel::Interface {
 			) -> void
 			{
 				auto javascript = std::make_shared<JS::Runtime>();
-				auto script_path = std::string{"D:/Code/Sen.Environment/Script/build/main.js"};
+				auto script_path = thiz.argument;
 				// kernel version
 				{
 					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});

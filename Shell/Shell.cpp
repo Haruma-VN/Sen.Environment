@@ -57,6 +57,14 @@ inline auto static print(
 
 MAIN_FUNCTION
 {
+    try {
+        try_assert(size >= 3, "argument too few");
+    }
+    catch (std::runtime_error& e) {
+        print(e.what(), Sen::Shell::Interactive::Color::RED);
+        input();
+        return 1;
+    }
     #if WIN32
         SetConsoleCP(CP_UTF8);
         SetConsoleOutputCP(CP_UTF8);
@@ -85,13 +93,13 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto path1 = (std::string)"D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PROPERTIES/RESOURCES.json";
+    auto path1 = std::string{ argc[2] };
     auto path2 = (std::string)"D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PROPERTIES/RESOURCES.json.newton";
     auto* argument = new BasicStringView{};
     strcpy_s(argument->data, path1.c_str());
     argument->size = path1.size();
     auto* parameter = new Parameter{
-        std::vector<std::string>{path2, "100", "100", "5"}
+        std::vector<std::string>{}
     };
     auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::NEWTON_ENCODE);
     #if WIN32

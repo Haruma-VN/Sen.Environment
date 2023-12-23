@@ -83,3 +83,8 @@ typedef BasicStringView (*input)();
 
 typedef int (*KernelExecute)
 (BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, Sen::Shell::CliCallBack);
+
+#define try_assert(condition, message) \
+	if(!(condition)) {\
+		throw std::runtime_error(message); \
+	}
