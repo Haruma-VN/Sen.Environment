@@ -25,8 +25,6 @@ namespace Sen::Kernel::Interface {
 
 		private:
 
-			Interface::CliCallBack command;
-
 			std::string argument;
 
 			std::vector<std::string> params;
@@ -92,10 +90,9 @@ namespace Sen::Kernel::Interface {
 		public:
 
 			explicit Callback(
-				const Interface::CliCallBack &command, 
 				const std::string &argument, 
 				const std::vector<std::string> &params
-			) : command(command), argument(argument), params(params)
+			) : argument(argument), params(params)
 			{
 
 			}
@@ -137,7 +134,7 @@ namespace Sen::Kernel::Interface {
 				{
 					// console log with color
 					javascript->add_proxy(Script::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
-					// console log
+					// read line
 					javascript->add_proxy(Script::readline, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"readline"});
 				}
 				// javascript

@@ -58,7 +58,7 @@ inline auto static print(
 MAIN_FUNCTION
 {
     try {
-        try_assert(size >= 3, "argument too few");
+        try_assert(size >= 3, "argument too few, expected: arg.size >= 3");
     }
     catch (std::runtime_error& e) {
         print(e.what(), Sen::Shell::Interactive::Color::RED);
@@ -93,15 +93,14 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto path1 = std::string{ argc[2] };
-    auto path2 = (std::string)"D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PROPERTIES/RESOURCES.json.newton";
+    auto script = std::string{ argc[2] };
     auto* argument = new BasicStringView{};
-    strcpy_s(argument->data, path1.c_str());
-    argument->size = path1.size();
+    strcpy_s(argument->data, script.c_str());
+    argument->size = script.size();
     auto* parameter = new Parameter{
         std::vector<std::string>{}
     };
-    auto result = execute(argument, parameter, print, getLine, Sen::Shell::CliCallBack::NEWTON_ENCODE);
+    auto result = execute(argument, parameter, print, getLine);
     #if WIN32
         FreeLibrary(hinstLib);
     #else
