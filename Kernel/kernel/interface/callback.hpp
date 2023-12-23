@@ -214,8 +214,30 @@ namespace Sen::Kernel::Interface {
 					// decode base64 for file
 					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
+				// rton
 				{
 					javascript->add_proxy(Script::rton_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::rton_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"encode_fs"});
+				}
+				// rsb
+				{
+					javascript->add_proxy(Script::rsb_unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"unpack_fs"});
+					javascript->add_proxy(Script::rsb_pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"pack_fs"});
+				}
+				// rsg
+				{
+					javascript->add_proxy(Script::rsg_unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"unpack_fs"});
+					javascript->add_proxy(Script::rsg_pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"pack_fs"});
+				}
+				// pam
+				{
+					javascript->add_proxy(Script::pam_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::pam_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"encode_fs"});
+				}
+				// bnk
+				{
+					javascript->add_proxy(Script::wwise_soundbank_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::wwise_soundbank_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"encode_fs"});
 				}
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate(std::string{"Sen.Script.main()"}, "<script>");

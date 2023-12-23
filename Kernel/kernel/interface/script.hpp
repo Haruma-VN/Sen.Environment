@@ -633,6 +633,15 @@ namespace Sen::Kernel::Interface::Script {
 		return JS::Converter::get_undefined();
 	}
 
+	/**
+	 * ----------------------------------------
+	 * JavaScript RTON Decode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
 	inline static auto rton_decode_fs(
 		JSContext *context, 
 		JSValueConst this_val, 
@@ -644,6 +653,231 @@ namespace Sen::Kernel::Interface::Script {
 		auto source = JS_ToCString(context, argv[0]);
 		auto destination = JS_ToCString(context, argv[1]);
 		Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source, destination);
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript RTON Encode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto rton_encode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript RSB Unpack File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto rsb_unpack_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript RSB Pack File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto rsb_pack_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript RSG Unpack File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto rsg_unpack_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript RSG Pack File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto rsg_pack_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript PAM Decode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto pam_decode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript PAM Encode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto pam_encode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript WWise Soundbank Decode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto wwise_soundbank_decode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
+		JS_FreeCString(context, source);
+		JS_FreeCString(context, destination);
+		return JS::Converter::get_undefined();
+	}
+
+	/**
+	 * ----------------------------------------
+	 * JavaScript WWise Soundbank Encode File
+	 * @param argv[0]: source file
+	 * @param argv[1]: destination file
+	 * @returns: Uncompressed file
+	 * ----------------------------------------
+	*/
+
+	inline static auto wwise_soundbank_encode_fs(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+		auto source = JS_ToCString(context, argv[0]);
+		auto destination = JS_ToCString(context, argv[1]);
+		// encode method
 		JS_FreeCString(context, source);
 		JS_FreeCString(context, destination);
 		return JS::Converter::get_undefined();

@@ -383,10 +383,150 @@ declare namespace Sen {
             export const script_parent: string;
         }
 
+        /**
+         * Kernel support declaration
+         */
+
         declare namespace Support {
+            /**
+             * PopCap Support declaration
+             */
+
             declare namespace PopCap {
+                /**
+                 * Reflectation Object Notaion Support
+                 */
+
                 declare namespace RTON {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
                     export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Encode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * PopCap Animation decode method
+                 */
+
+                declare namespace Animation {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript PAM Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript PAM Encode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * PopCap Resource Stream Bundle Support
+                 */
+
+                declare namespace RSB {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSB Unpack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: unpacked file
+                     * --------------------------------------------------
+                     */
+                    export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSB Pack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: packed file
+                     * --------------------------------------------------
+                     */
+                    export function pack_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * PopCap Resource Stream Group Support
+                 */
+
+                declare namespace RSG {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSG Unpack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: unpacked file
+                     * --------------------------------------------------
+                     */
+                    export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSG Pack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: packed file
+                     * --------------------------------------------------
+                     */
+                    export function pack_fs(source: string, destination: string): void;
+                }
+            }
+
+            /**
+             * WWise Support
+             */
+
+            declare namespace WWise {
+                /**
+                 * WWise Sound Bank Support
+                 */
+
+                declare namespace SoundBank {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript WWise Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript WWise Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
                 }
             }
         }
