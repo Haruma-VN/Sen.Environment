@@ -23,7 +23,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * Pass message to decode
 			*/
 
-			static auto decode(
+			inline static auto decode(
 				const string &message
 			) -> string const
 			{
@@ -34,7 +34,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * Pass message to encode
 			*/
 
-			static auto encode(
+			inline static auto encode(
 				const string &message
 			) -> string const
 			{
@@ -47,7 +47,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * outPath: output file
 			*/
 
-			static auto decode_fs(
+			inline static auto decode_fs(
 				const string &filePath,
 				const string &outPath
 			) -> void
@@ -61,7 +61,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * outPath: output file
 			*/
 
-			static auto encode_fs(
+			inline static auto encode_fs(
 				const string &filePath,
 				const string &outPath
 			) -> void

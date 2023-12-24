@@ -1,4 +1,18 @@
+// Declaration of Kernel in JavaScript
+// Kernel version: 1
 declare namespace Sen {
+    /**
+     * Shell interactive
+     */
+
+    declare namespace Shell {
+        /**
+         * Shell version
+         */
+
+        export const version: number;
+    }
+
     /**
      * Kernel methods are exported here
      */

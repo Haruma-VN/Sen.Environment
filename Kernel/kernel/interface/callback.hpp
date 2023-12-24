@@ -31,6 +31,8 @@ namespace Sen::Kernel::Interface {
 
 			Interface::Shell shell;
 
+			int shell_version;
+
 			/**
 			 * 
 			 * @param index: the index in the parameter need input
@@ -91,8 +93,9 @@ namespace Sen::Kernel::Interface {
 
 			explicit Callback(
 				const std::string &argument, 
-				const std::vector<std::string> &params
-			) : argument(argument), params(params)
+				const std::vector<std::string> &params,
+				int shell_version
+			) : argument(argument), params(params), shell_version(shell_version)
 			{
 
 			}
@@ -118,10 +121,15 @@ namespace Sen::Kernel::Interface {
 				// kernel version
 				{
 					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});
+					javascript->add_constant(thiz.shell_version, std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
 				}
 				// home
 				{
 					javascript->add_constant(Path::getParents(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script_parent"});
+				}
+				// path
+				{
+					javascript->add_constant(Script::path_join, std::string{"Sen"}, std::string{"Kernel"} , std::string{"Path"}, std::string{"join"});
 				}
 				// file system
 				{

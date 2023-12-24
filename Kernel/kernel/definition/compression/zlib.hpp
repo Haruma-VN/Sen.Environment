@@ -50,7 +50,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: the compressed data
 			 */
 
-			static auto compress(
+			inline static auto compress(
 				const std::vector<unsigned char> &data,
 				const Level &level
 			) -> std::vector<unsigned char> 
@@ -68,7 +68,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: the uncompressed data
 			 */
 			
-			static auto uncompress(
+			inline static auto uncompress(
 				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
@@ -108,7 +108,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 */
 
 
-			static auto compress_deflate(
+			inline static auto compress_deflate(
 				const std::vector<unsigned char> &data,
 				const Level &level
 			) ->  std::vector<unsigned char>
@@ -149,7 +149,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compressed data
 			*/
 
-			static auto compress_gzip(
+			inline static auto compress_gzip(
 				const std::vector<unsigned char> &data,
 				const Level &level
 			) -> std::vector<unsigned char>
@@ -180,7 +180,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * result: output stream
 			*/
 
-			static auto uncompress_gzip(
+			inline static auto uncompress_gzip(
 				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
@@ -224,7 +224,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compress file
 			*/
 
-			static auto compress_fs(
+			inline static auto compress_fs(
 				const string &filePath,
 				const string &fileOut,
 				const Level &level
@@ -242,7 +242,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: uncompress file
 			*/
 
-			static auto uncompress_fs(
+			inline static auto uncompress_fs(
 				const string &fileIn,
 				const string &fileOut
 			) -> void
@@ -262,7 +262,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compressed gzip file
 			*/
 
-			static auto compress_gzip_fs(
+			inline static auto compress_gzip_fs(
 				const string &fileIn,
 				const string &fileOut
 			) -> void
@@ -280,7 +280,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compress file
 			*/
 
-			static auto compress_deflate_fs(
+			inline static auto compress_deflate_fs(
 				const string &filePath,
 				const string &fileOut
 			) -> void
@@ -297,7 +297,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: uncompressed file
 			*/
 
-			static auto uncompress_gzip_fs(
+			inline static auto uncompress_gzip_fs(
 				const string &fileIn,
 				const string &fileOut
 			) -> void

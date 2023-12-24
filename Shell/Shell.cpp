@@ -100,7 +100,7 @@ MAIN_FUNCTION
     auto* parameter = new Parameter{
         std::vector<std::string>{}
     };
-    auto result = execute(argument, parameter, print, getLine);
+    auto result = execute(argument, parameter, print, getLine, version);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

@@ -77,12 +77,14 @@ struct Parameter {
 
 };
 
+#define version 1
+
 typedef void (*callback)(const char*, const Sen::Shell::Interactive::Color);
 
 typedef BasicStringView (*input)();
 
 typedef int (*KernelExecute)
-(BasicStringView* argument, Parameter* params, callback sendMessage, input inputW);
+(BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, int _version);
 
 #define try_assert(condition, message) \
 	if(!(condition)) {\

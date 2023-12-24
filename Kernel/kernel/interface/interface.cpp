@@ -15,7 +15,8 @@ int execute(
     Interface::BasicStringView* argument, 
     Interface::Parameter* params, 
     Interface::callback sendMessage,
-    Interface::input input
+    Interface::input input,
+    int shell_version
 )
 {
     try{
@@ -23,7 +24,7 @@ int execute(
         auto parameters = Interface::convertParameterToVectorString(params);
         Interface::Shell::input = input;
         Interface::Shell::print = sendMessage;
-        auto callback = std::make_shared<Interface::Callback>(process, parameters);
+        auto callback = std::make_shared<Interface::Callback>(process, parameters, shell_version);
         callback->execute();
     }
     catch(std::exception &ex)

@@ -126,7 +126,7 @@ namespace Sen::Kernel {
 
 			// begin
 
-			auto begin(
+			inline auto begin(
 
 			) const -> iterator 
 			{ 
@@ -135,7 +135,7 @@ namespace Sen::Kernel {
 
 			// end
 
-			auto end(
+			inline auto end(
 
 			) const -> iterator 
 			{ 

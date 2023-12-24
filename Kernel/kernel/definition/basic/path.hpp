@@ -119,4 +119,30 @@ namespace Sen::Kernel::Path
 		return Path::absolute(Path::toPosixStyle(mPath));
 	}
 
+	/**
+	 * Convert list of path to path
+	*/
+
+	inline auto join(
+		const std::string & str
+	) -> std::string
+	{
+		return fs::path(str).string();
+	}
+
+	/**
+	 * Convert list of path to path
+	*/
+
+	inline auto join(
+		std::initializer_list<std::string> list
+	) -> std::string
+	{
+		auto path = fs::path(std::string{});
+		for(auto & element : list){
+			path.append(element);
+		}
+		return path.string();
+	}
+
 }

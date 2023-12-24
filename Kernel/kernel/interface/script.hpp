@@ -882,4 +882,20 @@ namespace Sen::Kernel::Interface::Script {
 		JS_FreeCString(context, destination);
 		return JS::Converter::get_undefined();
 	}
+
+	inline static auto path_join(
+		JSContext* context,
+		JSValueConst this_value,
+		int argc,
+		JSValueConst* argv
+	) -> JSValue
+	{
+		auto result = std::string{};
+		for(auto i : Range<int>(argc)){
+			auto str = JS_ToCString(context, argv[i]);
+			result += Path::join(str);
+			JS_FreeCString(context, str);
+		}
+		return JS::Converter::to_string(context, result);
+	}
 }

@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compressed bzip2 stream
 			*/
 
-			static auto compress(
+			inline static auto compress(
 				const std::vector<unsigned char>& input,
 				int block_size,
 				int work_factor
@@ -65,67 +65,67 @@ namespace Sen::Kernel::Definition::Compression {
 				return result;
 		}
 
-		/**
-		 * input: stream
-		 * return: result after uncompress
-		*/
+			/**
+			 * input: stream
+			 * return: result after uncompress
+			*/
 
-		static auto uncompress(
-			const std::vector<unsigned char> & input
-		) -> std::vector<unsigned char> 
-		{
-			auto bzerror = int{};
-			auto strm = bz_stream{};
-			strm.bzalloc = NULL;
-			strm.bzfree = NULL;
-			strm.opaque = NULL;
-			BZ2_bzDecompressInit(&strm, 0, 0);
-			strm.next_in = (char*)input.data();
-			strm.avail_in = input.size();
-			auto result = std::vector<unsigned char>{};
-			unsigned char outbuffer[4096];
-			do {
-				strm.next_out = (char*)outbuffer;
-				strm.avail_out = sizeof(outbuffer);
-				bzerror = BZ2_bzDecompress(&strm);
-				if (bzerror < 0) {
-					BZ2_bzDecompressEnd(&strm);
-					throw std::runtime_error("bzip2 decompression failed");
-				}
-				result.insert(result.end(), outbuffer, outbuffer + sizeof(outbuffer) - strm.avail_out);
-			} while (bzerror != BZ_STREAM_END);
-			BZ2_bzDecompressEnd(&strm);
-			return result;
-		}
+			inline static auto uncompress(
+				const std::vector<unsigned char> & input
+			) -> std::vector<unsigned char> 
+			{
+				auto bzerror = int{};
+				auto strm = bz_stream{};
+				strm.bzalloc = NULL;
+				strm.bzfree = NULL;
+				strm.opaque = NULL;
+				BZ2_bzDecompressInit(&strm, 0, 0);
+				strm.next_in = (char*)input.data();
+				strm.avail_in = input.size();
+				auto result = std::vector<unsigned char>{};
+				unsigned char outbuffer[4096];
+				do {
+					strm.next_out = (char*)outbuffer;
+					strm.avail_out = sizeof(outbuffer);
+					bzerror = BZ2_bzDecompress(&strm);
+					if (bzerror < 0) {
+						BZ2_bzDecompressEnd(&strm);
+						throw std::runtime_error("bzip2 decompression failed");
+					}
+					result.insert(result.end(), outbuffer, outbuffer + sizeof(outbuffer) - strm.avail_out);
+				} while (bzerror != BZ_STREAM_END);
+				BZ2_bzDecompressEnd(&strm);
+				return result;
+			}
 
-		/**
-		 * @param source: source file
-		 * @param destination: output file
-		 * @return: compressed file
-		*/
+			/**
+			 * @param source: source file
+			 * @param destination: output file
+			 * @return: compressed file
+			*/
 
-		static auto compress_fs(
-			const std::string & source,
-			const std::string & destination
-		) -> void
-		{
-			FileSystem::writeBinary<unsigned char>(destination, Bzip2::compress(FileSystem::readBinary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
-			return;
-		}
+			inline static auto compress_fs(
+				const std::string & source,
+				const std::string & destination
+			) -> void
+			{
+				FileSystem::writeBinary<unsigned char>(destination, Bzip2::compress(FileSystem::readBinary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
+				return;
+			}
 
-		/**
-		 * @param source: source file
-		 * @param destination: destination file
-		 * @return: uncompressed file
-		*/
+			/**
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @return: uncompressed file
+			*/
 
-		static auto uncompress_fs(
-			const std::string & source,
-			const std::string & destination
-		) -> void
-		{
-			FileSystem::writeBinary<unsigned char>(destination, Bzip2::uncompress(FileSystem::readBinary<unsigned char>(source)));
-			return;
-		}
-	};
+			inline static auto uncompress_fs(
+				const std::string & source,
+				const std::string & destination
+			) -> void
+			{
+				FileSystem::writeBinary<unsigned char>(destination, Bzip2::uncompress(FileSystem::readBinary<unsigned char>(source)));
+				return;
+			}
+		};
 }

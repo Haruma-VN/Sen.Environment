@@ -19,7 +19,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * Constructor
 			*/
 
-			Converter(
+			explicit Converter(
 
 			) = default;
 
@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS String to C++ String
 			*/
 
-			static auto get_string(
+			inline static auto get_string(
 				JSContext* context,
 				const JSValue & that
 			) -> std::string
@@ -50,7 +50,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Int32
 			*/
 
-			static auto get_int32(
+			inline static auto get_int32(
 				JSContext* context,
 				const JSValue & that
 			) -> int32_t
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Float64
 			*/
 
-			static auto get_float64(
+			inline static auto get_float64(
 				JSContext* context,
 				const JSValue & that
 			) -> double
@@ -83,7 +83,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Float32
 			*/
 
-			static auto get_float32(
+			inline static auto get_float32(
 				JSContext* context,
 				const JSValue & that
 			) -> float
@@ -99,7 +99,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Int64
 			*/
 
-			static auto get_int64(
+			inline static auto get_int64(
 				JSContext* context,
 				const JSValue & that
 			) -> int64_t
@@ -115,7 +115,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Uint32
 			*/
 
-			static auto get_uint32(
+			inline static auto get_uint32(
 				JSContext* context,
 				const JSValue & that
 			) -> uint32_t
@@ -131,7 +131,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ Uint64
 			*/
 
-			static auto get_uint64(
+			inline static auto get_uint64(
 				JSContext* context,
 				const JSValue & that
 			) -> uint64_t
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ String to JS String
 			*/
 
-			static auto to_string(
+			inline static auto to_string(
 				JSContext* context,
 				const std::string & content
 			) -> JSValue
@@ -159,7 +159,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ Bool to JS Bool
 			*/
 
-			static auto to_bool(
+			inline static auto to_bool(
 				JSContext* context,
 				bool value
 			) -> JSValue
@@ -171,7 +171,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ Int32 to JS Number
 			*/
 
-			static auto to_number(
+			inline static auto to_number(
 				JSContext* context,
 				int32_t value
 			) -> JSValue
@@ -183,7 +183,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ Int64 to JS Number
 			*/
 
-			static auto to_number(
+			inline static auto to_number(
 				JSContext* context,
 				int64_t value
 			) -> JSValue
@@ -195,7 +195,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ Uint32 to JS Number
 			*/
 
-			static auto to_number(
+			inline static auto to_number(
 				JSContext* context,
 				uint32_t value
 			) -> JSValue
@@ -207,7 +207,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * C++ Uint64 to JS Number
 			*/
 
-			static auto to_number(
+			inline static auto to_number(
 				JSContext* context,
 				uint64_t value
 			) -> JSValue
@@ -219,7 +219,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * JS Number to C++ boolean
 			*/
 
-			static auto get_bool(
+			inline static auto get_bool(
 				JSContext* context,
 				const JSValue & that
 			) -> bool
@@ -231,7 +231,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * Return JS Undefined
 			*/
 
-			static auto constexpr get_undefined(
+			inline static auto constexpr get_undefined(
 
 			) -> JSValue
 			{
@@ -243,7 +243,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 			*/
 
 			template <typename T>
-			static auto get_vector(
+			inline static auto get_vector(
 				JSContext* context,
 				const JSValue & that
 			) -> std::vector<T>

@@ -37,7 +37,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * level: compression level
 			*/
 
-			static auto compress(
+			inline static auto compress(
 				const std::vector<unsigned char> &data,
 				const Level &level
 			) -> std::vector<unsigned char>
@@ -72,7 +72,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: uncompressed data
 			*/
 
-			static auto uncompress(
+			inline static auto uncompress(
 				const std::vector<unsigned char> &data,
 				const size_t &actual_size
 			) -> std::vector<unsigned char>
@@ -99,7 +99,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: compressed file
 			*/
 
-			static auto compress_fs(
+			inline static auto compress_fs(
 				const string &fileIn,
 				const string &fileOut
 			) -> void
@@ -117,7 +117,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: uncompressed file
 			*/
 
-			static auto uncompress_fs(
+			inline static auto uncompress_fs(
 				const string &fileIn,
 				const string &fileOut,
 				const size_t &actual_size

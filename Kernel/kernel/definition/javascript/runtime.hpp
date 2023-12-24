@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * Free JS Value
 			*/
 
-			auto free_value(
+			inline auto free_value(
 				const JSValue & that
 			) -> void
 			{
@@ -47,7 +47,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * Free C String
 			*/
 
-			auto free_string(
+			inline auto free_string(
 				const char* that
 			) -> void
 			{
@@ -72,7 +72,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * JS Exception
 			*/
 
-			auto exception(
+			inline auto exception(
 				const JSValue & val
 			) -> std::string
 			{
@@ -102,7 +102,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------
 			*/
 
-			auto evaluate_fs(
+			inline auto evaluate_fs(
 				const std::string & source
 			) -> JSValue
 			{
@@ -118,7 +118,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * ------------------------------------------------------------
 			*/
 
-			auto evaluate(
+			inline auto evaluate(
 				const std::string & source_data,
 				const std::string & source_file
 			) -> JSValue
@@ -139,7 +139,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & function_name
 			) -> void 
@@ -160,7 +160,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & object_name,
 				const std::string & function_name
@@ -189,7 +189,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -225,7 +225,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -267,7 +267,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -316,7 +316,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -373,7 +373,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -436,7 +436,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -507,7 +507,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_proxy(
+			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -574,7 +574,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & var_name
 			) -> void 
@@ -593,7 +593,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & var_name
 			) -> void 
@@ -612,7 +612,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & var_name
 			) -> void 
@@ -631,7 +631,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & var_name
 			) -> void 
@@ -650,7 +650,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & var_name
 			) -> void 
@@ -670,7 +670,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -696,7 +696,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -722,7 +722,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -748,7 +748,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -774,7 +774,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -800,7 +800,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -826,7 +826,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -852,7 +852,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & object_name,
 				const std::string & property_name
@@ -879,7 +879,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -912,7 +912,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -945,7 +945,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -978,7 +978,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1011,7 +1011,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1044,7 +1044,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1077,7 +1077,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1110,7 +1110,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1144,7 +1144,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1184,7 +1184,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1224,7 +1224,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1264,7 +1264,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1304,7 +1304,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1344,7 +1344,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1384,7 +1384,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1424,7 +1424,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1465,7 +1465,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1512,7 +1512,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1559,7 +1559,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1606,7 +1606,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1653,7 +1653,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1700,7 +1700,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1747,7 +1747,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1794,7 +1794,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1842,7 +1842,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1896,7 +1896,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -1950,7 +1950,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2004,7 +2004,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2058,7 +2058,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2112,7 +2112,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2166,7 +2166,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2220,7 +2220,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2275,7 +2275,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2336,7 +2336,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2397,7 +2397,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2458,7 +2458,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2519,7 +2519,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2580,7 +2580,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2641,7 +2641,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2702,7 +2702,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2764,7 +2764,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2832,7 +2832,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2900,7 +2900,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -2968,7 +2968,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3036,7 +3036,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3104,7 +3104,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3172,7 +3172,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3240,7 +3240,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3309,7 +3309,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				const std::string & value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3384,7 +3384,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3459,7 +3459,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint32_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3534,7 +3534,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				int64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3609,7 +3609,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				uint64_t value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3685,7 +3685,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				double value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3760,7 +3760,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				float value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,
@@ -3835,7 +3835,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
-			auto add_constant(
+			inline auto add_constant(
 				bool value,
 				const std::string & obj1_name,
 				const std::string & obj2_name,

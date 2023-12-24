@@ -39,7 +39,7 @@ namespace Sen::Kernel::Definition::Encryption
 			 * @returns: encrypted buffer
 			*/
 
-			static auto encrypt(
+			inline static auto encrypt(
 				char const* plain,
 				const std::string & key,
 				const std::string & iv,
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Definition::Encryption
 			 * @returns: decrypted buffer
 			*/
 
-			static auto decrypt(
+			inline static auto decrypt(
 				char const* cipher,
 				const std::string & key,
 				const std::string & iv,
@@ -93,7 +93,7 @@ namespace Sen::Kernel::Definition::Encryption
 			 * @returns: decrypted buffer
 			*/
 
-			static auto encrypt_fs(
+			inline static auto encrypt_fs(
 				const std::string & source,
 				const std::string & destination,
 				const std::string key,
@@ -115,7 +115,7 @@ namespace Sen::Kernel::Definition::Encryption
 			 * @returns: decrypted buffer
 			*/
 
-			static auto decrypt_fs(
+			inline static auto decrypt_fs(
 				const std::string & source,
 				const std::string & destination,
 				const std::string key,

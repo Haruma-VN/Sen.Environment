@@ -14,7 +14,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * return: the hashed message
 			*/
 
-			static auto hash(
+			inline static auto hash(
 				const std::string & message
 			) -> std::string 
 			{
@@ -28,7 +28,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			 * @return: hashed string
 			*/
 
-			static auto hash_fs(
+			inline static auto hash_fs(
 				const std::string & source
 			) -> std::string 
 			{
