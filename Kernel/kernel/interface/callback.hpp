@@ -31,7 +31,7 @@ namespace Sen::Kernel::Interface {
 
 			Interface::Shell shell;
 
-			int shell_version;
+			Interface::MShellAPI shell_api;
 
 			/**
 			 * 
@@ -94,8 +94,8 @@ namespace Sen::Kernel::Interface {
 			explicit Callback(
 				const std::string &argument, 
 				const std::vector<std::string> &params,
-				int shell_version
-			) : argument(argument), params(params), shell_version(shell_version)
+				const Interface::MShellAPI & shell_api
+			) : argument(argument), params(params), shell_api(shell_api)
 			{
 
 			}
@@ -121,128 +121,130 @@ namespace Sen::Kernel::Interface {
 				// kernel version
 				{
 					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});
-					javascript->add_constant(thiz.shell_version, std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
+					javascript->add_constant(thiz.shell_api.version, std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
+					javascript->add_constant(thiz.shell_api.is_gui, std::string{"Sen"}, std::string{"Shell"}, std::string{"is_gui"});
+				}
+				// json
+				{
+					javascript->add_proxy(Script::JSON::deserialize, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"deserialize"});
+					javascript->add_proxy(Script::JSON::serialize, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"serialize"});
 				}
 				// home
 				{
 					javascript->add_constant(Path::getParents(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script_parent"});
 				}
-				// path
-				{
-					javascript->add_constant(Script::path_join, std::string{"Sen"}, std::string{"Kernel"} , std::string{"Path"}, std::string{"join"});
-				}
 				// file system
 				{
 					// read file
-					javascript->add_proxy(Script::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
+					javascript->add_proxy(Script::FileSystem::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
 					// write file
-					javascript->add_proxy(Script::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
+					javascript->add_proxy(Script::FileSystem::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
 				}
 				// console
 				{
 					// console log with color
-					javascript->add_proxy(Script::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
+					javascript->add_proxy(Script::Console::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
 					// read line
-					javascript->add_proxy(Script::readline, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"readline"});
+					javascript->add_proxy(Script::Console::readline, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"readline"});
 				}
 				// javascript
 				{
 					// evaluate
-					javascript->add_proxy(Script::evaluate, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate"});
+					javascript->add_proxy(Script::JavaScript::evaluate, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate"});
 					// evaluate file
-					javascript->add_proxy(Script::evaluate_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate_fs"});
+					javascript->add_proxy(Script::JavaScript::evaluate_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JavaScript"} ,std::string{"evaluate_fs"});
 				}
 				// md5
 				{
 					// hash method
-					javascript->add_proxy(Script::md5_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash"});
+					javascript->add_proxy(Script::Encryption::MD5::hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash"});
 					// hash file method
-					javascript->add_proxy(Script::md5_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash_fs"});
+					javascript->add_proxy(Script::Encryption::MD5::hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"MD5"}, std::string{"hash_fs"});
 				}
 				// sha224
 				{
 					// hash method
-					javascript->add_proxy(Script::sha224_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash"});
+					javascript->add_proxy(Script::Encryption::SHA224::hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash"});
 					// hash file method
-					javascript->add_proxy(Script::sha224_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash_fs"});
+					javascript->add_proxy(Script::Encryption::SHA224::hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA224"}, std::string{"hash_fs"});
 				}
 				// sha256
 				{
 					// hash method
-					javascript->add_proxy(Script::sha256_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash"});
+					javascript->add_proxy(Script::Encryption::SHA256::hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash"});
 					// hash file method
-					javascript->add_proxy(Script::sha256_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash_fs"});
+					javascript->add_proxy(Script::Encryption::SHA224::hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA256"}, std::string{"hash_fs"});
 				}
 				// sha384
 				{
 					// hash method
-					javascript->add_proxy(Script::sha384_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash"});
+					javascript->add_proxy(Script::Encryption::SHA384::hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash"});
 					// hash file method
-					javascript->add_proxy(Script::sha384_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash_fs"});
+					javascript->add_proxy(Script::Encryption::SHA384::hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA384"}, std::string{"hash_fs"});
 				}
 				// sha512
 				{
 					// hash method
-					javascript->add_proxy(Script::sha512_hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash"});
+					javascript->add_proxy(Script::Encryption::SHA512::hash, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash"});
 					// hash file method
-					javascript->add_proxy(Script::sha512_hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash_fs"});
+					javascript->add_proxy(Script::Encryption::SHA512::hash_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"SHA512"}, std::string{"hash_fs"});
 				}
 				// xor
 				{
 					// encrypt method
-					javascript->add_proxy(Script::xor_encrypt, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt"});
+					javascript->add_proxy(Script::Encryption::XOR::encrypt, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt"});
 					// encrypt file method
-					javascript->add_proxy(Script::xor_encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt_fs"});
+					javascript->add_proxy(Script::Encryption::XOR::encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt_fs"});
 				}
 				// zlib
 				{
 					// compress file method
-					javascript->add_proxy(Script::zlib_compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"compress_fs"});
+					javascript->add_proxy(Script::Compression::Zlib::compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"compress_fs"});
 					// uncompress file method
-					javascript->add_proxy(Script::zlib_uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"uncompress_fs"});
+					javascript->add_proxy(Script::Compression::Zlib::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zlib"}, std::string{"uncompress_fs"});
 				}
 				// gzip
 				{
 					// compress file method
-					javascript->add_proxy(Script::gzip_compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"compress_fs"});
+					javascript->add_proxy(Script::Compression::Gzip::compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"compress_fs"});
 					// uncompress file method
-					javascript->add_proxy(Script::gzip_uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"uncompress_fs"});
+					javascript->add_proxy(Script::Compression::Gzip::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"uncompress_fs"});
 				}
 				// base64
 				{
 					// encode base64
-					javascript->add_proxy(Script::base64_encode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode"});
+					javascript->add_proxy(Script::Encryption::Base64::encode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode"});
 					// decode base64
-					javascript->add_proxy(Script::base64_decode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode"});
+					javascript->add_proxy(Script::Encryption::Base64::decode, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode"});
 					// encode base64 for file
-					javascript->add_proxy(Script::base64_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode_fs"});
+					javascript->add_proxy(Script::Encryption::Base64::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode_fs"});
 					// decode base64 for file
-					javascript->add_proxy(Script::base64_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Encryption::Base64::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
 				// rton
 				{
-					javascript->add_proxy(Script::rton_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
-					javascript->add_proxy(Script::rton_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"encode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"encode_fs"});
 				}
 				// rsb
 				{
-					javascript->add_proxy(Script::rsb_unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"unpack_fs"});
-					javascript->add_proxy(Script::rsb_pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"pack_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"unpack_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"pack_fs"});
 				}
 				// rsg
 				{
-					javascript->add_proxy(Script::rsg_unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"unpack_fs"});
-					javascript->add_proxy(Script::rsg_pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"pack_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"unpack_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RSG::pack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSG"}, std::string{"pack_fs"});
 				}
 				// pam
 				{
-					javascript->add_proxy(Script::pam_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"decode_fs"});
-					javascript->add_proxy(Script::pam_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"encode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::Animation::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Animation"}, std::string{"encode_fs"});
 				}
 				// bnk
 				{
-					javascript->add_proxy(Script::wwise_soundbank_decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"decode_fs"});
-					javascript->add_proxy(Script::wwise_soundbank_encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"encode_fs"});
+					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"encode_fs"});
 				}
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate(std::string{"Sen.Script.main()"}, "<script>");

@@ -77,14 +77,36 @@ struct Parameter {
 
 };
 
-#define version 1
+struct MShellAPI {
+	public:
+		unsigned int version;
+		bool is_gui;
+
+		~MShellAPI(
+
+		) = default;
+
+		explicit MShellAPI(
+			unsigned int version,
+			bool is_gui
+		) : version(version), is_gui(is_gui)
+		{
+
+		}
+};
+
+namespace Sen::Shell {
+
+	inline auto constexpr version = 1Ui32;
+
+}
 
 typedef void (*callback)(const char*, const Sen::Shell::Interactive::Color);
 
 typedef BasicStringView (*input)();
 
 typedef int (*KernelExecute)
-(BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, int _version);
+(BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, MShellAPI _version);
 
 #define try_assert(condition, message) \
 	if(!(condition)) {\

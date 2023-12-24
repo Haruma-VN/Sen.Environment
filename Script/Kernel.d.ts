@@ -11,6 +11,12 @@ declare namespace Sen {
          */
 
         export const version: number;
+
+        /**
+         * Current Shell is gui or console
+         */
+
+        export const is_gui: boolean;
     }
 
     /**
@@ -57,6 +63,25 @@ declare namespace Sen {
              */
 
             export function readline(): string;
+        }
+
+        /**
+         * Custom JSON Deserialize/Serialize
+         */
+
+        declare namespace JSON {
+            /**
+             * --------------------------------------------------
+             * JavaScript JSON Deserializer:
+             * int -> bigint, float/double -> number
+             * @param str - JSON String to deserialize
+             * @returns: object of generic type
+             * --------------------------------------------------
+             */
+
+            export function deserialize<T>(str: string): T;
+
+            export function serialize<T>(obj: T, indent: number, ensure_ascii: boolean): string;
         }
 
         /**

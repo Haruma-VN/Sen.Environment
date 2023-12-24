@@ -16,7 +16,7 @@ int execute(
     Interface::Parameter* params, 
     Interface::callback sendMessage,
     Interface::input input,
-    int shell_version
+    Interface::MShellAPI shell
 )
 {
     try{
@@ -24,7 +24,7 @@ int execute(
         auto parameters = Interface::convertParameterToVectorString(params);
         Interface::Shell::input = input;
         Interface::Shell::print = sendMessage;
-        auto callback = std::make_shared<Interface::Callback>(process, parameters, shell_version);
+        auto callback = std::make_shared<Interface::Callback>(process, parameters, shell);
         callback->execute();
     }
     catch(std::exception &ex)

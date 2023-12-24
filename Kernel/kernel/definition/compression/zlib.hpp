@@ -298,8 +298,8 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto uncompress_gzip_fs(
-				const string &fileIn,
-				const string &fileOut
+				const string & fileIn,
+				const string & fileOut
 			) -> void
 			{
 				auto data = FileSystem::readBinary<unsigned char>(fileIn);

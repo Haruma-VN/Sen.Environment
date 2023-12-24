@@ -30,4 +30,12 @@ namespace Sen::Kernel::Interface {
 
 			inline static Interface::callback print = print_m;
 	};
+
+	struct MShellAPI {
+
+		public:
+			unsigned int version;
+
+			bool is_gui;
+	};
 }
