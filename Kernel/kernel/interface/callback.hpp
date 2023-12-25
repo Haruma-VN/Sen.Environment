@@ -221,6 +221,11 @@ namespace Sen::Kernel::Interface {
 					// decode base64 for file
 					javascript->add_proxy(Script::Encryption::Base64::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
+				// newton
+				{
+					javascript->add_proxy(Script::Support::PopCap::Newton::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Newton"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::Newton::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Newton"}, std::string{"encode_fs"});
+				}
 				// rton
 				{
 					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});

@@ -459,6 +459,32 @@ declare namespace Sen {
                 }
 
                 /**
+                 * New Type Object Notaion Support
+                 */
+
+                declare namespace Newton {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Newton Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Newton Encode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
                  * PopCap Animation decode method
                  */
 

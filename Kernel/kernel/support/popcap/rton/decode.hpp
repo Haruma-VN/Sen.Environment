@@ -6,21 +6,19 @@ namespace Sen::Kernel::Support::PopCap::RTON
 {
     using namespace Definition;
 
-    #define fill_rijndael_block(raw, iv)                                            \
-        auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
-        raw.writeNull(padding);
-    
+#define fill_rijndael_block(raw, iv)                                            \
+    auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
+    raw.writeNull(padding);
 
     class Decode
     {
     protected:
         auto decode_rton(
-            SenBuffer &sen
-        ) -> nlohmann::json
+            SenBuffer &sen) -> nlohmann::json
         {
-            debug("decode rton");
             auto magic = sen.readString(4) == "RTON";
-            if (!magic){
+            if (!magic)
+            {
                 throw std::runtime_error("Invaild RTON head");
             }
             sen.readBytesLE<uint8_t>(4);
@@ -33,17 +31,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
         inline auto read_object(
             SenBuffer &sen,
             nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list
-        ) -> nlohmann::json
+            nlohmann::json &r0x92_list) -> nlohmann::json
         {
-            debug("read object");
             auto object_json = nlohmann::json::object();
             auto bytecode = sen.readUint8();
             while (bytecode != 0xFF)
             {
                 auto property_name = read_bytecode_property(bytecode, sen, r0x90_list, r0x92_list);
                 object_json += {property_name, ""};
-                read_bytecode(bytecode, sen, r0x90_list, r0x92_list, object_json[property_name]);
+                read_bytecode(sen.readUint8(), sen, r0x90_list, r0x92_list, object_json[property_name]);
+                bytecode = sen.readUint8();
             }
             return object_json;
         }
@@ -51,10 +48,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         inline auto read_array(
             SenBuffer &sen,
             nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list
-        ) -> nlohmann::json
+            nlohmann::json &r0x92_list) -> nlohmann::json
         {
-            debug("read array");
             auto bytecode = sen.readUint8();
             if (bytecode != 0xFD)
                 throw std::runtime_error("Invaild array start");
@@ -73,23 +68,24 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline auto read_RTID(
-            SenBuffer &sen
-        ) -> std::string
+            SenBuffer &sen) -> std::string
         {
-            debug("read rtid");
             auto byte = sen.readUint8();
             switch (byte)
             {
-            case 0x0:{
+            case 0x0:
+            {
                 return std::string{"RTID(0)"};
             }
-            case 0x1:{
+            case 0x1:
+            {
                 auto value_0x1_2 = sen.readVarInt32();
                 auto value_0x1_1 = sen.readVarInt32();
                 auto x16_1 = sen.readUint32LE();
                 return fmt::format("RTID({}.{}.{:08x}@)", value_0x1_1, value_0x1_2, x16_1);
             }
-            case 0x2: {
+            case 0x2:
+            {
                 sen.readVarInt32();
                 auto str = sen.readStringByVarInt32();
                 auto value_0x2_2 = sen.readVarInt32();
@@ -97,24 +93,24 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 auto x16_2 = sen.readUint32LE();
                 return fmt::format("RTID({}.{}.{:08x}@{})", value_0x2_2, value_0x2_1, x16_2, str);
             }
-            case 0x3: {
+            case 0x3:
+            {
                 sen.readVarInt32();
                 auto str2 = sen.readStringByVarInt32();
                 sen.readVarInt32();
                 auto str1 = sen.readStringByVarInt32();
                 return fmt::format("RTID({}@{})", str1, str2);
             }
-            default:{
+            default:
+            {
                 throw std::runtime_error("Invaild RTID");
             }
             }
         }
 
         inline auto read_binary(
-            SenBuffer &sen
-        ) -> std::string
+            SenBuffer &sen) -> std::string
         {
-            debug("read binary");
             sen.appendPosition(1);
             auto str = sen.readStringByVarInt32();
             auto num = sen.readVarInt32();
@@ -126,10 +122,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             SenBuffer &sen,
             nlohmann::json &r0x90_list,
             nlohmann::json &r0x92_list,
-            nlohmann::json json
-        ) -> void
+            nlohmann::json &json) -> void
         {
-            debug("read bytecode");
             std::string temp_string;
             switch (bytecode)
             {
@@ -252,7 +246,6 @@ namespace Sen::Kernel::Support::PopCap::RTON
             nlohmann::json &r0x90_list,
             nlohmann::json &r0x92_list) -> std::string
         {
-            debug("read_bytecode_property");
             std::string temp_string;
             switch (bytecode)
             {
@@ -284,52 +277,47 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 return r0x92_list.at(sen.readVarInt32());
             default:
                 throw std::runtime_error("Invaild bytecode property");
-                break;
             }
         }
 
-        public:
+    public:
+        static auto decode_fs(
+            const std::string &source,
+            const std::string &destination) -> void
+        {
+            auto c = Decode{};
+            auto sen = SenBuffer{source};
+            auto result = c.decode_rton(sen);
+            FileSystem::writeJson(destination, result);
+            return;
+        }
 
-            static auto decode_fs(
-                const std::string & source,
-                const std::string & destination
-            ) -> void
-            {
-                auto c = Decode{};
-                auto sen = SenBuffer{source};
-                auto result = c.decode_rton(sen);
-                FileSystem::writeJson(destination, result);
-                return;
-            }
+        static auto decrypt_fs(
+            const std::string &source,
+            const std::string &destination,
+            const std::string &key,
+            const std::string &iv) -> void
+        {
+            auto source_buffer = SenBuffer{source};
+            auto source_iv = SenBuffer{iv};
+            fill_rijndael_block(source_buffer, source_iv);
+            FileSystem::writeBinary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
+            return;
+        }
 
-            static auto decrypt_fs(
-                const std::string & source,
-                const std::string & destination,
-                const std::string & key,
-                const std::string & iv
-            ) -> void
-            {
-                auto source_buffer = SenBuffer{source};
-                auto source_iv = SenBuffer{iv};
-                fill_rijndael_block(source_buffer, source_iv);
-                FileSystem::writeBinary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
-                return;
-            }
-            
-            static auto decrypt_and_decode_fs(
-                const std::string & source,
-                const std::string & destination,
-                const std::string & key,
-                const std::string & iv
-            ) -> void
-            {
-                auto source_buffer = SenBuffer{source};
-                auto source_iv = SenBuffer{iv};
-                fill_rijndael_block(source_buffer, source_iv);
-                auto rton = Decode{};
-                auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
-                FileSystem::writeBinary<unsigned char>(destination, rton.decode_rton(sen));
-                return;
-            }
+        static auto decrypt_and_decode_fs(
+            const std::string &source,
+            const std::string &destination,
+            const std::string &key,
+            const std::string &iv) -> void
+        {
+            auto source_buffer = SenBuffer{source};
+            auto source_iv = SenBuffer{iv};
+            fill_rijndael_block(source_buffer, source_iv);
+            auto rton = Decode{};
+            auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
+            FileSystem::writeBinary<unsigned char>(destination, rton.decode_rton(sen));
+            return;
+        }
     };
 }

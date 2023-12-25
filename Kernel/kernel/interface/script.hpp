@@ -724,9 +724,76 @@ namespace Sen::Kernel::Interface::Script {
 		}
 	}
 
+	/**
+	 * JavaScript Support
+	*/
+
 	namespace Support {
 
+		/**
+		 * JavaScript PopCap Support
+		*/
+
 		namespace PopCap {
+
+			/**
+			 * JavaScript Newton Support
+			*/
+
+			namespace Newton {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+			}
+
 			/**
 			 * JavaScript RTON Support
 			*/
@@ -737,7 +804,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RTON Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Decoded file
 				 * ----------------------------------------
 				*/
 
@@ -762,7 +829,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RTON Encode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Encoded file
 				 * ----------------------------------------
 				*/
 
@@ -793,7 +860,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RSB Unpack File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Unpacked file
 				 * ----------------------------------------
 				*/
 
@@ -818,7 +885,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RSB Pack File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Packed file
 				 * ----------------------------------------
 				*/
 
@@ -849,7 +916,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RSG Unpack File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Unpacked file
 				 * ----------------------------------------
 				*/
 
@@ -874,7 +941,8 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript RSG Pack File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Packed
+				 *  file
 				 * ----------------------------------------
 				*/
 
@@ -905,7 +973,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript PAM Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Decoded file
 				 * ----------------------------------------
 				*/
 
@@ -930,7 +998,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript PAM Encode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Encoded file
 				 * ----------------------------------------
 				*/
 
@@ -968,7 +1036,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript WWise Soundbank Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Decoded file
 				 * ----------------------------------------
 				*/
 
@@ -993,7 +1061,7 @@ namespace Sen::Kernel::Interface::Script {
 				 * JavaScript WWise Soundbank Encode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @returns: Uncompressed file
+				 * @returns: Encoded file
 				 * ----------------------------------------
 				*/
 
