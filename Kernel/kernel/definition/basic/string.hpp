@@ -98,7 +98,7 @@ namespace Sen::Kernel {
 			*/
 
 			auto charAt(
-				size_t index
+				const size_t & index
 			) -> char
 			{
 				if((index < 0) or index > thiz.value.length()){
@@ -124,7 +124,7 @@ namespace Sen::Kernel {
 			*/
 
 			auto charCodeAt(
-				size_t index
+				const size_t & index
 			) -> short
 			{
 				if((index < 0) or index > thiz.value.length()){
@@ -142,7 +142,7 @@ namespace Sen::Kernel {
 			*/
 
 			auto endsWith(
-				std::string & source
+				const std::string & source
 			) -> bool
 			{
 				if (source.length() > thiz.value.length()) 
@@ -161,7 +161,7 @@ namespace Sen::Kernel {
 			*/
 
 			auto endsWith(
-				String & that
+				const String & that
 			) -> bool
 			{
 				if (that.value.length() > thiz.value.length()) 
@@ -250,7 +250,7 @@ namespace Sen::Kernel {
 
 			auto includes(
 				const std::string & source,
-				size_t start
+				const size_t & start
 			) -> bool
 			{
 				return thiz.value.find(source, start) != std::string::npos;
@@ -324,7 +324,7 @@ namespace Sen::Kernel {
 
 			auto indexOf(
 				const String & that,
-				size_t start
+				const size_t & start
 			) -> long
 			{
 				auto pos = thiz.value.find(that.value, start);

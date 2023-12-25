@@ -27,12 +27,8 @@ namespace Sen.Script {
          * --------------------------------------------------
          */
 
-        export function send(str: string, color?: Color): void {
-            if (color) {
-                Sen.Kernel.Console.print(`● ${str}`, color);
-            } else {
-                Sen.Kernel.Console.print(`● ${str}`);
-            }
+        export function send(str: string, color: Color = Color.DEFAULT): void {
+            Sen.Kernel.Console.print(`● ${str}`, color);
             return;
         }
     }
