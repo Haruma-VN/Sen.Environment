@@ -5,6 +5,10 @@ namespace Sen.Script.Setting {
 
     export const settingFile: string = `${Sen.Kernel.Home.script_parent}/Setting/Setting.json`;
 
+    /**
+     * Entry
+     */
+
     export interface Entry {
         language: string;
     }
@@ -17,7 +21,9 @@ namespace Sen.Script.Setting {
 
     export function load(): void {
         setting = Sen.Kernel.JSON.deserialize_fs<Entry>(settingFile);
-        Sen.Script.Setting.Language.language = Sen.Script.Setting.Language.read_language(`${Sen.Kernel.Home.script_parent}/Setting/Language/${setting.language}.json`);
+        Sen.Script.Setting.Language.language = Sen.Script.Setting.Language.read_language(
+            `${Sen.Kernel.Home.script_parent}/Setting/Language/${setting.language}.json`,
+        );
         return;
     }
 }

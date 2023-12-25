@@ -72,7 +72,7 @@ declare namespace Sen {
         declare namespace JSON {
             /**
              * --------------------------------------------------
-             * JavaScript JSON Deserializer:
+             * JavaScript JSON Deserializer
              * int -> bigint, float/double -> number
              * @param str - JSON String to deserialize
              * @returns: object of generic type
@@ -83,16 +83,35 @@ declare namespace Sen {
 
             /**
              * --------------------------------------------------
-             * JavaScript JSON File Deserializer:
+             * JavaScript JSON File Deserializer
              * int -> bigint, float/double -> number
-             * @param str - JSON String to deserialize
+             * @param source - JSON path to deserialize
              * @returns: object of generic type
              * --------------------------------------------------
              */
 
-            export function deserialize_fs<T>(str: string): T;
+            export function deserialize_fs<T>(source: string): T;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript JSON Serializer
+             * @param obj - Object to serialize
+             * @param indent - How many indentation
+             * @param ensure_ascii - Ensure ASCII
+             * --------------------------------------------------
+             */
 
             export function serialize<T>(obj: T, indent: number, ensure_ascii: boolean): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript JSON File Serializer
+             * @param desitnation - Destination file
+             * @param obj - Object to serialize
+             * @param indent - How many indentation
+             * @param ensure_ascii - Ensure ASCII
+             * --------------------------------------------------
+             */
 
             export function serialize_fs<T>(desitnation: string, obj: T, indent: number, ensure_ascii: boolean): void;
         }
@@ -421,6 +440,34 @@ declare namespace Sen {
 
                 export function uncompress_fs(source: string, destination: string): void;
             }
+
+            /**
+             * Bzip2 compression from Kernel
+             */
+
+            declare namespace Bzip2 {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Bzip2 compression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function compress_fs(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Bzip2 uncompression method for file
+                 * @param source : source file
+                 * @param destination : destination file
+                 * @returns: compressed file
+                 * --------------------------------------------------
+                 */
+
+                export function uncompress_fs(source: string, destination: string): void;
+            }
         }
 
         /**
@@ -440,6 +487,48 @@ declare namespace Sen {
          */
 
         declare namespace Support {
+            /**
+             * Texture Support
+             */
+
+            declare namespace Texture {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Texture Encode Support
+                 * @param source - Source file
+                 * @param destination - Destination file
+                 * @param format - Format
+                 * @returns: Encoded file
+                 * --------------------------------------------------
+                 */
+
+                export function encode_fs(
+                    source: string,
+                    destination: string,
+                    format: Sen.Script.Support.Texture.Format,
+                ): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Texture Decode Support
+                 * @param source - Source file
+                 * @param destination - Destination file
+                 * @param width - width
+                 * @param height - height
+                 * @param format - Format
+                 * @returns: Decoded file
+                 * --------------------------------------------------
+                 */
+
+                export function decode_fs(
+                    source: string,
+                    destination: string,
+                    width: bigint,
+                    height: bigint,
+                    format: Sen.Script.Support.Texture.Format,
+                ): void;
+            }
+
             /**
              * PopCap Support declaration
              */
@@ -472,6 +561,38 @@ declare namespace Sen {
                 }
 
                 /**
+                 * Zlib Support
+                 */
+
+                declare namespace Zlib {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Zlib Uncompress method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @param use_64_bit_variant : use the 64bit variant
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function uncompress_fs(
+                        source: string,
+                        destination: string,
+                        use_64_bit_variant: boolean,
+                    ): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Zlib Compress method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @param use_64_bit_variant : use the 64bit variant
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function compress_fs(source: string, destination: string, use_64_bit_variant: boolean): void;
+                }
+
+                /**
                  * New Type Object Notaion Support
                  */
 
@@ -495,6 +616,50 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * Compiled Text
+                 */
+
+                declare namespace CompiledText {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Compiled Text Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @param key : key
+                     * @param iv : iv
+                     * @param use_64_bit_variant :use the 64 bit variant
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(
+                        source: string,
+                        destination: string,
+                        key: string,
+                        iv: string,
+                        use_64_bit_variant: boolean,
+                    ): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Compiled Text Encode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @param key : key
+                     * @param iv : iv
+                     * @param use_64_bit_variant :use the 64 bit variant
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(
+                        source: string,
+                        destination: string,
+                        key: string,
+                        iv: string,
+                        use_64_bit_variant: boolean,
+                    ): void;
                 }
 
                 /**
@@ -573,6 +738,84 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function pack_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * Resource Group Support
+                 */
+
+                declare namespace ResourceGroup {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Split Resource Group Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function split_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Merge Resource Group Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function merge_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Convert Resource Group Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * @param layout - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function convert_fs(
+                        source: string,
+                        destination: string,
+                        layout: Sen.Script.Support.PopCap.ResourceGroup,
+                    ): void;
+                }
+
+                /**
+                 * Res Info Support
+                 */
+
+                declare namespace ResInfo {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Split Res Info Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function split_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Merge Res Info Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function merge_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Convert Res Info Support
+                     * @param source - Source file
+                     * @param destination - Destination file
+                     * @param layout - Destination file
+                     * --------------------------------------------------
+                     */
+
+                    export function convert_fs(source: string, destination: string): void;
                 }
             }
 

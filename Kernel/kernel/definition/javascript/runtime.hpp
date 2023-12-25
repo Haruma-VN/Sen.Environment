@@ -18,6 +18,7 @@ namespace Sen::Kernel::Definition::JavaScript
 	*/
 
 	struct Runtime {
+
 		private:
 			/**
 			 * JS Runtime
@@ -71,7 +72,6 @@ namespace Sen::Kernel::Definition::JavaScript
 			/**
 			 * JS Exception
 			*/
-
 			inline auto exception(
 				const JSValue & val
 			) -> std::string

@@ -64,6 +64,7 @@ add_library(
 	./support/popcap/newton/decode.hpp
 	./support/popcap/newton/encode.hpp
 	./support/popcap/compiled_text/decode.hpp
+	./support/popcap/compiled_text/encode.hpp
 	./support/popcap/atlas/split.hpp
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp

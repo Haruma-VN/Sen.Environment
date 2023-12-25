@@ -129,6 +129,14 @@ namespace Sen::Kernel::Interface::Script {
 	}
 
 	/**
+	 * JavaScript Image Support
+	*/
+
+	namespace Image {
+
+	}
+
+	/**
 	 * JavaScript Engine
 	*/
 
@@ -668,6 +676,124 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 		/**
+		 * JavaScript Bzip2 Support
+		*/
+
+		namespace Bzip2 {
+			/**
+			 * ----------------------------------------
+			 * JavaScript Bzip2 Compression File
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @param argv[2]: level
+			 * @returns: Compressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto compress_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				Sen::Kernel::Definition::Compression::Bzip2::compress_fs(source, destination);
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Bzip2 Uncompression File
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @returns: Uncompressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto uncompress_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				Sen::Kernel::Definition::Compression::Bzip2::uncompress_fs(source, destination);
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+			
+		}
+
+		/**
+		 * JavaScript Lzma Support
+		*/
+
+		namespace Lzma {
+			/**
+			 * ----------------------------------------
+			 * JavaScript Lzma Compression File
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @param argv[2]: level
+			 * @returns: Compressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto compress_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				Sen::Kernel::Definition::Compression::Lzma::compress_fs(source, destination);
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Lzma Uncompression File
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @param argv[2]: actual size
+			 * @returns: Uncompressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto uncompress_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				auto actual_size = JS::Converter::get_uint64(context, argv[2]);
+				Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination, actual_size);
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+			
+		}
+
+		/**
 		 * JavaScript Gzip Compression Support
 		*/
 
@@ -731,10 +857,374 @@ namespace Sen::Kernel::Interface::Script {
 	namespace Support {
 
 		/**
+		 * JavaScript Texture Encode & Decode
+		*/
+
+		namespace Texture {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Texture Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: width
+				 * @param argv[3]: height
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto width = JS::Converter::get_int32(context, argv[2]);
+					auto height = JS::Converter::get_int32(context, argv[3]);
+					auto format = JS::Converter::get_int32(context, argv[4]);
+					Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source, destination, width, height, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Texture Encode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto format = JS::Converter::get_int32(context, argv[4]);
+					Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+		}
+
+		/**
 		 * JavaScript PopCap Support
 		*/
 
 		namespace PopCap {
+
+				/**
+			 * JavaScript Zlib Support
+			*/
+
+			namespace Zlib {
+				/**
+				 * ----------------------------------------
+				 * JavaScript Zlib Compression File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: use_64_bit_variant
+				 * @returns: Compressed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto compress_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
+					Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Zlib Uncompression File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Uncompressed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto uncompress_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
+					Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+				
+			}
+
+			/**
+			 * JavaScript Newton Support
+			*/
+
+			namespace CompiledText {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Compiled Text Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: key
+				 * @param argv[3]: iv
+				 * @param argv[4]: use 64bit variant
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto key = JS_ToCString(context, argv[2]);
+					auto iv = JS_ToCString(context, argv[3]);
+					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
+					Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source, destination, key, iv, use_64_bit_variant);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					JS_FreeCString(context, key);
+					JS_FreeCString(context, iv);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Compiled Text Encode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto key = JS_ToCString(context, argv[2]);
+					auto iv = JS_ToCString(context, argv[3]);
+					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
+					Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source, destination, key, iv, use_64_bit_variant);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+			}
+			
+
+			/**
+			 * JavaScript Resource Group Support
+			*/
+
+			namespace ResourceGroup {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Resource Group Split File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Splitted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto split_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::split(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Resource Group Merge File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Merged file
+				 * ----------------------------------------
+				*/
+
+				inline static auto merge_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::merge(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Resource Group Convert File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: path style
+				 * @returns: Converted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto convert_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto path_style = JS::Converter::get_int32(context, argv[2]);
+					Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(source, destination, static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(path_style));
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+
+			}
+
+			/**
+			 * JavaScript Res Info Support
+			*/
+
+			namespace ResInfo {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript ResInfo Split File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Splitted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto split_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::split_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript ResInfo Merge File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Merged file
+				 * ----------------------------------------
+				*/
+
+				inline static auto merge_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::merge_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript ResInfo Convert File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Converted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto convert_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+
+			}
 
 			/**
 			 * JavaScript Newton Support

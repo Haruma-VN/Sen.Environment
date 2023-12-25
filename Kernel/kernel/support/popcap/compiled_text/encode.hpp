@@ -1,7 +1,7 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/popcap/zlib/uncompress.hpp"
+#include "kernel/support/popcap/zlib/compress.hpp"
 
 namespace Sen::Kernel::Support::PopCap::CompiledText {
 
@@ -18,16 +18,10 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 	using namespace Sen::Kernel::Definition::Encryption;
 
 	/**
-	 * Compiled Text decode struct
+	 * Encode Struct
 	*/
 
-	using Zlib = Sen::Kernel::Support::PopCap::Zlib::Uncompress;
-
-	/**
-	 * Decode Struct
-	*/
-
-	struct Decode {
+	struct Encode {
 
 		private:
 
@@ -61,7 +55,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Default constructor
 			*/
 
-			Decode(
+			Encode(
 
 			) = default;
 
@@ -69,7 +63,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Default destructor
 			*/
 
-			~Decode(
+			~Encode(
 
 			) = default;
 
@@ -78,22 +72,22 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Constructor
 			*/
 
-			explicit Decode(
+			explicit Encode(
 				const std::string & source,
 				const std::string & key,
 				const std::string & iv,
 				bool use_64_bit_variant
-			) : key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
 
-			explicit Decode(
+			explicit Encode(
 				SenBuffer & it,
 				const std::string & key,
 				const std::string & iv,
 				bool use_64_bit_variant
-			) : key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
@@ -109,15 +103,19 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			) -> SenBuffer
 			{
 				auto buffer = SenBuffer{};
-				auto decoded_base64 = SenBuffer::fromString(Base64::decode(thiz.sen.toString()));
-				buffer.append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size())), thiz.key, thiz.iv, decoded_base64.size() - 0x02, RijndaelMode::CBC)));
-				return buffer;
+				buffer.append(PopCap::Zlib::Compress{use_64_bit_variant}.compress(thiz.sen.get()));
+    			buffer.writeNull(buffer.size() - ((buffer.size() + iv.size() - 1) % iv.size() + 1));
+				auto result = SenBuffer{};
+				result.writeUint8(0x10);
+				result.writeUint8(0x00);
+				result.append(SenBuffer::fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data()))).get());
+				return result;
 			}
 
 			/**
 			 * @param source: source file
 			 * @param destination: destination file
-			 * @returns: decoded file
+			 * @returns: Encoded file
 			*/
 
 			static auto process_fs(
@@ -128,7 +126,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				bool use_64_bit_variant
 			) -> void
 			{
-				auto compiled_text = Decode{source, key, iv, use_64_bit_variant};
+				auto compiled_text = Encode{source, key, iv, use_64_bit_variant};
 				auto sen = compiled_text.process();
 				FileSystem::writeBinary<unsigned char>(destination, sen.get());
 				return;

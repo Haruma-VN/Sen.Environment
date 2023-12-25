@@ -708,8 +708,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			static auto composite_png(
-				const std::string &source,
-				const std::string &destination,
+				const std::string & source,
+				const std::string & destination,
 				Rectangle<int> rectangle
 			) -> void
 			{
@@ -725,8 +725,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			static auto composite_pngs(
-				const std::string &source,
-				const std::vector<RectangleFileIO<int>> &data
+				const std::string & source,
+				const std::vector<RectangleFileIO<int>> & data
 			) -> void
 			{
 				for(auto &c : data) {
@@ -745,7 +745,7 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			static auto transparent_png(
-				const std::string &destination,
+				const std::string & destination,
 				int width,
 				int height
 			) -> void
@@ -763,8 +763,8 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			static auto join_png(
-				const std::string &destination,
-				const Dimension<int> &dimension,
+				const std::string & destination,
+				const Dimension<int> & dimension,
 				const std::vector<Image<int>> &data
 			) -> void
 			{
@@ -786,8 +786,8 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			static auto resize_png(
-				const std::string &source,
-				const std::string &destination,
+				const std::string & source,
+				const std::string & destination,
 				float percent
 			) -> void
 			{
@@ -804,8 +804,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			static auto rotate_png(
-				const std::string &source,
-				const std::string &destination,
+				const std::string & source,
+				const std::string & destination,
 				double angle
 			) -> void
 			{

@@ -212,6 +212,20 @@ namespace Sen::Kernel::Interface {
 					// uncompress file method
 					javascript->add_proxy(Script::Compression::Gzip::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Gzip"}, std::string{"uncompress_fs"});
 				}
+				// bzip2
+				{
+					// compress file method
+					javascript->add_proxy(Script::Compression::Bzip2::compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Bzip2"}, std::string{"compress_fs"});
+					// uncompress file method
+					javascript->add_proxy(Script::Compression::Bzip2::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Bzip2"}, std::string{"uncompress_fs"});
+				}
+				// lzma
+				{
+					// compress file method
+					javascript->add_proxy(Script::Compression::Lzma::compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Lzma"}, std::string{"compress_fs"});
+					// uncompress file method
+					javascript->add_proxy(Script::Compression::Lzma::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Lzma"}, std::string{"uncompress_fs"});
+				}
 				// base64
 				{
 					// encode base64
@@ -223,6 +237,11 @@ namespace Sen::Kernel::Interface {
 					// decode base64 for file
 					javascript->add_proxy(Script::Encryption::Base64::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
 				}
+				// texture
+				{
+					javascript->add_proxy(Script::Support::Texture::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"Texture"},std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::Texture::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"Texture"}, std::string{"encode_fs"});
+				}
 				// newton
 				{
 					javascript->add_proxy(Script::Support::PopCap::Newton::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Newton"}, std::string{"decode_fs"});
@@ -232,6 +251,16 @@ namespace Sen::Kernel::Interface {
 				{
 					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
 					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"encode_fs"});
+				}
+				// zlib
+				{
+					javascript->add_proxy(Script::Support::PopCap::Zlib::uncompress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Zlib"}, std::string{"uncompress_fs"});
+					javascript->add_proxy(Script::Support::PopCap::Zlib::compress_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"Zlib"}, std::string{"compress_fs"});
+				}
+				// compiled text
+				{
+					javascript->add_proxy(Script::Support::PopCap::CompiledText::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CompiledText"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::CompiledText::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CompiledText"}, std::string{"encode_fs"});
 				}
 				// rsb
 				{
@@ -252,6 +281,18 @@ namespace Sen::Kernel::Interface {
 				{
 					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"decode_fs"});
 					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"WWise"}, std::string{"SoundBank"}, std::string{"encode_fs"});
+				}
+				// resource group
+				{
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::split_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResourceGroup"}, std::string{"split_fs"});
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::merge_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResourceGroup"}, std::string{"merge_fs"});
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::convert_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResourceGroup"}, std::string{"convert_fs"});
+				}
+				// res info
+				{
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::split_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResInfo"}, std::string{"split_fs"});
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::merge_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResInfo"}, std::string{"merge_fs"});
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"ResInfo"}, std::string{"convert_fs"});
 				}
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate(std::string{"Sen.Script.main()"}, "<script>");

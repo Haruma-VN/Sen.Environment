@@ -117,6 +117,12 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				return;
 			}
 
+			static auto get_instance(
+
+			) -> Compress {
+
+			}
+
 	};
 
 }
