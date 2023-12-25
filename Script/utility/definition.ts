@@ -1,4 +1,4 @@
-namespace Sen.Script {
+namespace Sen.Script.Definition {
     /**
      * Console namespace
      */

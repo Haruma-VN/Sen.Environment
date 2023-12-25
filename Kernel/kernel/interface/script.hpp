@@ -1159,6 +1159,29 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Deserializer
+		 * @param argv[0]: JS String
+		 * @returns: Deserialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto deserialize_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto json = nlohmann::json::parse(Sen::Kernel::FileSystem::readFile(source));
+			auto js_obj = json_to_js_value(context, json);
+			JS_FreeCString(context, source);
+			return js_obj;
+		}
+
+		/**
 		 * QuickJS JSON Value to nlohmann::json and then to string
 		*/
 
@@ -1251,6 +1274,35 @@ namespace Sen::Kernel::Interface::Script {
 			auto source = json.dump(indent, '\t', ensure_ascii);
 			auto js_val = JS_NewString(context, source.c_str());
 			return js_val;
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Serializer
+		 * @param argv[0]: Destination
+		 * @param argv[1]: json
+		 * @param argv[2]: indent
+		 * @param argv[3]: ensure ascii
+		 * @returns: Serialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto serialize_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+			auto destination = JS_ToCString(context, argv[0]);
+			auto json = js_object_to_json(context, argv[1]);
+			auto indent = JS::Converter::get_int32(context, argv[2]);
+			auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);;
+			auto result = json.dump(indent, '\t', ensure_ascii);
+			Sen::Kernel::FileSystem::writeFile(destination, result);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
 		}
 	}
 

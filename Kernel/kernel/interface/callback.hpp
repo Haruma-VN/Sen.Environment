@@ -128,6 +128,8 @@ namespace Sen::Kernel::Interface {
 				{
 					javascript->add_proxy(Script::JSON::deserialize, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"deserialize"});
 					javascript->add_proxy(Script::JSON::serialize, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"serialize"});
+					javascript->add_proxy(Script::JSON::deserialize_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"deserialize_fs"});
+					javascript->add_proxy(Script::JSON::serialize_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"JSON"}, std::string{"serialize_fs"});
 				}
 				// home
 				{

@@ -46,7 +46,7 @@ declare namespace Sen {
              * --------------------------------------------------
              */
 
-            export function print(title: string, color: Script.Console.Color): void;
+            export function print(title: string, color: Script.Definition.Console.Color): void;
             /**
              * --------------------------------------------------
              * This method print the message to the debug console
@@ -81,7 +81,20 @@ declare namespace Sen {
 
             export function deserialize<T>(str: string): T;
 
+            /**
+             * --------------------------------------------------
+             * JavaScript JSON File Deserializer:
+             * int -> bigint, float/double -> number
+             * @param str - JSON String to deserialize
+             * @returns: object of generic type
+             * --------------------------------------------------
+             */
+
+            export function deserialize_fs<T>(str: string): T;
+
             export function serialize<T>(obj: T, indent: number, ensure_ascii: boolean): string;
+
+            export function serialize_fs<T>(desitnation: string, obj: T, indent: number, ensure_ascii: boolean): void;
         }
 
         /**

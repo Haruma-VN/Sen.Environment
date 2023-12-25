@@ -27,7 +27,7 @@ namespace Sen.Script {
          * --------------------------------------------------
          */
 
-        export function send(str: string, color: Color = Color.DEFAULT): void {
+        export function send(str: string, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
             Sen.Kernel.Console.print(`● ${str}`, color);
             return;
         }
@@ -51,12 +51,13 @@ namespace Sen.Script {
     export function main(): void {
         const before: number = Date.now();
         Sen.Script.loadLibrary();
+        Sen.Script.Setting.load();
         Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`);
-        Sen.Script.Console.send(`Modules have been loaded`, Console.Color.GREEN);
+        Sen.Script.Console.send(Setting.Language.get("js_has_been_loaded"), Definition.Console.Color.GREEN);
         const after: number = Date.now();
-        Sen.Script.Console.send(`Time spent: ${((after - before) / 1000).toFixed(3)}s`, Console.Color.GREEN);
+        Sen.Script.Console.send(`${Setting.Language.get("execution_time")}: ${((after - before) / 1000).toFixed(3)}s`, Definition.Console.Color.GREEN);
         return;
     }
 
-    export const script_list: Array<string> = [...new Set([`utility/definition`])];
+    export const script_list: Array<string> = [...new Set([`Setting/Language/format`, `Setting/Setting`, `utility/definition`])];
 }
