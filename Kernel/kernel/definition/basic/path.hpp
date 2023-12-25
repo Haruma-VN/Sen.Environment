@@ -145,4 +145,139 @@ namespace Sen::Kernel::Path
 		return path.string();
 	}
 
+	struct Format {
+
+		public:
+
+			std::string dir;
+
+			std::string base;
+
+			explicit Format(
+				const std::string & dir,
+				const std::string & base
+			) : dir(dir), base(base)
+			{
+
+			}
+
+			~Format(
+
+			) = default;
+	};
+
+	// JS Methods
+	
+	struct Script {
+
+		public:
+
+			/**
+			 * Provide arguments
+			*/
+
+			template<typename... Args>
+			inline static auto join(
+				Args... args
+			) -> std::string
+			{
+				auto result = std::filesystem::path{};
+				(result /= ... /= args);
+				return result.string();
+			}
+
+			inline static auto join(
+				const std::vector<std::string> & args
+			) -> std::string
+			{
+				auto result = std::filesystem::path{};
+				for(const auto & arg : args) {
+					result /= arg;
+				}
+				return result.string();
+			}
+
+			/**
+			 * Get basename of a file
+			*/
+
+			inline static auto basename(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::path{source}.filename().string();
+			}
+
+			/**
+			 * Return current platform delimiter
+			*/
+
+			inline static auto delimiter(
+
+			) -> std::string
+			{
+				#if _WIN32
+					return std::string{"\\"};
+				#else
+					return std::string{"/"};
+				#endif
+			}
+
+			/**
+			 * Return parent directory
+			*/
+
+			inline static auto dirname(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::path{source}.parent_path().string();
+			}
+
+			/**
+			 * Join the format
+			*/
+
+			inline static auto format(
+				const Format & that
+			) -> std::string
+			{
+				return join(that.dir, that.base);
+			}
+
+			/**
+			 * Normalize the path
+			*/
+
+			inline static auto normalize(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::path{source}.lexically_normal().string();
+			}
+
+			/**
+			 * Get full path
+			*/
+			
+			inline static auto resolve(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::absolute(source).string();
+			}
+
+			/**
+			 * Get relative path
+			*/
+			
+			inline static auto relative(
+				const std::string & from,
+				const std::string & to
+			) -> std::string
+			{
+				return std::filesystem::relative(to, from).string();
+			}
+			
+	};
 }

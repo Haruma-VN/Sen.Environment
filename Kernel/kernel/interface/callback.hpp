@@ -141,6 +141,37 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::FileSystem::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
 					// write file
 					javascript->add_proxy(Script::FileSystem::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
+					// create directory
+					javascript->add_proxy(Script::FileSystem::create_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"create_directory"});
+					// is file
+					javascript->add_proxy(Script::FileSystem::is_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"is_file"});
+					// is directory
+					javascript->add_proxy(Script::FileSystem::is_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"is_directory"});
+					// operation : rename
+					javascript->add_proxy(Script::FileSystem::Operation::rename, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"}, std::string{"Operation"}, std::string{"rename"});
+					// operation : remove
+					javascript->add_proxy(Script::FileSystem::Operation::remove, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"}, std::string{"Operation"}, std::string{"remove"});
+					// operation : copy
+					javascript->add_proxy(Script::FileSystem::Operation::copy, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"}, std::string{"Operation"}, std::string{"copy"});
+				}
+				// path
+				{
+					// join
+					javascript->add_proxy(Script::Path::join, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"join"});
+					// basename
+					javascript->add_proxy(Script::Path::basename, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"basename"});
+					// delimiter
+					javascript->add_proxy(Script::Path::delimiter, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"delimiter"});
+					// dirname
+					javascript->add_proxy(Script::Path::dirname, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"dirname"});
+					// format
+					javascript->add_proxy(Script::Path::format, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"format"});
+					// normalize
+					javascript->add_proxy(Script::Path::normalize, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"normalize"});
+					// resolve
+					javascript->add_proxy(Script::Path::resolve, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"resolve"});
+					// relative
+					javascript->add_proxy(Script::Path::relative, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"relative"});
 				}
 				// console
 				{

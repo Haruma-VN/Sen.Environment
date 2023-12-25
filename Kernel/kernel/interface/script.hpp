@@ -73,6 +73,191 @@ namespace Sen::Kernel::Interface::Script {
 		}
 	}
 
+	namespace Path {
+
+		/**
+		 * ----------------------------------------
+		 * JS join path method
+		 * @return: joined file
+		 * ----------------------------------------
+		*/
+
+		inline static auto join(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			auto v = std::vector<std::string>{};
+			for(auto i : Range<int>(argc)){
+				auto source = JS_ToCString(context, argv[i]);
+				v.push_back(std::string{source});
+				JS_FreeCString(context, source);
+			}
+			return JS::Converter::to_string(context, Sen::Kernel::Path::Script::join(v));
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Basename for file
+		 * @param argv[0]: source file
+		 * @return: base name
+		 * ----------------------------------------
+		*/
+
+		inline static auto basename(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::basename(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Delimiter of current OS
+		 * @param argv[0]: source file
+		 * @return: Delimiter of current OS
+		 * ----------------------------------------
+		*/
+
+		inline static auto delimiter(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			auto result = Sen::Kernel::Path::Script::delimiter();
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Dirname
+		 * @param argv[0]: source file
+		 * @return: dirname
+		 * ----------------------------------------
+		*/
+
+		inline static auto dirname(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::dirname(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Format
+		 * @param argv[0]: source
+		 * @return: formatted
+		 * ----------------------------------------
+		*/
+
+		inline static auto format(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto dir = JS_GetPropertyStr(context, argv[0], "dir");
+			auto base = JS_GetPropertyStr(context, argv[0], "base");
+			auto source_1 = JS_ToCString(context, dir);
+			auto source_2 = JS_ToCString(context, base);
+			auto result = Sen::Kernel::Path::Script::format(Sen::Kernel::Path::Format{source_1,source_2});
+			JS_FreeCString(context, source_1);
+			JS_FreeCString(context, source_2);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Normalize
+		 * @param argv[0]: source file
+		 * @return: normalize
+		 * ----------------------------------------
+		*/
+
+		inline static auto normalize(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::normalize(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Resolve
+		 * @param argv[0]: source file
+		 * @return: resolve
+		 * ----------------------------------------
+		*/
+
+		inline static auto resolve(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::resolve(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Relative
+		 * @param argv[0]: source file
+		 * @param argv[0]: source file
+		 * @return: Relative
+		 * ----------------------------------------
+		*/
+
+		inline static auto relative(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+			auto from = JS_ToCString(context, argv[0]);
+			auto to = JS_ToCString(context, argv[1]);
+			auto result = Sen::Kernel::Path::Script::relative(from, to);
+			JS_FreeCString(context, from);
+			JS_FreeCString(context, to);
+			return JS::Converter::to_string(context, result);
+		}
+
+	}
+
 	/**
 	 * JavaScript File System
 	*/
@@ -97,7 +282,6 @@ namespace Sen::Kernel::Interface::Script {
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
 			auto result = Sen::Kernel::FileSystem::readFile(source);
-			bool c = JS::Converter::get_bool(context, argv[1]);
 			JS_FreeCString(context, source);
 			return JS::Converter::to_string(context, result);
 		}
@@ -125,6 +309,150 @@ namespace Sen::Kernel::Interface::Script {
 			JS_FreeCString(context, destination);
 			JS_FreeCString(context, data);
 			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS create directory
+		 * @param argv[0]: destination directory
+		 * @return: created directory
+		 * ----------------------------------------
+		*/
+
+		inline static auto create_directory(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto destination = JS_ToCString(context, argv[0]);
+			Sen::Kernel::FileSystem::createDirectory(destination);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS check file
+		 * @param argv[0]: source file
+		 * @return: if its file true else false
+		 * ----------------------------------------
+		*/
+
+		inline static auto is_file(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = std::filesystem::is_regular_file(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_bool(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS check directory
+		 * @param argv[0]: source directory
+		 * @return: if its directory true
+		 * ----------------------------------------
+		*/
+
+		inline static auto is_directory(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = std::filesystem::is_directory(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_bool(context, result);
+		}
+
+		// Basic Operation for JS
+
+		namespace Operation {
+
+			/**
+			 * ----------------------------------------
+			 * JS rename file
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @return: undefined
+			 * ----------------------------------------
+			*/
+
+			inline static auto rename(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JS copy file
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @return: undefined
+			 * ----------------------------------------
+			*/
+
+			inline static auto copy(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				auto destination = JS_ToCString(context, argv[1]);
+				std::filesystem::copy(std::filesystem::path{source}, std::filesystem::path{destination});
+				JS_FreeCString(context, source);
+				JS_FreeCString(context, destination);
+				return JS::Converter::get_undefined();
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JS copy file
+			 * @param argv[0]: source file
+			 * @return: undefined
+			 * ----------------------------------------
+			*/
+
+			inline static auto remove(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS_ToCString(context, argv[0]);
+				std::filesystem::remove(std::filesystem::path{source});
+				JS_FreeCString(context, source);
+				return JS::Converter::get_undefined();
+			}
+
 		}
 	}
 

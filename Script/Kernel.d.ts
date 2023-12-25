@@ -32,6 +32,56 @@ declare namespace Sen {
 
         declare const version: number;
 
+        declare namespace Path {
+            /**
+             * --------------------------------------------------
+             * JavaScript join path
+             * @param args - Paths to join
+             * @returns: New path after join
+             * --------------------------------------------------
+             */
+
+            export function join(...args: Array<string>): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript basename
+             * Example: "/Users/Refsnes/demo_path.js" ->
+             * "demo_path.js"
+             * @param source - Path
+             * @returns: File name
+             *
+             * --------------------------------------------------
+             */
+
+            export function basename(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript delimiter
+             * @returns: Delimiter of current OS
+             *
+             * --------------------------------------------------
+             */
+
+            export function delimiter(): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript dirname
+             * Example: "/Users/Refsnes/demo_path.js" ->
+             * "/Users/Refsnes/"
+             * @param source - Path
+             * @returns: File name
+             *
+             * --------------------------------------------------
+             */
+
+            export function dirname(source: string): string;
+
+            // todo
+        }
+
         /**
          * Console methods from Kernel export to Script through Callback interactive with Shell
          * Shell methods must implementing this, Script only need to call
@@ -125,7 +175,7 @@ declare namespace Sen {
         declare namespace FileSystem {
             /**
              * --------------------------------------------------
-             * This method will read the file based on the path provided
+             * This method will read the file
              * @param source - Source file to read
              * --------------------------------------------------
              */
@@ -133,13 +183,78 @@ declare namespace Sen {
             export function read_file(source: string): string;
             /**
              * --------------------------------------------------
-             * This method will write the file based on the path provided
+             * This method will write the file
              * @param destination - Destination file to write
              * @param content - Write content
              * --------------------------------------------------
              */
 
             export function write_file(destination: string, content: string): string;
+
+            /**
+             * --------------------------------------------------
+             * This method will create directory
+             * @param destination - Directory to create
+             * @returns: created directory
+             * --------------------------------------------------
+             */
+
+            export function create_directory(desitnation: string): void;
+
+            /**
+             * --------------------------------------------------
+             * This method will check if a path is a file
+             * @param source - path
+             * @returns: boolean value
+             * --------------------------------------------------
+             */
+
+            export function is_file(source: string): boolean;
+
+            /**
+             * --------------------------------------------------
+             * This method will check if a path is a directory
+             * @param source - path
+             * @returns: boolean value
+             * --------------------------------------------------
+             */
+
+            export function is_directory(source: string): boolean;
+
+            /**
+             * JS Operation for File System
+             */
+
+            declare namespace Operation {
+                /**
+                 * --------------------------------------------------
+                 * This method will rename a file
+                 * @param source - path
+                 * @param destination - path
+                 * --------------------------------------------------
+                 */
+
+                export function rename(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * This method will copy a file
+                 * @param source - path
+                 * @param destination - path
+                 * --------------------------------------------------
+                 */
+
+                export function copy(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * This method will copy a file
+                 * @param source - path
+                 * --------------------------------------------------
+                 */
+
+                export function remove(source: string): void;
+            }
         }
 
         /**

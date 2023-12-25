@@ -28,7 +28,11 @@ namespace Sen.Script {
          */
 
         export function send(str: string, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
-            Sen.Kernel.Console.print(`● ${str}`, color);
+            if (!Sen.Shell.is_gui) {
+                Sen.Kernel.Console.print(`● ${str}`, color);
+            } else {
+                Sen.Kernel.Console.print(str, color);
+            }
             return;
         }
     }

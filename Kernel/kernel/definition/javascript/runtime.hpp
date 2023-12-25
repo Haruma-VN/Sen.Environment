@@ -142,7 +142,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			inline auto add_proxy(
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_SetPropertyStr(ctx, global_obj, function_name.c_str(), JS_NewCFunction(ctx, func, function_name.c_str(), 0));
@@ -164,7 +164,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JSValue (*func)(JSContext *, JSValueConst, int, JSValueConst *),
 				const std::string & object_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto myObject = JS_GetPropertyStr(ctx, global_obj, object_name.c_str());
@@ -194,7 +194,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & obj1_name,
 				const std::string & obj2_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
@@ -231,7 +231,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & obj2_name,
 				const std::string & obj3_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
@@ -274,7 +274,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & obj3_name,
 				const std::string & obj4_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
@@ -324,7 +324,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & obj4_name,
 				const std::string & obj5_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
@@ -382,7 +382,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & obj5_name,
 				const std::string & obj6_name,
 				const std::string & function_name
-			) -> void 
+			) const -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
 				auto outerObject = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());

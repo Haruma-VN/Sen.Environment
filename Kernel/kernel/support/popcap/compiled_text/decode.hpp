@@ -83,7 +83,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				const std::string & key,
 				const std::string & iv,
 				bool use_64_bit_variant
-			) : key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
@@ -93,7 +93,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				const std::string & key,
 				const std::string & iv,
 				bool use_64_bit_variant
-			) : key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
