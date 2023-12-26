@@ -59,6 +59,7 @@ namespace Sen.Script {
         Sen.Script.Console.send(
             `Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`,
         );
+        Sen.Kernel.Thread.sleep(1000);
         Sen.Script.Console.send(Setting.Language.get("js_has_been_loaded"), Definition.Console.Color.GREEN);
         const after: number = Date.now();
         Sen.Script.Console.send(

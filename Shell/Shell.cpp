@@ -60,7 +60,7 @@ MAIN_FUNCTION
     try {
         try_assert(size >= 3, "argument too few, expected: arg.size >= 3");
     }
-    catch (std::runtime_error& e) {
+    catch (const std::runtime_error& e) {
         print(e.what(), Sen::Shell::Interactive::Color::RED);
         input();
         return 1;

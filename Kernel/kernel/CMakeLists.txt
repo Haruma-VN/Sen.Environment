@@ -19,6 +19,7 @@ add_library(
 	./definition/basic/buffer.hpp
 	./definition/basic/array.hpp
 	./definition/basic/list.hpp
+	./definition/basic/system.hpp
 	./definition/basic/collections.hpp
 
 	./definition/encryption/md5.hpp

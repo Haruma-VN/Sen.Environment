@@ -33,6 +33,101 @@ declare namespace Sen {
         declare const version: number;
 
         /**
+         * JavaScript call OS
+         */
+
+        declare namespace Process {
+            /**
+             * --------------------------------------------------
+             * JavaScript run process method
+             * @param command - command to execute
+             * --------------------------------------------------
+             */
+
+            export function run(command: string): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript run process method
+             * @param command - command to execute
+             * @returns - string after execute command
+             * --------------------------------------------------
+             */
+
+            export function execute(command: string): string;
+        }
+
+        /**
+         * JavaScript Image Support
+         */
+
+        declare namespace Image {
+            /**
+             * --------------------------------------------------
+             * JavaScript Scale Image Method
+             * @param source - source file
+             * @param destination - destination file
+             * @param percentage - percentage
+             * @returns - Image after scale
+             * --------------------------------------------------
+             */
+
+            export function scale_fs(source: string, destination: string, percentage: number): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Resize Image Method
+             * @param source - source file
+             * @param destination - destination file
+             * @param percentage - percentage
+             * @returns - Image after resize
+             * --------------------------------------------------
+             */
+
+            export function resize_fs(source: string, destination: string, percentage: number): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Rotate Image Method
+             * @param source - source file
+             * @param destination - destination file
+             * @param percentage - percentage
+             * @returns - Image after rotate
+             * --------------------------------------------------
+             */
+
+            export function rotate_fs(source: string, destination: string, percentage: number): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Transparent Image Method
+             * @param destination - destination file
+             * @param width - width
+             * @param height - height
+             * @returns - Blank image
+             * --------------------------------------------------
+             */
+
+            export function transparent_fs(destination: string, width: number, height: number): void;
+        }
+
+        /**
+         * JavaScript Thread
+         */
+
+        declare namespace Thread {
+            /**
+             * --------------------------------------------------
+             * JavaScript Thread sleep
+             * @param time - time to sleep
+             * @returns: undefined
+             * --------------------------------------------------
+             */
+
+            export function sleep(time: number): void;
+        }
+
+        /**
          * NodeJS Path Implementation
          */
 
@@ -710,8 +805,8 @@ declare namespace Sen {
                 export function decode_fs(
                     source: string,
                     destination: string,
-                    width: bigint,
-                    height: bigint,
+                    width: number,
+                    height: number,
                     format: Sen.Script.Support.Texture.Format,
                 ): void;
             }

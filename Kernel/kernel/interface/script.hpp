@@ -21,6 +21,87 @@ namespace Sen::Kernel::Interface::Script {
 	typedef JSValue (*JavaScriptNativeMethod)(JSContext *, JSValueConst, int, JSValueConst *);
 
 	/**
+	 * JavaScript Thread
+	*/
+
+	namespace Thread {
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Sleep
+		 * @param argv[0]: time to sleep
+		 * @return: undefined
+		 * ----------------------------------------
+		*/
+
+		inline static auto sleep(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto time = JS::Converter::get_int64(context, argv[0]);
+			Sen::Kernel::Definition::Timer::sleep(time);
+			return JS::Converter::get_undefined();
+		}
+
+	}
+
+	/**
+	 * Sub-Process call
+	*/
+
+	namespace Process {
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Spawn Process
+		 * @param argv[0]: process command
+		 * @return: undefined
+		 * ----------------------------------------
+		*/
+
+		inline static auto run(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			Sen::Kernel::Process::run(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Spawn Process
+		 * @param argv[0]: process command
+		 * @return: string return
+		 * ----------------------------------------
+		*/
+
+		inline static auto execute(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Process::execute(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+	}
+
+	/**
 	 * JavaScript Console Interactive
 	*/
 
@@ -505,6 +586,112 @@ namespace Sen::Kernel::Interface::Script {
 	*/
 
 	namespace Image {
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript scale image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto scale_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto destination = JS_ToCString(context, argv[1]);
+			auto percentage = JS::Converter::get_float32(context, argv[2]);
+			Sen::Kernel::Definition::ImageIO::scale_png(source, destination, percentage);
+			JS_FreeCString(context, source);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript transparent image
+		 * @param argv[0]: destination file
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto transparent_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+			auto destination = JS_ToCString(context, argv[0]);
+			auto width = JS::Converter::get_int32(context, argv[1]);
+			auto height = JS::Converter::get_int32(context, argv[2]);
+			Sen::Kernel::Definition::ImageIO::transparent_png(destination, width, height);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript resize image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto resize_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto destination = JS_ToCString(context, argv[1]);
+			auto percentage = JS::Converter::get_float32(context, argv[2]);
+			Sen::Kernel::Definition::ImageIO::resize_png(source, destination, percentage);
+			JS_FreeCString(context, source);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript rotate image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto rotate_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto destination = JS_ToCString(context, argv[1]);
+			auto percentage = JS::Converter::get_float64(context, argv[2]);
+			Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
+			JS_FreeCString(context, source);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
 
 	}
 

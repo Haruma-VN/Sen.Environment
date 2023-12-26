@@ -239,6 +239,17 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
+			 * Return JS Null
+			*/
+
+			inline static auto constexpr get_null(
+
+			) -> JSValue
+			{
+				return JS_NULL;
+			}
+
+			/**
 			 * Convert JS Array to C++ Vector
 			*/
 
