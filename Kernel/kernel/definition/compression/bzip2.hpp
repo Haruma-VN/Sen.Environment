@@ -43,9 +43,9 @@ namespace Sen::Kernel::Definition::Compression {
 			{
 				auto bzerror = int{};
 				auto strm = bz_stream{};
-				strm.bzalloc = null;
-				strm.bzfree = null;
-				strm.opaque = null;
+				strm.bzalloc = NULL;
+				strm.bzfree = NULL;
+				strm.opaque = NULL;
 				BZ2_bzCompressInit(&strm, block_size, 0, work_factor);
 				strm.next_in = (char*)(input.data());
 				strm.avail_in = input.size();

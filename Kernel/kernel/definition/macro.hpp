@@ -4,8 +4,6 @@
 
 #define thiz (*this)
 
-#define null NULL
-
 #define debug(arg) std::cout << arg << std::endl;
 
 #define WINDOWS _WIN32
