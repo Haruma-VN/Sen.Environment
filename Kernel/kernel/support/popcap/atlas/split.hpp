@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 
 			auto process(
 				const nlohmann::ordered_json & data,
-				 std::vector<std::string> & images,
+				const std::vector<std::string> & images,
 				Method split_method,
 				const std::string & output_directory
 			) -> void
@@ -126,24 +126,15 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 			}
 
 			static auto process_fs(
-				List<std::string> & source,
+				const std::string & json_file,
+				const std::vector<std::string> & source,
 				const std::string & destination,
 				const std::string & expandPath,
     			const std::string & method
 			) -> void
 			{
 				auto c = Unpack{expandPath == std::string{"old"}};
-				auto source_jsons = source.filter([](auto e)
-				{ 
-					return String{e}.match(std::regex("\\.json$", std::regex_constants::icase));
-				});
-				auto source_pngs = source.filter([](auto e)
-				{ 
-					return String{e}.match(std::regex("\\.png$", std::regex_constants::icase));
-				});
-				for(auto & e : source_jsons){
-					c.process(FileSystem::readJson(e), source_pngs.value, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
-				}
+				c.process(FileSystem::readJson(json_file), source, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
 				return;
 			}
 		

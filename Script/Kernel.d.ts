@@ -389,6 +389,42 @@ declare namespace Sen {
             export function is_directory(source: string): boolean;
 
             /**
+             * --------------------------------------------------
+             * JavaScript read whole directory implementation
+             * @param source - source directory
+             * @returns full directory read (only file)
+             * --------------------------------------------------
+             */
+
+            export function read_directory(source: string): Array<string>;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript read directory implementation
+             * @param source - source directory
+             * @returns  read current
+             * --------------------------------------------------
+             */
+            export function read_current_directory(source: string): Array<string>;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript read directory implementation
+             * @param source - source directory
+             * @returns read current directory but only take file
+             * --------------------------------------------------
+             */
+            export function read_directory_only_file(source: string): Array<string>;
+            /**
+             * --------------------------------------------------
+             * JavaScript read directory implementation
+             * @param source - source directory
+             * @returns read current directory but only take dir
+             * --------------------------------------------------
+             */
+            export function read_directory_only_directory(source: string): Array<string>;
+
+            /**
              * JS Operation for File System
              */
 

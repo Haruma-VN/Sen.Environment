@@ -438,6 +438,94 @@ namespace Sen::Kernel::Interface::Script {
 
 		/**
 		 * ----------------------------------------
+		 * JS read directory method
+		 * @param argv[0]: source directory
+		 * @return: JS Array of String
+		 * ----------------------------------------
+		*/
+
+		inline static auto read_current_directory(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::FileSystem::readDirectory(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_array<std::string>(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS read directory method
+		 * @param argv[0]: source directory
+		 * @return: JS Array of String
+		 * ----------------------------------------
+		*/
+
+		inline static auto read_directory_only_file(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::FileSystem::readDirectoryOnlyFile(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_array<std::string>(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS read directory method
+		 * @param argv[0]: source directory
+		 * @return: JS Array of String
+		 * ----------------------------------------
+		*/
+
+		inline static auto read_directory_only_directory(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::FileSystem::readDirectoryOnlyDirectory(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_array<std::string>(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS read directory method
+		 * @param argv[0]: source directory
+		 * @return: JS Array of String
+		 * ----------------------------------------
+		*/
+
+		inline static auto read_directory(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::FileSystem::readWholeDirectory(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_array<std::string>(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
 		 * JS create directory
 		 * @param argv[0]: destination directory
 		 * @return: created directory

@@ -143,6 +143,14 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::FileSystem::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
 					// create directory
 					javascript->add_proxy(Script::FileSystem::create_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"create_directory"});
+					// read_current_directory
+					javascript->add_proxy(Script::FileSystem::read_current_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_current_directory"});
+					// read_directory_only_file
+					javascript->add_proxy(Script::FileSystem::read_directory_only_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_directory_only_file"});
+					// read_directory_only_directory
+					javascript->add_proxy(Script::FileSystem::read_directory_only_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_directory_only_directory"});
+					// read_directory
+					javascript->add_proxy(Script::FileSystem::read_directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_directory"});
 					// is file
 					javascript->add_proxy(Script::FileSystem::is_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"is_file"});
 					// is directory

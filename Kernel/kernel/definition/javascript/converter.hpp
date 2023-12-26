@@ -5,7 +5,9 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/assert.hpp"
 
-namespace Sen::Kernel::Definition::JavaScript { 
+namespace Sen::Kernel::Definition::JavaScript {
+
+	namespace JS = Sen::Kernel::Definition::JavaScript;
 
 	/**
 	 * Convert Quick JS value to C++ Value
@@ -259,34 +261,26 @@ namespace Sen::Kernel::Definition::JavaScript {
 				const JSValue & that
 			) -> std::vector<T>
 			{
-				auto len_val = JS_GetPropertyStr(context, that, "length");
-				auto length = Converter::get_int32(context, len_val);
-				JS_FreeValue(context, len_val);
-				if (std::is_same<T, std::string>::value){
-					auto m_list = std::vector<std::string>{};
-					for (auto i : Range<int>(length)) {
-						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_string(context, val));
-					}
-					return m_list;
-				}
-				else if(std::is_same<T, int>::value){
+				auto length_value = JS_GetPropertyStr(context, that, "length");
+				auto length = Converter::get_int32(context, length_value);
+				JS_FreeValue(context, length_value);
+				if constexpr (std::is_same<T, int>::value){
 					auto m_list = std::vector<int>{};
 					for (auto i : Range<int>(length)) {
-						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_int32(context, val));
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.push_back(JS::Converter::get_int32(context, value));
 					}
 					return m_list;
 				}
-				else if(std::is_same<T, bool>::value){
+				if constexpr (std::is_same<T, bool>::value){
 					auto m_list = std::vector<bool>{};
 					for (auto i : Range<int>(length)) {
-						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_bool(context, val));
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.push_back(JS::Converter::get_bool(context, value));
 					}
 					return m_list;
 				}
-				else if(std::is_same<T, long long>::value){
+				if constexpr(std::is_same<T, long long>::value){
 					auto m_list = std::vector<long long>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -294,7 +288,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				else if(std::is_same<T, uint32_t>::value){
+				if constexpr (std::is_same<T, uint32_t>::value){
 					auto m_list = std::vector<unsigned int>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -302,7 +296,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				else if(std::is_same<T, uint64_t>::value){
+				if constexpr (std::is_same<T, uint64_t>::value){
 					auto m_list = std::vector<uint64_t>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -310,14 +304,94 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				else{
-					auto m_list = std::vector<JSValue>{};
-					for (auto i : Range<int>(length)) {
-						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(val);
-					}
-					return m_list;
+				auto m_list = std::vector<JSValue>{};
+				for (auto i : Range<int>(length)) {
+					auto val = JS_GetPropertyUint32(context, that, i);
+					m_list.push_back(val);
 				}
+				return m_list;
+			}
+
+			/**
+			 * Convert JS Array to C++ Vector
+			*/
+
+			template <>
+			inline static auto get_vector(
+				JSContext* context,
+				const JSValue & that
+			) -> std::vector<std::string>
+			{
+				auto len_val = JS_GetPropertyStr(context, that, "length");
+				auto length = Converter::get_int32(context, len_val);
+				JS_FreeValue(context, len_val);
+				auto m_list = std::vector<std::string>{};
+				for (auto i : Range<int>(length)) {
+					auto val = JS_GetPropertyUint32(context, that, i);
+					m_list.push_back(Converter::get_string(context, val));
+				}
+				return m_list;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			template <typename T>
+			inline static auto to_array(
+				JSContext *ctx, 
+				const std::vector<T> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				if constexpr (std::is_same_v<T, int32_t>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewInt32(ctx, vec[i]));
+					}
+				}
+				if constexpr (std::is_same_v<T, uint32_t>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewUint32(ctx, vec[i]));
+					}
+				}
+				if constexpr (std::is_same_v<T, uint64_t>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
+					}
+				}
+				if constexpr (std::is_same_v<T, bool>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBool(ctx, vec[i]));
+					}
+				}
+				if constexpr (std::is_same_v<T, long long>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, vec[i]));
+					}
+				}
+				if constexpr (std::is_same_v<T, unsigned long long>::value){
+					for (auto i : Range<size_t>(vec.size())) {
+						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
+					}
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			template <>
+			inline static auto to_array<std::string>(
+				JSContext *ctx, 
+				const std::vector<std::string> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewString(ctx, vec[i].c_str()));
+				}
+				return js_array;
 			}
 	};
 }
