@@ -172,6 +172,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Path::resolve, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"resolve"});
 					// relative
 					javascript->add_proxy(Script::Path::relative, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"relative"});
+					// extname
+					javascript->add_proxy(Script::Path::extname, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"extname"});
+					// is_absolute
+					javascript->add_proxy(Script::Path::relative, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Path"} ,std::string{"is_absolute"});
 				}
 				// console
 				{

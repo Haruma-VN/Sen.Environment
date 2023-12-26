@@ -233,6 +233,50 @@ namespace Sen::Kernel::Interface::Script {
 
 		/**
 		 * ----------------------------------------
+		 * JS Extension name
+		 * @param argv[0]: source file
+		 * @return: extname
+		 * ----------------------------------------
+		*/
+
+		inline static auto extname(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::extname(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_string(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Is absolute
+		 * @param argv[0]: source file
+		 * @return: is absolute path
+		 * ----------------------------------------
+		*/
+
+		inline static auto is_absolute(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Path::Script::is_absolute(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_bool(context, result);
+		}
+
+		/**
+		 * ----------------------------------------
 		 * JS Relative
 		 * @param argv[0]: source file
 		 * @param argv[0]: source file
@@ -1562,7 +1606,7 @@ namespace Sen::Kernel::Interface::Script {
 
 				/**
 				 * ----------------------------------------
-				 * JavaScript RTON Decode File
+				 * JavaScript Newton Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
 				 * @returns: Decoded file
@@ -1587,7 +1631,7 @@ namespace Sen::Kernel::Interface::Script {
 
 				/**
 				 * ----------------------------------------
-				 * JavaScript RTON Decode File
+				 * JavaScript Newton Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
 				 * @returns: Encoded file

@@ -268,6 +268,28 @@ namespace Sen::Kernel::Path
 			}
 
 			/**
+			 * Get extension name
+			*/
+			
+			inline static auto extname(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::path(source).extension().string();
+			}
+
+			/**
+			 * if path is absolute path
+			*/
+			
+			inline static auto is_absolute(
+				const std::string & source
+			) -> bool
+			{
+				return source == std::filesystem::path(source).string();
+			}
+
+			/**
 			 * Get relative path
 			*/
 			

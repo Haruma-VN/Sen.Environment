@@ -32,6 +32,10 @@ declare namespace Sen {
 
         declare const version: number;
 
+        /**
+         * NodeJS Path Implementation
+         */
+
         declare namespace Path {
             /**
              * --------------------------------------------------
@@ -79,7 +83,75 @@ declare namespace Sen {
 
             export function dirname(source: string): string;
 
-            // todo
+            /**
+             * Format used for format
+             */
+
+            export interface Format {
+                base: string;
+                dir: string;
+            }
+
+            /**
+             * --------------------------------------------------
+             * JavaScript format
+             * @param format - format
+             * @returns: path
+             * --------------------------------------------------
+             */
+
+            export function format(format: Format): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript normalize path
+             * @param source - path
+             * @returns: normalized path
+             * --------------------------------------------------
+             */
+
+            export function normalize(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript resolve path
+             * @param source - path
+             * @returns: resolved path
+             * --------------------------------------------------
+             */
+
+            export function resolve(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript extension name
+             * @param source - path
+             * @returns: extension name
+             * --------------------------------------------------
+             */
+
+            export function extname(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Is Absolute path
+             * @param source - path
+             * @returns: extension name
+             * --------------------------------------------------
+             */
+
+            export function is_absolute(source: string): boolean;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript relative path
+             * @param from - path
+             * @param to - path
+             * @returns: resolved path
+             * --------------------------------------------------
+             */
+
+            export function relative(from: string, to: string): string;
         }
 
         /**
