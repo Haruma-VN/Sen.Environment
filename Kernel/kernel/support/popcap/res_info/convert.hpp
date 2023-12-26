@@ -63,22 +63,22 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			virtual auto generate_composite(
 				const std::string & id,
-    			const nlohmann::json & composite
-			) -> nlohmann::json = 0;
+    			const nlohmann::ordered_json & composite
+			) -> nlohmann::ordered_json = 0;
 
 			// virtual common generator
 
 			virtual auto generate_common(
 				const SubInformation & extra_information,
-				const nlohmann::json & resource_information
-			) -> nlohmann::json = 0;
+				const nlohmann::ordered_json & resource_information
+			) -> nlohmann::ordered_json = 0;
 
 			// virtual image generator
 
 			virtual auto generate_image(
 				const SubInformation & extra_information,
-				const nlohmann::json & resource_information
-			) -> nlohmann::json = 0;
+				const nlohmann::ordered_json & resource_information
+			) -> nlohmann::ordered_json = 0;
 
 		public:
 
@@ -105,8 +105,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			// need override this method
 
 			virtual auto convert_whole(
-				const nlohmann::json & res_info
-			) -> nlohmann::json = 0;
+				const nlohmann::ordered_json & res_info
+			) -> nlohmann::ordered_json = 0;
 			
 	};
 
@@ -125,16 +125,16 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			auto generate_composite(
 				const std::string & id,
-    			const nlohmann::json & composite
-			) -> nlohmann::json override final
+    			const nlohmann::ordered_json & composite
+			) -> nlohmann::ordered_json override final
 			{
-				auto result = nlohmann::json{
+				auto result = nlohmann::ordered_json{
 					{ "type", Convert::Composite },
 					{ "id", id },
-					{ "subgroups", nlohmann::json::array() }
+					{ "subgroups", nlohmann::ordered_json::array() }
 				};
 				for(auto & [element, value] : composite["subgroup"].items()) {
-					auto subgroup = nlohmann::json {
+					auto subgroup = nlohmann::ordered_json {
 						{"id", element}
 					};
 					if(!composite["subgroup"][element]["type"].is_null() and composite["subgroup"][element]["type"].get<std::string>() != Convert::emptyType){
@@ -154,19 +154,19 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			auto generate_common(
 				const SubInformation & extra_information,
-				const nlohmann::json & resource_information
-			) -> nlohmann::json override final
+				const nlohmann::ordered_json & resource_information
+			) -> nlohmann::ordered_json override final
 			{
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"type", Simple},
 					{"id", extra_information.id},
-					{"resources", nlohmann::json::array() }
+					{"resources", nlohmann::ordered_json::array() }
 				};
 				if(!extra_information.parent.empty()){
 					result["parent"] = extra_information.parent;
 				}
 				for(auto & [key, value] : resource_information["packet"]["data"].items()){
-					auto resource = nlohmann::json {
+					auto resource = nlohmann::ordered_json {
 						{"type", value["type"].get<std::string>()},
 						{"slot", 0},
 						{"id", key}
@@ -202,18 +202,18 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			auto generate_image(
 				const SubInformation & extra_information,
-				const nlohmann::json & resource_information
-			) -> nlohmann::json override final
+				const nlohmann::ordered_json & resource_information
+			) -> nlohmann::ordered_json override final
 			{
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"type", Simple},
 					{"id", extra_information.id},
 					{"res", resource_information["type"].get<std::string>()},
 					{"parent", extra_information.parent},
-					{"resources", nlohmann::json::array()}
+					{"resources", nlohmann::ordered_json::array()}
 				};
 				for(auto & [key, value] : resource_information["packet"].items()){
-					auto resource = nlohmann::json {
+					auto resource = nlohmann::ordered_json {
 						{"type", value["type"].get<std::string>()},
 						{"slot", 0},
 						{"id", key},
@@ -230,7 +230,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					}
 					result["resources"].push_back(resource);
 					for(auto & [sub, sub_value] : value["data"].items()){
-						auto sub_resource = nlohmann::json {
+						auto sub_resource = nlohmann::ordered_json {
 							{"type", sub_value["type"].get<std::string>()},
 							{"slot", 0},
 							{"id", sub},
@@ -293,8 +293,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			auto convert_whole(
-				const nlohmann::json & res_info
-			) -> nlohmann::json override final
+				const nlohmann::ordered_json & res_info
+			) -> nlohmann::ordered_json override final
 			{
 				try_assert(res_info.find("expand_path") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "expand_path"));
 				try_assert(res_info.find("groups") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "groups"));
@@ -304,11 +304,11 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				else{
 					thiz.use_string_for_style = false;
 				}
-				auto result = nlohmann::json{
+				auto result = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
 					{"slot_count", 0},
-					{"groups", nlohmann::json::array()}
+					{"groups", nlohmann::ordered_json::array()}
 				};
 				for(auto & [composite_name, group] : res_info["groups"].items()){
 					if(group["is_composite"].get<bool>()){
@@ -354,8 +354,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			static auto convert(
-				const nlohmann::json & res_info
-			) -> nlohmann::json const
+				const nlohmann::ordered_json & res_info
+			) -> nlohmann::ordered_json const
 			{
 				auto* convert_c = new ResInfo::Convert();
 				auto result = convert_c->convert_whole(res_info);

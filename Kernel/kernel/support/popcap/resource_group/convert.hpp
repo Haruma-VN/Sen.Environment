@@ -87,39 +87,39 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			auto convert_atlas(
-				const nlohmann::json & subgroup
-			) -> nlohmann::json
+				const nlohmann::ordered_json & subgroup
+			) -> nlohmann::ordered_json
 			{
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"type", subgroup["res"]}
 				};
-				auto atlas = std::vector<nlohmann::json>{};
+				auto atlas = std::vector<nlohmann::ordered_json>{};
 				for(auto & element : subgroup["resources"]){
 					if(element.find("atlas") != element.end() && element["atlas"].get<bool>()){
 						atlas.push_back(element);
 					}
 				}
 				for(auto & parent : atlas) {
-					auto atlas_data = nlohmann::json {
+					auto atlas_data = nlohmann::ordered_json {
 						{"type", parent["type"].get<std::string>()},
 						{"path", thiz.use_string_for_style ? String::split(parent["path"].get<std::string>(), Common::WindowStyle) : parent["path"].get<std::vector<std::string>>() },
-						{"dimension", nlohmann::json {
+						{"dimension", nlohmann::ordered_json {
 							{"width", parent["width"].get<int>() },
 							{"height", parent["height"].get<int>() }
 						}}
 					};
-					auto children_in_current_parent = std::vector<nlohmann::json>{};
+					auto children_in_current_parent = std::vector<nlohmann::ordered_json>{};
 					for(auto & element : subgroup["resources"]) {
 						if(element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
 							children_in_current_parent.push_back(element);
 						}
 					}
 					for(auto & element : children_in_current_parent) {
-						auto children_data = nlohmann::json {
+						auto children_data = nlohmann::ordered_json {
 							{"type", element["type"].get<std::string>()},
 							{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() },
 							{
-								"default", nlohmann::json {
+								"default", nlohmann::ordered_json {
 									{"ax", element["ax"].get<int>()},
 									{"ay", element["ay"].get<int>()},
 									{"aw", element["aw"].get<int>()},
@@ -144,9 +144,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						if(element.find("cols") != element.end() and element["cols"] != Common::DefaultLayoutOffset){
 							children_data["default"]["cols"] = element["cols"].get<int>();
 						}
-						atlas_data["data"][element["id"]] = children_data;
+						atlas_data["data"][element["id"].get<std::string>()] = children_data;
 					}
-					result["packet"][parent["id"]] = atlas_data;
+					result["packet"][parent["id"].get<std::string>()] = atlas_data;
 				}
 				return result;
 			}
@@ -158,18 +158,18 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			auto convert_common(
-				const nlohmann::json & subgroup
-			) -> nlohmann::json
+				const nlohmann::ordered_json & subgroup
+			) -> nlohmann::ordered_json
 			{
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"type", nullptr},
-					{"packet", nlohmann::json{
+					{"packet", nlohmann::ordered_json{
 						{"type", "File"}
 					}}
 				};
-				auto data = nlohmann::json{};
+				auto data = nlohmann::ordered_json{};
 				for(auto & element : subgroup["resources"]) {
-					auto data_s = nlohmann::json {
+					auto data_s = nlohmann::ordered_json {
 						{"type", element["type"].get<std::string>()},
 						{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() }
 					};
@@ -179,7 +179,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					if(element.find("srcpath") != element.end()) {
 						data_s["srcpath"] = thiz.use_string_for_style ? String::split(element["srcpath"].get<std::string>(), Common::WindowStyle) : element["srcpath"].get<std::vector<std::string>>();
 					}
-					data[element["id"]] = data_s;
+					data[element["id"].get<std::string>()] = data_s;
 				}
 				result["packet"]["data"] = data;
 				return result;
@@ -193,9 +193,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			auto first_where(
-				const nlohmann::json & resource_group,
+				const nlohmann::ordered_json & resource_group,
 				const std::string & id
-			) -> nlohmann::json
+			) -> nlohmann::ordered_json
 			{
 				for(auto & element : resource_group["groups"]){
 					if(element["id"] == id) {
@@ -215,16 +215,16 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			auto convert_whole(
-				const nlohmann::json & resource_group
-			) -> nlohmann::json
+				const nlohmann::ordered_json & resource_group
+			) -> nlohmann::ordered_json
 			{
 				try_assert(resource_group.find("groups") != resource_group.end(), fmt::format("\"{}\" cannot be null in resource group", "groups"));
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"expand_path", thiz.use_string_for_style ? Common::String : Common::Array}
 				};
 				for(auto & element : resource_group["groups"]) {
 					if(element.find("subgroups") != element.end()){
-						auto subgroup = nlohmann::json {
+						auto subgroup = nlohmann::ordered_json {
 							{"is_composite", true}
 						};
 						for(auto & k : element["subgroups"]) {
@@ -238,7 +238,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						result["groups"][element["id"].get<std::string>()] = subgroup;
 					}
 					if(element.find("parent") == element.end() && element.find("resources") != element.end()) {
-						auto subgroup = nlohmann::json {
+						auto subgroup = nlohmann::ordered_json {
 							{"is_composite", false}
 						};
 						subgroup["subgroup"][element["id"].get<std::string>()] = thiz.convert_common(element);

@@ -18,7 +18,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 		protected:
 
 			static auto rewrite_slot_count(
-				nlohmann::json &resource
+				nlohmann::ordered_json &resource
 			) -> void
 			{
 				auto slot_group = std::map<std::string, size_t>();
@@ -118,21 +118,21 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> void
 			{
 				auto content = FileSystem::readJson(Path::normalize(fmt::format("{}/{}", directoryPath, "content.json")));
-				auto resources_json = nlohmann::json{
+				auto resources_json = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
 					{"slot_count", 0},
-					{"groups", nlohmann::json::array()}
+					{"groups", nlohmann::ordered_json::array()}
 				};
 				for(auto & [parent, parent_value] : content.items()){
 					if(content[parent]["is_composite"]){
-						auto composite_object = nlohmann::json{
+						auto composite_object = nlohmann::ordered_json{
 							{"id", parent},
 							{"type", "composite"},
-							{"subgroups", nlohmann::json::array()}
+							{"subgroups", nlohmann::ordered_json::array()}
 						};
 						for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
-							auto resource_for_subgroup = nlohmann::json{{"id", subgroup}};
+							auto resource_for_subgroup = nlohmann::ordered_json{{"id", subgroup}};
 							if(!content[parent]["subgroups"][subgroup]["type"].is_null()){
 								resource_for_subgroup["res"] = content[parent]["subgroups"][subgroup]["type"];
 							}

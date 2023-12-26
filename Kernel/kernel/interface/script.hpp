@@ -1909,42 +1909,42 @@ namespace Sen::Kernel::Interface::Script {
 	namespace JSON {
 
 		/**
-		 * Convert nlohmann::json to JSValue for quickjs
+		 * Convert nlohmann::ordered_json to JSValue for quickjs
 		*/
 
 		inline static auto json_to_js_value(
 			JSContext *context, 
-			const nlohmann::json &json
+			const nlohmann::ordered_json &json
 		) -> JSValue
 		{
 			switch (json.type()) {
-				case nlohmann::json::value_t::object: {
+				case nlohmann::ordered_json::value_t::object: {
 					auto js_obj = JS_NewObject(context);
 					for (auto &[key, value] : json.items()) {
 						JS_DefinePropertyValueStr(context, js_obj, key.c_str(), json_to_js_value(context, value), JS_PROP_C_W_E);
 					}
 					return js_obj;
 				}
-				case nlohmann::json::value_t::array: {
+				case nlohmann::ordered_json::value_t::array: {
 					auto js_arr = JS_NewArray(context);
 					for (auto i : Range<size_t>(json.size())) {
 						JS_DefinePropertyValueUint32(context, js_arr, i, json_to_js_value(context, json[i]), JS_PROP_C_W_E);
 					}
 					return js_arr;
 				}
-				case nlohmann::json::value_t::string:{
+				case nlohmann::ordered_json::value_t::string:{
 					return JS_NewString(context, json.get<std::string>().c_str());
 				}
-				case nlohmann::json::value_t::boolean:{
+				case nlohmann::ordered_json::value_t::boolean:{
 					return JS_NewBool(context, json.get<bool>());
 				}
-				case nlohmann::json::value_t::number_integer:{
+				case nlohmann::ordered_json::value_t::number_integer:{
 					return JS_NewBigInt64(context, json.get<int64_t>());
 				}
-				case nlohmann::json::value_t::number_unsigned:{
+				case nlohmann::ordered_json::value_t::number_unsigned:{
 					return JS_NewBigInt64(context, json.get<uint64_t>());
 				}
-				case nlohmann::json::value_t::number_float:{
+				case nlohmann::ordered_json::value_t::number_float:{
 					return JS_NewFloat64(context, json.get<double>());
 				}
 				default:{
@@ -1970,7 +1970,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
-			auto json = nlohmann::json::parse(source);
+			auto json = nlohmann::ordered_json::parse(source);
 			auto js_obj = json_to_js_value(context, json);
 			JS_FreeCString(context, source);
 			return js_obj;
@@ -1993,25 +1993,25 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
-			auto json = nlohmann::json::parse(Sen::Kernel::FileSystem::readFile(source));
+			auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::readFile(source));
 			auto js_obj = json_to_js_value(context, json);
 			JS_FreeCString(context, source);
 			return js_obj;
 		}
 
 		/**
-		 * QuickJS JSON Value to nlohmann::json and then to string
+		 * QuickJS JSON Value to nlohmann::ordered_json and then to string
 		*/
 
 		auto js_object_to_json(
 			JSContext *context, 
 			JSValueConst value
-		) -> nlohmann::json
+		) -> nlohmann::ordered_json
 		{
 			switch (JS_VALUE_GET_TAG(value)) {
 				case JS_TAG_OBJECT: {
 					if (JS_IsArray(context, value)) {
-						auto json = nlohmann::json::array();
+						auto json = nlohmann::ordered_json::array();
 						auto length = uint32_t{};
 						JS_ToUint32(context, &length, JS_GetPropertyStr(context, value, "length"));
 						for (auto i : Range<uint32_t>(length)) {
@@ -2022,7 +2022,7 @@ namespace Sen::Kernel::Interface::Script {
 						return json;
 					} 
 					else if (JS_IsObject(value)) {
-						auto json = nlohmann::json::object();
+						auto json = nlohmann::ordered_json::object();
 						auto *tab = static_cast<JSPropertyEnum*>(nullptr);
 						auto tab_size = uint32_t{};
 						if (JS_GetOwnPropertyNames(context, &tab, &tab_size, value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
@@ -2043,23 +2043,23 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				case JS_TAG_STRING: {
 					auto str = JS_ToCString(context, value);
-					auto json = nlohmann::json(str);
+					auto json = nlohmann::ordered_json(str);
 					JS_FreeCString(context, str);
 					return json;
 				}
 				case JS_TAG_BOOL:{
-					return nlohmann::json(JS_VALUE_GET_BOOL(value));
+					return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value));
 				}
 				case JS_TAG_INT:{
-					return nlohmann::json((double) JS_VALUE_GET_INT(value));
+					return nlohmann::ordered_json((double) JS_VALUE_GET_INT(value));
 				}
 				case JS_TAG_FLOAT64:{
-					return nlohmann::json(JS_VALUE_GET_FLOAT64(value));
+					return nlohmann::ordered_json(JS_VALUE_GET_FLOAT64(value));
 				}
 				case JS_TAG_BIG_INT: {
 					auto val = int64_t{};
 					JS_ToBigInt64(context, &val, value);
-					return nlohmann::json(val);
+					return nlohmann::ordered_json(val);
 				}
 				default:{
 					return nullptr;

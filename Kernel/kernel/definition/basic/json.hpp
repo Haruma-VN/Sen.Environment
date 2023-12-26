@@ -11,7 +11,7 @@ namespace Sen::Kernel::Definition::Object {
 	*/
 
 	static auto keys(
-		const nlohmann::json &data
+		const nlohmann::ordered_json &data
 	) -> std::vector<std::string>
 	{
 		auto result = std::vector<std::string>();
@@ -27,10 +27,10 @@ namespace Sen::Kernel::Definition::Object {
 	*/
 
 	static auto values(
-		const nlohmann::json &data
-	) -> nlohmann::json::array_t
+		const nlohmann::ordered_json &data
+	) -> nlohmann::ordered_json::array_t
 	{
-		auto result = nlohmann::json::array_t{};
+		auto result = nlohmann::ordered_json::array_t{};
 		for(auto &[key, value] : data.items()){
 			result.push_back(value);
 		}

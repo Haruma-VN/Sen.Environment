@@ -19,16 +19,16 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			virtual auto generate_subgroup(
-				const nlohmann::json & resource
-			) -> nlohmann::json = 0;
+				const nlohmann::ordered_json & resource
+			) -> nlohmann::ordered_json = 0;
 
 			/**
 			 * abstract method
 			*/
 
 			virtual auto convert_info(
-				const nlohmann::json &resource
-			) -> nlohmann::json = 0;
+				const nlohmann::ordered_json &resource
+			) -> nlohmann::ordered_json = 0;
 
 		public:
 
@@ -77,10 +77,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			auto generate_subgroup(
-				const nlohmann::json & resource
-			) -> nlohmann::json override final
+				const nlohmann::ordered_json & resource
+			) -> nlohmann::ordered_json override final
 			{
-				return nlohmann::json {
+				return nlohmann::ordered_json {
 					{"is_composite", resource["is_composite"]},
 					{"subgroups", Object::keys(resource["subgroup"])}
 				};
@@ -91,15 +91,15 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			auto convert_info(
-				const nlohmann::json & resource
-			) -> nlohmann::json override final
+				const nlohmann::ordered_json & resource
+			) -> nlohmann::ordered_json override final
 			{
-				auto result = nlohmann::json{
-					{"information", nlohmann::json {
+				auto result = nlohmann::ordered_json{
+					{"information", nlohmann::ordered_json {
 						{"expand_path", resource["expand_path"]}
 					}}
 				};
-				auto group = nlohmann::json{};
+				auto group = nlohmann::ordered_json{};
 				auto group_key = Object::keys(resource["groups"]);
 				for(auto i : Range<size_t>(group_key.size())){
 					group[group_key[i]] = thiz.generate_subgroup(resource["groups"][group_key[i]]);
@@ -162,15 +162,15 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			) -> void override final
 			{
 				auto info = FileSystem::readJson(Path::normalize(fmt::format("{}/{}", source, "info.json")));
-				auto res_info = nlohmann::json{
+				auto res_info = nlohmann::ordered_json{
 					{"expand_path", info["information"]["expand_path"]}
 				};
 				for(auto & [group_name, group_value] : info["groups"].items()) {
-					auto subgroups = nlohmann::json{
+					auto subgroups = nlohmann::ordered_json{
 						{"is_composite", group_value["is_composite"]}
 					};
 					for(auto & subgroup_name : group_value["subgroups"]) {
-						subgroups["subgroup"][subgroup_name] = FileSystem::readJson(Path::normalize(fmt::format("{}/{}/{}.json", source, "groups", subgroup_name)));
+						subgroups["subgroup"][subgroup_name.get<std::string>()] = FileSystem::readJson(Path::normalize(fmt::format("{}/{}/{}.json", source, "groups", subgroup_name)));
 					}
 					res_info["groups"][group_name] = subgroups;
 				}

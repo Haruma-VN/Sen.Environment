@@ -33,22 +33,22 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 			bool use_new_layout;
 
 			auto convert_from_resource_group(
-				const nlohmann::json & resource,
+				const nlohmann::ordered_json & resource,
 				const std::string & method
-			) -> nlohmann::json 
+			) -> nlohmann::ordered_json 
 			{
-				auto result = nlohmann::json {
+				auto result = nlohmann::ordered_json {
 					{"method", method},
 					{"expand_path", thiz.use_new_layout ? "new" : "old"},
 					{"subgroup", resource["id"].get<std::string>()},
 					{"trim", false},
 					{"res", resource["res"].get<std::string>()}
 				};
-				auto group = nlohmann::json{};
+				auto group = nlohmann::ordered_json{};
 				for(auto & subgroup : resource["resources"]){
 					#define find_subgroup(sub) subgroup.find(sub) != subgroup.end()
 					if(find_subgroup("ax") and find_subgroup("ay") and find_subgroup("aw") and find_subgroup("ah") and find_subgroup("path")){
-						auto default_value = nlohmann::json{};
+						auto default_value = nlohmann::ordered_json{};
 						#define property_is_defined(sub)\
 						if(find_subgroup(sub)){ \
 							default_value[sub] = subgroup[sub].get<int>(); \
@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 						property_is_defined_or("y", 0);
 						property_is_defined("rows");
 						property_is_defined("cols");
-						auto atlas_wrapper = nlohmann::json{
+						auto atlas_wrapper = nlohmann::ordered_json{
 							{"default", default_value},
 							{"path", subgroup['path']}
 						};
@@ -88,19 +88,19 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 			
 
 			auto process(
-				const nlohmann::json & data,
+				const nlohmann::ordered_json & data,
 				 std::vector<std::string> & images,
 				Method split_method,
 				const std::string & output_directory
 			) -> void
 			{
-				auto resource_used = nlohmann::json{};
+				auto resource_used = nlohmann::ordered_json{};
 				resource_used.merge_patch(data);
-				resource_used["resources"] = nlohmann::json::array();
+				resource_used["resources"] = nlohmann::ordered_json::array();
 				auto sprite_directory = Path::normalize(fmt::format("{}/{}", output_directory, "sprite"));
 				auto use_split_by_path = Method::SPLIT_BY_PATH;
 				auto png_table = std::map<std::string, Image<int>>{};
-				for(auto & subgroup_children : data["resources"].get<std::vector<nlohmann::json>>()){
+				for(auto & subgroup_children : data["resources"].get<std::vector<nlohmann::ordered_json>>()){
 					auto current_subgroup_parent = String::replaceAll(subgroup_children["parent"].get<std::string>(), std::string{"ATLASIMAGE_ATLAS_"}, std::string{""});
 					std::transform(current_subgroup_parent.begin(), current_subgroup_parent.end(), current_subgroup_parent.begin(), ::toupper);
 					#define find_subgroup_children(sub) subgroup_children.find(sub) != subgroup_children.end()

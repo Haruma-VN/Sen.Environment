@@ -88,17 +88,17 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			auto process(
 
-			) -> nlohmann::json
+			) -> nlohmann::ordered_json
 			{
-				auto result = nlohmann::json{
+				auto result = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1}
 				};
-				auto groups = nlohmann::json::array_t{};
+				auto groups = nlohmann::ordered_json::array_t{};
 				result["slot_count"] = thiz.read_integer();
 				auto group_size = thiz.read_integer();
 				for(auto i : Range<int>(group_size)){
-					auto group = nlohmann::json{};
+					auto group = nlohmann::ordered_json{};
 					auto group_type = thiz.read_enumeration();
 					switch (static_cast<int>(group_type)){
 						case 0x01:{
@@ -128,9 +128,9 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					}
 					if (group_type == 0x01) {
 						try_assert(resources_count == 0x00, "Property \"resources\" must have size 0 with composite");
-						auto subgroups = nlohmann::json::array_t{};
+						auto subgroups = nlohmann::ordered_json::array_t{};
 						for (auto subgroups_index : Range<int>(subgroups_count)) {
-							auto subgroup = nlohmann::json{};
+							auto subgroup = nlohmann::ordered_json{};
 							auto sub_res = thiz.read_integer();
 							if (sub_res != 0x00) {
 								subgroup["res"] = fmt::format("{}", sub_res);
@@ -143,9 +143,9 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					}
 					if(group_type == 0x02){
 						try_assert(subgroups_count == 0x00, "Property \"subgroup\" must have size 0 with simple");
-						auto resources = nlohmann::json::array_t{};
+						auto resources = nlohmann::ordered_json::array_t{};
 						for (auto resources_index : Range<int>(resources_count)){
-          					auto sub_resources = nlohmann::json{};
+          					auto sub_resources = nlohmann::ordered_json{};
 							auto resource_type = thiz.read_enumeration();
 							switch(static_cast<int>(resource_type)){
 								case 0x01:{

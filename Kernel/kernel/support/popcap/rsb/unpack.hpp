@@ -50,7 +50,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
             auto read_head(
                 SenBuffer &sen
-            ) -> nlohmann::json
+            ) -> nlohmann::ordered_json
             {
                 auto magic = sen.readString(4);
                 if (magic != "1bsr")
@@ -86,7 +86,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     file_offset = sen.readUint32LE();
                 }
-                auto result = nlohmann::json{
+                auto result = nlohmann::ordered_json{
                     {"version", version},
                     {"file_offset", file_offset},
                     {"file_list_length", file_list_length},

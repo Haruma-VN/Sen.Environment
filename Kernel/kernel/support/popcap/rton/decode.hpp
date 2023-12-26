@@ -14,7 +14,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
     {
     protected:
         auto decode_rton(
-            SenBuffer &sen) -> nlohmann::json
+            SenBuffer &sen) -> nlohmann::ordered_json
         {
             auto magic = sen.readString(4) == "RTON";
             if (!magic)
@@ -22,18 +22,18 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 throw std::runtime_error("Invaild RTON head");
             }
             sen.readBytesLE<uint8_t>(4);
-            auto r0x90_list = nlohmann::json::array();
-            auto r0x92_list = nlohmann::json::array();
+            auto r0x90_list = nlohmann::ordered_json::array();
+            auto r0x92_list = nlohmann::ordered_json::array();
             auto result = read_object(sen, r0x90_list, r0x92_list);
             return result;
         }
 
         inline auto read_object(
             SenBuffer &sen,
-            nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list) -> nlohmann::json
+            nlohmann::ordered_json &r0x90_list,
+            nlohmann::ordered_json &r0x92_list) -> nlohmann::ordered_json
         {
-            auto object_json = nlohmann::json::object();
+            auto object_json = nlohmann::ordered_json::object();
             auto bytecode = sen.readUint8();
             while (bytecode != 0xFF)
             {
@@ -47,14 +47,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_array(
             SenBuffer &sen,
-            nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list) -> nlohmann::json
+            nlohmann::ordered_json &r0x90_list,
+            nlohmann::ordered_json &r0x92_list) -> nlohmann::ordered_json
         {
             auto bytecode = sen.readUint8();
             if (bytecode != 0xFD)
                 throw std::runtime_error("Invaild array start");
             auto num_array = sen.readVarInt32();
-            auto array_json = nlohmann::json::array();
+            auto array_json = nlohmann::ordered_json::array();
             for (auto i = 0; i < num_array; i++)
             {
                 bytecode = sen.readUint8();
@@ -120,9 +120,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
         inline auto read_bytecode(
             const uint8_t &bytecode,
             SenBuffer &sen,
-            nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list,
-            nlohmann::json &json) -> void
+            nlohmann::ordered_json &r0x90_list,
+            nlohmann::ordered_json &r0x92_list,
+            nlohmann::ordered_json &json) -> void
         {
             std::string temp_string;
             switch (bytecode)
@@ -243,8 +243,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         inline auto read_bytecode_property(
             const uint8_t &bytecode,
             SenBuffer &sen,
-            nlohmann::json &r0x90_list,
-            nlohmann::json &r0x92_list) -> std::string
+            nlohmann::ordered_json &r0x90_list,
+            nlohmann::ordered_json &r0x92_list) -> std::string
         {
             std::string temp_string;
             switch (bytecode)

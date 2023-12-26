@@ -36,7 +36,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * Newton JSON
 			*/
 
-			nlohmann::json resource;
+			nlohmann::ordered_json resource;
 
 	public :
 
