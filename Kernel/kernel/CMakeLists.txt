@@ -69,6 +69,7 @@ add_library(
 	./support/popcap/atlas/split.hpp
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
+	./support/popcap/rton/encode.hpp
 	./support/texture/common.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp

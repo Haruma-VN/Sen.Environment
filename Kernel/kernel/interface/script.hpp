@@ -1980,7 +1980,7 @@ namespace Sen::Kernel::Interface::Script {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS_ToCString(context, argv[0]);
 					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
+					Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
 					JS_FreeCString(context, source);
 					JS_FreeCString(context, destination);
 					return JS::Converter::get_undefined();
