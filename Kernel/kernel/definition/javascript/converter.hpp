@@ -272,7 +272,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				if constexpr (std::is_same<T, bool>::value){
+				else if constexpr (std::is_same<T, bool>::value){
 					auto m_list = std::vector<bool>{};
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
@@ -280,7 +280,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				if constexpr(std::is_same<T, long long>::value){
+				else if constexpr(std::is_same<T, long long>::value){
 					auto m_list = std::vector<long long>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -288,7 +288,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				if constexpr (std::is_same<T, uint32_t>::value){
+				else if constexpr (std::is_same<T, uint32_t>::value){
 					auto m_list = std::vector<unsigned int>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -296,7 +296,7 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				if constexpr (std::is_same<T, uint64_t>::value){
+				else if constexpr (std::is_same<T, uint64_t>::value){
 					auto m_list = std::vector<uint64_t>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
@@ -304,16 +304,18 @@ namespace Sen::Kernel::Definition::JavaScript {
 					}
 					return m_list;
 				}
-				auto m_list = std::vector<JSValue>{};
-				for (auto i : Range<int>(length)) {
-					auto val = JS_GetPropertyUint32(context, that, i);
-					m_list.push_back(val);
+				else {
+					auto m_list = std::vector<JSValue>{};
+					for (auto i : Range<int>(length)) {
+						auto val = JS_GetPropertyUint32(context, that, i);
+						m_list.push_back(val);
+					}
+					return m_list;
 				}
-				return m_list;
 			}
 
 			/**
-			 * Convert JS Array to C++ Vector
+			 * Convert JS Array to C++ Vector of String
 			*/
 
 			template <>
