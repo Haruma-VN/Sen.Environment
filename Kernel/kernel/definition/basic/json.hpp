@@ -31,7 +31,7 @@ namespace Sen::Kernel::Definition::Object {
 	) -> nlohmann::ordered_json::array_t
 	{
 		auto result = nlohmann::ordered_json::array_t{};
-		for(auto &[key, value] : data.items()){
+		for(auto & [key, value] : data.items()){
 			result.push_back(value);
 		}
 		return result;

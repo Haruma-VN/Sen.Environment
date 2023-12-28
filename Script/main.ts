@@ -27,7 +27,7 @@ namespace Sen.Script {
          * --------------------------------------------------
          */
 
-        export function send(str: string, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
+        export function send(str: any, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
             if (!Sen.Shell.is_gui) {
                 Sen.Kernel.Console.print(`● ${str}`, color);
             } else {
@@ -52,7 +52,7 @@ namespace Sen.Script {
      * --------------------------------------------------
      */
 
-    export function main(): void {
+    export async function main(): Promise<void> {
         const before: number = Date.now();
         Sen.Script.loadLibrary();
         Sen.Script.Setting.load();

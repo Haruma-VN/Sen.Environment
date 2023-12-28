@@ -2237,6 +2237,9 @@ namespace Sen::Kernel::Interface::Script {
 		) -> JSValue
 		{
 			switch (json.type()) {
+				case nlohmann::ordered_json::value_t::null:{
+					return JS::Converter::get_null();
+				}
 				case nlohmann::ordered_json::value_t::object: {
 					auto js_obj = JS_NewObject(context);
 					for (auto &[key, value] : json.items()) {
@@ -2328,6 +2331,12 @@ namespace Sen::Kernel::Interface::Script {
 		) -> nlohmann::ordered_json
 		{
 			switch (JS_VALUE_GET_TAG(value)) {
+				case JS_TAG_UNDEFINED:{
+					return nullptr;
+				}
+				case JS_TAG_NULL:{
+					return nlohmann::ordered_json(nullptr);
+				}
 				case JS_TAG_OBJECT: {
 					if (JS_IsArray(context, value)) {
 						auto json = nlohmann::ordered_json::array();
@@ -2348,7 +2357,9 @@ namespace Sen::Kernel::Interface::Script {
 							for (auto i : Range<uint32_t>(tab_size)) {
 								auto key = JS_AtomToCString(context, tab[i].atom);
 								auto val = JS_GetProperty(context, value, tab[i].atom);
-								json[key] = js_object_to_json(context, val);
+								if(JS_VALUE_GET_TAG(val) != JS_TAG_UNDEFINED){	
+									json[key] = js_object_to_json(context, val);
+								}
 								JS_FreeAtom(context, tab[i].atom);
 								JS_FreeValue(context, val);
 							}
@@ -2379,9 +2390,6 @@ namespace Sen::Kernel::Interface::Script {
 					auto val = int64_t{};
 					JS_ToBigInt64(context, &val, value);
 					return nlohmann::ordered_json(val);
-				}
-				default:{
-					return nullptr;
 				}
 			}
 		}
