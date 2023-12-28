@@ -187,7 +187,7 @@ namespace Sen::Kernel::Interface {
 				}
 				// console
 				{
-					// console log with color
+					// console print
 					javascript->add_proxy(Script::Console::print, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"print"});
 					// read line
 					javascript->add_proxy(Script::Console::readline, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Console"} ,std::string{"readline"});
@@ -198,11 +198,22 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Process::run, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Process"} ,std::string{"run"});
 					// execute
 					javascript->add_proxy(Script::Process::execute, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Process"} ,std::string{"execute"});
+					// is_exists_in_path_environment
+					javascript->add_proxy(Script::Process::is_exists_in_path_environment, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Process"} ,std::string{"is_exists_in_path_environment"});
 				}
 				// thread
 				{
 					// sleep
 					javascript->add_proxy(Script::Thread::sleep, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Thread"} ,std::string{"sleep"});
+					// now
+					javascript->add_proxy(Script::Thread::now, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Thread"} ,std::string{"now"});
+				}
+				// operating system
+				{
+					// current
+					javascript->add_proxy(Script::OperatingSystem::current, std::string{"Sen"}, std::string{"Kernel"}, std::string{"OperatingSystem"}, std::string{"current"});
+					// architecture
+					javascript->add_proxy(Script::OperatingSystem::architecture, std::string{"Sen"}, std::string{"Kernel"}, std::string{"OperatingSystem"}, std::string{"architecture"});
 				}
 				// image
 				{

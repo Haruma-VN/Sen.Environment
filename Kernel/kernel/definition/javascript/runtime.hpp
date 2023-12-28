@@ -123,7 +123,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & source_file
 			) -> JSValue
 			{
-				auto eval_result = JS_Eval(thiz.ctx, source_data.c_str(), source_data.size(), Path::getFileName(source_file).c_str(), JS_EVAL_TYPE_GLOBAL);
+				auto eval_result = JS_Eval(thiz.ctx, source_data.c_str(), source_data.size(), source_file.c_str(), JS_EVAL_TYPE_GLOBAL);
 				if(JS_IsException(eval_result)){
 					throw std::runtime_error(thiz.exception(eval_result));
 				}

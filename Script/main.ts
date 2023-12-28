@@ -1,19 +1,5 @@
 namespace Sen.Script {
     /**
-     * --------------------------------------------------
-     * All JS modules need to be initialized
-     * @returns
-     * --------------------------------------------------
-     */
-
-    export function loadLibrary(): void {
-        for (const script of script_list) {
-            Sen.Kernel.JavaScript.evaluate_fs(`${Kernel.Home.script_parent}/${script}.js`);
-        }
-        return;
-    }
-
-    /**
      * Console namespace of Script
      */
 
@@ -53,32 +39,39 @@ namespace Sen.Script {
      */
 
     export async function main(): Promise<void> {
-        const before: number = Date.now();
-        Sen.Script.loadLibrary();
+        const before: number = Sen.Kernel.Thread.now();
+        Sen.Script.Module.load();
         Sen.Script.Setting.load();
-        Sen.Script.Console.send(
-            `Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version}`,
-        );
-        Sen.Script.Console.send(Setting.Language.get("js_has_been_loaded"), Definition.Console.Color.GREEN);
-        const after: number = Date.now();
-        Sen.Script.Console.send(
-            `${Setting.Language.get("execution_time")}: ${((after - before) / 1000).toFixed(3)}s`,
-            Definition.Console.Color.GREEN,
-        );
+        Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
+        Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
+        const after: number = Sen.Kernel.Thread.now();
+        Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         return;
     }
 
     /**
-     * Modules in queue await to be execute
+     * JavaScript Modules
      */
 
-    export const script_list: Array<string> = [
-        ...new Set([
-            `Setting/Language/format`,
-            `Setting/Setting`,
-            `utility/definition`,
-            `Support/Texture/Format`,
-            `Support/PopCap/ResourceGroup/Convert`,
-        ]),
-    ];
+    export namespace Module {
+        /**
+         * --------------------------------------------------
+         * All JS modules need to be initialized
+         * @returns
+         * --------------------------------------------------
+         */
+
+        export function load(): void {
+            for (const script of script_list) {
+                Sen.Kernel.JavaScript.evaluate_fs(`${Sen.Kernel.Home.script_parent}/${script}.js`);
+            }
+            return;
+        }
+
+        /**
+         * Modules in queue await to be execute
+         */
+
+        export const script_list: Array<string> = [`Setting/Language/format`, `Setting/Setting`, `utility/definition`, `Support/Texture/Format`, `Support/PopCap/ResourceGroup/Convert`];
+    }
 }

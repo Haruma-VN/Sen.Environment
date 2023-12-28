@@ -47,6 +47,143 @@ namespace Sen::Kernel::Interface::Script {
 			return JS::Converter::get_undefined();
 		}
 
+		/**
+		 * ----------------------------------------
+		 * JavaScript Date now
+		 * @return: undefined
+		 * ----------------------------------------
+		*/
+
+		inline static auto now(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+			auto current = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+			return JS::Converter::to_number(context, current);
+		}
+
+	}
+
+	/**
+	 * Operating System
+	*/
+
+	namespace OperatingSystem {
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Get current OS
+		 * @return: current OS
+		 * ----------------------------------------
+		*/
+
+		inline static auto current(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+			#if WINDOWS
+				return JS::Converter::to_string(context, std::string{"Windows"});
+			#elif LINUX
+				return JS::Converter::to_string(context, std::string{"Linux"});
+			#elif APPLE
+				return JS::Converter::to_string(context, std::string{"Macintosh"});
+			#elif ANDROID
+				return JS::Converter::to_string(context, std::string{"Android"});
+			#elif IPHONE
+				return JS::Converter::to_string(context, std::string{"iPhone"});
+			#else
+				return JS::Converter::to_string(context, std::string{"Unknown OS"});
+			#endif
+		}	
+
+		#if WINDOWS
+		#else
+		struct FileDeleter {
+			inline auto operator()(
+				FILE* file
+			) const -> void
+			{
+				if (file) {
+					pclose(file);
+				}
+				return;
+			}
+		};
+		#endif
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Get current Architecture
+		 * @return: current Architecture
+		 * ----------------------------------------
+		*/
+
+		inline static auto architecture(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+			#if WINDOWS
+				auto si = SYSTEM_INFO{};
+				GetNativeSystemInfo(&si);
+				switch (si.wProcessorArchitecture)
+					{
+						case PROCESSOR_ARCHITECTURE_AMD64:{
+							return JS::Converter::to_string(context, std::string{"x64"});
+						}
+						case PROCESSOR_ARCHITECTURE_ARM:{
+							return JS::Converter::to_string(context, std::string{"x86"});
+						}
+						case PROCESSOR_ARCHITECTURE_IA64:{
+							return JS::Converter::to_string(context, std::string{"arm64"});
+						}
+						case PROCESSOR_ARCHITECTURE_INTEL:{
+							return JS::Converter::to_string(context, std::string{"arm"});
+						}
+						default:{
+							return JS::Converter::to_string(context, std::string{"Unknown"});
+						}
+					}
+			#else
+				auto buffer = std::array<char, 128>();
+				auto result = std::string();
+				auto pipe = std::unique_ptr<FILE, FileDeleter>(popen("uname -m", "r"));
+				if (!pipe) {
+					throw std::runtime_error("cannot open pipe");
+				}
+				while (fgets(buffer.data(), 128, pipe.get()) != nullptr) {
+					result += buffer.data();
+				}
+				result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+				if (result == "x86_64"){
+					return JS::Converter::to_string(context, std::string{"x64"});
+				}
+				else if (result == "i686"){
+					return JS::Converter::to_string(context, std::string{"x86"});
+				}
+				else if (result == "aarch64"){
+					return JS::Converter::to_string(context, std::string{"arm64"});
+				}
+				else if (result == "armv7l"){
+					return JS::Converter::to_string(context, std::string{"arm"});
+				}
+				else{
+					return JS::Converter::to_string(context, std::string{"Unknown"});
+				}
+			#endif
+		}	
+
 	}
 
 	/**
@@ -75,6 +212,28 @@ namespace Sen::Kernel::Interface::Script {
 			Sen::Kernel::Process::run(source);
 			JS_FreeCString(context, source);
 			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Check Environment
+		 * @param argv[0]: process
+		 * @return: undefined
+		 * ----------------------------------------
+		*/
+
+		inline static auto is_exists_in_path_environment(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::Process::is_exists_in_path_environment(source);
+			JS_FreeCString(context, source);
+			return JS::Converter::to_bool(context, result);
 		}
 
 		/**

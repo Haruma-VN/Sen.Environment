@@ -5,6 +5,23 @@
 
 namespace Sen::Kernel {
 
+	/**
+	 * Architecture test
+	*/
+
+	enum Architecture {
+		X64,
+		ARM,
+		INTEL,
+		X86,
+		UNKNOWN,
+		ARM64,
+	};
+
+	/**
+	 * Process call
+	*/
+
 	struct Process {
 
 		/**
@@ -17,6 +34,17 @@ namespace Sen::Kernel {
 		{
 			std::system(command.c_str());
 			return;
+		}
+
+		/**
+		 * Test if something is exists in path environment
+		*/
+
+		inline static auto is_exists_in_path_environment(
+			const std::string & str
+		) -> bool
+		{
+    		return std::getenv(str.c_str()) != nullptr;
 		}
 
 		/**

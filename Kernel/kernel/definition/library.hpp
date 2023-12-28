@@ -20,6 +20,8 @@
 #include <source_location>
 #include <functional>
 #include <thread>
+#include <cstdlib>
+#include <ctime>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"

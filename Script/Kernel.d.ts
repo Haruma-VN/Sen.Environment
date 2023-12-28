@@ -33,6 +33,27 @@ declare namespace Sen {
         declare const version: number;
 
         /**
+         * JS Operating System
+         */
+
+        declare namespace OperatingSystem {
+            /**
+             * --------------------------------------------------
+             * @returns: Get current OS
+             * --------------------------------------------------
+             */
+
+            export function current(): string;
+            /**
+             * --------------------------------------------------
+             * @returns: Get current Architecture
+             * --------------------------------------------------
+             */
+
+            export function architecture(): string;
+        }
+
+        /**
          * JavaScript call OS
          */
 
@@ -55,6 +76,16 @@ declare namespace Sen {
              */
 
             export function execute(command: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript test environment
+             * @param command - what to check in path env
+             * @returns: true or false
+             * --------------------------------------------------
+             */
+
+            export function is_exists_in_path_environment(command: string): boolean;
         }
 
         /**
@@ -125,6 +156,15 @@ declare namespace Sen {
              */
 
             export function sleep(time: number): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript time count
+             * @returns: current timestamps
+             * --------------------------------------------------
+             */
+
+            export function now(): number;
         }
 
         /**
@@ -820,11 +860,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function encode_fs(
-                    source: string,
-                    destination: string,
-                    format: Sen.Script.Support.Texture.Format,
-                ): void;
+                export function encode_fs(source: string, destination: string, format: Sen.Script.Support.Texture.Format): void;
 
                 /**
                  * --------------------------------------------------
@@ -838,13 +874,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function decode_fs(
-                    source: string,
-                    destination: string,
-                    width: number,
-                    height: number,
-                    format: Sen.Script.Support.Texture.Format,
-                ): void;
+                export function decode_fs(source: string, destination: string, width: number, height: number, format: Sen.Script.Support.Texture.Format): void;
             }
 
             /**
@@ -892,11 +922,7 @@ declare namespace Sen {
                      * @returns: decoded file
                      * --------------------------------------------------
                      */
-                    export function uncompress_fs(
-                        source: string,
-                        destination: string,
-                        use_64_bit_variant: boolean,
-                    ): void;
+                    export function uncompress_fs(source: string, destination: string, use_64_bit_variant: boolean): void;
 
                     /**
                      * --------------------------------------------------
@@ -952,13 +978,7 @@ declare namespace Sen {
                      * @returns: decoded file
                      * --------------------------------------------------
                      */
-                    export function decode_fs(
-                        source: string,
-                        destination: string,
-                        key: string,
-                        iv: string,
-                        use_64_bit_variant: boolean,
-                    ): void;
+                    export function decode_fs(source: string, destination: string, key: string, iv: string, use_64_bit_variant: boolean): void;
 
                     /**
                      * --------------------------------------------------
@@ -971,13 +991,7 @@ declare namespace Sen {
                      * @returns: encoded file
                      * --------------------------------------------------
                      */
-                    export function encode_fs(
-                        source: string,
-                        destination: string,
-                        key: string,
-                        iv: string,
-                        use_64_bit_variant: boolean,
-                    ): void;
+                    export function encode_fs(source: string, destination: string, key: string, iv: string, use_64_bit_variant: boolean): void;
                 }
 
                 /**
@@ -1092,11 +1106,7 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
 
-                    export function convert_fs(
-                        source: string,
-                        destination: string,
-                        layout: Sen.Script.Support.PopCap.ResourceGroup,
-                    ): void;
+                    export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup): void;
                 }
 
                 /**

@@ -182,6 +182,30 @@ namespace Sen::Kernel::Definition::JavaScript {
 			}
 
 			/**
+			 * C++ Float to JS Number
+			*/
+
+			inline static auto to_number(
+				JSContext* context,
+				float value
+			) -> JSValue
+			{
+				return JS_NewFloat64(context, static_cast<double>(value));
+			}
+
+			/**
+			 * C++ Int32 to JS Number
+			*/
+
+			inline static auto to_number(
+				JSContext* context,
+				double value
+			) -> JSValue
+			{
+				return JS_NewFloat64(context, value);
+			}
+
+			/**
 			 * C++ Int64 to JS Number
 			*/
 
@@ -351,27 +375,27 @@ namespace Sen::Kernel::Definition::JavaScript {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewInt32(ctx, vec[i]));
 					}
 				}
-				if constexpr (std::is_same_v<T, uint32_t>::value){
+				else if constexpr (std::is_same_v<T, uint32_t>::value){
 					for (auto i : Range<size_t>(vec.size())) {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewUint32(ctx, vec[i]));
 					}
 				}
-				if constexpr (std::is_same_v<T, uint64_t>::value){
+				else if constexpr (std::is_same_v<T, uint64_t>::value){
 					for (auto i : Range<size_t>(vec.size())) {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
 					}
 				}
-				if constexpr (std::is_same_v<T, bool>::value){
+				else if constexpr (std::is_same_v<T, bool>::value){
 					for (auto i : Range<size_t>(vec.size())) {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBool(ctx, vec[i]));
 					}
 				}
-				if constexpr (std::is_same_v<T, long long>::value){
+				else if constexpr (std::is_same_v<T, long long>::value){
 					for (auto i : Range<size_t>(vec.size())) {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, vec[i]));
 					}
 				}
-				if constexpr (std::is_same_v<T, unsigned long long>::value){
+				else if constexpr (std::is_same_v<T, unsigned long long>::value){
 					for (auto i : Range<size_t>(vec.size())) {
 						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
 					}
