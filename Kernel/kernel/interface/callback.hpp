@@ -139,6 +139,10 @@ namespace Sen::Kernel::Interface {
 				{
 					// read file
 					javascript->add_proxy(Script::FileSystem::read_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file"});
+					// read_file_encode_with_utf16le
+					javascript->add_proxy(Script::FileSystem::read_file_encode_with_utf16le, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"read_file_encode_with_utf16le"});
+					// write_file_encode_with_utf16le
+					javascript->add_proxy(Script::FileSystem::write_file_encode_with_utf16le, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file_encode_with_utf16le"});
 					// write file
 					javascript->add_proxy(Script::FileSystem::write_file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"FileSystem"} ,std::string{"write_file"});
 					// create directory

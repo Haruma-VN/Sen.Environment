@@ -107,14 +107,11 @@ namespace Sen.Script {
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
-            throw new Error("test js error");
         } catch (e: unknown | any) {
             result = `${Sen.Script.Setting.Language.get("runtime_error")}: `;
-            result += (e as Error).message;
+            result += e.message;
             result += "\n";
-            if ((e as Error).stack) {
-                result += e.stack;
-            }
+            result += e.stack;
         }
         return result;
     }

@@ -22,6 +22,8 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
+#include <locale>
+#include <codecvt>
 #include "kernel/definition/range.hpp"
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"

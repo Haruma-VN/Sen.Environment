@@ -572,6 +572,30 @@ namespace Sen::Kernel::Interface::Script {
 
 		/**
 		 * ----------------------------------------
+		 * JS read file method
+		 * @param argv[0]: source file
+		 * @return: readed file
+		 * ----------------------------------------
+		*/
+
+		inline static auto read_file_encode_with_utf16le(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = Sen::Kernel::FileSystem::readFileByUtf16LE(source);
+			JS_FreeCString(context, source);
+			auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+			auto utf8_string = std::string{converter.to_bytes(result)};
+			return JS::Converter::to_string(context, utf8_string);
+		}
+
+		/**
+		 * ----------------------------------------
 		 * JS write file method
 		 * @param argv[0]: destination file
 		 * @param argv[1]: data to write
@@ -590,6 +614,33 @@ namespace Sen::Kernel::Interface::Script {
 			auto destination = JS_ToCString(context, argv[0]);
 			auto data = JS_ToCString(context, argv[1]);
 			Sen::Kernel::FileSystem::writeFile(destination, data);
+			JS_FreeCString(context, destination);
+			JS_FreeCString(context, data);
+			return JS::Converter::get_undefined();
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS write file method
+		 * @param argv[0]: destination file
+		 * @param argv[1]: data to write
+		 * @return: written file
+		 * ----------------------------------------
+		*/
+
+		inline static auto write_file_encode_with_utf16le(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+			auto destination = JS_ToCString(context, argv[0]);
+			auto data = JS_ToCString(context, argv[1]);
+			auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
+			auto result = std::wstring{converter.from_bytes(data)};
+			Sen::Kernel::FileSystem::writeFileByUtf16LE(destination, result);
 			JS_FreeCString(context, destination);
 			JS_FreeCString(context, data);
 			return JS::Converter::get_undefined();

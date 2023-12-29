@@ -200,8 +200,8 @@ namespace Sen::Kernel::FileSystem
 	// return: the data has been written
 
 	inline auto writeFileByUtf16LE(
-		const string &filePath,
-		const wstring &data
+		const string & filePath,
+		const wstring & data
 	) -> void
 	{
 		auto utf16le_locale = static_cast<locale>(locale(locale::classic(), new codecvt_utf16<wchar_t, 0x10ffff, little_endian>));

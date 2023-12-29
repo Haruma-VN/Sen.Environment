@@ -388,6 +388,15 @@ declare namespace Sen {
              */
 
             export function read_file(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * This method will read the file
+             * @param source - Source file to read
+             * --------------------------------------------------
+             */
+
+            export function read_file_encode_with_utf16le(source: string): string;
             /**
              * --------------------------------------------------
              * This method will write the file
@@ -396,7 +405,16 @@ declare namespace Sen {
              * --------------------------------------------------
              */
 
-            export function write_file(destination: string, content: string): string;
+            export function write_file(destination: string, content: string): void;
+            /**
+             * --------------------------------------------------
+             * This method will write the file
+             * @param destination - Destination file to write
+             * @param content - Write content
+             * --------------------------------------------------
+             */
+
+            export function write_file_encode_with_utf16le(destination: string, content: string): void;
 
             /**
              * --------------------------------------------------
