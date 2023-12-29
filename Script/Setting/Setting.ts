@@ -1,29 +1,42 @@
 namespace Sen.Script.Setting {
     /**
-     * Configuration file
+     * --------------------------------------------------
+     * JavaScript current configuration file location
+     * @abstract: Configuration file location
+     * --------------------------------------------------
      */
 
-    export const settingFile: string = `${Sen.Kernel.Home.script_parent}/Setting/Setting.json`;
+    export const setting_file: string = Sen.Script.Home.query(`~/Setting/Setting.json`);
 
     /**
-     * Entry
+     * --------------------------------------------------
+     * JavaScript Configuration file Entry
+     * --------------------------------------------------
      */
 
     export interface Entry {
         language: string;
     }
 
+    /**
+     * --------------------------------------------------
+     * JavaScript current configuration file
+     * @abstract: Configuration file
+     * --------------------------------------------------
+     */
+
     export let setting: Entry = undefined!;
 
     /**
-     * Load method
+     * --------------------------------------------------
+     * JavaScript load configuration file method
+     * @returns: Load method
+     * --------------------------------------------------
      */
 
     export function load(): void {
-        setting = Sen.Kernel.JSON.deserialize_fs<Entry>(settingFile);
-        Sen.Script.Setting.Language.language = Sen.Script.Setting.Language.read_language(
-            `${Sen.Kernel.Home.script_parent}/Setting/Language/${setting.language}.json`,
-        );
+        setting = Sen.Kernel.JSON.deserialize_fs<Entry>(setting_file);
+        Sen.Script.Setting.Language.read_language(Sen.Script.Home.query(`~/Setting/Language/${setting.language}.json`));
         return;
     }
 }

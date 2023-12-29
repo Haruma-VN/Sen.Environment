@@ -6,17 +6,20 @@ namespace Sen.Script.Setting.Language {
     export type LanguageMap = Record<string, string>;
 
     /**
+     * --------------------------------------------------
      * Language loaded by Kernel
+     * --------------------------------------------------
      */
 
     export let language: LanguageMap = undefined!;
 
     /**
+     * --------------------------------------------------
      * JavaScript custom formatter
      * @param str - string to format
      * @param args - arguments
      * @returns formatted string
-     *
+     * --------------------------------------------------
      */
 
     export function format(str: string, ...args: Array<any>): string {
@@ -30,19 +33,24 @@ namespace Sen.Script.Setting.Language {
     }
 
     /**
+     * --------------------------------------------------
      * JavaScript Language Support
      * @param source - Source file to read
      * @returns Map
+     * --------------------------------------------------
      */
 
-    export function read_language(source: string): LanguageMap {
-        return Sen.Kernel.JSON.deserialize_fs<LanguageMap>(source);
+    export function read_language(source: string): void {
+        language = Sen.Kernel.JSON.deserialize_fs<LanguageMap>(source);
+        return;
     }
 
     /**
+     * --------------------------------------------------
      * JavaScript Language Support
      * @param property - Property to read
-     * @returns if property find, a string will be returned. Else the property itself.
+     * @returns if property find, string else the prop
+     * --------------------------------------------------
      */
 
     export function get(property: string): string {

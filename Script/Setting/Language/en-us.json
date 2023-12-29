@@ -1,4 +1,5 @@
 {
     "js_has_been_loaded": "JS has been loaded!",
-    "execution_time": "Execution Time"
+    "execution_time": "Execution Time",
+    "runtime_error": "Runtime Error"
 }

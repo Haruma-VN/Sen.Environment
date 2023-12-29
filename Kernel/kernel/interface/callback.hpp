@@ -133,7 +133,7 @@ namespace Sen::Kernel::Interface {
 				}
 				// home
 				{
-					javascript->add_constant(Path::getParents(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script_parent"});
+					javascript->add_constant(Path::toPosixStyle(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script"});
 				}
 				// file system
 				{

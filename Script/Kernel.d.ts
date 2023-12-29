@@ -837,7 +837,7 @@ declare namespace Sen {
              * Parent directories of script
              */
 
-            export const script_parent: string;
+            export const script: string;
         }
 
         /**
@@ -1180,4 +1180,10 @@ declare namespace Sen {
             }
         }
     }
+
+    /**
+     * Script namespace
+     */
+
+    declare namespace Script {}
 }
