@@ -22,9 +22,17 @@ namespace Sen.Script {
             return;
         }
 
+        /**
+         * --------------------------------------------------
+         * JavaScript send error message
+         * @param str - string to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
         export function error(str: string): void {
             if (str !== undefined) {
-                Console.send(str, Definition.Console.Color.RED);
+                Console.send(str, Sen.Script.Definition.Console.Color.RED);
             }
             return;
         }
@@ -92,7 +100,7 @@ namespace Sen.Script {
     /**
      * --------------------------------------------------
      * Main thread
-     * @returns
+     * @returns - result after execute
      * --------------------------------------------------
      */
 
@@ -107,7 +115,7 @@ namespace Sen.Script {
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
-        } catch (e: unknown | any) {
+        } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get("runtime_error")}: `;
             result += e.message;
             result += "\n";

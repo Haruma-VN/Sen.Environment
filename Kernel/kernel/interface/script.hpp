@@ -105,6 +105,17 @@ namespace Sen::Kernel::Interface::Script {
 		}	
 
 		#if WINDOWS
+		struct FileDeleter {
+			inline auto operator()(
+				FILE* file
+			) const -> void
+			{
+				if (file) {
+					fclose(file);
+				}
+				return;
+			}
+		};
 		#else
 		struct FileDeleter {
 			inline auto operator()(
