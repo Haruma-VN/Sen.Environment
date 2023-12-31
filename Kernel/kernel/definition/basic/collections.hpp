@@ -40,4 +40,65 @@ namespace Sen::Kernel::Collections {
 		return m_array;
 	}
 
+	/**
+	 * C Array to C++ Vector
+	*/
+
+	template <typename T>
+	inline static auto c_array_to_vector(
+		const T* that,
+		const size_t & size
+	) -> std::vector<T>
+	{
+		auto v = std::vector<T>{};
+		for(auto i : Range<size>){
+			v.emplace_back(that[i]);
+		}
+		return v;
+	}
+
+	/**
+	 * C++ vector to C Array
+	*/
+
+	template <typename T>
+	inline static auto vector_to_c_array(
+		const std::vector<T> & that,
+		T* & current
+	) -> void
+	{
+		for(auto i : Range<size_t>(that.size())){
+			current[i] = that.at(i);
+		}
+		return;
+	}
+
+	/**
+	 * C++ Vector to C++ Array
+	*/
+
+	template <typename T, size_t n>
+	inline static auto vector_to_array(
+		const std::vector<T> & that
+	) -> std::array<T, n>
+	{
+		auto arr = std::array<T, n>{};
+		std::copy(that.begin(), that.end(), arr.end());
+		return arr;
+	}
+
+	/**
+	 * C++ Array to C++ Vector
+	*/
+
+	template <typename T, size_t n>
+	inline static auto array_to_vector(
+		const std::array<T, n> & that
+	) -> std::vector<T>
+	{
+		auto vec = std::vector<T>{};
+		std::copy(that.begin(), that.end(), vec.end());
+		return vec;
+	}
+
 }

@@ -53,6 +53,11 @@ declare namespace Sen {
             export function architecture(): string;
         }
 
+        declare namespace ArrayBuffer {
+            export function open(source: string): ArrayBuffer;
+            export function out(destination: string, data: ArrayBuffer): void;
+        }
+
         /**
          * JavaScript call OS
          */

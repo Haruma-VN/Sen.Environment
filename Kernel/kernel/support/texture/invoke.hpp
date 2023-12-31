@@ -163,7 +163,7 @@ namespace Sen::Kernel::Support::Texture {
 						break;
 					}
 					case Format::RGB_ETC1_A_8:{
-						result = std::move(Encode::rgba(source_image));
+						result = std::move(Encode::rgb_etc1_a_8(source_image));
 						break;
 					}
 					case Format::RGB_ETC1_A_PALETTE:{

@@ -212,6 +212,13 @@ namespace Sen::Kernel::Interface {
 					// now
 					javascript->add_proxy(Script::Thread::now, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Thread"} ,std::string{"now"});
 				}
+				// array buffer
+				{
+					// open
+					javascript->add_proxy(Script::ArrayBuffer::open, std::string{"Sen"}, std::string{"Kernel"}, std::string{"ArrayBuffer"} ,std::string{"open"});
+					// out
+					javascript->add_proxy(Script::ArrayBuffer::out, std::string{"Sen"}, std::string{"Kernel"}, std::string{"ArrayBuffer"} ,std::string{"out"});
+				}
 				// operating system
 				{
 					// current

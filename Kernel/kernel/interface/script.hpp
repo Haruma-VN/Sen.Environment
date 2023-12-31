@@ -197,6 +197,56 @@ namespace Sen::Kernel::Interface::Script {
 
 	}
 
+	namespace ArrayBuffer {
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Array Buffer open file
+		 * @param argv[0]: source file
+		 * @return: Array Buffer
+		 * ----------------------------------------
+		*/
+
+		inline static auto open(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+			auto source = JS_ToCString(context, argv[0]);
+			auto result = JS::Converter::read_file_as_js_arraybuffer(context, source);
+			JS_FreeCString(context, source);
+			return result;
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Array Buffer open file
+		 * @param argv[0]: destination file
+		 * @param argv[1]: Array Buffer
+		 * @return: undefined
+		 * ----------------------------------------
+		*/
+
+		inline static auto out(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+			auto destination = JS_ToCString(context, argv[0]);
+			auto array_buffer = argv[1];
+			JS::Converter::write_file_as_arraybuffer(context, destination, array_buffer);
+			JS_FreeCString(context, destination);
+			return JS::Converter::get_undefined();
+		}
+
+	}
+
 	/**
 	 * Sub-Process call
 	*/
@@ -1779,7 +1829,7 @@ namespace Sen::Kernel::Interface::Script {
 					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 					auto source = JS_ToCString(context, argv[0]);
 					auto destination = JS_ToCString(context, argv[1]);
-					auto format = JS::Converter::get_int32(context, argv[4]);
+					auto format = JS::Converter::get_int32(context, argv[2]);
 					Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
 					JS_FreeCString(context, source);
 					JS_FreeCString(context, destination);

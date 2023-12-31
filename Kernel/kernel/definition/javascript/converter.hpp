@@ -419,5 +419,67 @@ namespace Sen::Kernel::Definition::JavaScript {
 				}
 				return js_array;
 			}
+
+			/**
+			 * Read and return JS ArrayBuffer
+			*/
+
+			inline static auto read_file_as_js_arraybuffer(
+				JSContext *ctx, 
+				const std::string & source
+			) -> JSValue
+			{
+				FILE *fp = fopen(source.c_str(), "rb");
+				auto file_size = long{};
+				if (fp == NULL) {
+					throw std::runtime_error(fmt::format("File does not found: {}", source));
+				}
+				fseek(fp, 0, SEEK_END);
+				file_size = ftell(fp);
+				rewind(fp);
+				auto buffer = (char*) malloc(file_size * sizeof(char));
+				if (buffer == NULL) {
+					fclose(fp);
+					throw std::runtime_error(fmt::format("C malloc allocating memory failed, source file: {}", source));
+				}
+				auto result = fread(buffer, 1, file_size, fp);
+				if (result != file_size) {
+					free(buffer);
+					fclose(fp);
+					throw std::runtime_error(fmt::format("Read file {} failed", source));
+				}
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, reinterpret_cast<uint8_t*>(buffer), file_size);
+				free(buffer);
+				fclose(fp);
+				return array_buffer;
+			}
+
+			/**
+			 * JS ArrayBuffer write to file
+			*/
+
+			inline static auto write_file_as_arraybuffer(
+				JSContext *ctx, 
+				const std::string & destination,
+				const JSValue & that
+			) -> void
+			{
+				auto size = size_t{};
+				auto data = JS_GetArrayBuffer(ctx, &size, that);
+				if(data == NULL){
+					throw std::runtime_error(fmt::format("Failed when get ArrayBuffer from JavaScript"));
+				}
+				auto ofs = std::ofstream(destination, std::ios::binary | std::ios::out);
+				if (!ofs) {
+					throw std::runtime_error(fmt::format("File cannot be opened for write operation: {}", destination));
+				}
+				ofs.write(reinterpret_cast<const char*>(data), size);
+				if (!ofs) {
+					ofs.close();
+					throw std::runtime_error(fmt::format("File cannot be written: {}", destination));
+				}
+				ofs.close();
+				return;
+			}
 	};
 }

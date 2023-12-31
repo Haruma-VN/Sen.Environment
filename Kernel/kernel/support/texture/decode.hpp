@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * Convert alpha red green blue to red green blue alpha (standard)
 			*/
 
-			static auto argb_to_rgba(
+			inline static auto argb_to_rgba(
 				const std::vector<unsigned char> &color
 			) -> std::vector<unsigned char>
 			{
@@ -71,7 +71,7 @@ namespace Sen::Kernel::Support::Texture {
 				return data;
 			}
 
-			static auto readOneBit(
+			inline static auto readOneBit(
 				int & bitPostion,
 				unsigned char & buffer,
 				SenBuffer & image_bytes
@@ -85,7 +85,7 @@ namespace Sen::Kernel::Support::Texture {
 				return static_cast<int>((buffer >> bitPostion) & 1);
 			}
 
-			static auto readBits(
+			inline static auto readBits(
 				int bits,
 				int & bitPostion,
 				unsigned char & buffer,
@@ -109,7 +109,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 			
-			static auto rgba_8888(
+			inline static auto rgba_8888(
 				const std::vector<unsigned char> &color,
 				int width,
 				int height
@@ -125,7 +125,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto argb_8888(
+			inline static auto argb_8888(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -141,7 +141,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgba_4444(
+			inline static auto rgba_4444(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -174,7 +174,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgb_565(
+			inline static auto rgb_565(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -206,7 +206,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgba_5551(
+			inline static auto rgba_5551(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -238,7 +238,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgba_4444_tiled(
+			inline static auto rgba_4444_tiled(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -277,7 +277,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgb_565_tiled(
+			inline static auto rgb_565_tiled(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -315,7 +315,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgba_5551_tiled(
+			inline static auto rgba_5551_tiled(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -353,7 +353,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgb_etc1_a_8(
+			inline static auto rgb_etc1_a_8(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -401,7 +401,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgb_etc1_a_palette(
+			inline static auto rgb_etc1_a_palette(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -478,7 +478,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgba_pvrtc_4bpp(
+			inline static auto rgba_pvrtc_4bpp(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height
@@ -511,7 +511,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: Image struct
 			*/
 
-			static auto rgb_pvrtc_4bpp_a_8(
+			inline static auto rgb_pvrtc_4bpp_a_8(
 				const std::vector<unsigned char> & color,
 				int width,
 				int height

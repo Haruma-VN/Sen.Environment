@@ -1,7 +1,7 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/texture/common.hpp"
+#include "kernel/support/texture/decode.hpp"
 
 namespace Sen::Kernel::Support::Texture {
 
@@ -13,16 +13,24 @@ namespace Sen::Kernel::Support::Texture {
 	 * Encode class
 	*/
 
-	class Encode {
+	class Encode : public PixelColor {
 		
 		public:
 
+			explicit Encode(
+
+			) = default;
+
+			~Encode(
+
+			) = default;
+
 			/**
 			 * color: the extracted color
 			 * return: the encoded vector
 			*/
 
-			static auto rgba(
+			inline static auto rgba(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -43,7 +51,7 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: the encoded vector
 			*/
 
-			static auto argb(
+			inline static auto argb(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -59,7 +67,7 @@ namespace Sen::Kernel::Support::Texture {
 				return result;
 			}
 
-			static auto rgba_4444(
+			inline static auto rgba_4444(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -76,7 +84,7 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.get();
 			}
 
-			static auto rgb_565(
+			inline static auto rgb_565(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -92,7 +100,7 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.get();
 			}
 
-			static auto rgba_5551(
+			inline static auto rgba_5551(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -111,7 +119,7 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.get();
 			}
 
-			static auto rgba_4444_tiled(
+			inline static auto rgba_4444_tiled(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -139,7 +147,7 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.get();
 			}
 
-			static auto rgb_565_tiled(
+			inline static auto rgb_565_tiled(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -166,7 +174,7 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.get();
 			}
 
-			static auto rgba_5551_tiled(
+			inline static auto rgba_5551_tiled(
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
@@ -189,6 +197,38 @@ namespace Sen::Kernel::Support::Texture {
 								}
 							}
 						}
+					}
+				}
+				return sen.get();
+			}
+
+			inline static auto rgb_etc1_a_8(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto size = image.width * image.height;
+				auto view = std::unique_ptr<unsigned int[]>(new unsigned int[size]);
+				auto data = image.data();
+				auto index = 0;
+				debug("copy");
+				for	(auto y : Range<int>(image.height)){
+					for (auto x : Range<int>(image.width)){
+						auto pixel = set_pixel(x, y, image.width);
+						view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					}
+				}
+				debug("copy done");
+				auto destination_size = size / 16;
+				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
+				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+				auto sen = SenBuffer{};
+				debug("writer");
+				for (auto i : Range<int>(destination_size)) {
+					sen.writeUint64LE(destination[i]);
+				}
+				for (auto y : Range<int>(image.height)) {
+					for (auto x : Range<int>(image.width)) {
+						sen.writeUint8(data[set_pixel(x, y, image.width) + 3]);
 					}
 				}
 				return sen.get();

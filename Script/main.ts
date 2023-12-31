@@ -30,9 +30,9 @@ namespace Sen.Script {
          * --------------------------------------------------
          */
 
-        export function error(str: string): void {
+        export function error(str: string | undefined): void {
             if (str !== undefined) {
-                Console.send(str, Sen.Script.Definition.Console.Color.RED);
+                Sen.Script.Console.send(str, Sen.Script.Definition.Console.Color.RED);
             }
             return;
         }
@@ -92,8 +92,7 @@ namespace Sen.Script {
      */
 
     export function main(): void {
-        let result: string = launch();
-        Console.error(result);
+        Sen.Script.Console.error(Sen.Script.launch());
         return;
     }
 
@@ -113,6 +112,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
+            Sen.Kernel.Support.Texture.encode_fs("D:/test/g/image9.png", "D:/test/g/image9_1.ptx", Support.Texture.Format.RGB_ETC1_A_8);
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         } catch (e: unknown & any) {
@@ -147,6 +147,6 @@ namespace Sen.Script {
          * Modules in queue await to be execute
          */
 
-        export const script_list: Array<string> = [`~/Setting/Language/format.js`, `~/Setting/Setting.js`, `~/utility/definition.js`, `~/Support/Texture/Format.js`, `~/Support/PopCap/ResourceGroup/Convert.js`];
+        export const script_list: Array<string> = [`~/Setting/Language/format.js`, `~/Setting/Setting.js`, `~/utility/Definition.js`, `~/Support/Texture/Format.js`, `~/Support/PopCap/ResourceGroup/Convert.js`];
     }
 }
