@@ -76,8 +76,8 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
 						auto index = set_pixel(x, y, image.width);
-						auto color = (static_cast<int>(data[index + 3]) >> 4 | (static_cast<int>(data[index + 2]) & 0xF0) | ((static_cast<int>(data[index + 1]) & 0xF0) << 4) |
-							((static_cast<int>(data[index]) & 0xF0) << 8));
+						auto color = ((data[index + 3]) >> 4 | ((data[index + 2]) & 0xF0) | (((data[index + 1]) & 0xF0) << 4) |
+							(((data[index]) & 0xF0) << 8));
 						sen.writeUint16LE(color);
 					}
 				}
@@ -93,7 +93,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
 						auto index = set_pixel(x, y, image.width);
-						auto color = (static_cast<int>(data[index + 2]) >> 3 | ((static_cast<int>(data[index + 1]) & 0xFC) << 3) | ((static_cast<int>(data[index]) & 0xF8) << 8));
+						auto color = ((data[index + 2]) >> 3 | (((data[index + 1]) & 0xFC) << 3) | (((data[index]) & 0xF8) << 8));
 						sen.writeUint16LE(color);
 					}
 				}
@@ -109,10 +109,10 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
 						auto index = set_pixel(x, y, image.width);
-						auto color = (((static_cast<int>(data[index + 3]) & 0x80) >> 7) |
-						((static_cast<int>(data[index + 2]) & 0xF8) >> 2) |
-						((static_cast<int>(data[index + 1]) & 0xF8) << 3) |
-						((static_cast<int>(data[index + 0]) & 0xF8) << 8));
+						auto color = ((((data[index + 3]) & 0x80) >> 7) |
+						(((data[index + 2]) & 0xF8) >> 2) |
+						(((data[index + 1]) & 0xF8) << 3) |
+						(((data[index + 0]) & 0xF8) << 8));
 						sen.writeUint16LE(color);
 					}
 				}
@@ -131,10 +131,10 @@ namespace Sen::Kernel::Support::Texture {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
 									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = (static_cast<int>(data[index + 3]) >> 4 |
-										static_cast<int>(data[index + 2]) & 0xF0 |
-										((static_cast<int>(data[index + 1]) & 0xF0) << 4) |
-										((static_cast<int>(data[index + 0]) & 0xF0) << 8));
+									auto color = ((data[index + 3]) >> 4 |
+										(data[index + 2]) & 0xF0 |
+										(((data[index + 1]) & 0xF0) << 4) |
+										(((data[index + 0]) & 0xF0) << 8));
 									sen.writeUint16LE(color);
 								} 
 								else {
@@ -159,9 +159,9 @@ namespace Sen::Kernel::Support::Texture {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
 									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = ((static_cast<int>(data[index + 2]) & 0xF8 >> 3) |
-												((static_cast<int>(data[index + 1]) & 0xFC) << 3) |
-												((static_cast<int>(data[index + 0]) & 0xF8) << 8));
+									auto color = (((data[index + 2]) & 0xF8 >> 3) |
+												(((data[index + 1]) & 0xFC) << 3) |
+												(((data[index + 0]) & 0xF8) << 8));
 									sen.writeUint16LE(color);
 								} 
 								else {
@@ -186,10 +186,10 @@ namespace Sen::Kernel::Support::Texture {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
 									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = (((static_cast<int>(data[index + 3]) & 0x80) >> 7) |
-												(static_cast<int>(data[index + 2]) & 0xF8 >> 2) |
-												((static_cast<int>(data[index + 1]) & 0xF8) << 3) |
-												((static_cast<int>(data[index + 0]) & 0xF8) << 8));
+									auto color = ((((data[index + 3]) & 0x80) >> 7) |
+												((data[index + 2]) & 0xF8 >> 2) |
+												(((data[index + 1]) & 0xF8) << 3) |
+												(((data[index + 0]) & 0xF8) << 8));
 									sen.writeUint16LE(color);
 								} 
 								else {
@@ -206,23 +206,20 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto size = image.width * image.height;
+				auto size = image.area();
 				auto view = std::unique_ptr<unsigned int[]>(new unsigned int[size]);
 				auto data = image.data();
 				auto index = 0;
-				debug("copy");
 				for	(auto y : Range<int>(image.height)){
 					for (auto x : Range<int>(image.width)){
 						auto pixel = set_pixel(x, y, image.width);
 						view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
 					}
 				}
-				debug("copy done");
 				auto destination_size = size / 16;
 				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
 				auto sen = SenBuffer{};
-				debug("writer");
 				for (auto i : Range<int>(destination_size)) {
 					sen.writeUint64LE(destination[i]);
 				}
@@ -230,6 +227,41 @@ namespace Sen::Kernel::Support::Texture {
 					for (auto x : Range<int>(image.width)) {
 						sen.writeUint8(data[set_pixel(x, y, image.width) + 3]);
 					}
+				}
+				return sen.get();
+			}
+
+			inline static auto rgb_etc1_a_palette(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto size = image.area();
+				auto view = std::unique_ptr<unsigned int[]>(new unsigned int[size]);
+				auto data = image.data();
+				auto index = 0;
+				for	(auto y : Range<int>(image.height)){
+					for (auto x : Range<int>(image.width)){
+						auto pixel = set_pixel(x, y, image.width);
+						view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					}
+				}
+				auto destination_size = size / 16;
+				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
+				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+				auto sen = SenBuffer{};
+				for (auto i : Range<int>(destination_size)) {
+					sen.writeUint64LE(destination[i]);
+				}
+				sen.writeUint8(0x10);
+				for (auto i : Range<uint8_t>(16)) {
+					sen.writeUint8(i);
+				}
+				auto half_area = size / 2;
+				for (auto k = 0; k < half_area; k++) {
+					sen.writeUint8(static_cast<uint8_t>(data[(k << 1) * 4] & 0xF0 | data[((k << 1) | 1) * 4] >> 4));
+				}
+				if((size & 1) == 1){
+					sen.writeUint8(static_cast<uint8_t>(data[(half_area * 4 << 1)] & 0xF0));
 				}
 				return sen.get();
 			}

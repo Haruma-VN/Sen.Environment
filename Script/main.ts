@@ -112,7 +112,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
-            Sen.Kernel.Support.Texture.encode_fs("D:/test/g/image9.png", "D:/test/g/image9_1.ptx", Support.Texture.Format.RGB_ETC1_A_8);
+            Sen.Kernel.Support.Texture.encode_fs("D:/test/g/image9.png", "D:/test/g/image9_1.ptx", Support.Texture.Format.RGB_ETC1_A_PALETTE);
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         } catch (e: unknown & any) {

@@ -362,7 +362,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = SenBuffer{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
+				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
 						auto block_part_1 = sen.readUint32BE();
@@ -370,7 +370,7 @@ namespace Sen::Kernel::Support::Texture {
 						decompressBlockETC2c(
 							static_cast<unsigned int>(block_part_1),
 							static_cast<unsigned int>(block_part_2),
-							image_block,
+							image_block.get(),
 							k_block_width,
 							k_block_width,
 							k_begin_index,
@@ -389,8 +389,6 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				delete[] image_block;
-				image_block = nullptr;
 				return Image<int>{width, height, data};
 			}
 
@@ -410,7 +408,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = SenBuffer{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto image_block = new uint8_t[pixel_area_rgba(k_block_width, k_block_width)];
+				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
 						auto block_part_1 = sen.readUint32BE();
@@ -418,7 +416,7 @@ namespace Sen::Kernel::Support::Texture {
 						decompressBlockETC2c(
 							static_cast<unsigned int>(block_part_1),
 							static_cast<unsigned int>(block_part_2),
-							image_block,
+							image_block.get(),
 							k_block_width,
 							k_block_width,
 							k_begin_index,
@@ -436,11 +434,9 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				delete[] image_block;
-				image_block = nullptr;
 				auto num = sen.readUint8();
-    			auto index_table = new uint8_t[num == 0 ? 2 : num];
-            	auto bit_depth = int{};
+				auto index_table = std::unique_ptr<uint8_t[]>(new uint8_t[num == 0 ? 2 : num]);
+				auto bit_depth = int{};
 				if(num == 0){
 					index_table[0] = 0x0;
 					index_table[1] = 0xFF;
@@ -466,8 +462,6 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = index_table[readBits(bit_depth, bitPostion, buffer, sen)];
 					}
 				}
-				delete[] index_table;
-				index_table = nullptr;
 				return Image<int>{width, height, data};
 			}
 
@@ -487,7 +481,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = SenBuffer{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
+				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
 				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {
@@ -499,8 +493,6 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = actual_data[block_index].a;
 					}
 				}
-				delete[] actual_data;
-				actual_data = nullptr;
 				return Image<int>{width, height, data};
 			}
 
@@ -520,7 +512,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = SenBuffer{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto actual_data = new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)];
+				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
 				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {
@@ -529,10 +521,9 @@ namespace Sen::Kernel::Support::Texture {
 						data[index] = actual_data[block_index].r;
 						data[index + 1] = actual_data[block_index].g;
 						data[index + 2] = actual_data[block_index].b;
+						data[index + 3] = actual_data[block_index].a;
 					}
 				}
-				delete[] actual_data;
-				actual_data = nullptr;
 
 				// todo
 				return Image<int>{width, height, data};

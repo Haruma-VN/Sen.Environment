@@ -53,8 +53,30 @@ declare namespace Sen {
             export function architecture(): string;
         }
 
+        /**
+         * JavaScript Array Buffer
+         */
+
         declare namespace ArrayBuffer {
+            /**
+             * --------------------------------------------------
+             * JavaScript read file as buffer
+             * @param source - source file
+             * @returns - ArrayBuffer of source file after read
+             * --------------------------------------------------
+             */
+
             export function open(source: string): ArrayBuffer;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript write file as buffer
+             * @param destination - source file
+             * @param data - Array Buffer to write
+             * @returns - undefined
+             * --------------------------------------------------
+             */
+
             export function out(destination: string, data: ArrayBuffer): void;
         }
 

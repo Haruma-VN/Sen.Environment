@@ -143,7 +143,7 @@ namespace Sen::Kernel::Definition {
 
 			auto area(
 
-			) -> T
+			) const -> T
 			{
 				return thiz.width * thiz.height;
 			}
@@ -154,7 +154,7 @@ namespace Sen::Kernel::Definition {
 
 			auto circumference(
 
-			) -> T
+			) const -> T
 			{
 				return thiz.width * 2 + thiz.height * 2;
 			}
