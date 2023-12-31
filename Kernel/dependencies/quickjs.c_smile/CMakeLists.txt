@@ -1,6 +1,6 @@
 project(
-	quickjs # windows.msvc
-	VERSION 0 # none
+	quickjs
+	VERSION 0
 	HOMEPAGE_URL https://github.com/c-smile/quickjspp
 	LANGUAGES C
 )

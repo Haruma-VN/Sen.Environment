@@ -14,6 +14,60 @@ namespace Sen::Kernel::Support::Texture {
 	*/
 
 	class Encode : public PixelColor {
+
+		private:
+
+			/**
+			 * l_8
+			*/
+			
+			inline static auto convert_luminance_from_rgb(
+				unsigned char red,
+				unsigned char green,
+				unsigned char blue
+			) -> unsigned char 
+			{
+				return Encode::round(static_cast<double>(red * 0.299f + green * 0.587f + blue * 0.114f));
+			}
+
+			/**
+			 * la_88
+			*/
+
+			inline static auto convert_luminance_from_rgb(
+				unsigned char red,
+				unsigned char green,
+				unsigned char blue,
+				unsigned char alpha
+			) -> unsigned char 
+			{
+				return Encode::round(static_cast<double>((static_cast<int>(red * 0.299f + green * 0.587f + blue * 0.114f) << 8) | ((alpha))));
+			}
+
+			/**
+			 * la_44
+			*/
+
+			inline static auto convert_luminance_from_rgba(
+				unsigned char red,
+				unsigned char green,
+				unsigned char blue,
+				unsigned char alpha
+			) -> unsigned char 
+			{
+				return Encode::round(static_cast<double>((static_cast<int>(red * 0.299f + green * 0.587f + blue * 0.114f) & 0xF0) | ((alpha) >> 4)));
+			}
+
+			inline static auto round(
+				double a
+			) -> unsigned char
+			{
+				auto k = (int)a;
+				if (k >= 0xFF) {
+					return 0xFF;
+				}
+				return (unsigned char) k;
+			}
 		
 		public:
 
@@ -71,7 +125,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -88,7 +142,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -104,7 +158,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -123,7 +177,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {
@@ -151,7 +205,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {
@@ -178,7 +232,7 @@ namespace Sen::Kernel::Support::Texture {
 				Image<int> & image
 			) -> std::vector<unsigned char>
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto y : Range<int>(0, image.height, 32)) {
 					for (auto x : Range<int>(0, image.width, 32)) {
@@ -219,7 +273,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto destination_size = size / 16;
 				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				for (auto i : Range<int>(destination_size)) {
 					sen.writeUint64LE(destination[i]);
 				}
@@ -248,7 +302,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto destination_size = size / 16;
 				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				for (auto i : Range<int>(destination_size)) {
 					sen.writeUint64LE(destination[i]);
 				}
@@ -256,12 +310,84 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i : Range<uint8_t>(16)) {
 					sen.writeUint8(i);
 				}
-				auto half_area = size / 2;
-				for (auto k = 0; k < half_area; k++) {
-					sen.writeUint8(static_cast<uint8_t>(data[(k << 1) * 4] & 0xF0 | data[((k << 1) | 1) * 4] >> 4));
+				auto half_size = size / 2;
+				for (auto i : Range<int>(half_size)) {
+					sen.writeUint8(static_cast<uint8_t>(data[(i << 1) * 4] & 0xF0 | data[((i << 1) | 1) * 4] >> 4));
 				}
 				if((size & 1) == 1){
-					sen.writeUint8(static_cast<uint8_t>(data[(half_area * 4 << 1)] & 0xF0));
+					sen.writeUint8(static_cast<uint8_t>(data[(half_size * 4 << 1)] & 0xF0));
+				}
+				return sen.get();
+			}
+
+			inline static auto a_8(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4) {
+					sen.writeUint8(data[i + 3]);
+				}
+				return sen.get();
+			}
+
+			inline static auto argb_1555(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4) {
+					sen.writeUint16LE(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
+				}
+				return sen.get();
+			}
+
+			inline static auto argb_4444(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4){
+					sen.writeUint16LE(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
+				}
+				return sen.get();
+			}
+
+			inline static auto l_8(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4){
+					sen.writeUint8(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2]));
+				}
+				return sen.get();
+			}
+
+			inline static auto la_44(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4){
+					sen.writeUint8(Encode::convert_luminance_from_rgba(data[i], data[i + 1], data[i + 2], data[i + 3]));
+				}
+				return sen.get();
+			}
+
+			inline static auto la_88(
+				Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto sen = DataStreamView{};
+				auto data = image.data();
+				for (auto i = 0; i < image.area() * 4; i += 4){
+					sen.writeUint16LE(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
 				}
 				return sen.get();
 			}

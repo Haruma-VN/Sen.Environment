@@ -198,3 +198,8 @@ if(MSVC)
 		JS_STRICT_NAN_BOXING
 	)
 endif()
+
+
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-strict-prototypes")
+endif()

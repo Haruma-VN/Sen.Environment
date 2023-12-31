@@ -1246,4 +1246,6 @@ namespace Sen::Kernel::Definition
     }
 
     using SenBuffer = Sen::Kernel::Definition::Buffer::Stream;
+
+    using DataStreamView = SenBuffer;
 }

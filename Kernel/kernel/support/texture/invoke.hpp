@@ -23,6 +23,14 @@ namespace Sen::Kernel::Support::Texture {
 		RGB_ETC1_A_PALETTE,
 		RGBA_PVRTC_4BPP,
 		RGB_PVRTC_4BPP_A_8,
+		A_8,
+		ARGB_1555,
+		ARGB_4444,
+		RGB_ETC1,
+		L_8,
+		LA_44,
+		LA_88,
+		RGB_PVRTC4,
 	};
 
 	/**
@@ -102,6 +110,30 @@ namespace Sen::Kernel::Support::Texture {
 						ImageIO::write_png(destination, Decode::rgb_pvrtc_4bpp_a_8(source_binary, width, height));
 						break;
 					}
+					case Format::A_8:{
+						ImageIO::write_png(destination, Decode::a_8(source_binary, width, height));
+						break;
+					}
+					case Format::ARGB_1555:{
+						ImageIO::write_png(destination, Decode::argb_1555(source_binary, width, height));
+						break;
+					}
+					case Format::ARGB_4444:{
+						ImageIO::write_png(destination, Decode::argb_4444(source_binary, width, height));
+						break;
+					}
+					case Format::L_8:{
+						ImageIO::write_png(destination, Decode::l_8(source_binary, width, height));
+						break;
+					}
+					case Format::LA_44:{
+						ImageIO::write_png(destination, Decode::la_44(source_binary, width, height));
+						break;
+					}
+					case Format::LA_88:{
+						ImageIO::write_png(destination, Decode::la_88(source_binary, width, height));
+						break;
+					}
 					default:{
 						throw std::runtime_error("Format is not supported");
 					}
@@ -176,6 +208,30 @@ namespace Sen::Kernel::Support::Texture {
 					}
 					case Format::RGB_PVRTC_4BPP_A_8:{
 						result = std::move(Encode::rgba(source_image));
+						break;
+					}
+					case Format::A_8: {
+						result = std::move(Encode::a_8(source_image));
+						break;
+					}
+					case Format::ARGB_1555: {
+						result = std::move(Encode::argb_1555(source_image));
+						break;
+					}
+					case Format::ARGB_4444: {
+						result = std::move(Encode::argb_4444(source_image));
+						break;
+					}
+					case Format::L_8: {
+						result = std::move(Encode::l_8(source_image));
+						break;
+					}
+					case Format::LA_44: {
+						result = std::move(Encode::la_44(source_image));
+						break;
+					}
+					case Format::LA_88: {
+						result = std::move(Encode::la_88(source_image));
 						break;
 					}
 					default:{

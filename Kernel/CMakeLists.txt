@@ -71,13 +71,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 # Pos Independent
 set(CMAKE_POSITION_INDEPENDENT_CODE true)
 
-
-if(ANDROID)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
-    set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
-    set(BUILD_SHARED_LIBS ON)
-endif()
-
 if (MSVC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
 else ()

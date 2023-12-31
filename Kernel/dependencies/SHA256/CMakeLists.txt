@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(SHA256)
+project(
+    SHA256 
+    LANGUAGES CXX
+)
 
 add_library(
     ${PROJECT_NAME} STATIC

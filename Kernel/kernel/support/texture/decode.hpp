@@ -53,7 +53,7 @@ namespace Sen::Kernel::Support::Texture {
 			*/
 
 			inline static auto argb_to_rgba(
-				const std::vector<unsigned char> &color
+				const std::vector<unsigned char> & color
 			) -> std::vector<unsigned char>
 			{
 				auto data = std::vector<unsigned char>();
@@ -74,7 +74,7 @@ namespace Sen::Kernel::Support::Texture {
 			inline static auto readOneBit(
 				int & bitPostion,
 				unsigned char & buffer,
-				SenBuffer & image_bytes
+				DataStreamView & image_bytes
 			) -> int
 			{
 				if (bitPostion == 0)
@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::Texture {
 				int bits,
 				int & bitPostion,
 				unsigned char & buffer,
-				SenBuffer & image_bytes
+				DataStreamView & image_bytes
 			) -> int
 			{
 				auto ans = 0;
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Support::Texture {
 			*/
 			
 			inline static auto rgba_8888(
-				const std::vector<unsigned char> &color,
+				const std::vector<unsigned char> & color,
 				int width,
 				int height
 			) -> Image<int>
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int> 
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -180,7 +180,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -212,7 +212,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
@@ -244,7 +244,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -283,7 +283,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -321,7 +321,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto i : Range<int>(0, height, 32)){
@@ -359,7 +359,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
@@ -405,7 +405,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
@@ -478,7 +478,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
@@ -509,7 +509,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int> 
 			{
-				auto sen = SenBuffer{color};
+				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
@@ -529,6 +529,128 @@ namespace Sen::Kernel::Support::Texture {
 				return Image<int>{width, height, data};
 			}
 
+			inline static auto a_8(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+					data[i] = Decode::NON_ALPHA;
+					data[i + 1] = Decode::NON_ALPHA;
+					data[i + 2] = Decode::NON_ALPHA;
+					data[i + 3] = sen.readUint8();
+				}
+				return Image<int>{width, height, data};
+			}
 
+			inline static auto argb_1555(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+                	auto pixel_color = sen.readUint16LE();
+					auto red = (pixel_color & 0x7C00) >> 10;
+					auto green = (pixel_color & 0x3E0) >> 5;
+					auto blue = pixel_color & 0x1F;
+					data[i] = ((red << 3) | (red >> 2));
+					data[i + 1] = ((green << 3) | (green >> 2));
+					data[i + 2] = ((blue << 3) | (blue >> 2));
+					data[i + 3] = static_cast<unsigned char>(-(pixel_color >> 15));
+				}
+				return Image<int>{width, height, data};
+			}
+
+			inline static auto argb_4444(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+                	auto pixel_color = sen.readUint16LE();
+					auto alpha = pixel_color >> 12;
+					auto red = (pixel_color & 0xF00) >> 8;
+					auto green = (pixel_color & 0xF0) >> 4;
+					auto blue = pixel_color & 0xF;
+					data[i] = (red << 4) | red;
+					data[i + 1] = (green << 4) | green;
+					data[i + 2] = (blue << 4) | blue;
+					data[i + 3] = (alpha << 4) | alpha;
+				}
+				return Image<int>{width, height, data};
+			}
+
+			inline static auto l_8(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+                	auto color = sen.readUint8();
+					data[i] = color;
+					data[i + 1] = color;
+					data[i + 2] = color;
+					data[i + 3] = Decode::NON_ALPHA;
+				}
+				return Image<int>{width, height, data};
+			}
+
+			inline static auto la_44(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+                	auto pixel_color = sen.readUint8();
+					auto alpha = pixel_color & 0xF;
+					pixel_color >>= 4;
+					auto color = (pixel_color | (pixel_color << 4));
+					data[i] = color;
+					data[i + 1] = color;
+					data[i + 2] = color;
+					data[i + 3] = (alpha | (alpha << 4));
+				}
+				return Image<int>{width, height, data};
+			}
+
+			inline static auto la_88(
+				const std::vector<unsigned char> & color,
+				int width,
+				int height
+			) -> Image<int> 
+			{
+				auto sen = DataStreamView{color};
+				auto area = pixel_area_rgba(width, height);
+				auto data = std::vector<unsigned char>(area, 0x00);
+				for (auto i = 0; i < area; i += 4) {
+                	auto pixel_color = sen.readUint16LE();
+					auto color = (pixel_color >> 8);
+					data[i] = color;
+					data[i + 1] = color;
+					data[i + 2] = color;
+					data[i + 3] = (pixel_color & 0xFF);
+				}
+				return Image<int>{width, height, data};
+			}
 	};
 }
