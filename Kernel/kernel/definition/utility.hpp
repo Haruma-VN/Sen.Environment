@@ -4,6 +4,7 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 // basic
+#include "kernel/definition/basic/math.hpp"
 #include "kernel/definition/basic/filesystem.hpp"
 #include "kernel/definition/basic/pointer.hpp"
 #include "kernel/definition/basic/string.hpp"

@@ -11,6 +11,7 @@ add_library(
 	./definition/assert.hpp
 	./definition/basic/filesystem.hpp
 	./definition/basic/string.hpp
+	./definition/basic/math.hpp
 	./definition/basic/path.hpp
 	./definition/basic/pointer.hpp
 	./definition/basic/timer.hpp

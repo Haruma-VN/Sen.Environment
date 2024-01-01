@@ -2513,7 +2513,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				case nlohmann::ordered_json::value_t::object: {
 					auto js_obj = JS_NewObject(context);
-					for (auto &[key, value] : json.items()) {
+					for (auto & [key, value] : json.items()) {
 						JS_DefinePropertyValueStr(context, js_obj, key.c_str(), json_to_js_value(context, value), JS_PROP_C_W_E);
 					}
 					return js_obj;
