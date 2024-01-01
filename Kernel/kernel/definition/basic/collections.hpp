@@ -51,7 +51,7 @@ namespace Sen::Kernel::Collections {
 	) -> std::vector<T>
 	{
 		auto v = std::vector<T>{};
-		for(auto i : Range<size>){
+		for (auto i : Range<size_t>(size)){
 			v.emplace_back(that[i]);
 		}
 		return v;

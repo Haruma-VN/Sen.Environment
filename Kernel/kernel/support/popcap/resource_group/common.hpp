@@ -121,9 +121,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				auto resources_json = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
-					{"slot_count", 0},
-					{"groups", nlohmann::ordered_json::array()}
+					{"slot_count", 0}
 				};
+				auto groups = nlohmann::ordered_json::array_t();
 				for(auto & [parent, parent_value] : content.items()){
 					if(content[parent]["is_composite"]){
 						auto composite_object = nlohmann::ordered_json{
@@ -138,15 +138,16 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							}
 							composite_object["subgroups"].push_back(resource_for_subgroup);
 						}
-						resources_json["groups"].push_back(composite_object);
+						groups.push_back(composite_object);
 					}
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
 						auto resource_content = FileSystem::readJson(resource_json_path);
 						try_assert(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"));
-						resources_json["groups"].push_back(resource_content);
+						groups.push_back(resource_content);
 					}
 				}
+				resources_json["groups"] = groups;
 				BasicConversion::rewrite_slot_count(resources_json);
 				FileSystem::writeJson(fileOutput, resources_json);
 				return;

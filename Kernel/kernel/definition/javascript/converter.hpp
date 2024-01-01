@@ -5,35 +5,11 @@
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/assert.hpp"
 
-namespace Sen::Kernel::Definition::JavaScript {
+namespace Sen::Kernel::Definition::JavaScript::Converter {
 
 	namespace JS = Sen::Kernel::Definition::JavaScript;
 
 	/**
-	 * Convert Quick JS value to C++ Value
-	*/
-
-	struct Converter {
-		
-		public:
-
-			/**
-			 * Constructor
-			*/
-
-			explicit Converter(
-
-			) = default;
-
-			/**
-			 * Destructor
-			*/
-
-			~Converter(
-
-			) = default;
-
-			/**
 			 * JS String to C++ String
 			*/
 
@@ -363,42 +339,14 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * Convert Vector to JS Array
 			*/
 
-			template <typename T>
 			inline static auto to_array(
 				JSContext *ctx, 
-				const std::vector<T> & vec
+				const std::vector<int32_t> & vec
 			) -> JSValue
 			{
 				auto js_array = JS_NewArray(ctx);
-				if constexpr (std::is_same_v<T, int32_t>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewInt32(ctx, vec[i]));
-					}
-				}
-				else if constexpr (std::is_same_v<T, uint32_t>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewUint32(ctx, vec[i]));
-					}
-				}
-				else if constexpr (std::is_same_v<T, uint64_t>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
-					}
-				}
-				else if constexpr (std::is_same_v<T, bool>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBool(ctx, vec[i]));
-					}
-				}
-				else if constexpr (std::is_same_v<T, long long>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, vec[i]));
-					}
-				}
-				else if constexpr (std::is_same_v<T, unsigned long long>::value){
-					for (auto i : Range<size_t>(vec.size())) {
-						JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
-					}
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewInt32(ctx, vec[i]));
 				}
 				return js_array;
 			}
@@ -407,8 +355,71 @@ namespace Sen::Kernel::Definition::JavaScript {
 			 * Convert Vector to JS Array
 			*/
 
-			template <>
-			inline static auto to_array<std::string>(
+			inline static auto to_array(
+				JSContext *ctx, 
+				const std::vector<uint32_t> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewUint32(ctx, vec[i]));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
+				JSContext *ctx, 
+				const std::vector<uint64_t> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigUint64(ctx, vec[i]));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
+				JSContext *ctx, 
+				const std::vector<bool> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewBool(ctx, vec[i]));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
+				JSContext *ctx, 
+				const std::vector<long long> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, vec[i]));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
 				JSContext *ctx, 
 				const std::vector<std::string> & vec
 			) -> JSValue
@@ -481,5 +492,4 @@ namespace Sen::Kernel::Definition::JavaScript {
 				ofs.close();
 				return;
 			}
-	};
 }

@@ -102,15 +102,12 @@ else ()
 endif ()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	target_compile_definitions(
-		${PROJECT_NAME} PRIVATE MSVC_COMPILER = 1
-	)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MSVC_COMPILER)
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	target_compile_definitions(
-		${PROJECT_NAME} PRIVATE CLANG_COMPILER = 1
-	)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE CLANG_COMPILER)
 endif()
+
 
 
 target_compile_definitions( 

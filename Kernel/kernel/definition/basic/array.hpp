@@ -212,7 +212,7 @@ namespace Sen::Kernel {
 				std::function<bool(T& e, size_t index)> method
 			) -> bool
 			{
-				for(auto & i : Range<size_t>(thiz.size())){
+				for(auto i : Range<size_t>(thiz.size())){
 					if(!method(thiz[i], i)){
 						return false;
 					}
