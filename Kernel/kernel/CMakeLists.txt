@@ -34,6 +34,7 @@ add_library(
 	./definition/compression/bzip2.hpp
 	./definition/javascript/converter.hpp
 	./definition/javascript/runtime.hpp
+	./definition/diff/vcdiff.hpp
 
 	./dependencies/fmt.hpp
 	./dependencies/json.hpp

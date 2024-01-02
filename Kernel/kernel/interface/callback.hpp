@@ -133,7 +133,15 @@ namespace Sen::Kernel::Interface {
 				}
 				// home
 				{
+					// script path
 					javascript->add_constant(Path::toPosixStyle(script_path), std::string{"Sen"}, std::string{"Kernel"} , std::string{"Home"}, std::string{"script"});
+				}
+				// vcdiff
+				{
+					// encode fs
+					javascript->add_constant(Script::Diff::VCDiff::encode_fs, std::string{"Sen"}, std::string{"Kernel"} , std::string{"Diff"}, std::string{"VCDiff"}, std::string{"encode_fs"});
+					// decode fs
+					javascript->add_constant(Script::Diff::VCDiff::decode_fs, std::string{"Sen"}, std::string{"Kernel"} , std::string{"Diff"}, std::string{"VCDiff"}, std::string{"decode_fs"});
 				}
 				// file system
 				{

@@ -69,6 +69,60 @@ namespace Sen::Kernel::Interface::Script {
 	}
 
 	/**
+	 * Diff namespace
+	*/
+
+	namespace Diff {
+
+		/**
+		 * VCDiff interface
+		*/
+
+		namespace VCDiff {
+			
+
+			inline static auto encode_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+				auto before_file = JS_ToCString(context, argv[0]);
+				auto after_file = JS_ToCString(context, argv[1]);
+				auto patch_file = JS_ToCString(context, argv[2]);
+				auto flag = JS::Converter::get_int32(context, argv[3]);
+				Sen::Kernel::Definition::Diff::VCDiff::encode_fs(before_file, after_file, patch_file, static_cast<Sen::Kernel::Definition::Diff::VCDiff::Flag>(flag));
+				JS_FreeCString(context, before_file);
+				JS_FreeCString(context, after_file);
+				JS_FreeCString(context, patch_file);
+				return JS::Converter::get_undefined();
+			}
+
+			inline static auto decode_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto before_file = JS_ToCString(context, argv[0]);
+				auto patch_file = JS_ToCString(context, argv[1]);
+				auto after_file = JS_ToCString(context, argv[2]);
+				Sen::Kernel::Definition::Diff::VCDiff::decode_fs(before_file, after_file, patch_file);
+				JS_FreeCString(context, before_file);
+				JS_FreeCString(context, patch_file);
+				JS_FreeCString(context, after_file);
+				return JS::Converter::get_undefined();
+			}
+
+		}
+
+	}
+
+	/**
 	 * Operating System
 	*/
 
