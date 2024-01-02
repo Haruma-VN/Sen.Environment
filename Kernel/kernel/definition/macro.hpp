@@ -25,3 +25,11 @@
 #endif
 
 #define calculate_area(width, height) width * height
+
+#if WINDOWS
+#include <windows.h>
+#endif
+
+#if APPLE
+#include <Carbon/Carbon.h>
+#endif

@@ -18,10 +18,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto head_info = read_head(sen);
                 // test rsb unpack
                 FileSystem::createDirectory(folder_out);
-                auto composite_number = head_info["composite_number"].get<UINT32>();
-                auto composite_begin = head_info["composite_info_begin"].get<UINT32>();
-                auto rsg_info_each_length = head_info["rsg_info_each_length"].get<UINT32>();
-                auto composite_size = head_info["composite_info_each_length"].get<UINT32>() * composite_number;
+                auto composite_number = head_info["composite_number"].get<unsigned int>();
+                auto composite_begin = head_info["composite_info_begin"].get<unsigned int>();
+                auto rsg_info_each_length = head_info["rsg_info_each_length"].get<unsigned int>();
+                auto composite_size = head_info["composite_info_each_length"].get<unsigned int>() * composite_number;
                 for (auto i = 0; i < composite_size; i += composite_number) {
                     auto this_pos = composite_begin + i;
                     sen.changePosition(this_pos);

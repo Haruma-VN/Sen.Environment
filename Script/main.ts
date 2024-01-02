@@ -106,18 +106,19 @@ namespace Sen.Script {
     export function launch(): string {
         let result: string = undefined!;
         try {
-            const before: number = Sen.Kernel.Thread.now();
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
             Sen.Script.Setting.load();
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
+            const before: number = Sen.Kernel.Thread.now();
+            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.rton", "D:/test/RESOURCES.json");
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get("runtime_error")}: `;
             result += e.message;
-            result += "\n";
+            result += "/n";
             result += e.stack;
         }
         return result;
