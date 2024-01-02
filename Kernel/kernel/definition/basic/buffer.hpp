@@ -17,9 +17,9 @@ namespace Sen::Kernel::Definition
         struct Stream {
 
             private:
-                std::vector<std::uint8_t> data;
+                std::vector<std::uint8_t> mutable data;
 
-                std::size_t position;
+                std::size_t mutable position;
 
             public:
                 Stream() : position(
@@ -76,25 +76,29 @@ namespace Sen::Kernel::Definition
 
                 inline auto get(
 
-                    ) -> std::vector<std::uint8_t>
+                ) const -> std::vector<std::uint8_t>
                 {
                     return this->data;
                 }
 
-                inline auto get_pos() -> size_t
+                inline auto get_pos(
+
+                ) const -> size_t
                 {
                     return this->position;
                 }
 
                 inline auto writeUint8(
-                    std::uint8_t value) -> void
+                    std::uint8_t value
+                ) const -> void
                 {
                     this->writeLE<std::uint8_t>(value);
                     return;
                 }
 
-                auto static reverseEndian(
-                    uint32_t num) -> uint32_t
+                inline auto static reverseEndian(
+                    uint32_t num
+                ) -> uint32_t
                 {
                     uint32_t byte0, byte1, byte2, byte3;
 
@@ -107,7 +111,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto changePosition(
-                    std::size_t pos) -> void
+                    std::size_t pos
+                ) const -> void
                 {
                     if (pos >= 0 && pos <= data.size())
                     {
@@ -119,7 +124,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto appendPosition(std::size_t pos) -> void 
+                inline auto appendPosition(
+                    std::size_t pos
+                ) const -> void 
                 {
                     auto new_pos = this->position + pos;
                     changePosition(new_pos);
@@ -127,28 +134,32 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeUint16LE(
-                    std::uint16_t value) -> void
+                    std::uint16_t value
+                ) const -> void
                 {
                     this->writeLE<std::uint16_t>(value);
                     return;
                 }
 
                 inline auto writeUint32LE(
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->writeLE<std::uint32_t>(value);
                     return;
                 }
 
                 inline auto writeUint64LE(
-                    std::uint64_t value) -> void
+                    std::uint64_t value
+                ) const -> void
                 {
                     this->writeLE<std::uint64_t>(value);
                     return;
                 }
 
                 inline auto outFile(
-                    const std::string &path) -> void
+                    const std::string &path
+                ) const -> void
                 {
                     auto filePath = std::filesystem::path(path);
                     if (filePath.has_parent_path())
@@ -168,56 +179,64 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeInt8(
-                    std::int8_t value) -> void
+                    std::int8_t value
+                ) const -> void
                 {
                     this->writeLE<std::int8_t>(value);
                     return;
                 }
 
                 inline auto writeInt16LE(
-                    std::int16_t value) -> void
+                    std::int16_t value
+                ) const -> void
                 {
                     this->writeLE<std::int16_t>(value);
                     return;
                 }
 
                 inline auto writeInt32LE(
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->writeLE<std::int32_t>(value);
                     return;
                 }
 
                 inline auto writeInt64LE(
-                    std::int64_t value) -> void
+                    std::int64_t value
+                ) const -> void
                 {
                     this->writeLE<std::int64_t>(value);
                     return;
                 }
 
                 inline auto writeUint16BE(
-                    std::uint16_t value) -> void
+                    std::uint16_t value
+                ) const -> void
                 {
                     this->writeBE<std::uint16_t>(value);
                     return;
                 }
 
                 inline auto writeUint32BE(
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->writeBE<std::uint32_t>(value);
                     return;
                 }
 
                 inline auto writeUint64BE(
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->writeBE<std::uint64_t>(value);
                     return;
                 }
 
                 inline auto writeInt16BE(
-                    std::int16_t value) -> void
+                    std::int16_t value
+                ) const -> void
                 {
                     this->writeBE<std::int16_t>(value);
                     return;
@@ -239,138 +258,140 @@ namespace Sen::Kernel::Definition
 
                 inline auto size(
 
-                    ) -> std::size_t
+                ) const -> std::size_t
                 {
                     return this->data.size();
                 }
 
                 inline auto toBytes(
 
-                    ) -> std::uint8_t *
+                ) const -> std::uint8_t *
                 {
                     return this->data.data();
                 }
 
                 inline auto readUint8(
 
-                    ) -> std::uint8_t
+                ) const -> std::uint8_t
                 {
                     return this->readLE<std::uint8_t>();
                 }
 
                 inline auto readUint16LE(
 
-                    ) -> std::uint16_t
+                ) const -> std::uint16_t
                 {
                     return this->readLE<std::uint16_t>();
                 }
 
                 inline auto readUint32LE(
 
-                    ) -> std::uint32_t
+                ) const -> std::uint32_t
                 {
                     return this->readLE<std::uint32_t>();
                 }
 
                 inline auto readUint64LE(
 
-                    ) -> std::uint64_t
+                ) const -> std::uint64_t
                 {
                     return this->readLE<std::uint64_t>();
                 }
 
                 inline auto readInt8(
 
-                    ) -> std::int8_t
+                ) const -> std::int8_t
                 {
                     return this->readLE<std::int8_t>();
                 }
 
                 inline auto readInt16LE(
 
-                    ) -> std::int16_t
+                ) const -> std::int16_t
                 {
                     return this->readLE<std::int16_t>();
                 }
 
                 inline auto readInt32LE(
 
-                    ) -> std::int32_t
+                ) const -> std::int32_t
                 {
                     return this->readLE<std::int32_t>();
                 }
 
                 inline auto readInt64LE(
 
-                    ) -> std::int64_t
+                ) const -> std::int64_t
                 {
                     return this->readLE<std::int64_t>();
                 }
 
                 inline auto readUint16BE(
 
-                    ) -> std::uint16_t
+                ) const -> std::uint16_t
                 {
                     return this->readBE<std::uint16_t>();
                 }
 
                 inline auto readUint32BE(
 
-                    ) -> std::uint32_t
+                ) const -> std::uint32_t
                 {
                     return this->readBE<std::uint32_t>();
                 }
 
                 inline auto readUint64BE(
 
-                    ) -> std::uint64_t
+                ) const -> std::uint64_t
                 {
                     return this->readBE<std::uint64_t>();
                 }
 
                 inline auto readInt16BE(
 
-                    ) -> std::int16_t
+                ) const -> std::int16_t
                 {
                     return this->readBE<std::int16_t>();
                 }
 
                 inline auto readInt32BE(
 
-                    ) -> std::int32_t
+                ) const -> std::int32_t
                 {
                     return this->readBE<std::int32_t>();
                 }
 
                 inline auto readInt64BE(
 
-                    ) -> std::int64_t
+                ) const -> std::int64_t
                 {
                     return this->readBE<std::int64_t>();
                 }
                 
                 inline auto readBoolean(
 
-                    ) -> bool
+                ) const -> bool
                 {
                     return this->readInt8() == 0x01;
                 }
 
                 inline auto readString(
-                    std::size_t size) -> std::string
+                    std::size_t size
+                ) const -> std::string
                 {
-                    std::string c = "";
+                    auto c = std::string{};
                     for (auto i = 0; i < size; ++i)
                     {
-                        c += (char)this->readInt8();
+                        c.push_back((char)this->readInt8());
                     }
                     return c;
                 }
 
                 inline auto writeString(
-                    std::string str) -> void
+                    const std::string & str
+                ) const -> void
                 {
-                    for (auto &c : str)
+                    for (auto & c : str)
                     {
                         this->writeInt8((int)c);
                     }
@@ -378,10 +399,9 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto getBytes(
-                    size_t from,
-                    size_t to
-
-                    ) -> uint8_t *
+                    const size_t & from,
+                    const size_t & to
+                ) const -> uint8_t *
                 {
                     auto c = std::vector<uint8_t>{};
                     for (auto i = from; i <= to; i++)
@@ -392,10 +412,10 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto get_raw(
-                    size_t from,
-                    size_t to
+                    const size_t & from,
+                    const size_t & to
 
-                    ) -> std::vector<uint8_t>
+                ) const -> std::vector<uint8_t>
                 {
                     if (from < 0 || to > thiz.data.size())
                     {
@@ -406,13 +426,15 @@ namespace Sen::Kernel::Definition
 
                 inline auto cut_buffer(
                     size_t from,
-                    size_t to) -> Stream
+                    size_t to
+                ) const -> Stream
                 {
                     return Stream{this->get_raw(from, to)};
                 }
 
                 inline auto writeBoolean(
-                    bool val) -> void
+                    bool val
+                ) const -> void
                 {
                     if (val)
                     {
@@ -426,28 +448,32 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeUint24LE(
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->writeLE_has<std::uint32_t>(value, 3);
                     return;
                 }
 
                 inline auto writeInt24LE(
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->writeLE_has<std::int32_t>(value, 3);
                     return;
                 }
 
                 inline auto writeUint24BE(
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->writeBE_has<std::uint32_t>(value, 3);
                     return;
                 }
 
                 inline auto writeInt24BE(
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->writeBE_has<std::int32_t>(value, 3);
                     return;
@@ -455,35 +481,35 @@ namespace Sen::Kernel::Definition
 
                 inline auto readUint24LE(
 
-                    ) -> std::uint32_t
+                ) const -> std::uint32_t
                 {
                     return this->readLE_has<std::uint32_t>(3);
                 }
 
                 inline auto readInt24LE(
 
-                    ) -> std::int32_t
+                ) const -> std::int32_t
                 {
                     return this->readLE_has<std::int32_t>(3);
                 }
 
                 inline auto readUint24BE(
 
-                    ) -> std::uint32_t
+                ) const -> std::uint32_t
                 {
                     return this->readBE_has<std::uint32_t>(3);
                 }
 
                 inline auto readInt24BE(
 
-                    ) -> std::int32_t
+                ) const -> std::int32_t
                 {
                     return this->readBE_has<std::int32_t>(3);
                 }
 
                 inline auto flush(
 
-                    ) -> void
+                ) const -> void
                 {
                     this->position = 0;
                     return;
@@ -491,7 +517,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto close(
 
-                    ) -> void
+                ) const -> void
                 {
                     this->data.clear();
                     this->position = 0;
@@ -499,7 +525,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeFloatLE(
-                    float value) -> void
+                    float value
+                ) const -> void
                 {
                     this->writeBytesLE(
                         reinterpret_cast<std::uint8_t *>(&value),
@@ -508,7 +535,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeDoubleLE(
-                    double value) -> void
+                    double value
+                ) const -> void
                 {
                     this->writeBytesLE(
                         reinterpret_cast<std::uint8_t *>(&value),
@@ -517,7 +545,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeFloatBE(
-                    float value) -> void
+                    float value
+                ) const -> void
                 {
                     this->writeBytesBE(
                         reinterpret_cast<std::uint8_t *>(&value),
@@ -526,7 +555,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeDoubleBE(
-                    double value) -> void
+                    double value
+                ) const -> void
                 {
                     this->writeBytesBE(
                         reinterpret_cast<std::uint8_t *>(&value),
@@ -536,7 +566,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readFloatLE(
 
-                    ) -> float
+                ) const -> float
                 {
                     return this->readBytesLE<float>(
                         sizeof(float));
@@ -544,7 +574,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readDoubleLE(
 
-                    ) -> double
+                ) const -> double
                 {
                     return this->readBytesLE<double>(
                         sizeof(double));
@@ -552,7 +582,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readFloatBE(
 
-                    ) -> float
+                ) const -> float
                 {
                     return this->readBytesBE<float>(
                         sizeof(float));
@@ -560,14 +590,15 @@ namespace Sen::Kernel::Definition
 
                 inline auto readDoubleBE(
 
-                    ) -> double
+                ) const -> double
                 {
                     return this->readBytesBE<double>(
                         sizeof(double));
                 }
 
                 inline auto writeChar(
-                    char value) -> void
+                    char value
+                ) const -> void
                 {
                     this->data.push_back(
                         static_cast<std::uint8_t>(value));
@@ -576,7 +607,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readChar(
 
-                    ) -> char
+                ) const -> char
                 {
                     auto value = static_cast<char>(
                         this->data[this->position]);
@@ -584,7 +615,9 @@ namespace Sen::Kernel::Definition
                     return value;
                 }
 
-                inline auto readVarInt32() -> std::int32_t
+                inline auto readVarInt32(
+
+                ) const -> std::int32_t
                 {
                     auto num = 0;
                     auto num_2 = 0;
@@ -600,7 +633,9 @@ namespace Sen::Kernel::Definition
                     return num;
                 }
 
-                inline auto writeVarInt32(std::int32_t value) -> void
+                inline auto writeVarInt32(
+                    std::int32_t value
+                ) const -> void
                 {
                     auto num = 0;
                     for (num = (uint32_t)value; num >= 128; num >>= 7)
@@ -611,7 +646,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeVarInt64(std::int32_t value) -> void
+                inline auto writeVarInt64(
+                    std::int32_t value
+                ) const -> void
                 {
                     auto num = 0;
                     for (num = (uint32_t)value; num >= 128; num >>= 7)
@@ -622,7 +659,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto readVarInt64() -> std::int64_t
+                inline auto readVarInt64(
+
+                ) const -> std::int64_t
                 {
                     auto num = 0;
                     auto num_2 = 0;
@@ -638,18 +677,23 @@ namespace Sen::Kernel::Definition
                     return num;
                 }
 
-                inline auto readVarUInt32() -> std::uint32_t
+                inline auto readVarUInt32(
+
+                ) const -> std::uint32_t
                 {
                     return (uint32_t)this->readVarInt32();
                 }
 
-                inline auto readVarUInt64() -> std::uint64_t
+                inline auto readVarUInt64(
+
+                ) const -> std::uint64_t
                 {
                     return (uint64_t)this->readVarInt64();
                 }
 
                 inline auto writeZigZag32(
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     auto zigzagEncoded = (std::uint32_t)((value << 1) ^ (value >> 31));
                     this->writeVarInt32(zigzagEncoded);
@@ -658,7 +702,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readZigZag32(
 
-                    ) -> std::int32_t
+                ) const -> std::int32_t
                 {
                     auto zigzagEncoded = this->readVarUInt32();
                     auto decoded = (std::int32_t)((zigzagEncoded >> 1) ^ -(zigzagEncoded & 1));
@@ -666,7 +710,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeZigZag64(
-                    std::int64_t value) -> void
+                    std::int64_t value
+                ) const -> void
                 {
                     auto zigzagEncoded = (std::uint64_t)((value << 1) ^ (value >> 63));
                     this->writeVarInt64(zigzagEncoded);
@@ -675,7 +720,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readZigZag64(
 
-                    ) -> std::int64_t
+                ) const -> std::int64_t
                 {
                     auto zigzagEncoded = (std::uint64_t)this->readVarUInt64();
                     auto decoded = (std::int64_t)((zigzagEncoded >> 1) ^ -(zigzagEncoded & 1));
@@ -684,42 +729,42 @@ namespace Sen::Kernel::Definition
 
                 inline auto readStringByUInt8(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readUint8());
                 }
 
                 inline auto readStringByInt8(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readInt8());
                 }
 
                 inline auto readStringByUInt16(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readUint16LE());
                 }
 
                 inline auto readStringByInt16(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readInt16LE());
                 }
 
                 inline auto readStringByUInt32(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readUint32LE());
                 }
 
                 inline auto readStringByInt32(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readInt32LE());
                 }
@@ -747,7 +792,8 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeStringByEmpty(
-                    std::string str) -> void
+                    const std::string & str
+                ) -> void
                 {
                     if (str.empty())
                     {
@@ -759,7 +805,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeNull(std::size_t size) -> void
+                inline auto writeNull(
+                    std::size_t size
+                ) const -> void
                 {
                     if (size < 0)
                         throw std::runtime_error("Invaild size");
@@ -770,9 +818,11 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringFourByte(std::string str) -> void
+                inline auto writeStringFourByte(
+                    const std::string & str
+                ) const -> void
                 {
-                    for (auto &c : str)
+                    for (auto & c : str)
                     {
                         this->writeUint8((uint8_t)c);
                         this->writeUint24LE(0);
@@ -780,7 +830,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByUInt8(std::string str) -> void
+                inline auto writeStringByUInt8(
+                    const std::string &str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -792,7 +844,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByInt8(std::string str) -> void
+                inline auto writeStringByInt8(
+                    const std::string & str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -804,7 +858,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByUInt16(std::string str) -> void
+                inline auto writeStringByUInt16(
+                    const std::string & str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -816,7 +872,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByInt16(std::string str) -> void
+                inline auto writeStringByInt16(
+                    const std::string & str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -828,7 +886,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByUInt32(std::string str) -> void
+                inline auto writeStringByUInt32(
+                    const std::string & str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -840,7 +900,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByInt32(std::string str) -> void
+                inline auto writeStringByInt32(
+                    const std::string &str
+                ) -> void
                 {
                     if (str.empty())
                     {
@@ -852,7 +914,9 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByVarInt32(std::string str) -> void
+                inline auto writeStringByVarInt32(
+                    const std::string & str
+                ) -> void
                 {
                     if (str.empty())
                     {
@@ -865,56 +929,65 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto peekUInt8(
-                    std::size_t offset) -> std::uint8_t
+                    std::size_t offset
+                ) const -> std::uint8_t
                 {
                     return this->data[offset];
                 }
 
                 inline auto peekUInt16(
-                    std::size_t offset) -> std::uint16_t
+                    std::size_t offset
+                ) const -> std::uint16_t
                 {
                     return (this->data[offset] | (this->data[offset + 1] << 8));
                 }
 
                 inline auto peekUInt24(
-                    std::size_t offset) -> std::uint32_t
+                    std::size_t offset
+                ) const -> std::uint32_t
                 {
                     return (this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16));
                 }
 
                 inline auto peekUInt32(
-                    std::size_t offset) -> std::uint32_t
+                    std::size_t offset
+                ) const -> std::uint32_t
                 {
                     return (this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16) | (this->data[offset + 3] << 24));
                 }
 
                 inline auto peekInt8(
-                    std::size_t offset) -> std::int8_t
+                    std::size_t offset
+                ) const -> std::int8_t
                 {
                     return static_cast<std::int8_t>(this->data[offset]);
                 }
 
                 inline auto peekInt16(
-                    std::size_t offset) -> std::int16_t
+                    std::size_t offset
+                ) const -> std::int16_t
                 {
                     return static_cast<std::int16_t>(this->data[offset] | (this->data[offset + 1] << 8));
                 }
 
                 inline auto peekInt24(
-                    std::size_t offset) -> std::int32_t
+                    std::size_t offset
+                ) const -> std::int32_t
                 {
                     return static_cast<std::int32_t>(this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16));
                 }
 
                 inline auto peekInt32(
-                    std::size_t offset) -> std::int32_t
+                    std::size_t offset
+                ) const -> std::int32_t
                 {
                     return static_cast<std::int32_t>(this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16) | (this->data[offset + 3] << 24));
                 }
 
                 inline auto peekString(
                     std::size_t offset,
-                    std::size_t size) -> std::string
+                    std::size_t size
+                ) const -> std::string
                 {
                     auto str = std::string{};
                     str.reserve(size);
@@ -926,14 +999,16 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto peekChar(
-                    std::size_t offset) -> char
+                    std::size_t offset
+                ) const -> char
                 {
                     return static_cast<char>(this->data[offset]);
                 }
 
                 inline auto insertUInt16BE(
                     std::size_t offset,
-                    std::uint16_t value) -> void
+                    std::uint16_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 8) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, value & 0xFF);
@@ -942,7 +1017,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertUInt32BE(
                     std::size_t offset,
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 24) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 16) & 0xFF);
@@ -953,7 +1029,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertInt16BE(
                     std::size_t offset,
-                    std::int16_t value) -> void
+                    std::int16_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 8) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, value & 0xFF);
@@ -962,7 +1039,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertInt32BE(
                     std::size_t offset,
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 24) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 16) & 0xFF);
@@ -973,7 +1051,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertUInt16LE(
                     std::size_t offset,
-                    std::uint16_t value) -> void
+                    std::uint16_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, value & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -982,7 +1061,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertUInt32LE(
                     std::size_t offset,
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, value & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -993,7 +1073,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertInt16LE(
                     std::size_t offset,
-                    std::int16_t value) -> void
+                    std::int16_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, value & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -1002,7 +1083,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertInt32LE(
                     std::size_t offset,
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, value & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -1013,14 +1095,15 @@ namespace Sen::Kernel::Definition
 
                 inline auto operator[](
                     size_t position
-                ) -> uint8_t &
+                ) const -> uint8_t &
                 {
                     return this->data.at(position);
                 }
 
                 inline auto insertString(
                     std::size_t offset,
-                    const std::string &str) -> void
+                    const std::string &str
+                ) const -> void
                 {
                     this->data.insert(
                         this->data.begin() + offset,
@@ -1031,7 +1114,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertChar(
                     std::size_t offset,
-                    char c) -> void
+                    char c
+                ) const -> void
                 {
                     this->data.insert(
                         this->data.begin() + offset,
@@ -1041,7 +1125,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertUInt24BE(
                     std::size_t offset,
-                    std::uint32_t value) -> void
+                    std::uint32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 16) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -1051,7 +1136,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto insertInt24BE(
                     std::size_t offset,
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->data.insert(this->data.begin() + offset, (value >> 16) & 0xFF);
                     this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
@@ -1059,7 +1145,7 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                static auto fromString(
+                inline static auto fromString(
                     const std::string & it
                 ) -> Buffer::Stream
                 {
@@ -1068,10 +1154,10 @@ namespace Sen::Kernel::Definition
 
                 inline auto toString(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     auto c = std::string{};
-                    for (auto &p : this->data)
+                    for (auto & p : this->data)
                     {
                         c.push_back((char)p);
                     }
@@ -1082,7 +1168,7 @@ namespace Sen::Kernel::Definition
                     requires CharacterOnView<T>
                 inline auto append(
                     const std::vector<T> & m_data
-                ) -> void
+                ) const -> void
                 {
                     this->data.insert(this->data.end(), m_data.begin(), m_data.end());
                     return;
@@ -1090,7 +1176,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto move(
                     const std::vector<uint8_t> & data
-                ) -> void
+                ) const -> void
                 {
                     std::move(data.begin(), data.end(), this->data.end());
                     return;
@@ -1098,7 +1184,7 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto writeLE(
-                    T value) -> void
+                    T value) const -> void
                 {
                     auto size = sizeof(T);
                     for (auto i = 0; i < size; i++)
@@ -1110,7 +1196,7 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto writeBE(
-                    T value) -> void
+                    T value) const -> void
                 {
                     auto size = sizeof(T);
                     for (auto i = 0; i < size; i++)
@@ -1123,7 +1209,7 @@ namespace Sen::Kernel::Definition
                 template <typename T>
                 inline auto readLE(
 
-                    ) -> T
+                ) const -> T
                 {
                     T value = 0;
                     auto size = sizeof(T);
@@ -1137,7 +1223,7 @@ namespace Sen::Kernel::Definition
                 template <typename T>
                 inline auto readBE(
 
-                    ) -> T
+                    ) const -> T
                 {
                     T value = 0;
                     auto size = sizeof(T);
@@ -1151,7 +1237,7 @@ namespace Sen::Kernel::Definition
                 template <typename T>
                 inline auto writeLE_has(
                     T value,
-                    std::size_t size = sizeof(T)) -> void
+                    std::size_t size = sizeof(T)) const -> void
                 {
                     for (auto i = 0; i < size; i++)
                     {
@@ -1163,7 +1249,7 @@ namespace Sen::Kernel::Definition
                 template <typename T>
                 inline auto writeBE_has(
                     T value,
-                    std::size_t size = sizeof(T)) -> void
+                    std::size_t size = sizeof(T)) const -> void
                 {
                     for (auto i = 0; i < size; i++)
                     {
@@ -1174,7 +1260,7 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto readLE_has(
-                    std::size_t size = sizeof(T)) -> T
+                    std::size_t size = sizeof(T)) const -> T
                 {
                     T value = 0;
                     for (auto i = 0; i < size; i++)
@@ -1187,7 +1273,7 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto readBE_has(
-                    std::size_t size = sizeof(T)) -> T
+                    std::size_t size = sizeof(T)) const -> T
                 {
                     T value = 0;
                     for (auto i = 0; i < size; i++)
@@ -1200,7 +1286,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto writeBytesLE(
                     std::uint8_t *bytes,
-                    std::size_t size) -> void
+                    std::size_t size
+                ) const -> void
                 {
                     for (auto i = 0; i < size; i++)
                     {
@@ -1211,7 +1298,8 @@ namespace Sen::Kernel::Definition
 
                 inline auto writeBytesBE(
                     std::uint8_t *bytes,
-                    std::size_t size) -> void
+                    std::size_t size
+                ) const -> void
                 {
                     for (auto i = 0; i < size; i++)
                     {
@@ -1222,7 +1310,8 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto readBytesLE(
-                    std::size_t size) -> T
+                    std::size_t size
+                ) const -> T
                 {
                     auto value = T{};
                     std::memcpy(&value, &this->data[this->position], size);
@@ -1232,7 +1321,8 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto readBytesBE(
-                    std::size_t size) -> T
+                    std::size_t size
+                ) const -> T
                 {
                     auto value = T{};
                     for (auto i = 0; i < size; i++)

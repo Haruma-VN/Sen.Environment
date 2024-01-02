@@ -26,7 +26,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * read enumeration
 			*/
 
-			auto read_enumeration(
+			inline auto read_enumeration(
 
 			) -> uint8_t
 			{
@@ -37,7 +37,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * read boolean
 			*/
 
-			auto read_boolean(
+			inline auto read_boolean(
 
 			) -> bool
 			{
@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * read integer
 			*/
 
-			auto read_integer(
+			inline auto read_integer(
 
 			) -> int
 			{
@@ -73,7 +73,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * read string
 			*/
 
-			auto read_string(
+			inline auto read_string(
 
 			) -> std::string
 			{
@@ -86,7 +86,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * Process method
 			*/
 
-			auto process(
+			inline auto process(
 
 			) -> nlohmann::ordered_json
 			{
@@ -294,7 +294,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * return: the decoded newton file
 			*/
 
-			static auto process_fs (
+			inline static auto process_fs (
 				const std::string & source,
 				const std::string & destination
 			) -> void
