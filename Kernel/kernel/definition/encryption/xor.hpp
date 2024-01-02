@@ -38,7 +38,7 @@ namespace Sen::Kernel::Definition::Encryption::XOR
 		const char* & key
 	) -> void
 	{
-		FileSystem::writeFile(destination, XOR::encrypt(FileSystem::readFile(source), key));
+		FileSystem::write_file(destination, XOR::encrypt(FileSystem::read_file(source), key));
 		return;
 	}
 	

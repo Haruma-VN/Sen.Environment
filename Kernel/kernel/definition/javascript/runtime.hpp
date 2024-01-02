@@ -106,7 +106,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				const std::string & source
 			) -> JSValue
 			{
-				return thiz.evaluate(FileSystem::readFile(source), source);
+				return thiz.evaluate(FileSystem::read_file(source), source);
 			}
 
 			/**

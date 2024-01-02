@@ -41,7 +41,7 @@ namespace Sen::Kernel::Definition::Encryption::MD5
 		const std::string & source
 	) -> std::string
 	{
-		auto str = FileSystem::readFile(source);
+		auto str = FileSystem::read_file(source);
 		auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
 		return result;
 	}

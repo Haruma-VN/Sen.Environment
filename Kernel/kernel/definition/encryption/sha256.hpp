@@ -41,7 +41,7 @@ namespace Sen::Kernel::Definition::Encryption::SHA256
 		const std::string & source
 	) -> std::string
 	{
-		return SHA256::hash(FileSystem::readFile(source));
+		return SHA256::hash(FileSystem::read_file(source));
 	}
 
 

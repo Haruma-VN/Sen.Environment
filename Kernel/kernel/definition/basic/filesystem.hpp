@@ -11,68 +11,53 @@ namespace Sen::Kernel::FileSystem
 	template <typename T>
 	concept CharacterBufferView = std::is_same_v<T, char> || std::is_same_v<T, unsigned char>;
 
-	// ifstream is using without namespace std
-
-	using std::ifstream;
-
-	// ofstream is using without namespace std
-
-	using std::ofstream;
-
-	// string is using without namespace std
-
-	using std::string;
-
-	// string stream is buffer
-
-	using std::stringstream;
-
 	// give file path to open
 	// return: the file data as string
 
-	inline auto readFile(
-		const string &filepath
-	) -> string const
+	inline static auto read_file(
+		const std::string & filepath
+	) -> std::string
 	{
-		auto file = ifstream{};
-		file.open(filepath);
-		try_assert(!file.fail(), fmt::format("Could not open file: {}", filepath));
-		auto buffer = stringstream{};
-		buffer << file.rdbuf();
-		auto s = buffer.str();
-		file.close();
-		return s;
-	}	
+        std::ifstream file(filepath);
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filepath);
+        }
+        auto buffer = std::stringstream{};
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
 
 
 	// path: file path to open
 	// content: content to write
 	// return: the file has been written
 
-	inline auto writeFile(
-		const string &filepath, 
-		const string &content
+	inline static auto write_file(
+		const std::string &filepath, 
+		const std::string &content
 	) -> void 
 	{
-		auto file = ofstream(filepath);
+		auto file = std::ofstream(filepath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filepath);
+        }
 		file << content;
 		file.close();
 		return;
 	}
 
-	// using namespace nlohmann -> ignore nlohmann::
-	
-	using namespace nlohmann;
-
 	// Provide file path to read json
 	// return: if the json is valid, the json data will be parsed as object
 
-	inline auto readJson(
-		const string &filePath
-	) -> json const
+	inline static auto readJson(
+		const std::string &filePath
+	) -> nlohmann::ordered_json const
 	{
-		auto file = ifstream(filePath);
-		auto jsonData = json::parse(file);
+		auto file = std::ifstream(filePath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+		auto jsonData = nlohmann::ordered_json::parse(file);
 		file.close();
 		return jsonData;
 	}
@@ -81,12 +66,17 @@ namespace Sen::Kernel::FileSystem
 	// Provide json content to serialize & write
 	// return: writed json content
 
-	inline auto writeJson(
-		const string &filePath,
-		const json &content
+	inline static auto write_json(
+		const std::string & filePath,
+		const nlohmann::ordered_json & content
 	) -> void
 	{
-		writeFile(filePath, content.dump(1, '\t'));
+		auto file = std::ofstream(filePath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+		file << content.dump(1, '\t');
+		file.close();
 		return;
 	}
 
@@ -96,14 +86,19 @@ namespace Sen::Kernel::FileSystem
 	// indent_char: indentation in segment line
 	// return: writed json content
 
-	inline auto writeJson(
-		const string &filePath,
-		const json &content,
+	inline static auto write_json(
+		const std::string &filePath,
+		const nlohmann::ordered_json &content,
 		const int &indent,
 		const char &indent_char
 	) -> void
 	{
-		writeFile(filePath, content.dump(indent, indent_char));
+		auto file = std::ofstream(filePath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+		file << content.dump(indent, indent_char);
+		file.close();
 		return;
 	}
 
@@ -112,13 +107,18 @@ namespace Sen::Kernel::FileSystem
 	// indent_char: indentation in segment line
 	// return: writed json content
 
-	inline auto writeJson(
+	inline static auto write_json(
 		const string &filePath,
-		const json &content,
+		const nlohmann::ordered_json &content,
 		const char &indent_char
 	) -> void
 	{
-		writeFile(filePath, content.dump(1, indent_char));
+		auto file = std::ofstream(filePath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+		file << content.dump(1, indent_char);
+		file.close();
 		return;
 	}
 
@@ -129,83 +129,49 @@ namespace Sen::Kernel::FileSystem
 	// ensure ascii: will it ensure ascii?
 	// return: writed json content
 
-	inline auto writeJson(
+	inline static auto write_json(
 		const string &filePath,
-		const json &content,
+		const nlohmann::ordered_json &content,
 		const int &indent,
 		const char &indent_char,
 		const bool &ensureAscii
 	) -> void
 	{
-		writeFile(filePath, content.dump(indent, indent_char, ensureAscii));
+		auto file = std::ofstream(filePath);
+		if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+		file << content.dump(indent, indent_char, ensureAscii);
+		file.close();
 		return;
 	}
-
-	// utf16-le 
-
-	using std::wstring;
-
-	// wstring
-
-	using std::wifstream;
-
-	// file input stream
-
-	using std::ios;
-
-	// convert
-
-	using std::codecvt_utf8;
-
-	// wstring stream
-
-	using std::wstringstream;
-
-	// locale
-
-	using std::locale;
-
-	// vector
-	using std::vector;
 
 	// file path: the file uses utf16le encoding
 	// return: the utf16le string
 
-	inline auto readFileByUtf16LE(
-		const string &filePath
-	) -> wstring const
+	inline static auto readFileByUtf16LE(
+		const std::string &filePath
+	) -> std::wstring const
 	{
-		auto wif = wifstream(filePath, ios::binary);
+		auto wif = std::wifstream(filePath, std::ios::binary);
 		try_assert(!wif.fail(), fmt::format("Could not open file: {}", filePath));
-		wif.imbue(locale(wif.getloc(), new codecvt_utf8<wchar_t, 0x10ffff>));
-		auto wss = wstringstream{};
+		wif.imbue(std::locale(wif.getloc(), new std::codecvt_utf8<wchar_t, 0x10ffff>));
+		auto wss = std::wstringstream{};
 		wss << wif.rdbuf();
 		return wss.str();
 	}
-
-	// Utf16-LE
-
-	using std::codecvt_utf16;
-
-	// Little endian
-
-	using std::little_endian;
-
-	// Output stream UTF16-LE
-
-	using std::wofstream;
 
 	// filePath: the file path to write
 	// data: utf16-le charset
 	// return: the data has been written
 
-	inline auto writeFileByUtf16LE(
-		const string & filePath,
-		const wstring & data
+	inline static auto write_fileByUtf16LE(
+		const std::string & filePath,
+		const std::wstring & data
 	) -> void
 	{
-		auto utf16le_locale = static_cast<locale>(locale(locale::classic(), new codecvt_utf16<wchar_t, 0x10ffff, little_endian>));
-		auto file = wofstream(filePath);
+		auto utf16le_locale = static_cast<std::locale>(std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
+		auto file = std::wofstream(filePath);
 		file.imbue(utf16le_locale);
 		file << data;
 		file.close();
@@ -219,8 +185,8 @@ namespace Sen::Kernel::FileSystem
 	// directoryPath: folder path
 	// return: create directory
 
-	inline auto createDirectory(
-		const string &directoryPath
+	inline static auto createDirectory(
+		const std::string &directoryPath
 	) -> void
 	{
 		if(fs::is_directory(directoryPath)){
@@ -234,9 +200,9 @@ namespace Sen::Kernel::FileSystem
 	// content: content to write
 	// return: the file has been written
 
-	inline auto outFile(
-		const string &filePath,
-		const string &content
+	inline static auto outFile(
+		const std::string &filePath,
+		const std::string &content
 	) -> void
 	{
 		auto temporary = Path::normalize(filePath);
@@ -244,7 +210,7 @@ namespace Sen::Kernel::FileSystem
 		auto last = data.at(data.size() - 1);
 		data.pop_back();
 		createDirectory(String::join(data, "/"));
-		writeFile(filePath, content);
+		write_file(filePath, content);
 		return;
 	}
 
@@ -252,9 +218,9 @@ namespace Sen::Kernel::FileSystem
 	// content: json object
 	// return: the file has been written to json
 
-	inline auto outJson(
-		const string &filePath,
-		const json &content
+	inline static auto outJson(
+		const std::string &filePath,
+		const nlohmann::ordered_json &content
 	) -> void
 	{
 		outFile(filePath, content.dump(1, '\t'));
@@ -274,18 +240,18 @@ namespace Sen::Kernel::FileSystem
 
 	
 	template <CharacterBufferView T> 
-	inline auto readBinary(
+	inline static auto readBinary(
 		const string &filePath
 	) -> vector<T> const
 	{
-		auto file = ifstream(filePath, ios::binary);
+		auto file = std::ifstream(filePath, std::ios::binary);
 		if(!file)
 		{
 			throw runtime_error(fmt::format("Could not open file: {}", filePath));
 		}
-		file.seekg(0, ios::end);
+		file.seekg(0, std::ios::end);
 		auto size = static_cast<streamsize>(file.tellg());
-		file.seekg(0, ios::beg);
+		file.seekg(0, std::ios::beg);
 		auto data = vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
@@ -298,14 +264,14 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: everything inside it even directory or file
 
-	inline auto readDirectory(
+	inline static auto readDirectory(
 		const string &directoryPath
 	) -> vector<string> const
 	{
 		auto result = vector<string>{};
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
-			result.push_back(Path::normalize(c.path().string()));
+			result.emplace_back(Path::normalize(c.path().string()));
 		}
 		return result;
 	}
@@ -313,7 +279,7 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only files inside
 
-	inline auto readDirectoryOnlyFile(
+	inline static auto readDirectoryOnlyFile(
 		const string &directoryPath
 	) -> vector<string> const
 	{
@@ -321,7 +287,7 @@ namespace Sen::Kernel::FileSystem
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_regular_file()){
-				result.push_back(Path::normalize(c.path().string()));
+				result.emplace_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -330,7 +296,7 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only dirs inside
 
-	inline auto readDirectoryOnlyDirectory(
+	inline static auto readDirectoryOnlyDirectory(
 		const string &directoryPath
 	) -> vector<string> const
 	{
@@ -338,7 +304,7 @@ namespace Sen::Kernel::FileSystem
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_directory()){
-				result.push_back(Path::normalize(c.path().string()));
+				result.emplace_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -348,7 +314,7 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only files inside nested directories
 
-	inline auto readWholeDirectory(
+	inline static auto readWholeDirectory(
 		const string &directoryPath
 	) -> vector<string> const
 	{
@@ -358,11 +324,11 @@ namespace Sen::Kernel::FileSystem
 			if(c.is_directory()){
 				for(auto &e : readWholeDirectory(Path::normalize(c.path().string())))
 				{
-					result.push_back(Path::normalize(e));
+					result.emplace_back(Path::normalize(e));
 				}
 			}
 			else{
-				result.push_back(Path::normalize(c.path().string()));
+				result.emplace_back(Path::normalize(c.path().string()));
 			}
 		}
 		return result;
@@ -376,12 +342,12 @@ namespace Sen::Kernel::FileSystem
 
 
 	template <CharacterBufferView T>
-	inline auto writeBinary(
+	inline static auto writeBinary(
 		const string &outFile,
 		const vector<T> &data
 	) -> void
 	{
-		auto out = ofstream(outFile, ios::binary);
+		auto out = std::ofstream(outFile, std::ios::binary);
 		if(!out.is_open()){
 			throw runtime_error(fmt::format("Unable to open: {}", outFile));
 		}
@@ -395,12 +361,12 @@ namespace Sen::Kernel::FileSystem
 	 * return: xml document
 	*/
 
-	inline auto readXML(
+	inline static auto readXML(
 		const string &filePath
 	) -> tinyxml2::XMLDocument* const
 	{
 		auto* xml = new tinyxml2::XMLDocument{};
-		auto data = FileSystem::readFile(filePath);
+		auto data = FileSystem::read_file(filePath);
 		auto eResult = xml->Parse(data.c_str(), data.size());
 		try_assert(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath));
 		return xml;
@@ -413,14 +379,14 @@ namespace Sen::Kernel::FileSystem
 	 * return: xml dumped data
 	*/
 
-	inline auto writeXML(
+	inline static auto writeXML(
 		const string &filePath,
 		tinyxml2::XMLDocument* &data
 	) -> void
 	{
 		auto printer = tinyxml2::XMLPrinter{};
 		data->Print(&printer);
-		FileSystem::writeFile(filePath, std::string{printer.CStr()});
+		FileSystem::write_file(filePath, std::string{printer.CStr()});
 		delete data;
 		return;
 	}

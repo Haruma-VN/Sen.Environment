@@ -80,7 +80,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}
 					if((c.find("resources") != c.end()) && (c.find("parent") != c.end()))
 					{
-						FileSystem::writeJson(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
+						FileSystem::write_json(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
 					}
 					if((c.find("subgroups") != c.end()) || (c.find("resources") != c.end() && c.find("parent") == c.end())){
 						if(c.find("subgroups") != c.end())
@@ -99,11 +99,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 									}}
 								}}
 							};
-							FileSystem::writeJson(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
+							FileSystem::write_json(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
 						}
 					}
 				}
-				FileSystem::writeJson(fmt::format("{}/content.json", output), content);
+				FileSystem::write_json(fmt::format("{}/content.json", output), content);
 				return;
 			}
 
@@ -149,7 +149,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				}
 				resources_json["groups"] = groups;
 				BasicConversion::rewrite_slot_count(resources_json);
-				FileSystem::writeJson(fileOutput, resources_json);
+				FileSystem::write_json(fileOutput, resources_json);
 				return;
 			}
 	};

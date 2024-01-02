@@ -32,7 +32,7 @@ namespace Sen::Kernel::Definition::Encryption {
 				const std::string & source
 			) -> std::string 
 			{
-				return SHA384::hash(FileSystem::readFile(source));
+				return SHA384::hash(FileSystem::read_file(source));
 			}
 
 	};

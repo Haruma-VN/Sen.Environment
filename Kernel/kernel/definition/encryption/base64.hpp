@@ -52,7 +52,7 @@ namespace Sen::Kernel::Definition::Encryption {
 				const string &outPath
 			) -> void
 			{
-				Sen::Kernel::FileSystem::writeFile(outPath, Sen::Kernel::Definition::Encryption::Base64::decode(Sen::Kernel::FileSystem::readFile(filePath)));
+				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::decode(Sen::Kernel::FileSystem::read_file(filePath)));
 				return;
 			}
 
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Definition::Encryption {
 				const string &outPath
 			) -> void
 			{
-				Sen::Kernel::FileSystem::writeFile(outPath, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::readFile(filePath)));
+				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::read_file(filePath)));
 				return;
 			}
 	};

@@ -301,7 +301,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			{
 				auto decode = Decode{source};
 				auto result = decode.process();
-				FileSystem::writeJson(destination, result);
+				FileSystem::write_json(destination, result);
 				return;
 			}
 	};

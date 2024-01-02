@@ -25,6 +25,49 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline static const auto rtid_0_s = std::string{"RTID(0)"};
 
+        inline static constexpr auto magic_count = 4;
+
+        inline static constexpr auto version_count = 4;
+        
+        inline static constexpr auto position_increment = 1;
+
+        inline static constexpr auto end_bytecode = 0xFFU;
+
+        inline static constexpr auto array_byte_start = 0xFDU;
+
+        inline static constexpr auto array_byte_end = 0xFEU;
+
+        inline static constexpr auto rtid_0_sc = 0x0U;
+
+        inline static constexpr auto rtid_1_sc = 0x1U;
+
+        inline static constexpr auto rtid_2_sc = 0x2U;
+
+        inline static constexpr auto rtid_3_sc = 0x3U;
+
+        inline static constexpr auto star_s_bytecode = 0x2U;
+
+        inline static constexpr auto varint32_string_bytecode = 0x81U;
+
+        inline static constexpr auto varint32_varint32_string_bytecode = 0x82U;
+
+        inline static constexpr auto rtid_bytecode = 0x83U;
+
+        inline static constexpr auto rtid_0_s_bytecode = 0x84U;
+
+        inline static constexpr auto binary_bytecode = 0x87U;
+
+        inline static constexpr auto varint32_temp_string_bytecode = 0x90U;
+
+        inline static constexpr auto varint32_indexed_string_bytecode = 0x91U;
+
+        inline static constexpr auto varint32_int32_temp_string_bytecode = 0x92U;
+
+        inline static constexpr auto varint32_indexed_string2_bytecode = 0x93U;
+
+        inline static constexpr auto k_none_size = 0U;
+
+
         SenBuffer sen;
 
         std::vector<nlohmann::ordered_json> r0x90_list;
@@ -37,11 +80,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             auto object_json = nlohmann::ordered_json::object();
             auto bytecode = thiz.sen.readUint8();
-            while (bytecode != 0xFF)
+            while (bytecode != end_bytecode)
             {
-                auto property_name = thiz.read_bytecode_property(bytecode);
+                const auto & property_name = thiz.read_bytecode_property(bytecode);
                 object_json[property_name] = thiz.read_bytecode(thiz.sen.readUint8());
-                bytecode = sen.readUint8();
+                bytecode = thiz.sen.readUint8();
             }
             return object_json;
         }
@@ -50,16 +93,15 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         ) -> std::vector<nlohmann::ordered_json>
         {
-            // debug("read array");
-            if (thiz.sen.readUint8() != 0xFD){
+            if (thiz.sen.readUint8() != array_byte_start){
                 throw std::runtime_error("Invaild array start");
             }
             auto array_json = std::vector<nlohmann::ordered_json>{};
-            for (auto i : Range<int32_t>(thiz.sen.readVarInt32()))
+            for (const auto i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
-                array_json.emplace_back(read_bytecode(thiz.sen.readUint8()));
+                array_json.emplace_back(thiz.read_bytecode(thiz.sen.readUint8()));
             }
-            if (thiz.sen.readUint8() != 0xFE){
+            if (thiz.sen.readUint8() != array_byte_end){
                 throw std::runtime_error("Invaild array end");
             }
             return array_json;
@@ -71,32 +113,32 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             switch (thiz.sen.readUint8())
             {
-                case 0x0:
+                case 0x00:
                 {
                     return rtid_0_s;
                 }
-                case 0x1:
+                case 0x01:
                 {
-                    auto value_0x1_2 = thiz.sen.readVarInt32();
-                    auto value_0x1_1 = thiz.sen.readVarInt32();
-                    auto x16_1 = thiz.sen.readUint32LE();
+                    const auto value_0x1_2 = thiz.sen.readVarInt32();
+                    const auto value_0x1_1 = thiz.sen.readVarInt32();
+                    const auto x16_1 = thiz.sen.readUint32LE();
                     return fmt::format("RTID({}.{}.{:08x}@)", value_0x1_1, value_0x1_2, x16_1);
                 }
-                case 0x2:
+                case 0x02:
                 {
                     thiz.sen.readVarInt32();
-                    auto str = thiz.sen.readStringByVarInt32();
-                    auto value_0x2_2 = thiz.sen.readVarInt32();
-                    auto value_0x2_1 = thiz.sen.readVarInt32();
-                    auto x16_2 = thiz.sen.readUint32LE();
+                    const auto & str = thiz.sen.readStringByVarInt32();
+                    const auto value_0x2_2 = thiz.sen.readVarInt32();
+                    const auto value_0x2_1 = thiz.sen.readVarInt32();
+                    const auto x16_2 = thiz.sen.readUint32LE();
                     return fmt::format("RTID({}.{}.{:08x}@{})", value_0x2_2, value_0x2_1, x16_2, str);
                 }
-                case 0x3:
+                case 0x03:
                 {
                     thiz.sen.readVarInt32();
-                    auto str2 = thiz.sen.readStringByVarInt32();
+                    const auto & str2 = thiz.sen.readStringByVarInt32();
                     thiz.sen.readVarInt32();
-                    auto str1 = thiz.sen.readStringByVarInt32();
+                    const auto & str1 = thiz.sen.readStringByVarInt32();
                     return fmt::format("RTID({}@{})", str1, str2);
                 }
                 default:
@@ -111,9 +153,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) const -> std::string const
         {
             // debug("read binary");
-            thiz.sen.appendPosition(1);
-            auto str = thiz.sen.readStringByVarInt32();
-            auto num = thiz.sen.readVarInt32();
+            thiz.sen.appendPosition(position_increment);
+            const auto & str = thiz.sen.readStringByVarInt32();
+            const auto num = thiz.sen.readVarInt32();
             return fmt::format("BINARY({}, {})", str, num);
         }
 
@@ -121,25 +163,19 @@ namespace Sen::Kernel::Support::PopCap::RTON
             uint8_t bytecode
         ) -> nlohmann::ordered_json
         {
-            auto json = nlohmann::ordered_json{};
-            // debug("read bytecode");
             switch (bytecode)
                 {
                 case 0x0:{
-                    json = false;
-                    break;
+                    return false;
                 }
                 case 0x1:{
-                    json = true;
-                    break;
+                    return true;
                 }
                 case 0x2:{
-                    json = star;
-                    break;
+                    return star;
                 }
                 case 0x8:{
-                    json = thiz.sen.readUint8();
-                    break;
+                    return thiz.sen.readUint8();
                 }
                 case 0x9:
                 case 0xB:
@@ -151,185 +187,157 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 case 0x41:
                 case 0x43:
                 case 0x47:{
-                    json = 0;
-                    break;
+                    return k_none_size;
                 }
                 case 0xA:{
-                    json = thiz.sen.readInt8();
-                    break;
+                    return thiz.sen.readInt8();
                 }
                 case 0x10:{
-                    json = thiz.sen.readInt16LE();
-                    break;
+                    return thiz.sen.readInt16LE();
                 }
                 case 0x12:{
-                    json = thiz.sen.readUint16LE();
-                    break;
+                    return thiz.sen.readUint16LE();
                 }
                 case 0x20:{
-                    json = thiz.sen.readInt32LE();
-                    break;
+                    return thiz.sen.readInt32LE();
                 }
                 case 0x22:{
-                    json = thiz.sen.readFloatLE();
-                    break;
+                    return thiz.sen.readFloatLE();
                 }
                 case 0x24:{
-                    json = thiz.sen.readVarInt32();
-                    break;
+                    return thiz.sen.readVarInt32();
                 }
                 case 0x25:{
-                    json = thiz.sen.readZigZag32();
-                    break;
+                    return thiz.sen.readZigZag32();
                 }
                 case 0x26:{
-                    json = thiz.sen.readUint32LE();
-                    break;
+                    return thiz.sen.readUint32LE();
                 }
                 case 0x28:{
-                    json = thiz.sen.readVarUInt32();
-                    break;
+                    return thiz.sen.readVarUInt32();
                 }
                 case 0x40:{
-                    json = thiz.sen.readInt64LE();
+                    return thiz.sen.readInt64LE();
                     break;
                 }
                 case 0x42:{
-                    json = thiz.sen.readDoubleLE();
-                    break;
+                    return thiz.sen.readDoubleLE();
                 }
                 case 0x44:{
-                    json = thiz.sen.readVarInt64();
-                    break;
+                    return thiz.sen.readVarInt64();
                 }
                 case 0x45:{
-                    json = thiz.sen.readZigZag64();
-                    break;
+                    return thiz.sen.readZigZag64();
                 }
                 case 0x46:{
-                    json = thiz.sen.readUint64LE();
-                    break;
+                    return thiz.sen.readUint64LE();
                 }
                 case 0x48:{
-                    json = thiz.sen.readVarUInt64();
-                    break;
+                    return thiz.sen.readVarUInt64();
                 }
                 case 0x81:{
-                    json = thiz.sen.readStringByVarInt32();
-                    break;
+                    return thiz.sen.readStringByVarInt32();
                 }
                 case 0x82:{
                     thiz.sen.readVarInt32();
-                    json = thiz.sen.readStringByVarInt32();
-                    break;
+                    return thiz.sen.readStringByVarInt32();
                 }
                 case 0x83:{
-                    json = read_RTID();
-                    break;
+                    return read_RTID();
                 }
                 case 0x84:{
-                    json = rtid_0;
-                    break;
+                    return rtid_0;
                 }
                 case 0x85:{
-                    json = read_object();
-                    break;
+                    return read_object();
                 }
                 case 0x86:{
-                    json = read_array();
-                    break;
+                    return read_array();
                 }
                 case 0x87:{
-                    json = read_binary();
-                    break;
+                    return read_binary();
                 }
                 case 0x90:{
                     auto temp_string = thiz.sen.readStringByVarInt32();
                     r0x90_list.emplace_back(temp_string);
-                    json = temp_string;
-                    break;
+                    return temp_string;
                 }
                 case 0x91:{
-                    json = thiz.r0x90_list.at(thiz.sen.readVarInt32());
-                    break;
+                    return thiz.r0x90_list.at(thiz.sen.readVarInt32());
                 }
                 case 0x92:{
                     thiz.sen.readVarInt32();
                     auto temp_string = thiz.sen.readStringByInt32();
                     thiz.r0x92_list.emplace_back(temp_string);
-                    json = temp_string;
-                    break;
+                    return temp_string;
                 }
                 case 0x93:{
-                    json = thiz.r0x92_list.at(thiz.sen.readVarInt32());
-                    break;
+                    return thiz.r0x92_list.at(thiz.sen.readVarInt32());
                 }
                 default:{
                     throw std::runtime_error("Invaild bytecode");
                 }
             }
-            return json;
         }
 
         inline auto read_bytecode_property(
             uint8_t bytecode
         ) -> std::string const
         {
-            // debug("read_bytecode_property");
             switch (bytecode)
             {
-                case 0x2:{
-                    // debug(0x2);
+                case star_s_bytecode:
+                {
                     return star_s;
                 }
-                case 0x81:{
-                    // debug(0x81);
+                case varint32_string_bytecode:
+                {
                     return thiz.sen.readStringByVarInt32();
                 }
-                case 0x82:{
-                    // debug(0x82);
+                case varint32_varint32_string_bytecode:
+                {
                     thiz.sen.readVarInt32();
                     return thiz.sen.readStringByVarInt32();
                 }
-                case 0x83:{
-                    // debug(0x83);
+                case rtid_bytecode:
+                {
                     return read_RTID();
                 }
-                case 0x84:{
-                    // debug(0x84);
+                case rtid_0_s_bytecode:
+                {
                     return rtid_0_s;
                 }
-                case 0x87:{
-                    // debug(0x87);
+                case binary_bytecode:
+                {
                     return read_binary();
                 }
-                case 0x90:{
-                    // debug(0x90);
-                    auto temp_string = thiz.sen.readStringByVarInt32();
-                    // debug(temp_string);
+                case varint32_temp_string_bytecode:
+                {
+                    const auto & temp_string = thiz.sen.readStringByVarInt32();
                     thiz.r0x90_list.emplace_back(temp_string);
                     return temp_string;
                 }
-                case 0x91:{
-                    // debug(0x91);
-                    return thiz.r0x90_list.at(thiz.sen.readVarInt32()).get<std::string>();
+                case varint32_indexed_string_bytecode:
+                {
+                    return thiz.r0x90_list.at(thiz.sen.readVarInt32());
                 }
-                case 0x92:{
-                    // debug(0x92);
+                case varint32_int32_temp_string_bytecode:
+                {
                     thiz.sen.readVarInt32();
-                    auto temp_string = thiz.sen.readStringByInt32();
+                    const auto & temp_string = thiz.sen.readStringByInt32();
                     thiz.r0x92_list.emplace_back(temp_string);
                     return temp_string;
                 }
-                case 0x93:{
-                    // debug(0x93);
+                case varint32_indexed_string2_bytecode:
+                {
                     return thiz.r0x92_list.at(thiz.sen.readVarInt32()).get<std::string>();
                 }
-                default:{
-                    throw std::runtime_error("Invaild bytecode property");
+                default:
+                {
+                    throw std::runtime_error("Invalid bytecode property");
                 }
             }
-        }
+    }
 
     public:
 
@@ -356,13 +364,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> nlohmann::ordered_json
         {
             {
-                if (sen.readString(4) != magic)
+                const auto & magic = sen.readString(magic_count);
+                if (magic != thiz.magic)
                 {
                     throw std::runtime_error("Invaild RTON head");
                 }
             }
             {
-                sen.readBytesLE<uint8_t>(4);
+                sen.readBytesLE<uint8_t>(version_count);
             }
             return thiz.read_object();
         }
@@ -372,9 +381,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const std::string & destination
         ) -> void
         {
-            // debug("decode_fs");
             auto c = std::unique_ptr<Decode>(new Decode{source});
-            FileSystem::writeJson(destination, c->decode_rton());
+            FileSystem::write_json(destination, c->decode_rton());
             return;
         }
 

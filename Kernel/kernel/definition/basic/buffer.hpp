@@ -25,7 +25,12 @@ namespace Sen::Kernel::Definition
                 Stream() : position(
                             0) {}
 
-                ~Stream() = default;
+                ~Stream(
+
+                )
+                {
+                    this->close();
+                }
 
                 Stream(
                     const std::vector<std::uint8_t> &data) : position(0)
@@ -37,34 +42,23 @@ namespace Sen::Kernel::Definition
                     std::uint8_t *data,
                     std::size_t size) : position(0)
                 {
-                    for (auto i = 0; i < size; ++i)
-                    {
-                        this->data.emplace_back(data[i]);
-                    }
+                    this->data.assign(data, data + size);
                 }
 
                 Stream(
-                    const std::string &filepath) : position(0)
+                    const std::string & filepath
+                ) : position(0)
                 {
-                    auto file = std::ifstream(
-                        filepath, std::ios::binary);
-                    if (file)
-                    {
-                        file.seekg(
-                            0, std::ios::end);
-                        auto fileSize = file.tellg();
-                        file.seekg(
-                            0, std::ios::beg);
-                        this->data.resize(fileSize);
-                        file.read(
-                            reinterpret_cast<char *>(this->data.data()), fileSize);
-                        file.close();
-                    }
-                    else
+                    auto file = std::ifstream(filepath, std::ios::binary);
+                    if (!file)
                     {
                         throw std::runtime_error("Could not open file: " + filepath);
                     }
-                    return;
+                    file.seekg(0, std::ios::end);
+                    auto size = file.tellg();
+                    file.seekg(0, std::ios::beg);
+                    this->data.resize(size);
+                    file.read(reinterpret_cast<char *>(this->data.data()), size);
                 }
 
                 inline auto begin(
@@ -76,7 +70,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto get(
 
-                ) const -> std::vector<std::uint8_t>
+                ) const -> const std::vector<std::uint8_t> &
                 {
                     return this->data;
                 }
@@ -96,33 +90,26 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto static reverseEndian(
-                    uint32_t num
-                ) -> uint32_t
+                inline auto static reverseEndian(uint32_t num) -> uint32_t
                 {
-                    uint32_t byte0, byte1, byte2, byte3;
-
-                    byte0 = (num & 0x000000FF) >> 0;
-                    byte1 = (num & 0x0000FF00) >> 8;
-                    byte2 = (num & 0x00FF0000) >> 16;
-                    byte3 = (num & 0xFF000000) >> 24;
-
-                    return ((byte0 << 24) | (byte1 << 16) | (byte2 << 8) | (byte3 << 0));
+                    auto bytes = std::bit_cast<std::array<uint8_t, 4>>(num);
+                    std::reverse(bytes.begin(), bytes.end());
+                    return std::bit_cast<uint32_t>(bytes);
                 }
 
                 inline auto changePosition(
-                    std::size_t pos
+                    std::vector<std::uint8_t>::size_type pos
                 ) const -> void
                 {
-                    if (pos >= 0 && pos <= data.size())
+                    if (pos <= data.size())
                     {
                         this->position = pos;
                     }
                     else {
                         throw std::runtime_error("Out of range");
                     }
-                    return;
                 }
+
 
                 inline auto appendPosition(
                     std::size_t pos
@@ -265,7 +252,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto toBytes(
 
-                ) const -> std::uint8_t *
+                ) const -> const std::uint8_t *
                 {
                     return this->data.data();
                 }
@@ -1184,21 +1171,24 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto writeLE(
-                    T value) const -> void
+                    T value
+                ) const -> void
                 {
                     auto size = sizeof(T);
+                    this->data.reserve(this->data.size() + size);
                     for (auto i = 0; i < size; i++)
                     {
                         this->data.push_back((value >> (i * 8)) & 0xFF);
                     }
-                    return;
                 }
+
 
                 template <typename T>
                 inline auto writeBE(
                     T value) const -> void
                 {
                     auto size = sizeof(T);
+                    this->data.reserve(this->data.size() + size);
                     for (auto i = 0; i < size; i++)
                     {
                         this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
@@ -1212,33 +1202,29 @@ namespace Sen::Kernel::Definition
                 ) const -> T
                 {
                     T value = 0;
-                    auto size = sizeof(T);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        value |= (this->data[this->position++] << (i * 8));
-                    }
+                    std::memcpy(&value, this->data.data() + this->position, sizeof(T));
+                    this->position += sizeof(T);
                     return value;
                 }
 
                 template <typename T>
                 inline auto readBE(
-
-                    ) const -> T
+                    
+                ) const -> T
                 {
                     T value = 0;
-                    auto size = sizeof(T);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        value |= (this->data[this->position++] << ((size - 1 - i) * 8));
-                    }
-                    return value;
+                    std::memcpy(&value, this->data.data() + this->position, sizeof(T));
+                    this->position += sizeof(T);
+                    return reverseEndian(value);
                 }
+
 
                 template <typename T>
                 inline auto writeLE_has(
                     T value,
                     std::size_t size = sizeof(T)) const -> void
                 {
+                    this->data.reserve(this->data.size() + size);
                     for (auto i = 0; i < size; i++)
                     {
                         this->data.push_back((value >> (i * 8)) & 0xFF);
@@ -1251,6 +1237,7 @@ namespace Sen::Kernel::Definition
                     T value,
                     std::size_t size = sizeof(T)) const -> void
                 {
+                    this->data.reserve(this->data.size() + size);
                     for (auto i = 0; i < size; i++)
                     {
                         this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
@@ -1262,37 +1249,33 @@ namespace Sen::Kernel::Definition
                 inline auto readLE_has(
                     std::size_t size = sizeof(T)) const -> T
                 {
-                    T value = 0;
-                    for (auto i = 0; i < size; i++)
-                    {
-                        value |= ((T)this->data[this->position + i] << (i * 8));
-                    }
-                    this->position += size;
+                    T value;
+                    std::memcpy(&value, &this->data[this->position], sizeof(T));
+                    this->position += sizeof(T);
                     return value;
                 }
 
                 template <typename T>
                 inline auto readBE_has(
-                    std::size_t size = sizeof(T)) const -> T
+                    std::size_t size = sizeof(T)
+                ) const -> T
                 {
                     T value = 0;
-                    for (auto i = 0; i < size; i++)
+                    for (auto i = 0; i < size; ++i)
                     {
-                        value |= ((T)this->data[this->position + i] << ((size - 1 - i) * 8));
+                        value = (value << 8) | this->data[this->position + i];
                     }
                     this->position += size;
                     return value;
                 }
+
 
                 inline auto writeBytesLE(
                     std::uint8_t *bytes,
                     std::size_t size
                 ) const -> void
                 {
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back(bytes[i]);
-                    }
+                    this->data.insert(this->data.end(), bytes, bytes + size);
                     return;
                 }
 
@@ -1301,12 +1284,10 @@ namespace Sen::Kernel::Definition
                     std::size_t size
                 ) const -> void
                 {
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back(bytes[size - 1 - i]);
-                    }
+                    this->data.insert(this->data.end(), std::reverse_iterator(bytes + size), std::reverse_iterator(bytes));
                     return;
                 }
+
 
                 template <typename T>
                 inline auto readBytesLE(

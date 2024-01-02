@@ -121,7 +121,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 						}
 					}
 				}
-				FileSystem::writeJson(Path::normalize(fmt::format("{}/{}", output_directory, "sprite.json")), thiz.convert_from_resource_group(resource_used, use_split_by_path ? std::string{"path"} : std::string{"id"}));
+				FileSystem::write_json(Path::normalize(fmt::format("{}/{}", output_directory, "sprite.json")), thiz.convert_from_resource_group(resource_used, use_split_by_path ? std::string{"path"} : std::string{"id"}));
 				return;
 			}
 

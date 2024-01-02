@@ -138,12 +138,12 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				auto info = thiz.convert_info(res_info);
 				auto group_directory = Path::normalize(fmt::format("{}/{}", destination, "groups"));
 				FileSystem::createDirectory(group_directory);
-				FileSystem::writeJson(Path::normalize(fmt::format("{}/{}", destination, "info.json")), info);
+				FileSystem::write_json(Path::normalize(fmt::format("{}/{}", destination, "info.json")), info);
 				auto keys = Object::keys(res_info["groups"]);
 				for(auto i : Range<size_t>(keys.size())){
 					auto subgroup_key = Object::keys(res_info["groups"][keys.at(i)]["subgroup"]);
 					for(auto j : Range<size_t>(subgroup_key.size())){
-						FileSystem::writeJson(Path::normalize(fmt::format("{}/{}.json", group_directory, subgroup_key.at(j))), res_info["groups"][keys.at(i)]["subgroup"][subgroup_key.at(j)]);
+						FileSystem::write_json(Path::normalize(fmt::format("{}/{}.json", group_directory, subgroup_key.at(j))), res_info["groups"][keys.at(i)]["subgroup"][subgroup_key.at(j)]);
 					}
 				}
 				return;
@@ -174,7 +174,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					}
 					res_info["groups"][group_name] = subgroups;
 				}
-				FileSystem::writeJson(destination, res_info);
+				FileSystem::write_json(destination, res_info);
 				return;
 			}
 

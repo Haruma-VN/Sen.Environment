@@ -680,7 +680,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readFile(source);
+			auto result = Sen::Kernel::FileSystem::read_file(source);
 			JS_FreeCString(context, source);
 			return JS::Converter::to_string(context, result);
 		}
@@ -728,7 +728,7 @@ namespace Sen::Kernel::Interface::Script {
 			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 			auto destination = JS_ToCString(context, argv[0]);
 			auto data = JS_ToCString(context, argv[1]);
-			Sen::Kernel::FileSystem::writeFile(destination, data);
+			Sen::Kernel::FileSystem::write_file(destination, data);
 			JS_FreeCString(context, destination);
 			JS_FreeCString(context, data);
 			return JS::Converter::get_undefined();
@@ -755,7 +755,7 @@ namespace Sen::Kernel::Interface::Script {
 			auto data = JS_ToCString(context, argv[1]);
 			auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
 			auto result = std::wstring{converter.from_bytes(data)};
-			Sen::Kernel::FileSystem::writeFileByUtf16LE(destination, result);
+			Sen::Kernel::FileSystem::write_fileByUtf16LE(destination, result);
 			JS_FreeCString(context, destination);
 			JS_FreeCString(context, data);
 			return JS::Converter::get_undefined();
@@ -1152,7 +1152,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
-			auto js_source = Sen::Kernel::FileSystem::readFile(source);
+			auto js_source = Sen::Kernel::FileSystem::read_file(source);
 			auto m_value = JS_Eval(context, js_source.c_str(), js_source.size(), source, JS_EVAL_TYPE_GLOBAL);
 			JS_FreeCString(context, source);
 			return m_value;
@@ -2640,7 +2640,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 			auto source = JS_ToCString(context, argv[0]);
-			auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::readFile(source));
+			auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::read_file(source));
 			auto js_obj = json_to_js_value(context, json);
 			JS_FreeCString(context, source);
 			return js_obj;
@@ -2770,7 +2770,7 @@ namespace Sen::Kernel::Interface::Script {
 			auto indent = JS::Converter::get_int32(context, argv[2]);
 			auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);;
 			auto result = json.dump(indent, '\t', ensure_ascii);
-			Sen::Kernel::FileSystem::writeFile(destination, result);
+			Sen::Kernel::FileSystem::write_file(destination, result);
 			JS_FreeCString(context, destination);
 			return JS::Converter::get_undefined();
 		}

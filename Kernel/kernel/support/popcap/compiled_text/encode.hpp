@@ -108,7 +108,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				auto result = SenBuffer{};
 				result.writeUint8(0x10);
 				result.writeUint8(0x00);
-				result.append(SenBuffer::fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data()))).get());
+				result.append(SenBuffer::fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data()))).get());
 				return result;
 			}
 
