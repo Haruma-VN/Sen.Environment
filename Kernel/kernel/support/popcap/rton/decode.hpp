@@ -21,11 +21,15 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline static constexpr auto star = std::string_view{"*"};
 
+        inline static const auto star_s = std::string{"*"};
+
+        inline static const auto rtid_0_s = std::string{"RTID(0)"};
+
         SenBuffer sen;
 
-        nlohmann::ordered_json r0x90_list = nlohmann::ordered_json::array_t();
+        std::vector<nlohmann::ordered_json> r0x90_list;
 
-        nlohmann::ordered_json r0x92_list = nlohmann::ordered_json::array_t();
+        std::vector<nlohmann::ordered_json> r0x92_list;
 
         inline auto read_object(
 
@@ -44,16 +48,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_array(
 
-        ) -> nlohmann::ordered_json
+        ) -> std::vector<nlohmann::ordered_json>
         {
             // debug("read array");
             if (thiz.sen.readUint8() != 0xFD){
                 throw std::runtime_error("Invaild array start");
             }
-            auto array_json = nlohmann::ordered_json::array_t();
+            auto array_json = std::vector<nlohmann::ordered_json>{};
             for (auto i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
-                array_json.push_back(read_bytecode(thiz.sen.readUint8()));
+                array_json.emplace_back(read_bytecode(thiz.sen.readUint8()));
             }
             if (thiz.sen.readUint8() != 0xFE){
                 throw std::runtime_error("Invaild array end");
@@ -63,13 +67,13 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_RTID(
 
-        ) -> std::string
+        ) const -> std::string const
         {
             switch (thiz.sen.readUint8())
             {
                 case 0x0:
                 {
-                    return std::string{"RTID(0)"};
+                    return rtid_0_s;
                 }
                 case 0x1:
                 {
@@ -104,7 +108,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_binary(
 
-        ) -> std::string
+        ) const -> std::string const
         {
             // debug("read binary");
             thiz.sen.appendPosition(1);
@@ -241,7 +245,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 case 0x90:{
                     auto temp_string = thiz.sen.readStringByVarInt32();
-                    r0x90_list += temp_string;
+                    r0x90_list.emplace_back(temp_string);
                     json = temp_string;
                     break;
                 }
@@ -269,14 +273,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_bytecode_property(
             uint8_t bytecode
-        ) -> std::string
+        ) -> std::string const
         {
             // debug("read_bytecode_property");
             switch (bytecode)
             {
                 case 0x2:{
                     // debug(0x2);
-                    return std::string{"*"};
+                    return star_s;
                 }
                 case 0x81:{
                     // debug(0x81);
@@ -293,7 +297,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 case 0x84:{
                     // debug(0x84);
-                    return std::string{"RTID(0)"};
+                    return rtid_0_s;
                 }
                 case 0x87:{
                     // debug(0x87);

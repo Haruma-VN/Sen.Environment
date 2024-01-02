@@ -771,7 +771,7 @@ namespace Sen::Kernel::Definition
 
                 inline auto readStringByVarInt32(
 
-                    ) -> std::string
+                ) const -> std::string
                 {
                     return this->readString(this->readVarInt32());
                 }
