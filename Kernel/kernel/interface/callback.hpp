@@ -346,6 +346,7 @@ namespace Sen::Kernel::Interface {
 				// rton
 				{
 					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs"});
+					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs_as_multiple_threads, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"decode_fs_as_multiple_threads"});
 					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RTON"}, std::string{"encode_fs"});
 				}
 				// zlib

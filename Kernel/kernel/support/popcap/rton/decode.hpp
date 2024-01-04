@@ -70,9 +70,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         SenBuffer sen;
 
-        std::vector<nlohmann::ordered_json> r0x90_list;
+        std::vector<std::string> r0x90_list;
 
-        std::vector<nlohmann::ordered_json> r0x92_list;
+        std::vector<std::string> r0x92_list;
 
         inline auto read_object(
 
@@ -97,7 +97,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 throw std::runtime_error("Invaild array start");
             }
             auto array_json = std::vector<nlohmann::ordered_json>{};
-            for (const auto i : Range<int32_t>(thiz.sen.readVarInt32()))
+            for (const auto & i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
                 array_json.emplace_back(thiz.read_bytecode(thiz.sen.readUint8()));
             }
@@ -330,7 +330,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 case varint32_indexed_string2_bytecode:
                 {
-                    return thiz.r0x92_list.at(thiz.sen.readVarInt32()).get<std::string>();
+                    return thiz.r0x92_list.at(thiz.sen.readVarInt32());
                 }
                 default:
                 {
@@ -341,14 +341,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
     public:
 
-        Decode(
+        explicit Decode(
             const std::string & source
         ) : sen(source)
         {
 
         }
 
-        Decode(
+        explicit constexpr Decode(
             SenBuffer & it
         ) : sen(it)
         {
@@ -361,7 +361,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto decode_rton(
 
-        ) -> nlohmann::ordered_json
+        ) -> nlohmann::ordered_json const
         {
             {
                 const auto & magic = sen.readString(magic_count);
@@ -382,7 +382,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto c = std::unique_ptr<Decode>(new Decode{source});
-            FileSystem::write_json(destination, c->decode_rton());
+            const auto & result = c->decode_rton();
+            FileSystem::write_json(destination, result);
             return;
         }
 
@@ -413,6 +414,22 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
             auto rton = Decode{sen};
             FileSystem::writeBinary<unsigned char>(destination, rton.decode_rton());
+            return;
+        }
+
+        inline static auto decode_fs_as_multiple_threads(
+            const std::vector<std::vector<std::string>> & paths
+        ) -> void 
+        {
+            auto threads = std::vector<std::thread>{};
+            for (const auto & data : paths) {
+                threads.emplace_back([=]() { 
+                    Decode::decode_fs(data[0], data[1]); 
+                });
+            }
+            for (auto & thread : threads) {
+                thread.join();
+            }
             return;
         }
     };

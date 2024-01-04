@@ -941,6 +941,13 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function decode_fs(source: string, destination: string): void;
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Decode method as async
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs_as_multiple_threads(...params: Array<[string, string]>): void;
 
                     /**
                      * --------------------------------------------------
