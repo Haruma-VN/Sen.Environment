@@ -85,17 +85,17 @@ namespace Sen::Kernel::Support::Texture {
 			*/
 
 			inline static auto rgba(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto color = image.color();
 				auto result = std::vector<unsigned char>{};
 				result.reserve(color.red.size() + color.green.size() + color.blue.size() + color.alpha.size());
 				for (auto i : Range<size_t>(color.red.size())){
-					result.push_back(color.red.at(i));
-					result.push_back(color.green.at(i));
-					result.push_back(color.blue.at(i));
-					result.push_back(color.alpha.at(i));
+					result.emplace_back(color.red.at(i));
+					result.emplace_back(color.green.at(i));
+					result.emplace_back(color.blue.at(i));
+					result.emplace_back(color.alpha.at(i));
 				}
 				return result;
 			}
@@ -106,23 +106,23 @@ namespace Sen::Kernel::Support::Texture {
 			*/
 
 			inline static auto argb(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto color = image.color();
 				auto result = std::vector<unsigned char>{};
 				result.reserve(color.red.size() + color.green.size() + color.blue.size() + color.alpha.size());
 				for (auto i : Range<size_t>(color.red.size())){
-					result.push_back(color.alpha.at(i));
-					result.push_back(color.red.at(i));
-					result.push_back(color.green.at(i));
-					result.push_back(color.blue.at(i));
+					result.emplace_back(color.alpha.at(i));
+					result.emplace_back(color.red.at(i));
+					result.emplace_back(color.green.at(i));
+					result.emplace_back(color.blue.at(i));
 				}
 				return result;
 			}
 
 			inline static auto rgba_4444(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -139,7 +139,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgb_565(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -155,7 +155,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgba_5551(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -174,7 +174,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgba_4444_tiled(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -202,7 +202,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgb_565_tiled(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -229,7 +229,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgba_5551_tiled(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -257,7 +257,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgb_etc1_a_8(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto size = image.area();
@@ -286,7 +286,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto rgb_etc1_a_palette(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto size = image.area();
@@ -321,7 +321,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto a_8(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -333,7 +333,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto argb_1555(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -345,7 +345,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto argb_4444(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -357,7 +357,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto l_8(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -369,7 +369,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto la_44(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};
@@ -381,7 +381,7 @@ namespace Sen::Kernel::Support::Texture {
 			}
 
 			inline static auto la_88(
-				Image<int> & image
+				const Image<int> & image
 			) -> std::vector<unsigned char>
 			{
 				auto sen = DataStreamView{};

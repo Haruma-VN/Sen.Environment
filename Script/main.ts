@@ -24,6 +24,27 @@ namespace Sen.Script {
 
         /**
          * --------------------------------------------------
+         * JavaScript send output message
+         * @param title - title to send
+         * @param message - message to send
+         * @param color - color to input
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function display(title: string, message: any, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
+            if (!Sen.Shell.is_gui) {
+                Sen.Kernel.Console.print(`● ${title}:`, color);
+                Sen.Kernel.Console.print(`    ${message}`);
+            } else {
+                Sen.Kernel.Console.print(title, color);
+                Sen.Kernel.Console.print(message, color);
+            }
+            return;
+        }
+
+        /**
+         * --------------------------------------------------
          * JavaScript send error message
          * @param str - string to send
          * @returns The console output
@@ -33,6 +54,38 @@ namespace Sen.Script {
         export function error(str: string | undefined): void {
             if (str !== undefined) {
                 Sen.Script.Console.send(str, Sen.Script.Definition.Console.Color.RED);
+            }
+            return;
+        }
+
+        /**
+         * --------------------------------------------------
+         * JavaScript send argument message
+         * @param str - string to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function argument(str: any): void {
+            display(Setting.Language.get(`execution_argument`), str, Definition.Console.Color.CYAN);
+            return;
+        }
+
+        /**
+         * --------------------------------------------------
+         * JavaScript send finished message
+         * @param str - string to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function finished(subtitle: string, message: string): void {
+            if (!Sen.Shell.is_gui) {
+                Sen.Kernel.Console.print(`● ${Setting.Language.get(`execution_finished`)}: ${subtitle}`, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(`    ${message}`);
+            } else {
+                Sen.Kernel.Console.print(`${Setting.Language.get(`execution_finished`)}: ${subtitle}`, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(message);
             }
             return;
         }
@@ -108,15 +161,12 @@ namespace Sen.Script {
         try {
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
-            Sen.Script.Setting.load();
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
-            Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
-            const before: number = Sen.Kernel.Thread.now();
-            // Sen.Kernel.Support.PopCap.RTON.decode_fs_as_multiple_threads(["D:/test/RESOURCES.rton", "D:/test/RESOURCES.json"], ["D:/test/Res1.rton", "D:/test/Res1.json"]);
-            const after: number = Sen.Kernel.Thread.now();
-            Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
+            Sen.Script.Setting.load();
+            Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
+            Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
-            result = `${Sen.Script.Setting.Language.get("runtime_error")}: `;
+            result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;
             result += e.message;
             result += "/n";
             result += e.stack;
@@ -147,6 +197,14 @@ namespace Sen.Script {
          * Modules in queue await to be execute
          */
 
-        export const script_list: Array<string> = [`~/Setting/Language/format.js`, `~/Setting/Setting.js`, `~/utility/Definition.js`, `~/Support/Texture/Format.js`, `~/Support/PopCap/ResourceGroup/Convert.js`];
+        export const script_list: Array<string> = [
+            `~/Setting/Language/Format.js`,
+            `~/Setting/Setting.js`,
+            `~/utility/Definition.js`,
+            `~/Support/Texture/Format.js`,
+            `~/Support/PopCap/ResourceGroup/Convert.js`,
+            `~/Executor/Executor.js`,
+            `~/Executor/Methods/data.md5.hash.js`,
+        ];
     }
 }

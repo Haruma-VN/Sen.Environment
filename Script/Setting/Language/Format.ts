@@ -24,10 +24,7 @@ namespace Sen.Script.Setting.Language {
 
     export function format(str: string, ...args: Array<any>): string {
         for (const arg of args) {
-            const format_index: number = str.indexOf("{}");
-            if (format_index !== -1) {
-                str = str.replace("{}", arg.toString());
-            }
+            str = str.replace("{}", arg.toString());
         }
         return str;
     }

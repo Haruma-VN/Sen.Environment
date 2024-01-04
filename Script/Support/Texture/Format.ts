@@ -16,5 +16,13 @@ namespace Sen.Script.Support.Texture {
         RGB_ETC1_A_PALETTE,
         RGBA_PVRTC_4BPP,
         RGB_PVRTC_4BPP_A_8,
+        A_8,
+        ARGB_1555,
+        ARGB_4444,
+        RGB_ETC1,
+        L_8,
+        LA_44,
+        LA_88,
+        RGB_PVRTC4,
     }
 }

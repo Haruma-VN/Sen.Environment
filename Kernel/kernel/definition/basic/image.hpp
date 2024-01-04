@@ -87,7 +87,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Rectangle(
+			constexpr Rectangle(
 
 			) = default;
 
@@ -103,7 +103,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Rectangle(
+			constexpr Rectangle(
 				T x, 
 				T y,
 				T width,
@@ -117,7 +117,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Rectangle(
+			constexpr Rectangle(
 				const Dimension<T> &that,
 				T x, 
 				T y
@@ -130,7 +130,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Rectangle(
+			constexpr Rectangle(
 				const Rectangle &that
 			) : x(that.x), y(that.y), Dimension<T>(that.width, that.height)
 			{
@@ -141,7 +141,7 @@ namespace Sen::Kernel::Definition {
 			 * get area
 			*/
 
-			auto area(
+			inline auto area(
 
 			) const -> T
 			{
@@ -152,7 +152,7 @@ namespace Sen::Kernel::Definition {
 			 * get circumference
 			*/
 
-			auto circumference(
+			inline auto circumference(
 
 			) const -> T
 			{
@@ -196,15 +196,9 @@ namespace Sen::Kernel::Definition {
 
 			// constructor
 
-			Color(
+			explicit constexpr Color(
 
-			) 
-			{
-				thiz.red = std::vector<unsigned char>();
-				thiz.green = std::vector<unsigned char>();
-				thiz.blue = std::vector<unsigned char>();
-				thiz.alpha = std::vector<unsigned char>();
-			}
+			) = default;
 	};
 
 	/**
@@ -218,7 +212,7 @@ namespace Sen::Kernel::Definition {
 
 			// pixel data should not be accessible
 			
-			std::vector<unsigned char> _data;
+			std::vector<unsigned char> mutable _data;
 
 		public:
 
@@ -234,7 +228,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Image(
+			explicit constexpr Image(
 				T width, 
 				T height, 
 				T bit_depth, 
@@ -259,7 +253,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			Image(
+			explicit constexpr Image(
 				const Image &that
 			) : Image<T>(that.width, that.height, that.bit_depth, that.color_type, that.interlace_type, that.channels, that.rowbytes, that.data())
 			{
@@ -270,7 +264,7 @@ namespace Sen::Kernel::Definition {
 			 * get pixel data
 			*/
 
-			auto data(
+			inline auto data(
 
 			) const -> const std::vector<unsigned char> & 
 			{
@@ -281,9 +275,9 @@ namespace Sen::Kernel::Definition {
 			 * set pixel data
 			*/
 
-			auto set_data(
+			inline auto set_data(
 				const std::vector<unsigned char> &data
-			) -> void
+			) const -> void
 			{
 				thiz._data = std::move(data);
 				return;
@@ -295,9 +289,9 @@ namespace Sen::Kernel::Definition {
 			 * return: must be RGBA vector of Struct
 			 */
 
-			auto color(
+			inline auto color(
 
-			) -> Color
+			) const -> Color
 			{
 				auto c = Color{};
 				for (auto i = static_cast<size_t>(0); i < thiz._data.size(); i += 4)
@@ -314,10 +308,10 @@ namespace Sen::Kernel::Definition {
 			 * default constructor
 			*/
 
-			Image(
+			explicit Image(
 				T width, 
 				T height, 
-				std::vector<unsigned char> data
+				const std::vector<unsigned char> & data
 			) : Rectangle<T>(0, 0, width, height), _data(std::move(data)) 
 			{
 			}
@@ -326,7 +320,7 @@ namespace Sen::Kernel::Definition {
 			 * init blank
 			*/
 
-			Image(
+			explicit Image(
 
 			) = default;
 
@@ -342,9 +336,9 @@ namespace Sen::Kernel::Definition {
 			 * get the image dimension
 			*/
 
-			auto dimension(
+			inline auto dimension(
 
-			) -> Dimension<T>
+			) const -> Dimension<T>
 			{
 				auto dz = Dimension<T>{};
 				dz.width = thiz.width;
@@ -359,7 +353,7 @@ namespace Sen::Kernel::Definition {
 			 * return: newly struct with other data 
 			*/
 
-			static auto composite(
+			inline static auto composite(
 				const Image<int>& image, 
 				Rectangle<int> rectangle
 			) -> Image<int> const
@@ -372,8 +366,7 @@ namespace Sen::Kernel::Definition {
 						data.insert(data.end(), &image.data()[index], &image.data()[index + 4]);
 					}
 				}
-				auto result = Image<int>(rectangle.width, rectangle.height, data);
-				return result;
+				return Image<int>(rectangle.width, rectangle.height, data);
 			}
 
 			/**
@@ -381,7 +374,7 @@ namespace Sen::Kernel::Definition {
 			 * return: transparent image
 			*/
 
-			static auto transparent(
+			inline static auto transparent(
 				Dimension<T> dimension
 			) -> Image<T>
 			{
@@ -395,7 +388,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the new source
 			 */
 
-			static auto join(
+			inline static auto join(
 				Image<T> &source,
 				const std::vector<Image<T>> &data
 			) -> void
@@ -427,7 +420,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the newly image
 			*/
 
-			static auto resize(
+			inline static auto resize(
 				const Image<T>& source,
 				float percent
 			) -> Image<T> const
@@ -454,7 +447,7 @@ namespace Sen::Kernel::Definition {
 			 * return: newly image after rotate
 			*/
 
-			static auto rotate(
+			inline static auto rotate(
 				const Image<T>& image, 
 				double angle
 			) -> Image<T> const
@@ -485,7 +478,7 @@ namespace Sen::Kernel::Definition {
 			 * return: new image 
 			*/
 
-			static auto scale(
+			inline static auto scale(
 				const Image<int> & source,
 				float percentage
 			) -> Image<int> const
@@ -586,24 +579,24 @@ namespace Sen::Kernel::Definition {
 			 * return: image data
 			*/
 			
-			static auto read_png(
-				const string &filePath
-			) -> Image<int>
+			inline static auto read_png(
+				const string & source
+			) -> Image<int> 
 			{
-				auto *fp = fopen(filePath.c_str(), "rb");
+				auto *fp = fopen(source.c_str(), "rb");
 				if(!fp){
-					throw std::runtime_error(fmt::format("Open png failed: {}", filePath));
+					throw std::runtime_error(fmt::format("Open png failed: {}", source));
 				}
 				auto png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
 					fclose(fp);
-					throw std::runtime_error(fmt::format("PNG Pointer initialize failed: {}", filePath));
+					throw std::runtime_error(fmt::format("PNG Pointer initialize failed: {}", source));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);  
 				if(!info_ptr){
 					png_destroy_read_struct(&png_ptr, NULL, NULL);
 					fclose(fp);
-					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", filePath));
+					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", source));
 				}
 				if (setjmp(png_jmpbuf(png_ptr))) {
 					png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
@@ -623,18 +616,21 @@ namespace Sen::Kernel::Definition {
 						data.push_back(row_pointers[y][x]);
 					}
 				}
-				auto image = Image<int>{};
-				image.width = width,
-				image.height = height,
-				image.bit_depth = bit_depth,
-				image.color_type = static_cast<int>(png_get_color_type(png_ptr, info_ptr)),
-				image.interlace_type = static_cast<int>(png_get_interlace_type(png_ptr, info_ptr)),
-				image.channels = channels,
-				image.rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr)),
-				image.set_data(data);
-				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 				fclose(fp);
-				return image;
+				auto color_type = static_cast<int>(png_get_color_type(png_ptr, info_ptr));
+				auto interlace_type = static_cast<int>(png_get_interlace_type(png_ptr, info_ptr));
+				auto rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
+				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+				return Image<int>{
+					width, 
+					height, 
+					bit_depth,
+					color_type,
+					interlace_type,
+					channels,
+					rowbytes,
+					data
+				};
 			}
 
 			/**
@@ -644,7 +640,7 @@ namespace Sen::Kernel::Definition {
 			 * return: written image
 			*/
 
-			static auto write_png(
+			inline static auto write_png(
 				const std::string &filepath, 
 				const Image<int> &data
 			) -> void
@@ -707,10 +703,10 @@ namespace Sen::Kernel::Definition {
 			 * return: the new image
 			*/
 
-			static auto composite_png(
+			inline static auto composite_png(
 				const std::string & source,
 				const std::string & destination,
-				Rectangle<int> rectangle
+				const Rectangle<int> & rectangle
 			) -> void
 			{
 				ImageIO::write_png(destination, Image<int>::composite(ImageIO::read_png(source), rectangle));
@@ -724,7 +720,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the composite 
 			*/
 
-			static auto composite_pngs(
+			inline static auto composite_pngs(
 				const std::string & source,
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
@@ -744,7 +740,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the written transparent png
 			*/
 
-			static auto transparent_png(
+			inline static auto transparent_png(
 				const std::string & destination,
 				int width,
 				int height
@@ -762,7 +758,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the file output png
 			 */
 
-			static auto join_png(
+			inline static auto join_png(
 				const std::string & destination,
 				const Dimension<int> & dimension,
 				const std::vector<Image<int>> &data
@@ -785,7 +781,7 @@ namespace Sen::Kernel::Definition {
 			 * @return the newly image
 			 */
 
-			static auto resize_png(
+			inline static auto resize_png(
 				const std::string & source,
 				const std::string & destination,
 				float percent
@@ -803,7 +799,7 @@ namespace Sen::Kernel::Definition {
 			 * return: the newly image after rotate
 			*/
 
-			static auto rotate_png(
+			inline static auto rotate_png(
 				const std::string & source,
 				const std::string & destination,
 				double angle
@@ -821,7 +817,7 @@ namespace Sen::Kernel::Definition {
 			 * @return: written file to destination
 			*/
 
-			static auto scale_png(
+			inline static auto scale_png(
 				const std::string & source,
 				const std::string & destination,
 				float percent

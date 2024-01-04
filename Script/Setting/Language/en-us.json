@@ -1,5 +1,12 @@
 {
-    "js_has_been_loaded": "JS has been loaded!",
+    "script_has_been_loaded": "Scripts has been loaded!",
     "execution_time": "Execution Time",
-    "runtime_error": "Runtime Error"
+    "runtime_error": "Runtime Error",
+    "current_status": "Current status",
+    "processing_file": "Processing file",
+    "result": "Result",
+    "execution_argument": "Execution argument",
+    "execution_finished": "Execution finished",
+    "method_loaded": "Method loaded: {}",
+    "data.md5.hash": "MD5 Hash"
 }
