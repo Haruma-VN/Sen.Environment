@@ -18,26 +18,19 @@
 #define MAIN_FUNCTION int main(int size, char** argc)
 
 struct BasicStringView {
-	char data[700];
-	size_t size;
-};
-
-struct Argument {
-	BasicStringView* data;
+	const char* data;
 	size_t size;
 
-	Argument(
-	) {
-		this->size = 1;
-		this->data = new BasicStringView[this->size];
-		this->data[0] = BasicStringView{};
+	BasicStringView(const char* str) : size(strlen(str)) {
+		data = new char[size + 1];
+		strcpy(const_cast<char*>(data), str);
 	}
 
-	~Argument(
+	BasicStringView() : size(0), data(new char[1]) {
+	}
 
-	)
-	{
-		delete this->data;
+	~BasicStringView() {
+		delete[] data;
 	}
 };
 
@@ -45,33 +38,37 @@ struct Parameter {
 	BasicStringView* data;
 	size_t size;
 
-	Parameter(
+	explicit Parameter(
 
-	)
+	) : size(0)
 	{
-		this->size = 1;
 		this->data = new BasicStringView[this->size];
-		this->data[0] =  BasicStringView{};
 	}
 
-	Parameter(
+	inline static auto constexpr init(
 		const std::vector<std::string>& data
-	)
+	) -> BasicStringView*
 	{
-		this->size = data.size();
-		this->data = new BasicStringView[data.size()];
-		for (auto i = 0; i < data.size(); ++i) {
-			this->data[i] = BasicStringView{};
-			strcpy_s(this->data[i].data, data.at(i).c_str());
-			this->data[i].size = data.at(i).size();
+		BasicStringView* array = new BasicStringView[data.size()];
+		for (size_t i = 0; i < data.size(); ++i) {
+			array[i] = BasicStringView{ data[i].c_str() };
 		}
+		return array;
 	}
+
+
+	explicit constexpr Parameter(
+		const std::vector<std::string> & data
+	) : size(data.size()), data(init(data))
+	{
+	}
+
 
 	~Parameter(
 
 	)
 	{
-		delete this->data;
+		delete[] this->data;
 	}
 
 

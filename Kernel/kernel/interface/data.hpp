@@ -8,7 +8,7 @@ namespace Sen::Kernel::Interface {
 	// basic string view
 	
 	struct BasicStringView {
-		char data[700];
+		const char* data;
 		size_t size;
 	};
 

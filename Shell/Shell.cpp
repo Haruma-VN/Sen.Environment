@@ -7,8 +7,7 @@ inline auto static getLine(
 {
     auto str = std::string{};
     std::getline(std::cin, str);
-    auto m = BasicStringView{};
-    strcpy_s(m.data, str.c_str());
+    auto m = BasicStringView{str.c_str()};
     m.size = str.size();
     return m;
 }
@@ -93,20 +92,13 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto script = std::string{ argc[2] };
-    auto* argument = new BasicStringView{};
-    strcpy_s(argument->data, script.c_str());
-    argument->size = script.size();
-    auto* parameter = new Parameter{
-        std::vector<std::string>{}
-    };
-    auto result = execute(argument, parameter, print, getLine, MShellAPI{Sen::Shell::version, false});
+    auto argument = std::unique_ptr<BasicStringView>(new BasicStringView{ argc[2] });
+    auto parameter = std::unique_ptr<Parameter>(new Parameter{std::vector<std::string>{}});
+    auto result = execute(argument.get(), parameter.get(), print, getLine, MShellAPI{Sen::Shell::version, false});
     #if WIN32
         FreeLibrary(hinstLib);
     #else
         dlclose(hinstLib);
     #endif
-    delete argument;
-    delete parameter;
-    return result;
+    return 0;
 }
