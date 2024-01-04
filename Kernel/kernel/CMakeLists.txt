@@ -8,6 +8,7 @@ add_library(
 	./definition/macro.hpp
 	./definition/range.hpp
 	./definition/library.hpp
+	./definition/literal.hpp
 	./definition/assert.hpp
 	./definition/basic/filesystem.hpp
 	./definition/basic/string.hpp

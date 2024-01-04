@@ -33,3 +33,7 @@
 #if APPLE
 #include <Carbon/Carbon.h>
 #endif
+
+namespace Sen::Kernel {
+	
+}

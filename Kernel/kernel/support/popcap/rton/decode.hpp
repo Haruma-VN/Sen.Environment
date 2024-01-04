@@ -31,41 +31,41 @@ namespace Sen::Kernel::Support::PopCap::RTON
         
         inline static constexpr auto position_increment = 1;
 
-        inline static constexpr auto end_bytecode = 0xFFU;
+        inline static constexpr auto end_bytecode = 0xFF_byte;
 
-        inline static constexpr auto array_byte_start = 0xFDU;
+        inline static constexpr auto array_byte_start = 0xFD_byte;
 
-        inline static constexpr auto array_byte_end = 0xFEU;
+        inline static constexpr auto array_byte_end = 0xFE_byte;
 
-        inline static constexpr auto rtid_0_sc = 0x0U;
+        inline static constexpr auto rtid_0_sc = 0x0_byte;
 
-        inline static constexpr auto rtid_1_sc = 0x1U;
+        inline static constexpr auto rtid_1_sc = 0x1_byte;
 
-        inline static constexpr auto rtid_2_sc = 0x2U;
+        inline static constexpr auto rtid_2_sc = 0x2_byte;
 
-        inline static constexpr auto rtid_3_sc = 0x3U;
+        inline static constexpr auto rtid_3_sc = 0x3_byte;
 
-        inline static constexpr auto star_s_bytecode = 0x2U;
+        inline static constexpr auto star_s_bytecode = 0x2_byte;
 
-        inline static constexpr auto varint32_string_bytecode = 0x81U;
+        inline static constexpr auto varint32_string_bytecode = 0x81_byte;
 
-        inline static constexpr auto varint32_varint32_string_bytecode = 0x82U;
+        inline static constexpr auto varint32_varint32_string_bytecode = 0x82_byte;
 
-        inline static constexpr auto rtid_bytecode = 0x83U;
+        inline static constexpr auto rtid_bytecode = 0x83_byte;
 
-        inline static constexpr auto rtid_0_s_bytecode = 0x84U;
+        inline static constexpr auto rtid_0_s_bytecode = 0x84_byte;
 
-        inline static constexpr auto binary_bytecode = 0x87U;
+        inline static constexpr auto binary_bytecode = 0x87_byte;
 
-        inline static constexpr auto varint32_temp_string_bytecode = 0x90U;
+        inline static constexpr auto varint32_temp_string_bytecode = 0x90_byte;
 
-        inline static constexpr auto varint32_indexed_string_bytecode = 0x91U;
+        inline static constexpr auto varint32_indexed_string_bytecode = 0x91_byte;
 
-        inline static constexpr auto varint32_int32_temp_string_bytecode = 0x92U;
+        inline static constexpr auto varint32_int32_temp_string_bytecode = 0x92_byte;
 
-        inline static constexpr auto varint32_indexed_string2_bytecode = 0x93U;
+        inline static constexpr auto varint32_indexed_string2_bytecode = 0x93_byte;
 
-        inline static constexpr auto k_none_size = 0U;
+        inline static constexpr auto k_none_size = 0_byte;
 
 
         SenBuffer sen;
@@ -422,8 +422,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void 
         {
             auto threads = std::vector<std::thread>{};
+            auto file_mutexes = std::map<std::string, std::mutex>{};
             for (const auto & data : paths) {
-                threads.emplace_back([=]() { 
+                threads.emplace_back([=, &file_mutexes]() { 
+                auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);
+                auto lock_destination = std::lock_guard<std::mutex>(file_mutexes[data[1]]);
                     Decode::decode_fs(data[0], data[1]); 
                 });
             }

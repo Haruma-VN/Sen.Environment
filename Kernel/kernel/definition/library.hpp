@@ -20,11 +20,13 @@
 #include <source_location>
 #include <functional>
 #include <thread>
+#include <mutex>
 #include <cstdlib>
 #include <ctime>
 #include <locale>
 #include <codecvt>
 #include "kernel/definition/range.hpp"
+#include "kernel/definition/literal.hpp"
 #include "kernel/dependencies/zlib.hpp"
 #include "kernel/dependencies/fmt.hpp"
 #include "kernel/dependencies/json.hpp"
