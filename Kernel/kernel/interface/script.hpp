@@ -398,10 +398,10 @@ namespace Sen::Kernel::Interface::Script {
 			try_assert(argc == 2 or argc == 1, fmt::format("argument expected {} but received {}", "2 or 1", argc));
 			auto str = JS_ToCString(context, argv[0]);
 			if(argc == 2){
-				Shell{}.print(JS::Converter::get_string(context, argv[0]).c_str(),static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[1])));
+				Shell::print(JS::Converter::get_string(context, argv[0]).c_str(),static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[1])));
 			}
 			else{
-				Shell{}.print(JS::Converter::get_string(context, argv[0]).c_str(), Sen::Kernel::Interface::Color::DEFAULT);
+				Shell::print(JS::Converter::get_string(context, argv[0]).c_str(), Sen::Kernel::Interface::Color::DEFAULT);
 			}
 			JS_FreeCString(context, str);
 			return JS::Converter::get_undefined();

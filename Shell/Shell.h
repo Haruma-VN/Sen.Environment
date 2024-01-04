@@ -102,7 +102,7 @@ typedef void (*callback)(const char*, const Sen::Shell::Interactive::Color);
 
 typedef BasicStringView (*input)();
 
-typedef int (*KernelExecute)
+typedef int (*execute)
 (BasicStringView* argument, Parameter* params, callback sendMessage, input inputW, MShellAPI _version);
 
 #define try_assert(condition, message) \

@@ -20,13 +20,6 @@ namespace Sen::Kernel::Interface {
 
 	typedef struct BasicStringView (*input)();
 
-	// argument
-
-	struct Argument {
-		BasicStringView* data;
-		size_t size;
-	};
-
 	// parameter
 
 	struct Parameter {
@@ -42,35 +35,22 @@ namespace Sen::Kernel::Interface {
 
     using std::string;
 
-	// argument -> vector<string>
-
-    inline static auto convertArgumentToVectorString(
-		Argument* argument
-	) -> std::vector<std::string>
-	{
-        auto result = std::vector<std::string> {};
-        for (auto i = 0; i < argument->size; i++){
-            result.push_back(std::string {argument->data[i].data, argument->data[i].size});
-        }
-        return result;
-    }
-
 	// param -> vector<string>
 
-	inline static auto convertParameterToVectorString(
+	inline static auto convert_parameter_to_vector_string(
 		Parameter* param
 	) -> std::vector<std::string>
 	{
         auto result = std::vector<std::string> {};
-        for (auto i = 0; i < param->size; i++){
-            result.push_back(std::string {param->data[i].data, param->data[i].size});
+        for (auto i : Range<size_t>(param->size)){
+            result.emplace_back(std::string {param->data[i].data, param->data[i].size});
         }
         return result;
     }
 
 	// C Struct -> C++ String
 
-	inline static auto convertBasicStringViewToString(
+	inline static auto convert_basic_string_view_to_string(
 		BasicStringView* argument
 	) -> std::string const
 	{

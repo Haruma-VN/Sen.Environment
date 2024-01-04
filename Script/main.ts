@@ -112,7 +112,6 @@ namespace Sen.Script {
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Console.send(Sen.Script.Setting.Language.get("js_has_been_loaded"), Sen.Script.Definition.Console.Color.GREEN);
             const before: number = Sen.Kernel.Thread.now();
-            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.rton", "D:/test/RESOURCES.json");
             // Sen.Kernel.Support.PopCap.RTON.decode_fs_as_multiple_threads(["D:/test/RESOURCES.rton", "D:/test/RESOURCES.json"], ["D:/test/Res1.rton", "D:/test/Res1.json"]);
             const after: number = Sen.Kernel.Thread.now();
             Sen.Script.Console.send(`${Sen.Script.Setting.Language.get("execution_time")}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);

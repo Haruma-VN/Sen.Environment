@@ -79,11 +79,11 @@ MAIN_FUNCTION
         return 1;
     }
     #if WIN32
-        auto execute = (KernelExecute)GetProcAddress(hinstLib, "execute");
+        auto execute_method = (execute)GetProcAddress(hinstLib, "execute");
     #else
-        auto execute = (KernelExecute)dlsym(hinstLib, "execute");
+        auto execute_method = (execute)dlsym(hinstLib, "execute");
     #endif
-    if (execute == NULL) {
+    if (execute_method == NULL) {
         print("Method not found", Sen::Shell::Interactive::Color::RED);
         #if WIN32
                 FreeLibrary(hinstLib);
@@ -94,11 +94,11 @@ MAIN_FUNCTION
     }
     auto argument = std::unique_ptr<BasicStringView>(new BasicStringView{ argc[2] });
     auto parameter = std::unique_ptr<Parameter>(new Parameter{std::vector<std::string>{}});
-    auto result = execute(argument.get(), parameter.get(), print, getLine, MShellAPI{Sen::Shell::version, false});
+    auto result = execute_method(argument.get(), parameter.get(), print, getLine, MShellAPI{Sen::Shell::version, false});
     #if WIN32
         FreeLibrary(hinstLib);
     #else
         dlclose(hinstLib);
     #endif
-    return 0;
+    return result;
 }

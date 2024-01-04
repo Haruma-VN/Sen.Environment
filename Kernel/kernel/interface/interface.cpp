@@ -20,14 +20,14 @@ int execute(
 )
 {
     try{
-        auto process = Interface::convertBasicStringViewToString(argument);
-        auto parameters = Interface::convertParameterToVectorString(params);
+        auto process = Interface::convert_basic_string_view_to_string(argument);
+        auto parameters = Interface::convert_parameter_to_vector_string(params);
         Interface::Shell::input = input;
         Interface::Shell::print = sendMessage;
         auto callback = std::make_shared<Interface::Callback>(process, parameters, shell);
         callback->execute();
     }
-    catch(std::exception &ex)
+    catch(const std::exception & ex)
     {
         sendMessage(fmt::format("Runtime Exception found:\n  {}", ex.what()).c_str(), Sen::Kernel::Interface::Color::RED);
         return 1;
