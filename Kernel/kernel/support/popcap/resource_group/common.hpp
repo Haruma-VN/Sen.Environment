@@ -65,7 +65,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				const string &output
 			) -> void
 			{
-				auto resource = FileSystem::readJson(infile);
+				auto resource = FileSystem::read_json(infile);
 				try_assert(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"));
 				FileSystem::createDirectory(fmt::format("{}/{}", Path::toPosixStyle(output), "subgroup"));
 				auto content = json{};
@@ -117,7 +117,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				const string &fileOutput
 			) -> void
 			{
-				auto content = FileSystem::readJson(Path::normalize(fmt::format("{}/{}", directoryPath, "content.json")));
+				auto content = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", directoryPath, "content.json")));
 				auto resources_json = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
@@ -142,7 +142,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
-						auto resource_content = FileSystem::readJson(resource_json_path);
+						auto resource_content = FileSystem::read_json(resource_json_path);
 						try_assert(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"));
 						groups.push_back(resource_content);
 					}

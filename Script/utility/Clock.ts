@@ -8,7 +8,7 @@ namespace Sen.Script {
          * Duration after calculate between two start and stop
          */
 
-        private _duration: number | null;
+        private _duration: number;
 
         /**
          * Start need to be called before getting the duration
@@ -24,7 +24,7 @@ namespace Sen.Script {
 
         public constructor() {
             this._start = null;
-            this._duration = null;
+            this._duration = 0;
         }
 
         /**
@@ -51,7 +51,7 @@ namespace Sen.Script {
             if (this.is_stopped) {
                 throw new Error(Setting.Language.get(`clock_has_not_started`));
             }
-            this._duration = Kernel.Thread.now() - this._start!;
+            this._duration += Kernel.Thread.now() - this._start!;
             this._start = null;
             return;
         }

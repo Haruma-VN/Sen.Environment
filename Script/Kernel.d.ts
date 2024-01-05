@@ -989,6 +989,32 @@ declare namespace Sen {
                 }
 
                 /**
+                 * Render Effects Support
+                 */
+
+                declare namespace RenderEffects {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RenderEffects Decode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RenderEffects Encode method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
                  * New Type Object Notaion Support
                  */
 

@@ -134,7 +134,7 @@ namespace Sen::Kernel::Support::PopCap::Atlas {
 			) -> void
 			{
 				auto c = Unpack{expandPath == std::string{"old"}};
-				c.process(FileSystem::readJson(json_file), source, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
+				c.process(FileSystem::read_json(json_file), source, method == "id" ? Method::SPLIT_BY_ID : Method::SPLIT_BY_PATH, destination);
 				return;
 			}
 		

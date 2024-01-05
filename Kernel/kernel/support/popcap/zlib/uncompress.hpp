@@ -78,7 +78,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 					sen.readUint32LE();
 					sen.readUint32LE();
 				}
-				auto result = Compression::Zlib::uncompress(sen.get_raw(cut_offset, sen.size()));
+				auto result = Compression::Zlib::uncompress(sen.get(cut_offset, sen.size()));
 				return result;
 			}
 

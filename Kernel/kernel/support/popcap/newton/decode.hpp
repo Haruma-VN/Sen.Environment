@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw std::runtime_error(fmt::format("Invalid boolean value at offset: {}", sen.get_pos() - 1));
+						throw std::runtime_error(fmt::format("Invalid boolean value at offset: {}", sen.get_position() - 1));
 					}
 				}
 				return value;

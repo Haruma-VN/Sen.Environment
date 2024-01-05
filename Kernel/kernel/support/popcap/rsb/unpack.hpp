@@ -24,7 +24,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto composite_size = head_info["composite_info_each_length"].get<unsigned int>() * composite_number;
                 for (auto i = 0; i < composite_size; i += composite_number) {
                     auto this_pos = composite_begin + i;
-                    sen.changePosition(this_pos);
+                    sen.change_position(this_pos);
                     auto composite_name  = sen.readString(0x80);
                     composite_name.erase(std::find(composite_name.begin(), composite_name.end(), '\0'), composite_name.end());
                     sen.readString(this_pos + 1024);
@@ -32,15 +32,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     FileSystem::createDirectory(Path::normalize(fmt::format("{}/{}", folder_out, composite_name)));
                     for (auto k = 0; k < rsg_number; k++) {
                         auto rsg_pos = i + 0x80 + k * 16;
-                        sen.changePosition(rsg_pos);
+                        sen.change_position(rsg_pos);
                         auto rsg_info_set = sen.readUint32LE();
                         auto rsg_info_pos = rsg_info_set * rsg_info_each_length;
-                        sen.changePosition(rsg_info_set);
+                        sen.change_position(rsg_info_set);
                         auto packet_name = sen.readString(0x80);
                         packet_name.erase(std::find(packet_name.begin(), packet_name.end(), '\0'), packet_name.end());
                         auto packet_pos = sen.readUint32LE();
                         auto packet_size = sen.readUint32LE();
-                        auto packet_data = sen.get_raw(packet_pos, packet_pos + packet_size);
+                        auto packet_data = sen.get(packet_pos, packet_pos + packet_size);
                         FileSystem::writeBinary(Path::normalize(fmt::format("{}/{}/{}", folder_out, composite_name, packet_name)), packet_data);
                     }
 

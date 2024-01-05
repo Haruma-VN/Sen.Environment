@@ -49,7 +49,7 @@ namespace Sen::Kernel::FileSystem
 	// Provide file path to read json
 	// return: if the json is valid, the json data will be parsed as object
 
-	inline static auto readJson(
+	inline static auto read_json(
 		const std::string &filePath
 	) -> nlohmann::ordered_json const
 	{

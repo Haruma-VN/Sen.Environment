@@ -61,6 +61,30 @@ namespace Sen::Kernel::Definition
                     file.read(reinterpret_cast<char *>(this->data.data()), size);
                 }
 
+                inline auto fill(
+                    size_t count,
+                    uint8_t value = 0x00
+                ) const -> void
+                {
+                    this->data = std::vector<uint8_t>(count, value);
+                    return;
+                }
+
+                inline auto reserve(
+                    size_t capacity
+                ) const -> void
+                {
+                    this->data.reserve(capacity);
+                    return;
+                }
+
+                inline auto capacity(
+                    size_t range
+                ) const -> size_t
+                {
+                    return this->data.capacity();
+                }
+
                 inline auto begin(
 
                 ) -> std::vector<std::uint8_t>::iterator
@@ -75,7 +99,7 @@ namespace Sen::Kernel::Definition
                     return this->data;
                 }
 
-                inline auto get_pos(
+                inline auto get_position(
 
                 ) const -> size_t
                 {
@@ -97,11 +121,11 @@ namespace Sen::Kernel::Definition
                     return std::bit_cast<uint32_t>(bytes);
                 }
 
-                inline auto changePosition(
+                inline auto change_position(
                     std::vector<std::uint8_t>::size_type pos
                 ) const -> void
                 {
-                    if (pos <= data.size())
+                    if (pos <= data.capacity())
                     {
                         this->position = pos;
                     }
@@ -116,7 +140,7 @@ namespace Sen::Kernel::Definition
                 ) const -> void 
                 {
                     auto new_pos = this->position + pos;
-                    changePosition(new_pos);
+                    change_position(new_pos);
                     return;
                 }
 
@@ -144,7 +168,7 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto outFile(
+                inline auto out_file(
                     const std::string &path
                 ) const -> void
                 {
@@ -398,7 +422,7 @@ namespace Sen::Kernel::Definition
                     return c.data();
                 }
 
-                inline auto get_raw(
+                inline auto get(
                     const size_t & from,
                     const size_t & to
 
@@ -416,7 +440,7 @@ namespace Sen::Kernel::Definition
                     size_t to
                 ) const -> Stream
                 {
-                    return Stream{this->get_raw(from, to)};
+                    return Stream{this->get(from, to)};
                 }
 
                 inline auto writeBoolean(
@@ -1180,12 +1204,15 @@ namespace Sen::Kernel::Definition
                     {
                         this->data.push_back((value >> (i * 8)) & 0xFF);
                     }
+                    this->position += size;
+                    return;
                 }
 
 
                 template <typename T>
                 inline auto writeBE(
-                    T value) const -> void
+                    T value
+                ) const -> void
                 {
                     auto size = sizeof(T);
                     this->data.reserve(this->data.size() + size);
@@ -1193,6 +1220,7 @@ namespace Sen::Kernel::Definition
                     {
                         this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
                     }
+                    this->position += size;
                     return;
                 }
 
@@ -1229,6 +1257,7 @@ namespace Sen::Kernel::Definition
                     {
                         this->data.push_back((value >> (i * 8)) & 0xFF);
                     }
+                    this->position += size;
                     return;
                 }
 
@@ -1242,6 +1271,7 @@ namespace Sen::Kernel::Definition
                     {
                         this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
                     }
+                    this->position += size;
                     return;
                 }
 
@@ -1276,6 +1306,7 @@ namespace Sen::Kernel::Definition
                 ) const -> void
                 {
                     this->data.insert(this->data.end(), bytes, bytes + size);
+                    this->position += size;
                     return;
                 }
 
@@ -1285,6 +1316,7 @@ namespace Sen::Kernel::Definition
                 ) const -> void
                 {
                     this->data.insert(this->data.end(), std::reverse_iterator(bytes + size), std::reverse_iterator(bytes));
+                    this->position += size;
                     return;
                 }
 

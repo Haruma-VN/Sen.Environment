@@ -353,10 +353,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const std::string & destination
         ) -> void
         {
-            debug("ENCODE RTON");
             auto c = Encode{};
-            auto result = c.encode_rton(FileSystem::readJson(source));
-            result.outFile(destination);
+            auto result = c.encode_rton(FileSystem::read_json(source));
+            result.out_file(destination);
             return;
         }
     };

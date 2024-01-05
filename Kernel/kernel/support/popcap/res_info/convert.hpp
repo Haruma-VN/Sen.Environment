@@ -376,7 +376,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const std::string & destination
 			) -> void
 			{
-				FileSystem::write_json(destination, Convert::convert(FileSystem::readJson(source)));
+				FileSystem::write_json(destination, Convert::convert(FileSystem::read_json(source)));
 				return;
 			}
 

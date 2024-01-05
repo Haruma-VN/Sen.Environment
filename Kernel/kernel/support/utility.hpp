@@ -15,3 +15,5 @@
 #include "kernel/support/popcap/newton/decode.hpp"
 #include "kernel/support/popcap/compiled_text/decode.hpp"
 #include "kernel/support/popcap/compiled_text/encode.hpp"
+#include "kernel/support/popcap/render_effects/decode.hpp"
+#include "kernel/support/popcap/render_effects/encode.hpp"

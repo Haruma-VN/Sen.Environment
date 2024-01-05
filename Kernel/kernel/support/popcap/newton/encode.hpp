@@ -55,14 +55,14 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			// constructor
 
 			explicit Encode(
-				const std::string &source) : resource(FileSystem::readJson(source))
+				const std::string &source) : resource(FileSystem::read_json(source))
 			{
 			}
 
 			// constructor
 
 			explicit Encode(
-				const String &source) : resource(FileSystem::readJson(source.value))
+				const String &source) : resource(FileSystem::read_json(source.value))
 			{
 			}
 

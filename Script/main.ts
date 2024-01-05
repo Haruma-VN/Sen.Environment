@@ -188,7 +188,11 @@ namespace Sen.Script {
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
+            Sen.Kernel.Support.PopCap.RenderEffects.encode_fs(
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/RenderEffects.packet/res/DESATURATE.json",
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/RenderEffects.packet/res/DESATURATE.json.POPFX",
+            );
+            // Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;
             result += e.message;

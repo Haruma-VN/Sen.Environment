@@ -2199,6 +2199,65 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 			/**
+			 * JavaScript RenderEffects Support
+			*/
+
+			namespace RenderEffects {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RenderEffects Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::RenderEffects::Decode::process_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RenderEffects Encode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::RenderEffects::Encode::process_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+
+			}
+
+			/**
 			 * JavaScript Newton Support
 			*/
 
@@ -2674,7 +2733,7 @@ namespace Sen::Kernel::Interface::Script {
 		 * QuickJS JSON Value to nlohmann::ordered_json and then to string
 		*/
 
-		auto js_object_to_json(
+		inline static auto js_object_to_json(
 			JSContext *context, 
 			JSValueConst value
 		) -> nlohmann::ordered_json

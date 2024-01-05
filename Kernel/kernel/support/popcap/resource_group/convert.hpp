@@ -266,7 +266,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> void 
 			{
 				auto *convert_c = new ResourceGroup::Convert{style};
-				FileSystem::write_json(destination, convert_c->convert_whole(FileSystem::readJson(source)));
+				FileSystem::write_json(destination, convert_c->convert_whole(FileSystem::read_json(source)));
 				delete convert_c;
 				convert_c = nullptr;
 				return;

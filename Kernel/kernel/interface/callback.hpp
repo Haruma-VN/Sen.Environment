@@ -359,6 +359,13 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::CompiledText::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CompiledText"}, std::string{"decode_fs"});
 					javascript->add_proxy(Script::Support::PopCap::CompiledText::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CompiledText"}, std::string{"encode_fs"});
 				}
+				// render-effects
+				{
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::RenderEffects::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RenderEffects"}, std::string{"decode_fs"});
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::RenderEffects::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RenderEffects"}, std::string{"encode_fs"});
+				}
 				// rsb
 				{
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"unpack_fs"});

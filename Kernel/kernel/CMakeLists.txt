@@ -70,6 +70,10 @@ add_library(
 	./support/popcap/compiled_text/decode.hpp
 	./support/popcap/compiled_text/encode.hpp
 	./support/popcap/atlas/split.hpp
+	./support/popcap/render_effects/common.hpp
+	./support/popcap/render_effects/definition.hpp
+	./support/popcap/render_effects/decode.hpp
+	./support/popcap/render_effects/encode.hpp
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp
