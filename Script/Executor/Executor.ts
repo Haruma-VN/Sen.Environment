@@ -24,6 +24,13 @@ namespace Sen.Script.Executor {
     }
 
     /**
+     * Clock need to be initialized during the runtime.
+     * Clock will calculate everything
+     */
+
+    export const clock: Clock = new Clock();
+
+    /**
      *
      * All methods are assigned here as key | value
      * Key: must be the id of the typical module
@@ -75,11 +82,10 @@ namespace Sen.Script.Executor {
         if (Object.keys(current_data).length !== 0) {
             argument = current_data;
         }
-        const before: number = Sen.Kernel.Thread.now();
         switch (forward_type) {
             case Forward.ASYNC: {
                 if (worker.async_forward === undefined) {
-                    throw new Error(`Method ${id} does not support async implementaion`);
+                    throw new Error(Setting.Language.format(Setting.Language.get(`method_does_not_support_async_implementation`), id));
                 }
                 worker.async_forward(argument);
                 break;
@@ -93,11 +99,11 @@ namespace Sen.Script.Executor {
                 break;
             }
             default: {
-                throw new Error(`Forward type is not found`);
+                throw new Error(Setting.Language.format(Setting.Language.get(`method_does_not_support_async_implementation`), forward_type));
             }
         }
-        const after: number = Sen.Kernel.Thread.now();
-        Sen.Script.Console.send(`${Sen.Script.Setting.Language.get(`execution_time`)}: ${(after - before).toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
+        clock.stop_safe();
+        Sen.Script.Console.send(`${Sen.Script.Setting.Language.get(`execution_time`)}: ${clock.duration.toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         return;
     }
 }

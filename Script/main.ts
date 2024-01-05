@@ -89,6 +89,30 @@ namespace Sen.Script {
             }
             return;
         }
+
+        /**
+         * --------------------------------------------------
+         * JavaScript notify
+         * @param source - source to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function obtained(source: string): void {
+            Sen.Script.Console.display(Setting.Language.get(`input_argument`), source, Definition.Console.Color.CYAN);
+        }
+
+        /**
+         * --------------------------------------------------
+         * JavaScript notify
+         * @param source - source to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function output(source: string): void {
+            Sen.Script.Console.display(Setting.Language.get(`output_argument`), source, Definition.Console.Color.GREEN);
+        }
     }
 
     /**
@@ -168,7 +192,7 @@ namespace Sen.Script {
         } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;
             result += e.message;
-            result += "/n";
+            result += `\n`;
             result += e.stack;
         }
         return result;
@@ -201,6 +225,7 @@ namespace Sen.Script {
             `~/Setting/Language/Format.js`,
             `~/Setting/Setting.js`,
             `~/utility/Definition.js`,
+            `~/utility/Clock.js`,
             `~/Support/Texture/Format.js`,
             `~/Support/PopCap/ResourceGroup/Convert.js`,
             `~/Executor/Executor.js`,

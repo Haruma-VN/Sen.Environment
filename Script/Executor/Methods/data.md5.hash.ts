@@ -33,20 +33,20 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             id: `data.md5.hash`,
             configuration_file: Home.query(`~/Executor/Configuration/data.md5.hash.json`),
             direct_forward({ source }) {
-                Sen.Script.Console.finished(Setting.Language.get(`result`), Sen.Kernel.Encryption.MD5.hash_fs(source));
+                clock.start_safe();
+                Console.obtained(source);
+                Console.output(Kernel.Encryption.MD5.hash_fs(source));
                 return;
             },
             batch_forward({ directory }) {
-                Sen.Kernel.FileSystem.read_directory(directory)
-                    .filter((path: string) => Sen.Kernel.FileSystem.is_file(path))
-                    .forEach((source: string) => {
-                        Sen.Script.Console.display(Setting.Language.get(`processing_file`), source, Definition.Console.Color.CYAN);
-                        this.direct_forward({ source });
-                    });
+                Kernel.FileSystem.read_directory(directory)
+                    .filter((path: string) => Kernel.FileSystem.is_file(path))
+                    .forEach((source: string) => this.direct_forward({ source }));
                 return;
             },
         });
         return;
     }
 }
+
 Sen.Script.Executor.Methods.Data.MD5.Hash.forward();
