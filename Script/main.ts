@@ -188,7 +188,7 @@ namespace Sen.Script {
             Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Kernel.Support.Texture.decode_fs("D:/test/g/image9.ptx", "D:/test/g/image9_1.png", 100, 100, Support.Texture.Format.RGBA_PVRTC_4BPP);
+            Sen.Kernel.Support.PopCap.CryptData.decrypt_fs("D:/test/g/image9.bin", "D:/test/g/image9_2.bin", "AS23DSREPLKL335KO4439032N8345NF");
             // Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;

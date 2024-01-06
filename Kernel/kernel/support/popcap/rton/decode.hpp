@@ -267,7 +267,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 case 0x92:{
                     thiz.sen.readVarInt32();
-                    auto temp_string = thiz.sen.readStringByInt32();
+                    auto temp_string = thiz.sen.readStringByInt32LE();
                     thiz.r0x92_list.emplace_back(temp_string);
                     return temp_string;
                 }
@@ -324,7 +324,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 case varint32_int32_temp_string_bytecode:
                 {
                     thiz.sen.readVarInt32();
-                    const auto & temp_string = thiz.sen.readStringByInt32();
+                    const auto & temp_string = thiz.sen.readStringByInt32LE();
                     thiz.r0x92_list.emplace_back(temp_string);
                     return temp_string;
                 }

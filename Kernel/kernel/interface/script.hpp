@@ -2258,6 +2258,132 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 			/**
+			 * JavaScript CharacterFontWidget2 Support
+			*/
+
+			namespace CharacterFontWidget2 {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RenderEffects Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Support::PopCap::CFW2::Decode::process_fs(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Crypt-Data Encrypt
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: key
+				 * @returns: Encrypted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encrypt_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto key = JS_ToCString(context, argv[2]);
+					Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					JS_FreeCString(context, key);
+					return JS::Converter::get_undefined();
+				}
+
+
+			}
+
+			/**
+			 * JavaScript Crypt-Data Support
+			*/
+
+			namespace CryptData {
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RenderEffects Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decrypt_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto key = JS_ToCString(context, argv[2]);
+					Sen::Kernel::Support::PopCap::CryptData::Decrypt::process_fs(source, destination, key);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					JS_FreeCString(context, key);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Crypt-Data Encrypt
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: key
+				 * @returns: Encrypted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encrypt_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					auto key = JS_ToCString(context, argv[2]);
+					Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					JS_FreeCString(context, key);
+					return JS::Converter::get_undefined();
+				}
+
+
+			}
+
+			/**
 			 * JavaScript Newton Support
 			*/
 

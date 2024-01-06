@@ -633,6 +633,15 @@ namespace Sen::Kernel::Definition
                     return value;
                 }
 
+                inline auto readCharByInt16LE(
+
+                ) const -> char
+                {
+                    auto value = static_cast<char>(
+                        this->readInt16LE());
+                    return value;
+                }
+
                 inline auto readVarInt32(
 
                 ) const -> std::int32_t
@@ -759,32 +768,60 @@ namespace Sen::Kernel::Definition
                     return this->readString(this->readInt8());
                 }
 
-                inline auto readStringByUInt16(
+                inline auto readStringByUInt16LE(
 
                 ) const -> std::string
                 {
                     return this->readString(this->readUint16LE());
                 }
 
-                inline auto readStringByInt16(
+                inline auto readStringByInt16LE(
 
                 ) const -> std::string
                 {
                     return this->readString(this->readInt16LE());
                 }
 
-                inline auto readStringByUInt32(
+                inline auto readStringByUInt16BE(
+
+                ) const -> std::string
+                {
+                    return this->readString(this->readUint16BE());
+                }
+
+                inline auto readStringByInt16BE(
+
+                ) const -> std::string
+                {
+                    return this->readString(this->readInt16BE());
+                }
+
+                inline auto readStringByUInt32LE(
 
                 ) const -> std::string
                 {
                     return this->readString(this->readUint32LE());
                 }
 
-                inline auto readStringByInt32(
+                inline auto readStringByInt32LE(
 
                 ) const -> std::string
                 {
                     return this->readString(this->readInt32LE());
+                }
+
+                inline auto readStringByUInt32BE(
+
+                ) const -> std::string
+                {
+                    return this->readString(this->readUint32BE());
+                }
+
+                inline auto readStringByInt32BE(
+
+                ) const -> std::string
+                {
+                    return this->readString(this->readInt32BE());
                 }
 
                 inline auto readStringByVarInt32(
@@ -1186,6 +1223,16 @@ namespace Sen::Kernel::Definition
                     requires CharacterOnView<T>
                 inline auto append(
                     const std::vector<T> & m_data
+                ) const -> void
+                {
+                    this->data.insert(this->data.end(), m_data.begin(), m_data.end());
+                    return;
+                }
+
+                template <typename T, size_t n>
+                    requires CharacterOnView<T>
+                inline auto append(
+                    const std::array<T, n> & m_data
                 ) const -> void
                 {
                     this->data.insert(this->data.end(), m_data.begin(), m_data.end());

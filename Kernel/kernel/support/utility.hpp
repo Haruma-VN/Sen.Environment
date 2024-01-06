@@ -17,3 +17,6 @@
 #include "kernel/support/popcap/compiled_text/encode.hpp"
 #include "kernel/support/popcap/render_effects/decode.hpp"
 #include "kernel/support/popcap/render_effects/encode.hpp"
+#include "kernel/support/popcap/crypt_data/encrypt.hpp"
+#include "kernel/support/popcap/crypt_data/decrypt.hpp"
+#include "kernel/support/popcap/cfw2/decode.hpp"

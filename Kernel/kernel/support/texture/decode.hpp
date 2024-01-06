@@ -502,12 +502,15 @@ namespace Sen::Kernel::Support::Texture {
 				{
 					newWidth = newHeight = Math::compare(newWidth, newHeight);
 				}
-				auto packets = std::vector<Compression::PVRTC::Packet>(static_cast<uint64_t>((newWidth * newHeight) >> 4));
-				for (auto & packet : packets)
-				{
-					packet = Compression::PVRTC::Packet(sen.readUint64LE());
+				auto result = std::vector<Javelin::ColorRgba<unsigned char>>(static_cast<size_t>(newWidth * newHeight));
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(result.data(), Javelin::Point2<int>(width, height), sen.get().data());
+				auto data = std::vector<uint8_t>{};
+				for	(auto & c : result){
+					data.push_back(c.r);
+					data.push_back(c.g);
+					data.push_back(c.b);
+					data.push_back(c.a);
 				}
-				auto data = Compression::PVRTC::decode_4bpp(packets, newWidth);
 				return Image<int>{width, height, data};
 
 				// auto sen = DataStreamView{color};

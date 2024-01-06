@@ -1041,6 +1041,34 @@ declare namespace Sen {
                 }
 
                 /**
+                 * Crypt-Data Support
+                 */
+
+                declare namespace CryptData {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Crypt-Data decrypt for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @returns: decrypted file
+                     * --------------------------------------------------
+                     */
+                    export function decrypt_fs(source: string, destination: string, key: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Crypt-Data encrypt for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @returns: encrypted file
+                     * --------------------------------------------------
+                     */
+                    export function encrypt_fs(source: string, destination: string, key: string): void;
+                }
+
+                /**
                  * Compiled Text
                  */
 

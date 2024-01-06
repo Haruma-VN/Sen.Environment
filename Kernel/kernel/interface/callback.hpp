@@ -366,6 +366,18 @@ namespace Sen::Kernel::Interface {
 					// encode fs
 					javascript->add_proxy(Script::Support::PopCap::RenderEffects::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RenderEffects"}, std::string{"encode_fs"});
 				}
+				// crypt-data
+				{
+					// decrypt fs
+					javascript->add_proxy(Script::Support::PopCap::CryptData::decrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CryptData"}, std::string{"decrypt_fs"});
+					// encrypt fs
+					javascript->add_proxy(Script::Support::PopCap::CryptData::encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CryptData"}, std::string{"encrypt_fs"});
+				}
+				// character-font-widget-2
+				{
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CharacterFontWidget2"}, std::string{"decode_fs"});
+				}
 				// rsb
 				{
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"RSB"}, std::string{"unpack_fs"});

@@ -77,6 +77,11 @@ add_library(
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp
+	./support/popcap/crypt_data/definition.hpp
+	./support/popcap/crypt_data/encrypt.hpp
+	./support/popcap/crypt_data/decrypt.hpp
+	./support/popcap/cfw2/definition.hpp
+	./support/popcap/cfw2/decode.hpp
 	./support/texture/compression/pvrtc/color.hpp
 	./support/texture/compression/pvrtc/packet.hpp
 	./support/texture/compression/pvrtc/pvrtc.hpp
