@@ -5,7 +5,21 @@
 
 namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
+	#pragma region using
+
+	// using DataStreamView
+
 	using Sen::Kernel::Definition::DataStreamView;
+
+
+	#pragma endregion
+	
+
+	#pragma region decode
+
+	/**
+	 * Decode Struct
+	*/
 
 	struct Decode : public Common {
 		
@@ -21,13 +35,25 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 		protected:
 
+			/**
+			 * Stream Handler
+			*/
+
 			DataStreamView decoder;
 
 		public:
-			
+
+			/**
+			 * Constructor
+			*/
+
 			explicit Decode(
 
 			) = default;
+
+			/**
+			 * Constructor
+			*/
 
 			explicit Decode(
 				const std::string & source
@@ -36,6 +62,10 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			}
 
+			/**
+			 * Constructor
+			*/
+
 			explicit Decode(
 				DataStreamView & it
 			) : decoder(it)
@@ -43,9 +73,17 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			}
 
+			/**
+			 * Destructor
+			*/
+
 			~Decode(
 
 			) = default;
+
+			/**
+			 * Decode method
+			*/
 			
 			inline auto decode(
 
@@ -139,6 +177,15 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 				};
 			}
 
+			/**
+			 * --------------------------------------
+			 * Process method
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @returns: output file after decode
+			 * --------------------------------------
+			*/
+
 			inline static auto process_fs(
 				const std::string & source,
 				const std::string & destination
@@ -149,6 +196,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 				return;
 			}
 
-
 	};
+
+	#pragma endregion
 }

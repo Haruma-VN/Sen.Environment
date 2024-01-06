@@ -7,6 +7,10 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 	#pragma region Block Offset
 
+	/**
+	 * Block Offset
+	*/
+
 	struct BlockOffset {
 		public:
 			uint32_t block1_section_offset;
@@ -31,11 +35,17 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 	#pragma region using
 
+	// using DataStreamView
+
 	using Sen::Kernel::Definition::DataStreamView;
 
 	#pragma endregion
 
 	#pragma region encode
+
+	/**
+	 * Encoder
+	*/
 
 	struct Encode : public Common {
 
@@ -51,13 +61,23 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 		protected:
 
+			// Render Effects
+
 			RenderEffects data;
 
 		public:
+			
+			/**
+			 * Constructor
+			*/
 
 			explicit Encode(
 
 			) = default;
+
+			/**
+			 * Constructor
+			*/
 
 			explicit Encode(
 				const std::string & source
@@ -66,9 +86,17 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			}
 
+			/**
+			 * Destructor
+			*/
+
 			~Encode(
 
 			) = default;
+
+			/**
+			 * Encode method
+			*/
 
 			inline auto encode(
 
@@ -173,9 +201,18 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 				result.writeUint32LE(BasicDefinition::Block8SectionSize);
 				result.writeUint32LE(static_cast<uint32_t>(blockSectionOffset));
 				result.append(data.get(static_cast<uint64_t>(BasicDefinition::BlockSectionOffset), data.size()));
-				result.append(string_section.get(0, string_section.size()));
+				result.append(string_section.get(0Ui64, string_section.size()));
 				return result;
 			}
+
+			/**
+			 * --------------------------------------
+			 * Process method
+			 * @param source: source file
+			 * @param destination: destination file
+			 * @returns: output file after encode
+			 * --------------------------------------
+			*/
 
 			inline static auto process_fs(
 				const std::string & source,

@@ -77,6 +77,9 @@ add_library(
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp
+	./support/texture/compression/pvrtc/color.hpp
+	./support/texture/compression/pvrtc/packet.hpp
+	./support/texture/compression/pvrtc/pvrtc.hpp
 	./support/texture/common.hpp
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp

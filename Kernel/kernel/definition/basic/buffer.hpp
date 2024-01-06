@@ -409,6 +409,13 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
+                inline auto current_pointer(
+
+                ) -> std::vector<std::uint8_t>::iterator
+                {
+                    return this->data.begin() + this->position;
+                }
+
                 inline auto getBytes(
                     const size_t & from,
                     const size_t & to

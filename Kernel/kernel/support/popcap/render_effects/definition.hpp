@@ -15,11 +15,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_5;
 			uint32_t unknown_6;
 
-			explicit constexpr Block1(
+			explicit Block1(
 
 			) = default;
 
-			explicit constexpr Block1(
+			explicit Block1(
 				uint32_t unknown_1,
 				uint32_t unknown_2,
 				uint32_t unknown_3,
@@ -77,11 +77,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_1;
 			uint32_t unknown_2;
 
-			explicit constexpr Block2(
+			explicit Block2(
 
 			) = default;
 
-			explicit constexpr Block2(
+			explicit Block2(
 				uint32_t unknown_1,
 				uint32_t unknown_2
 			) :  unknown_1(unknown_1), unknown_2(unknown_2)
@@ -125,7 +125,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_2;
 			std::string string;
 
-			explicit constexpr Block3(
+			explicit Block3(
 				uint32_t unknown_2,
 				const std::string & string
 			) : unknown_2(unknown_2), string(string)
@@ -133,7 +133,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			}
 
-			explicit constexpr Block3(
+			explicit Block3(
 
 			) = default;
 
@@ -176,11 +176,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_4;
 			uint32_t unknown_5;
 
-			explicit constexpr Block4(
+			explicit Block4(
 
 			) = default;
 
-			explicit constexpr Block4(
+			explicit Block4(
 				uint32_t unknown_1,
 				uint32_t unknown_2,
 				uint32_t unknown_3,
@@ -239,11 +239,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_6;
 			uint32_t unknown_7;
 
-			explicit constexpr Block5(
+			explicit Block5(
 
 			) = default;
 
-			explicit constexpr Block5(
+			explicit Block5(
 				uint32_t unknown_1,
 				uint32_t unknown_2,
 				uint32_t unknown_3,
@@ -307,11 +307,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_4;
 			uint32_t unknown_5;
 
-			explicit constexpr Block6(
+			explicit Block6(
 
 			) = default;
 
-			explicit constexpr Block6(
+			explicit Block6(
 				uint32_t unknown_1,
 				uint32_t unknown_2,
 				uint32_t unknown_3,
@@ -365,11 +365,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_1;
 			uint32_t unknown_2;
 
-			explicit constexpr Block7(
+			explicit Block7(
 
 			) = default;
 
-			explicit constexpr Block7(
+			explicit Block7(
 				uint32_t unknown_1,
 				uint32_t unknown_2
 			) : unknown_1(unknown_1), unknown_2(unknown_2)
@@ -416,11 +416,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			uint32_t unknown_4;
 			uint32_t unknown_5;
 
-			explicit constexpr Block8(
+			explicit Block8(
 
 			) = default;
 
-			explicit constexpr Block8(
+			explicit Block8(
 				uint32_t unknown_1,
 				uint32_t unknown_2,
 				uint32_t unknown_4,

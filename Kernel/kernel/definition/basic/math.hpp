@@ -138,6 +138,19 @@ namespace Sen::Kernel::Math {
     using ::tanh;
 
 	/**
+	 * std::log2
+	*/
+
+
+	using std::log2;
+
+	/**
+	 * log 2
+	 */
+
+	using ::log2;
+
+	/**
 	 * compare between two number
 	*/
 

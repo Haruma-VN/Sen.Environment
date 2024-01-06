@@ -85,12 +85,12 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects
 
             uint32_t string_section_offset;
 
-            explicit constexpr Common(
+            explicit Common(
 
 			) = default;
 
 
-            explicit constexpr Common(
+            explicit Common(
                 uint32_t block1_size,
                 uint32_t block1_section_offset,
                 uint32_t block2_size,

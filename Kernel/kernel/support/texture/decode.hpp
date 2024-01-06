@@ -2,6 +2,7 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/texture/common.hpp"
+#include "kernel/support/texture/compression/pvrtc/pvrtc.hpp"
 
 namespace Sen::Kernel::Support::Texture {
 
@@ -479,21 +480,51 @@ namespace Sen::Kernel::Support::Texture {
 			) -> Image<int>
 			{
 				auto sen = DataStreamView{color};
-				auto area = pixel_area_rgba(width, height);
-				auto data = std::vector<unsigned char>(area, 0x00);
-				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
-				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
-				for (auto y : Range<int>(height)) {
-					for (auto x : Range<int>(width)) {
-						auto index = set_pixel(x, y, width);
-						auto block_index = y * width + x;
-						data[index] = actual_data[block_index].r;
-						data[index + 1] = actual_data[block_index].g;
-						data[index + 2] = actual_data[block_index].b;
-						data[index + 3] = actual_data[block_index].a;
-					}
+				auto newWidth = width;
+				auto newHeight = height;
+				if (newWidth < 8)
+				{
+					newWidth = 8;
 				}
+				if (newHeight < 8)
+				{
+					newHeight = 8;
+				}
+				if ((newWidth & (newWidth - 1)) != 0)
+				{
+					newWidth = 0b10 << ((int)Math::floor(Math::log2(newWidth)));
+				}
+				if ((newHeight & (newHeight - 1)) != 0)
+				{
+					newHeight = 0b10 << ((int)Math::floor(Math::log2(newHeight)));
+				}
+				if (newWidth != newHeight)
+				{
+					newWidth = newHeight = Math::compare(newWidth, newHeight);
+				}
+				auto packets = std::vector<Compression::PVRTC::Packet>(static_cast<uint64_t>((newWidth * newHeight) >> 4));
+				for (auto & packet : packets)
+				{
+					packet = Compression::PVRTC::Packet(sen.readUint64LE());
+				}
+				auto data = Compression::PVRTC::decode_4bpp(packets, newWidth);
 				return Image<int>{width, height, data};
+
+				// auto sen = DataStreamView{color};
+				// auto area = pixel_area_rgba(width, height);
+				// auto data = std::vector<unsigned char>(area, 0x00);
+				// auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
+				// Javelin::PvrTcDecoder::DecodeRgba4Bpp(actual_data.get(), Javelin::Point2<int>(width, height), sen.current_pointer()._Ptr);
+				// for (auto y : Range<int>(height)) {
+				// 	for (auto x : Range<int>(width)) {
+				// 		auto index = set_pixel(x, y, width);
+				// 		auto block_index = y * width + x;
+				// 		data[index] = actual_data[block_index].r;
+				// 		data[index + 1] = actual_data[block_index].g;
+				// 		data[index + 2] = actual_data[block_index].b;
+				// 		data[index + 3] = actual_data[block_index].a;
+				// 	}
+				// }
 			}
 
 			/**
