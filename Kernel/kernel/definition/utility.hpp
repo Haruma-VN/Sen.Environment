@@ -25,6 +25,7 @@
 #include "kernel/definition/encryption/base64.hpp"
 #include "kernel/definition/encryption/Rijndael.hpp"
 #include "kernel/definition/compression/zlib.hpp"
+#include "kernel/definition/compression/zip.hpp"
 #include "kernel/definition/compression/lzma.hpp"
 #include "kernel/definition/compression/bzip2.hpp"
 #include "kernel/definition/javascript/runtime.hpp"

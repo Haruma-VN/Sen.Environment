@@ -15,6 +15,22 @@ namespace Sen::Kernel::Definition::Compression {
 		public:
 
 			/**
+			 * Constructor
+			*/
+
+			explicit Lzma(
+
+			) = default;
+
+			/**
+			 * Destructor
+			*/
+
+			~Lzma(
+
+			) = default;
+
+			/**
 			 * Lzma compression level
 			*/
 

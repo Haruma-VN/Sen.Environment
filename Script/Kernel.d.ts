@@ -788,6 +788,55 @@ declare namespace Sen {
 
         declare namespace Compression {
             /**
+             * Zip Support from Kernel
+             */
+
+            declare namespace Zip {
+                /**
+                 * Zip compression from Kernel
+                 */
+
+                declare namespace Compress {
+                    /**
+                     * --------------------------------------------------
+                     * JS Zip compression support
+                     * @param source - source files
+                     * @param destination - destination
+                     * @param root - root escape character
+                     * --------------------------------------------------
+                     */
+
+                    export function file(source: Array<string>, destination: string, root?: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JS Zip compression support
+                     * @param source - source files
+                     * @param destination - destination
+                     * --------------------------------------------------
+                     */
+
+                    export function directory(source: string, destination: string): void;
+                }
+
+                /**
+                 * Zip Uncompression from Kernel
+                 */
+
+                declare namespace Uncompress {
+                    /**
+                     * --------------------------------------------------
+                     * JS Zip uncompression support
+                     * @param source - source file
+                     * @param destination - destination
+                     * --------------------------------------------------
+                     */
+
+                    export function process(source: string, destination: string): void;
+                }
+            }
+
+            /**
              * ZLib compression from Kernel
              */
 

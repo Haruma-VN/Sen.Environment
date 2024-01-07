@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 #include <codecvt>
 #include <type_traits>
 #include <chrono>
@@ -25,6 +26,7 @@
 #include <ctime>
 #include <locale>
 #include <codecvt>
+#include <cstdint>
 #include "kernel/definition/range.hpp"
 #include "kernel/definition/literal.hpp"
 #include "kernel/dependencies/zlib.hpp"

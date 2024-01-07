@@ -1582,6 +1582,112 @@ namespace Sen::Kernel::Interface::Script {
 	*/
 
 	namespace Compression {
+	
+		/**
+		 * JS Zip Support
+		*/
+
+		namespace Zip {
+
+			/**
+			 * Zip Compress
+			*/
+
+			namespace Compress {
+				/**
+				 * ----------------------------------------
+				 * Zip uncompress to directory
+				 * @param argv[0]: source
+				 * @param argv[1]: destination
+				 * @returns: Compressed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto directory(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Zip::Compress::directory(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * Zip compression for files
+				 * @param argv[0]: source array
+				 * @param argv[1]: destination
+				 * @param argv[2]: Root?
+				 * @returns: Compressed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto file(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 3 || argc == 2, fmt::format("argument expected {} but received {}", "2 or 3", argc));
+					auto source = JS::Converter::get_vector<std::string>(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					if (argc == 3){
+						auto root = JS_ToCString(context, argv[2]);
+						Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination, root);
+						JS_FreeCString(context, root);
+					}
+					else {
+						Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination);
+					}
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+			}
+
+			/**
+			 * Uncompress support
+			*/
+
+			namespace Uncompress {
+
+				/**
+				 * ----------------------------------------
+				 * Zip uncompress a directory
+				 * @param argv[0]: source
+				 * @param argv[1]: destination
+				 * @returns: Compressed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto process(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS_ToCString(context, argv[0]);
+					auto destination = JS_ToCString(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Zip::Uncompress::process(source, destination);
+					JS_FreeCString(context, source);
+					JS_FreeCString(context, destination);
+					return JS::Converter::get_undefined();
+				}
+
+			}
+
+		}
+
 
 		/**
 		 * JavaScript Zlib Support

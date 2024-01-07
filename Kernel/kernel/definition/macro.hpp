@@ -34,6 +34,13 @@
 #include <Carbon/Carbon.h>
 #endif
 
+
+#if WINDOWS
+#include "dependencies/dirent/dirent.h"
+#else
+#include <dirent.h>
+#endif
+
 namespace Sen::Kernel {
 	
 }

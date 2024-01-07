@@ -23,6 +23,22 @@ namespace Sen::Kernel::Definition::Compression {
 			inline static constexpr auto CHUNK = 32768;
 
 		public:
+
+			/**
+			 * Constructor
+			*/
+
+			explicit Zlib(
+
+			) = default;
+
+			/**
+			 * Destructor
+			*/
+
+			~Zlib(
+
+			) = default;
 			
 
 			/**

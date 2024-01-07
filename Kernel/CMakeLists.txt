@@ -40,6 +40,10 @@ add_subdirectory("./dependencies/bzip2")
 add_subdirectory("./dependencies/open_vcdiff")
 add_subdirectory("./dependencies/zip")
 
+if (MSVC)
+add_subdirectory("./dependencies/dirent")
+endif()
+
 if(UNIX OR APPLE OR ANDROID OR IOS)
     add_subdirectory("./dependencies/quickjs")
 endif()
@@ -64,6 +68,7 @@ if(ANDROID)
     ANDROID_STL c++_shared
   )
 endif()
+
 
 # Symbol visibility
 set(CMAKE_C_VISIBILITY_PRESET hidden)

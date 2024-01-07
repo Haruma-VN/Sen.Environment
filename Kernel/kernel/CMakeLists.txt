@@ -142,7 +142,12 @@ target_include_directories(
 	../dependencies/fmt
 )
 
-
+if (MSVC)
+target_link_libraries(
+	${PROJECT_NAME} PRIVATE
+	dirent
+)
+endif()
 target_link_libraries(
 	${PROJECT_NAME} PRIVATE
 	md5

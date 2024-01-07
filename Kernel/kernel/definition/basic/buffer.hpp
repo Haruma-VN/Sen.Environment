@@ -1,10 +1,6 @@
 #pragma once
 
-#include <sstream>
-#include <cstdint>
-#include <fstream>
-#include <filesystem>
-#include <cstring>
+#include "kernel/definition/library.hpp"
 
 namespace Sen::Kernel::Definition
 {
@@ -437,7 +433,7 @@ namespace Sen::Kernel::Definition
 
                 ) const -> std::vector<uint8_t>
                 {
-                    if (from < 0 || to > thiz.data.size())
+                    if (from < 0 || to > this->data.size())
                     {
                         throw std::runtime_error("Invalid vector size");
                     }
@@ -1455,9 +1451,9 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + sizeof(T) > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
-                    T value = 0;
+                    auto value = T{0};
                     std::memcpy(&value, this->data.data() + this->position, sizeof(T));
                     this->position += sizeof(T);
                     return value;
@@ -1470,7 +1466,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + sizeof(T) > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
                     T value = 0;
                     std::memcpy(&value, this->data.data() + this->position, sizeof(T));
@@ -1514,7 +1510,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + size > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
                     T value;
                     std::memcpy(&value, &this->data[this->position], sizeof(T));
@@ -1529,7 +1525,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + size > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
                     T value = 0;
                     for (auto i = 0; i < size; ++i)
@@ -1569,7 +1565,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + size > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
                     auto value = T{};
                     std::memcpy(&value, &this->data[this->position], size);
@@ -1584,7 +1580,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (this->position + size > this->size())
                     {
-                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                        throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
                     }
                     auto value = T{};
                     for (auto i = 0; i < size; i++)

@@ -29,6 +29,22 @@ namespace Sen::Kernel::Definition::Compression {
 		public:
 
 			/**
+			 * Constructor
+			*/
+
+			explicit Bzip2(
+
+			) = default;
+
+			/**
+			 * Destructor
+			*/
+
+			~Bzip2(
+
+			) = default;
+
+			/**
 			 * input: the unsigned char stream
 			 * block_size: block size
 			 * work_factor: work factor

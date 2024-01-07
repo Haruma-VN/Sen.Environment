@@ -286,6 +286,15 @@ namespace Sen::Kernel::Interface {
 					// encrypt file method
 					javascript->add_proxy(Script::Encryption::XOR::encrypt_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"X0R"}, std::string{"encrypt_fs"});
 				}
+				// zip
+				{
+					// compress directory
+					javascript->add_proxy(Script::Compression::Zip::Compress::directory, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zip"}, std::string{"Compress"}, std::string{"directory"});
+					// compress files
+					javascript->add_proxy(Script::Compression::Zip::Compress::file, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zip"}, std::string{"Compress"}, std::string{"file"});
+					// uncompress
+					javascript->add_proxy(Script::Compression::Zip::Uncompress::process, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Compression"}, std::string{"Zip"}, std::string{"Uncompress"}, std::string{"process"});
+				}
 				// zlib
 				{
 					// compress file method
