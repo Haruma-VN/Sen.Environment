@@ -7,10 +7,6 @@
 
 namespace Sen::Kernel::Definition::Encryption {
 
-	// using c++ string
-
-	using std::string;
-
 	/**
 	 * Base64 class to decode & encode
 	*/
@@ -24,8 +20,8 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto decode(
-				const string &message
-			) -> string const
+				const std::string &message
+			) -> std::string const
 			{
 				return Sen::Kernel::Dependencies::Base64::base64_decode(message);
 			}
@@ -35,8 +31,8 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto encode(
-				const string &message
-			) -> string const
+				const std::string &message
+			) -> std::string const
 			{
 				return Sen::Kernel::Dependencies::Base64::base64_encode(message);
 			}
@@ -48,8 +44,8 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto decode_fs(
-				const string &filePath,
-				const string &outPath
+				const std::string &filePath,
+				const std::string &outPath
 			) -> void
 			{
 				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::decode(Sen::Kernel::FileSystem::read_file(filePath)));
@@ -62,8 +58,8 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto encode_fs(
-				const string &filePath,
-				const string &outPath
+				const std::string &filePath,
+				const std::string &outPath
 			) -> void
 			{
 				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::read_file(filePath)));

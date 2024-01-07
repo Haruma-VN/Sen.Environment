@@ -202,7 +202,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						return element;
 					}
 				}
-				throw runtime_error(fmt::format("Cannot find id {} in resource group", id));
+				throw std::runtime_error(fmt::format("Cannot find id {} in resource group", id));
 			}
 
 		

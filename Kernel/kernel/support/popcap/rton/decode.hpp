@@ -397,7 +397,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto source_buffer = SenBuffer{source};
             auto source_iv = SenBuffer{iv};
             fill_rijndael_block(source_buffer, source_iv);
-            FileSystem::writeBinary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
+            FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
             return;
         }
 
@@ -413,7 +413,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             fill_rijndael_block(source_buffer, source_iv);
             auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
             auto rton = Decode{sen};
-            FileSystem::writeBinary<unsigned char>(destination, rton.decode_rton());
+            FileSystem::write_binary<unsigned char>(destination, rton.decode_rton());
             return;
         }
 

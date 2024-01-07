@@ -11,14 +11,6 @@ namespace Sen::Kernel::Definition::Encryption::MD5
 
 	typedef unsigned char byte;
 
-	// Using C++ String
-
-	using std::string;
-
-	// Using C++ Span
-
-	using std::span;
-
 
 	// provide message to hash
 	// return: the hashed message

@@ -3,10 +3,6 @@
 
 namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
-	// using string
-
-	using std::string;
-
 	// using nlohmann json
 
 	using namespace nlohmann;

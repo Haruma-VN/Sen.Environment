@@ -230,9 +230,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const Level &level
 			) -> void
 			{
-				auto data = FileSystem::readBinary<unsigned char>(filePath);
+				auto data = FileSystem::read_binary<unsigned char>(filePath);
 				auto compressedData = Zlib::compress_deflate(data, level);
-				FileSystem::writeBinary<unsigned char>(fileOut, compressedData);
+				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
 				return;
 			}
 
@@ -247,12 +247,12 @@ namespace Sen::Kernel::Definition::Compression {
 				const string &fileOut
 			) -> void
 			{
-				auto data = FileSystem::readBinary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto uncompressedData = Zlib::uncompress(data);
 				if(uncompressedData.empty()){
 					throw std::runtime_error(fmt::format("The specific file cannot be uncompressed: {}", fileIn));
 				}
-				FileSystem::writeBinary<unsigned char>(fileOut, uncompressedData);
+				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
 				return;
 			}
 
@@ -267,9 +267,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const string &fileOut
 			) -> void
 			{
-				auto data = FileSystem::readBinary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto compressed_data = Zlib::compress_gzip(data, Zlib::Level::DEFAULT);
-				FileSystem::writeBinary<unsigned char>(fileOut, compressed_data);
+				FileSystem::write_binary<unsigned char>(fileOut, compressed_data);
 				return;
 			}
 
@@ -285,9 +285,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const string &fileOut
 			) -> void
 			{
-				auto data = FileSystem::readBinary<unsigned char>(filePath);
+				auto data = FileSystem::read_binary<unsigned char>(filePath);
 				auto compressedData = Zlib::compress_deflate(data, Zlib::Level::DEFAULT);
-				FileSystem::writeBinary<unsigned char>(fileOut, compressedData);
+				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
 				return;
 			}
 
@@ -302,9 +302,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const string & fileOut
 			) -> void
 			{
-				auto data = FileSystem::readBinary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto compressed_data = Zlib::uncompress_gzip(data);
-				FileSystem::writeBinary<unsigned char>(fileOut, compressed_data);
+				FileSystem::write_binary<unsigned char>(fileOut, compressed_data);
 				return;
 			}
 

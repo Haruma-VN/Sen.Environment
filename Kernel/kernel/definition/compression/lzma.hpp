@@ -104,9 +104,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const string &fileOut
 			) -> void
 			{
-				auto dataStream = FileSystem::readBinary<unsigned char>(fileIn);
+				auto dataStream = FileSystem::read_binary<unsigned char>(fileIn);
 				auto compressedData = Lzma::compress(dataStream, Lzma::Level::LEVEL_9);
-				FileSystem::writeBinary<unsigned char>(fileOut, compressedData);
+				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
 				return;
 			}
 
@@ -123,9 +123,9 @@ namespace Sen::Kernel::Definition::Compression {
 				const size_t &actual_size
 			) -> void
 			{
-				auto dataStream = FileSystem::readBinary<unsigned char>(fileIn);
+				auto dataStream = FileSystem::read_binary<unsigned char>(fileIn);
 				auto uncompressedData = Lzma::uncompress(dataStream, actual_size);
-				FileSystem::writeBinary<unsigned char>(fileOut, uncompressedData);
+				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
 				return;
 			}
 

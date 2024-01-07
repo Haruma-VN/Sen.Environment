@@ -46,3 +46,4 @@
 #include "kernel/dependencies/avir.hpp"
 #include "kernel/dependencies/open_vcdiff.hpp"
 #include "kernel/dependencies/bzip2.hpp"
+#include "kernel/dependencies/zip.hpp"

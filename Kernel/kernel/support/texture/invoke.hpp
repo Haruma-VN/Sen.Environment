@@ -60,7 +60,7 @@ namespace Sen::Kernel::Support::Texture {
 				Format format
 			) -> void
 			{
-				auto source_binary = FileSystem::readBinary<unsigned char>(source);
+				auto source_binary = FileSystem::read_binary<unsigned char>(source);
 				switch(format){
 					case Format::RGBA_8888: {
 						ImageIO::write_png(destination, Decode::rgba_8888(source_binary, width, height));
@@ -238,7 +238,7 @@ namespace Sen::Kernel::Support::Texture {
 						throw std::runtime_error("Format is not supported");
 					}
 				}
-				FileSystem::writeBinary<unsigned char>(destination, result);
+				FileSystem::write_binary<unsigned char>(destination, result);
 				return;
 			}
 

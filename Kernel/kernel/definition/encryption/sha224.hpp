@@ -4,11 +4,7 @@
 #include "kernel/definition/macro.hpp"
 
 namespace Sen::Kernel::Definition::Encryption::Sha224 {
-
-	// using C++ String
-
-	using std::string;
-
+	
 	/**
 	 * message: the message need to hash
 	 * return: hashed message

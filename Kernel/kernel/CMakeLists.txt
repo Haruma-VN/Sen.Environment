@@ -57,6 +57,7 @@ add_library(
 	./dependencies/open_vcdiff.hpp
 	./dependencies/bzip2.hpp
 	./dependencies/quickjs.hpp
+	./dependencies/zip.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -163,6 +164,7 @@ target_link_libraries(
 	open_vcdiff
 	bzip2
 	quickjs
+	zip
 )
 
 

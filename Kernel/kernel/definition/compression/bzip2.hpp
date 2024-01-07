@@ -109,7 +109,7 @@ namespace Sen::Kernel::Definition::Compression {
 				const std::string & destination
 			) -> void
 			{
-				FileSystem::writeBinary<unsigned char>(destination, Bzip2::compress(FileSystem::readBinary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
+				FileSystem::write_binary<unsigned char>(destination, Bzip2::compress(FileSystem::read_binary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
 				return;
 			}
 
@@ -124,7 +124,7 @@ namespace Sen::Kernel::Definition::Compression {
 				const std::string & destination
 			) -> void
 			{
-				FileSystem::writeBinary<unsigned char>(destination, Bzip2::uncompress(FileSystem::readBinary<unsigned char>(source)));
+				FileSystem::write_binary<unsigned char>(destination, Bzip2::uncompress(FileSystem::read_binary<unsigned char>(source)));
 				return;
 			}
 		};

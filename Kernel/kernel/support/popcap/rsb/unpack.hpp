@@ -41,7 +41,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto packet_pos = sen.readUint32LE();
                         auto packet_size = sen.readUint32LE();
                         auto packet_data = sen.get(packet_pos, packet_pos + packet_size);
-                        FileSystem::writeBinary(Path::normalize(fmt::format("{}/{}/{}", folder_out, composite_name, packet_name)), packet_data);
+                        FileSystem::write_binary(Path::normalize(fmt::format("{}/{}/{}", folder_out, composite_name, packet_name)), packet_data);
                     }
 
                 }

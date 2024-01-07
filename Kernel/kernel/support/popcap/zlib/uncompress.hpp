@@ -95,11 +95,9 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				bool use_64_bit_variant
 			) -> void
 			{
-				auto *uncompress_zlib = new PopCap::Zlib::Uncompress{use_64_bit_variant};
-				auto uncompressed_data = uncompress_zlib->uncompress(FileSystem::readBinary<unsigned char>(source));
-				FileSystem::writeBinary<unsigned char>(destination, uncompressed_data);
-				delete uncompress_zlib;
-				uncompress_zlib = nullptr;
+				auto uncompress_zlib = std::unique_ptr<PopCap::Zlib::Uncompress>(new PopCap::Zlib::Uncompress{use_64_bit_variant});
+				auto uncompressed_data = uncompress_zlib->uncompress(FileSystem::read_binary<unsigned char>(source));
+				FileSystem::write_binary<unsigned char>(destination, uncompressed_data);
 				return;
 			}
 	};

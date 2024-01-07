@@ -110,9 +110,9 @@ namespace Sen::Kernel::Definition::Diff {
 				Flag flag
 			) -> void
 			{
-				auto before = FileSystem::readBinary<char>(before_file);
-				auto after = FileSystem::readBinary<char>(after_file);
-				FileSystem::writeBinary<char>(patch_file, VCDiff::encode(before.data(), before.size(), after.data(), after.size(), flag));
+				auto before = FileSystem::read_binary<char>(before_file);
+				auto after = FileSystem::read_binary<char>(after_file);
+				FileSystem::write_binary<char>(patch_file, VCDiff::encode(before.data(), before.size(), after.data(), after.size(), flag));
 				return;
 			}
 
@@ -129,9 +129,9 @@ namespace Sen::Kernel::Definition::Diff {
 				const std::string & after_file
 			) -> void
 			{
-				auto before = FileSystem::readBinary<char>(before_file);
-				auto patch = FileSystem::readBinary<char>(patch_file);
-				FileSystem::writeBinary<char>(after_file, VCDiff::decode(before.data(), before.size(), patch.data(), patch.size()));
+				auto before = FileSystem::read_binary<char>(before_file);
+				auto patch = FileSystem::read_binary<char>(patch_file);
+				FileSystem::write_binary<char>(after_file, VCDiff::decode(before.data(), before.size(), patch.data(), patch.size()));
 				return;
 			}
 	};

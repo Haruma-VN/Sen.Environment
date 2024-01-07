@@ -5,14 +5,6 @@
 
 namespace Sen::Kernel::Interface {
 
-	// use string
-
-	using std::string;
-
-	// use vector
-
-	using std::vector;
-
 	/**
 	 * Use JS instead of Sen::Kernel::Definition::JavaScript
 	*/

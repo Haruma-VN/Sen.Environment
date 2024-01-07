@@ -16,14 +16,6 @@ namespace Sen::Kernel::Definition::Encryption
 		CFB,
 	};
 
-	// Vector
-
-	using std::vector;
-
-	// String
-
-	using std::string;
-
 	// Rijndael Struct
 
 	struct Rijndael {
@@ -49,11 +41,9 @@ namespace Sen::Kernel::Definition::Encryption
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
 				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
-				auto result = new char[plain_size];
-				rijndael->Encrypt(plain, result, plain_size, mode);
-				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result), reinterpret_cast<unsigned char*>(result + plain_size)};
-				delete[] result;
-				result = nullptr;
+				auto result = std::unique_ptr<char[]>(new char[plain_size]);
+				rijndael->Encrypt(plain, result.get(), plain_size, mode);
+				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + plain_size)};
 				return m_result;
 			}
 
@@ -76,11 +66,9 @@ namespace Sen::Kernel::Definition::Encryption
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
 				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
-				auto result = new char[cipher_len];
-				rijndael->Decrypt(cipher, result, cipher_len, mode);
-				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result), reinterpret_cast<unsigned char*>(result + cipher_len)};
-				delete[] result;
-				result = nullptr;
+				auto result = std::unique_ptr<char[]>(new char[cipher_len]);
+				rijndael->Decrypt(cipher, result.get(), cipher_len, mode);
+				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + cipher_len)};
 				return m_result;
 			}
 
@@ -96,13 +84,13 @@ namespace Sen::Kernel::Definition::Encryption
 			inline static auto encrypt_fs(
 				const std::string & source,
 				const std::string & destination,
-				const std::string key,
-				const std::string iv,
+				const std::string & key,
+				const std::string & iv,
 				RijndaelMode mode
 			) -> void
 			{
-				auto source_data = FileSystem::readBinary<char>(source);
-				FileSystem::writeBinary<unsigned char>(destination, Rijndael::encrypt(source_data.data(), key, iv, source_data.size(), mode));
+				auto source_data = FileSystem::read_binary<char>(source);
+				FileSystem::write_binary<unsigned char>(destination, Rijndael::encrypt(source_data.data(), key, iv, source_data.size(), mode));
 				return;
 			}
 
@@ -118,13 +106,13 @@ namespace Sen::Kernel::Definition::Encryption
 			inline static auto decrypt_fs(
 				const std::string & source,
 				const std::string & destination,
-				const std::string key,
-				const std::string iv,
+				const std::string & key,
+				const std::string & iv,
 				RijndaelMode mode
 			) -> void
 			{
-				auto source_data = FileSystem::readBinary<char>(source);
-				FileSystem::writeBinary<unsigned char>(destination, Rijndael::decrypt(source_data.data(), key, iv, source_data.size(), mode));
+				auto source_data = FileSystem::read_binary<char>(source);
+				FileSystem::write_binary<unsigned char>(destination, Rijndael::decrypt(source_data.data(), key, iv, source_data.size(), mode));
 				return;
 			}
 

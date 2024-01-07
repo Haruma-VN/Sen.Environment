@@ -264,7 +264,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			{
 				auto encoder = Encode{source};
 				auto sen = encoder.process();
-				FileSystem::writeBinary<unsigned char>(destination, sen.get());
+				FileSystem::write_binary<unsigned char>(destination, sen.get());
 				return;
 			}
 

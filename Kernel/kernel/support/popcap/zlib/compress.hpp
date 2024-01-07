@@ -110,10 +110,8 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				bool use_64_bit_variant
 			) -> void
 			{
-				auto* sen = new PopCap::Zlib::Compress{use_64_bit_variant};
-				FileSystem::writeBinary<unsigned char>(destination, sen->compress(FileSystem::readBinary<unsigned char>(source)));
-				delete sen;
-				sen = nullptr;
+				auto sen = std::unique_ptr<PopCap::Zlib::Compress>(new PopCap::Zlib::Compress{use_64_bit_variant});
+				FileSystem::write_binary<unsigned char>(destination, sen->compress(FileSystem::read_binary<unsigned char>(source)));
 				return;
 			}
 

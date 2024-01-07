@@ -128,7 +128,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			{
 				auto compiled_text = Encode{source, key, iv, use_64_bit_variant};
 				auto sen = compiled_text.process();
-				FileSystem::writeBinary<unsigned char>(destination, sen.get());
+				FileSystem::write_binary<unsigned char>(destination, sen.get());
 				return;
 			}
 

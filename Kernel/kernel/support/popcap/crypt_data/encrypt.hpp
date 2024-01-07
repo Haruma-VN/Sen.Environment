@@ -69,7 +69,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 				const std::string & key
 			) -> void
 			{
-				FileSystem::writeBinary(destination, Encrypt::process(DataStreamView{source}, key).get());
+				FileSystem::write_binary(destination, Encrypt::process(DataStreamView{source}, key).get());
 				return;
 			}
 

@@ -27,14 +27,6 @@ namespace Sen::Kernel::Interface {
 		size_t size;
 	};
 
-	// vector init
-
-	using std::vector;
-
-	// string init
-
-    using std::string;
-
 	// param -> vector<string>
 
 	inline static auto convert_parameter_to_vector_string(

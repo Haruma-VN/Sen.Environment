@@ -227,35 +227,24 @@ namespace Sen::Kernel::FileSystem
 		return;
 	}
 
-	// using runtime error exception
-
-	using std::runtime_error;
-
-	// stream size
-
-	using std::streamsize;
-
-	// filePath: the path to read
-	// return: the binary file readed
-
 	
 	template <CharacterBufferView T> 
-	inline static auto readBinary(
-		const string &filePath
-	) -> vector<T> const
+	inline static auto read_binary(
+		const std::string &filePath
+	) -> std::vector<T> const
 	{
 		auto file = std::ifstream(filePath, std::ios::binary);
 		if(!file)
 		{
-			throw runtime_error(fmt::format("Could not open file: {}", filePath));
+			throw std::runtime_error(fmt::format("Could not open file: {}", filePath));
 		}
 		file.seekg(0, std::ios::end);
-		auto size = static_cast<streamsize>(file.tellg());
+		auto size = static_cast<std::streamsize>(file.tellg());
 		file.seekg(0, std::ios::beg);
-		auto data = vector<T>(size);
+		auto data = std::vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
-			throw runtime_error(fmt::format("Could not read file: {}", filePath));
+			throw std::runtime_error(fmt::format("Could not read file: {}", filePath));
 		}
 		file.close();
 		return data;	
@@ -265,10 +254,10 @@ namespace Sen::Kernel::FileSystem
 	// return: everything inside it even directory or file
 
 	inline static auto readDirectory(
-		const string &directoryPath
-	) -> vector<string> const
+		const std::string &directoryPath
+	) -> std::vector<std::string> const
 	{
-		auto result = vector<string>{};
+		auto result = std::vector<std::string>{};
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			result.emplace_back(Path::normalize(c.path().string()));
@@ -281,9 +270,9 @@ namespace Sen::Kernel::FileSystem
 
 	inline static auto readDirectoryOnlyFile(
 		const string &directoryPath
-	) -> vector<string> const
+	) -> std::vector<string> const
 	{
-		auto result = vector<string>{};
+		auto result = std::vector<string>{};
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_regular_file()){
@@ -297,10 +286,10 @@ namespace Sen::Kernel::FileSystem
 	// return: only dirs inside
 
 	inline static auto readDirectoryOnlyDirectory(
-		const string &directoryPath
-	) -> vector<string> const
+		const std::string &directoryPath
+	) -> std::vector<std::string> const
 	{
-		auto result = vector<string>{};
+		auto result = std::vector<std::string>{};
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_directory()){
@@ -315,10 +304,10 @@ namespace Sen::Kernel::FileSystem
 	// return: only files inside nested directories
 
 	inline static auto readWholeDirectory(
-		const string &directoryPath
-	) -> vector<string> const
+		const std::string &directoryPath
+	) -> std::vector<std::string> const
 	{
-		auto result = vector<string>{};
+		auto result = std::vector<string>{};
 		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
 		{
 			if(c.is_directory()){
@@ -342,14 +331,14 @@ namespace Sen::Kernel::FileSystem
 
 
 	template <CharacterBufferView T>
-	inline static auto writeBinary(
-		const string &outFile,
-		const vector<T> &data
+	inline static auto write_binary(
+		const std::string &outFile,
+		const std::vector<T> &data
 	) -> void
 	{
 		auto out = std::ofstream(outFile, std::ios::binary);
 		if(!out.is_open()){
-			throw runtime_error(fmt::format("Unable to open: {}", outFile));
+			throw std::runtime_error(fmt::format("Unable to open: {}", outFile));
 		}
 		out.write(reinterpret_cast<const char *>(data.data()), data.size());
 		out.close();

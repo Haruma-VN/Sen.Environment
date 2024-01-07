@@ -6,14 +6,6 @@
 namespace Sen::Kernel::Definition::Encryption::SHA256
 {
 
-	// Using C++ string
-
-	using std::string;
-
-	// Using C++ Array
-
-	using std::array;
-
 	// Hash method
 
 	/**
@@ -28,7 +20,7 @@ namespace Sen::Kernel::Definition::Encryption::SHA256
 
 		auto sha = std::make_shared<Sen::Kernel::Dependencies::SHA256::SHA256>();
 		sha->update(message);
-		auto digest = static_cast<array<uint8_t, 32>>(sha->digest());
+		auto digest = static_cast<std::array<uint8_t, 32>>(sha->digest());
 		return Sen::Kernel::Dependencies::SHA256::SHA256::toString(digest);
 	}
 

@@ -201,7 +201,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 				result.writeUint32LE(BasicDefinition::Block8SectionSize);
 				result.writeUint32LE(static_cast<uint32_t>(blockSectionOffset));
 				result.append(data.get(static_cast<uint64_t>(BasicDefinition::BlockSectionOffset), data.size()));
-				result.append(string_section.get(0Ui64, string_section.size()));
+				result.append(string_section.get(0, string_section.size()));
 				return result;
 			}
 

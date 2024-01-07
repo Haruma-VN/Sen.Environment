@@ -16,8 +16,8 @@ namespace Sen::Kernel::Path
 	*/
 	
 	inline auto toWindowsStyle(
-		const string &mPath
-	) -> string const
+		const std::string & mPath
+	) -> std::string const
 	{
 		return String::toWindowsStyle(mPath);
 	}

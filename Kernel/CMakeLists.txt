@@ -38,6 +38,7 @@ add_subdirectory("./dependencies/lzma")
 add_subdirectory("./dependencies/avir")
 add_subdirectory("./dependencies/bzip2")
 add_subdirectory("./dependencies/open_vcdiff")
+add_subdirectory("./dependencies/zip")
 
 if(UNIX OR APPLE OR ANDROID OR IOS)
     add_subdirectory("./dependencies/quickjs")

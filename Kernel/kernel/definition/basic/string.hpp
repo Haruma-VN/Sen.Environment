@@ -5,23 +5,9 @@
 
 namespace Sen::Kernel {
 
-	// using string
-
-	using std::string;
-
-	// using vector
-
-	using std::vector;
-
-	// Span
-
-	using std::span;
-
-	// Type constraints
-
-	using std::is_same_v;
-
-	// Match object
+	/**
+	 * Match Object
+	*/
 
 	struct MatchObject {
 		public:
@@ -68,7 +54,7 @@ namespace Sen::Kernel {
 
 			// constructor
 
-			explicit String(
+			explicit constexpr String(
 				const std::string & source
 			) : value(source)
 			{
@@ -85,11 +71,11 @@ namespace Sen::Kernel {
 			 * return char at position 0
 			*/
 
-			auto charAt(
+			inline auto constexpr charAt(
 
-			) -> char
+			) noexcept -> char
 			{
-				return thiz.value.at(0);
+				return thiz.value.front();
 			}
 
 			/**
@@ -97,25 +83,25 @@ namespace Sen::Kernel {
 			   return: '\0' if the index is out of range.
 			*/
 
-			auto charAt(
+			inline auto constexpr charAt(
 				const size_t & index
-			) -> char
+			) noexcept -> char 
 			{
-				if((index < 0) or index > thiz.value.length()){
+				if(index >= value.length()){
 					return '\0';
 				}
-				return thiz.value.at(index);
-			}
+				return value[index];
+        	}
 
 			/**
 			 * return char code at position 0
 			*/
 
-			auto charCodeAt(
+			inline auto constexpr charCodeAt(
 
-			) -> short
+			) noexcept -> short
 			{
-				return static_cast<short>(thiz.value.at(0));
+				return static_cast<short>(value.front());
 			}
 
 			/**
@@ -123,14 +109,14 @@ namespace Sen::Kernel {
 			   return: the char code at index
 			*/
 
-			auto charCodeAt(
+			inline auto constexpr charCodeAt(
 				const size_t & index
-			) -> short
+			) -> short 
 			{
-				if((index < 0) or index > thiz.value.length()){
-					throw std::runtime_error(fmt::format("Does not have the index {} in the current string", index));
+				if(index >= value.length()){
+					throw std::runtime_error(fmt::format("Does not have the index {} in the string {}", index, thiz.value));
 				}
-				return thiz.value.at(index);
+				return value[index];
 			}
 
 			/**
@@ -141,15 +127,14 @@ namespace Sen::Kernel {
 				The endsWith() method is case sensitive.
 			*/
 
-			auto endsWith(
+			inline auto constexpr endsWith(
 				const std::string & source
-			) -> bool
+			) noexcept -> bool 
 			{
-				if (source.length() > thiz.value.length()) 
-				{
+				if (source.length() > value.length()) {
 					return false;
 				}
-    			return std::equal(source.rbegin(), source.rend(), thiz.value.rbegin());
+				return std::equal(source.rbegin(), source.rend(), value.rbegin());
 			}
 
 			/**
@@ -160,15 +145,14 @@ namespace Sen::Kernel {
 				The endsWith() method is case sensitive.
 			*/
 
-			auto endsWith(
+			inline auto constexpr endsWith(
 				const String & that
-			) -> bool
+			) noexcept -> bool 
 			{
-				if (that.value.length() > thiz.value.length()) 
-				{
+				if (that.value.length() > value.length()) {
 					return false;
 				}
-    			return std::equal(that.value.rbegin(), that.value.rend(), thiz.value.rbegin());
+				return std::equal(that.value.rbegin(), that.value.rend(), value.rbegin());
 			}
 
 			/**
@@ -181,9 +165,9 @@ namespace Sen::Kernel {
 				You cannot use myString.fromCharCode().
 			*/
 
-			static auto fromCharCode(
+			inline static auto fromCharCode(
 				short charCode
-			) -> String
+			) noexcept -> String 
 			{
 				return String{std::string{static_cast<char>(charCode)}};
 			}
@@ -198,14 +182,12 @@ namespace Sen::Kernel {
 				You cannot use myString.fromCharCode().
 			*/
 
-			static auto fromCharCode(
+			inline static auto fromCharCode(
 				std::initializer_list<short> charCodes
-			) -> String
+			) -> String 
 			{
-				auto value = std::string{};
-				for(auto & c : charCodes){
-					value += c;
-				}
+				auto value = std::string(charCodes.size(), '\0');
+				std::transform(charCodes.begin(), charCodes.end(), value.begin(), [](auto c) { return static_cast<char>(c); });
 				return String{value};
 			}
 
@@ -217,9 +199,9 @@ namespace Sen::Kernel {
 				The includes() method is case sensitive.
 			*/
 
-			auto includes(
+			inline constexpr auto includes(
 				const std::string & source
-			) -> bool
+			) noexcept -> bool
 			{
 				return thiz.value.find(source) != std::string::npos;
 			}
@@ -232,10 +214,10 @@ namespace Sen::Kernel {
 				The includes() method is case sensitive.
 			*/
 
-			auto includes(
+			inline constexpr auto includes(
 				const String & that,
 				size_t start
-			) -> bool
+			) noexcept -> bool
 			{
 				return thiz.value.find(that.value, start) != std::string::npos;
 			}
@@ -248,7 +230,7 @@ namespace Sen::Kernel {
 				The includes() method is case sensitive.
 			*/
 
-			auto includes(
+			inline constexpr auto includes(
 				const std::string & source,
 				const size_t & start
 			) -> bool
@@ -264,7 +246,7 @@ namespace Sen::Kernel {
 			   The indexOf() method is case sensitive.
 			*/
 
-			auto indexOf(
+			inline constexpr auto indexOf(
 				const std::string & source
 			) -> long
 			{
@@ -283,7 +265,7 @@ namespace Sen::Kernel {
 			   The indexOf() method is case sensitive.
 			*/
 
-			auto indexOf(
+			inline constexpr auto indexOf(
 				const String & that
 			) -> long
 			{
@@ -302,7 +284,7 @@ namespace Sen::Kernel {
 			   The indexOf() method is case sensitive.
 			*/
 
-			auto indexOf(
+			inline constexpr auto indexOf(
 				const std::string & source,
 				size_t start
 			) -> long
@@ -322,7 +304,7 @@ namespace Sen::Kernel {
 			   The indexOf() method is case sensitive.
 			*/
 
-			auto indexOf(
+			inline constexpr auto indexOf(
 				const String & that,
 				const size_t & start
 			) -> long
@@ -346,16 +328,13 @@ namespace Sen::Kernel {
 				The lastIndexOf() method is case sensitive.
 			*/
 
-			auto lastIndexOf(
+			inline constexpr auto lastIndexOf(
 				const String & that
 			) -> long
 			{
-				auto pos = thiz.value.find(that.value);
+				auto pos = value.rfind(that.value);
 				if(pos == std::string::npos){
 					return -1;
-				}
-				while (thiz.value.find(that.value, pos) != std::string::npos){
-					pos = thiz.value.find(that.value, pos);
 				}
 				return pos;
 			}
@@ -372,16 +351,13 @@ namespace Sen::Kernel {
 				The lastIndexOf() method is case sensitive.
 			*/
 
-			auto lastIndexOf(
+			inline constexpr auto lastIndexOf(
 				const std::string & source
 			) -> long
 			{
-				auto pos = thiz.value.find(source);
+				auto pos = value.rfind(source);
 				if(pos == std::string::npos){
 					return -1;
-				}
-				while (thiz.value.find(source, pos) != std::string::npos){
-					pos = thiz.value.find(source, pos);
 				}
 				return pos;
 			}
@@ -390,7 +366,7 @@ namespace Sen::Kernel {
 			 * return the current string size
 			*/
 
-			auto length(
+			inline constexpr auto length(
 
 			) -> size_t
 			{
@@ -407,7 +383,7 @@ namespace Sen::Kernel {
 				The match() method returns null if no match is found.
 			*/
 
-			auto match(
+			inline auto match(
 				const std::string & source
 			) -> MatchObject const
 			{
@@ -434,7 +410,7 @@ namespace Sen::Kernel {
 				The match() method returns null if no match is found.
 			*/
 
-			auto match(
+			inline auto match(
 				const String & that
 			) -> MatchObject const
 			{
@@ -456,7 +432,7 @@ namespace Sen::Kernel {
 			 * 
 			*/
 
-			auto repeat(
+			inline auto repeat(
 				size_t count
 			) -> String
 			{
@@ -475,7 +451,7 @@ namespace Sen::Kernel {
 				The replace() method does not change the original string.
 			*/
 
-			auto replace(
+			inline constexpr auto replace(
 				const std::string & from,
 				const std::string & to
 			) -> std::string
@@ -498,7 +474,7 @@ namespace Sen::Kernel {
 				The replace() method does not change the original string.
 			*/
 
-			auto replace(
+			inline constexpr auto replace(
 				const String & from,
 				const String & to
 			) -> std::string
@@ -525,7 +501,7 @@ namespace Sen::Kernel {
 				The replaceAll() method does not work in Internet Explorer.
 			*/
 			
-			auto replaceAll(
+			inline constexpr auto replaceAll(
 				const std::string & from,
 				const std::string & to
 			) -> std::string
@@ -551,7 +527,7 @@ namespace Sen::Kernel {
 				The replaceAll() method does not work in Internet Explorer.
 			*/
 
-			auto replaceAll(
+			inline constexpr auto replaceAll(
 				const String & from,
 				const String & to
 			) -> std::string
@@ -573,7 +549,7 @@ namespace Sen::Kernel {
 				The startsWith() method is case sensitive.
 			*/
 
-			auto startsWith(
+			inline constexpr auto startsWith(
 				const std::string & prefix
 			) -> bool
 			{
@@ -592,7 +568,7 @@ namespace Sen::Kernel {
 				The startsWith() method is case sensitive.
 			*/
 
-			auto startsWith(
+			inline constexpr auto startsWith(
 				String & prefix
 			) -> bool
 			{
@@ -617,7 +593,7 @@ namespace Sen::Kernel {
 				A negative number selects from the end of the string.
 			*/
 
-			auto slice(
+			inline auto slice(
 				size_t from
 			) -> String
 			{
@@ -641,7 +617,7 @@ namespace Sen::Kernel {
 				A negative number selects from the end of the string.
 			*/
 
-			auto slice(
+			inline auto slice(
 				size_t from,
 				size_t to
 			) -> String
@@ -664,7 +640,7 @@ namespace Sen::Kernel {
 			   The toUpperCase() method does not change the original string.
 			*/
 
-			auto toUpperCase(
+			inline auto toUpperCase(
 
 			) -> String
 			{
@@ -679,7 +655,7 @@ namespace Sen::Kernel {
 			   The toLowerCase() method does not change the original string.
 			*/
 
-			auto toLowerCase(
+			inline auto toLowerCase(
 
 			) -> String
 			{
@@ -692,7 +668,7 @@ namespace Sen::Kernel {
 			 * Returns a string with removed whitespaces
 			*/
 
-			auto trim(
+			inline auto trim(
 
 			) -> String
 			{
@@ -705,7 +681,7 @@ namespace Sen::Kernel {
 			 * Returns a string with removed whitespaces from the start
 			*/
 
-			auto trimStart(
+			inline auto trimStart(
 
 			) -> String
 			{
@@ -717,7 +693,7 @@ namespace Sen::Kernel {
 			 * Returns a string with removed whitespaces from the end
 			*/
 
-			auto trimEnd(
+			inline auto trimEnd(
 
 			) -> String
 			{
@@ -729,7 +705,7 @@ namespace Sen::Kernel {
 			 * concat str
 			*/
 
-			auto concat(
+			inline constexpr auto concat(
 				const std::string & source
 			) -> std::string
 			{
@@ -740,7 +716,7 @@ namespace Sen::Kernel {
 			 * concat str
 			*/
 
-			auto concat(
+			inline auto concat(
 				const String & that
 			) -> String
 			{
@@ -751,15 +727,15 @@ namespace Sen::Kernel {
 			 * split a string by a delimeter
 			*/
 
-			auto split(
+			inline constexpr auto split(
 				const string &delimiter
-			) -> vector<string> const
+			) -> std::vector<std::string> const
 			{
 				auto str = thiz.value;
-				auto result = vector<string>{};
-				auto pos = string::size_type(0);
-				auto token = string{};
-				while ((pos = str.find(delimiter)) != string::npos) {
+				auto result = std::vector<std::string>{};
+				auto pos = std::string::size_type(0);
+				auto token = std::string{};
+				while ((pos = str.find(delimiter)) != std::string::npos) {
 					token = str.substr(0, pos);
 					result.push_back(token);
 					str.erase(0, pos + delimiter.length());
@@ -772,7 +748,7 @@ namespace Sen::Kernel {
 			 * <<
 			*/
 
-			friend auto operator <<(
+			inline friend auto operator <<(
 				std::ostream& os, 
 				String &that
 			) -> std::ostream&
@@ -785,7 +761,7 @@ namespace Sen::Kernel {
 			 * >>
 			*/
 
-			auto operator >>(
+			inline auto operator >>(
 				std::ifstream & is
 			) -> std::ifstream &
 			{
@@ -797,7 +773,7 @@ namespace Sen::Kernel {
 			 * +
 			*/
 
-			auto operator +(
+			inline auto operator +(
 				const String & that
 			) -> String
 			{
@@ -808,7 +784,7 @@ namespace Sen::Kernel {
 			 * !=
 			*/
 
-			auto operator !=(
+			inline auto operator !=(
 				const String & that
 			) -> bool
 			{
@@ -819,7 +795,7 @@ namespace Sen::Kernel {
 			 * ==
 			*/
 
-			auto operator ==(
+			inline auto operator ==(
 				const String & that
 			) -> bool
 			{
@@ -830,7 +806,7 @@ namespace Sen::Kernel {
 			 * ==
 			*/
 
-			auto operator ==(
+			inline auto operator ==(
 				const std::string & that
 			) -> bool
 			{
@@ -841,7 +817,7 @@ namespace Sen::Kernel {
 			 * +=
 			*/
 
-			auto operator +=(
+			inline auto operator +=(
 				char c
 			) -> String
 			{
@@ -852,7 +828,7 @@ namespace Sen::Kernel {
 			 * regex
 			*/
 
-			auto match(
+			inline auto match(
 				const std::regex &reg
 			) -> bool
 			{
@@ -864,12 +840,12 @@ namespace Sen::Kernel {
 			// delimiter: provide delimiter to split
 			// result: the vector of string after split
 
-			static auto split(
-				string str,
-				const string &delimiter
-			) -> vector<string> const
+			inline constexpr static auto split(
+				std::string str,
+				const std::string &delimiter
+			) -> std::vector<string> const
 			{
-				auto result = vector<string>{};
+				auto result = std::vector<string>{};
 				auto pos = string::size_type(0);
 				auto token = string{};
 				while ((pos = str.find(delimiter)) != string::npos) {
@@ -883,7 +859,7 @@ namespace Sen::Kernel {
 
 			// posix style test: a/b/c/d
 
-			static auto toPosixStyle(
+			inline static auto toPosixStyle(
 				string str
 			) -> string const
 			{
@@ -899,18 +875,19 @@ namespace Sen::Kernel {
 
 			// windows style test: a\b\c
 
-			static auto toWindowsStyle(
-				string str
-			) -> string const
+			inline static auto constexpr toWindowsStyle(
+				const std::string & str
+			) -> std::string const
 			{
-				for(auto &c : str)
+				auto b = std::string{str};
+				for(auto & c : b)
 				{
 					if(c == '/')
 					{
 						c = '\\';
 					}
 				}
-				return str;
+				return b;
 			}
 
 			/*
@@ -918,13 +895,13 @@ namespace Sen::Kernel {
 				Example: ["s", "a", "m"] -> sam
 			*/
 
-			static auto join(
-				const vector<string> &data,
-				const string &delimiter
-			) -> string const
+			inline static auto join(
+				const std::vector<string> &data,
+				const std::string &delimiter
+			) -> std::string const
 			{
-				auto result = string{};
-				for(auto &c : data)
+				auto result = std::string{};
+				for(auto & c : data)
 				{
 					result += c;
 					result += delimiter;
@@ -938,14 +915,14 @@ namespace Sen::Kernel {
 			*/
 
 			template <typename T>
-			static auto convertStringToSpan(
-				string &str
-			) -> span<T> const
+			inline static auto convertStringToSpan(
+				std::string &str
+			) -> std::span<T> const
 			{
-				static_assert(is_same_v<T, char> || is_same_v<T, unsigned char>,
+				static_assert(std::is_same_v<T, char> || std::is_same_v<T, unsigned char>,
 							"Template argument T must be char or unsigned char"
 				);
-				auto spanT = span<T>(reinterpret_cast<T*>(str.data()), str.size());
+				auto spanT = std::span<T>(reinterpret_cast<T*>(str.data()), str.size());
 				return spanT;
 			}
 
@@ -954,17 +931,17 @@ namespace Sen::Kernel {
 			// to: which string to replace
 			// return: replaced string
 
-			static auto replaceAll(
-				string str, 
-				const string& from,
-				const string& to
-			) -> string
+			inline static auto replaceAll(
+				std::string str, 
+				const std::string& from,
+				const std::string& to
+			) -> std::string
 			{
 				if(from.empty()){
 					return str;
 				}
 				auto start_pos = static_cast<size_t>(0);
-				while((start_pos = str.find(from, start_pos)) != string::npos) {
+				while((start_pos = str.find(from, start_pos)) != std::string::npos) {
 					str.replace(start_pos, from.length(), to);
 					start_pos += to.length();
 				}
@@ -976,11 +953,11 @@ namespace Sen::Kernel {
 			 * return: utf-8 string
 			*/
 
-			static auto to_utf8(
+			inline static auto to_utf8(
 				const std::u16string &s
 				) -> std::string
 			{
-				std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> conv;
+				auto conv = std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t>{};
 				return conv.to_bytes(s);
 			}
 
@@ -989,11 +966,11 @@ namespace Sen::Kernel {
 			 * return: utf8 string
 			*/
 
-			static auto to_utf8(
-				const std::u32string &s
+			inline static auto to_utf8(
+				const std::u32string & s
 			) -> std::string
 			{
-				std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+				auto conv = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{};
 				return conv.to_bytes(s);
 			}
 
@@ -1002,11 +979,11 @@ namespace Sen::Kernel {
 			 * return: utf16 string
 			*/
 
-			static auto to_utf16(
-				const std::string &s
+			inline static auto to_utf16(
+				const std::string & s
 			) -> std::u16string
 			{
-				std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> convert;
+				auto convert = std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t>{};
 				return convert.from_bytes(s);
 			}
 
@@ -1015,11 +992,11 @@ namespace Sen::Kernel {
 			 * return: utf32 string
 			*/
 
-			static auto to_utf32(
+			inline static auto to_utf32(
 				const std::string &s
 			) -> std::u32string
 			{
-				std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+				auto conv = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{};
 				return conv.from_bytes(s);
 			}
 
@@ -1028,7 +1005,7 @@ namespace Sen::Kernel {
 			 * return: utf16 string
 			*/
 
-			static auto to_utf16(
+			inline static auto to_utf16(
 				const std::u32string &s
 			) -> std::u16string
 			{
@@ -1040,7 +1017,7 @@ namespace Sen::Kernel {
 			 * return: utf32 string
 			*/
 
-			static auto to_utf32(
+			inline static auto to_utf32(
 				const std::u16string &s
 			) -> std::u32string 
 			{
@@ -1052,7 +1029,7 @@ namespace Sen::Kernel {
 			 * return: utf32 string
 			*/
 
-			static auto read_with_bom(
+			inline static auto read_with_bom(
 				std::istream & src
 			) -> std::u32string
 			{
