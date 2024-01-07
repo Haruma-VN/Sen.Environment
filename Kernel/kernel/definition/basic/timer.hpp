@@ -19,7 +19,7 @@ namespace Sen::Kernel::Definition {
 			 * Start the timer
 			*/
 
-			static auto start(
+			inline static auto start(
 
 			) -> clock::steady_clock::time_point const
 			{
@@ -30,7 +30,7 @@ namespace Sen::Kernel::Definition {
 			 * Calculate time between two time passed
 			*/
 
-			static auto calculate(
+			inline static auto calculate(
 				const clock::high_resolution_clock::time_point &before,
 				const clock::high_resolution_clock::time_point &after
 			) -> double const
@@ -42,7 +42,7 @@ namespace Sen::Kernel::Definition {
 			 * Sleep to wait for a thread
 			*/
 
-			static auto sleep(
+			inline static auto sleep(
 				long long m
 			) -> void
 			{

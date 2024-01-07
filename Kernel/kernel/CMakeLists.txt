@@ -83,6 +83,7 @@ add_library(
 	./support/popcap/crypt_data/decrypt.hpp
 	./support/popcap/cfw2/definition.hpp
 	./support/popcap/cfw2/decode.hpp
+	./support/popcap/cfw2/encode.hpp
 	./support/texture/compression/pvrtc/color.hpp
 	./support/texture/compression/pvrtc/packet.hpp
 	./support/texture/compression/pvrtc/pvrtc.hpp

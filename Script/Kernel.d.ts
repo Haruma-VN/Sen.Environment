@@ -1069,6 +1069,32 @@ declare namespace Sen {
                 }
 
                 /**
+                 * CharacterFontWidget2 Support
+                 */
+
+                declare namespace CharacterFontWidget2 {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript CharacterFontWidget2 decode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript CharacterFontWidget2 encode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                }
+
+                /**
                  * Compiled Text
                  */
 

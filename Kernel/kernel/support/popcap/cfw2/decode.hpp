@@ -10,6 +10,22 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 		public:
 
 			/**
+			 * Constructor
+			*/
+
+			explicit Decode(
+
+			) = default;
+
+			/**
+			 * Destructor
+			*/
+
+			~Decode(
+
+			) = default;
+
+			/**
 			 * Process method
 			*/
 
@@ -31,7 +47,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 				auto characterCount = view.readUint32LE();
 				cfw2_json.character = std::vector<CharacterItem>();
 				for (auto i : Range<uint32_t>(characterCount)) {
-					cfw2_json.character.value().emplace_back(CharacterItem{
+					cfw2_json.character.emplace_back(CharacterItem{
 						view.readCharByInt16LE(),
 						view.readCharByInt16LE()
 					});
@@ -75,7 +91,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 							view.readInt32LE()
 						});
 					}
-					cfw2_json.layer.value().emplace_back(FontLayer{
+					cfw2_json.layer.emplace_back(FontLayer{
 						name,
 						std::move(tag_require),
 						std::move(tag_exclude),
@@ -105,11 +121,24 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 						view.readInt32LE()
 					});
 				}
+				cfw2_json.source_file = view.readStringByInt32LE();
+				cfw2_json.error_header = view.readStringByInt32LE();
+				cfw2_json.point_size = view.readInt32LE();
+				auto tagCount = view.readUint32LE();
+				for (auto i : Range<uint32_t>(static_cast<uint32_t>(tagCount))) {
+					cfw2_json.tag.emplace_back(view.readStringByInt32LE());
+				}
+				cfw2_json.scale = view.readDoubleLE();
+				cfw2_json.force_scaled_image_white = view.readBoolean();
+				cfw2_json.activate_all_layer = view.readBoolean();
 				return cfw2_json;
 			}
 
 			/**
 			 * Process file sync
+			 * @param source - source file
+			 * @param destination - destination file
+			 * @returns - Decoded file
 			*/
 
 

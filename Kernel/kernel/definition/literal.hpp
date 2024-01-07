@@ -32,4 +32,11 @@ namespace Sen::Kernel {
     	return static_cast<unsigned long>(n);
 	}
 
+	// inline constexpr auto operator "" _s(
+	// 	const std::string & n
+	// ) -> std::string
+	// {
+    // 	return static_cast<std::string>(n);
+	// }
+
 }

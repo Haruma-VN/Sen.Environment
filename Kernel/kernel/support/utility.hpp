@@ -20,3 +20,8 @@
 #include "kernel/support/popcap/crypt_data/encrypt.hpp"
 #include "kernel/support/popcap/crypt_data/decrypt.hpp"
 #include "kernel/support/popcap/cfw2/decode.hpp"
+#include "kernel/support/popcap/cfw2/encode.hpp"
+
+namespace Sen::Kernel::Support {
+	
+}

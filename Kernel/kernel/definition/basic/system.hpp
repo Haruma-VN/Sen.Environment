@@ -9,7 +9,7 @@ namespace Sen::Kernel {
 	 * Architecture test
 	*/
 
-	enum Architecture {
+	enum class Architecture {
 		X64,
 		ARM,
 		INTEL,

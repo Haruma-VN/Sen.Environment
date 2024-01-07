@@ -98,7 +98,6 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			{"kerning_count", font.kerning_count},
 			{"width", font.width},
 			{"order", font.order}
-
 		};
 		return;
 	}
@@ -117,7 +116,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 
 			) = default;
 
-			explicit constexpr CharacterItem(
+			explicit CharacterItem(
 				char index,
 				char value
 			) : index(index), value(value)
@@ -223,11 +222,11 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 	struct FontLayer 
     {
         public:
-			std::optional<std::string> name;
-			std::optional<std::vector<std::string>> tag_require;
-			std::optional<std::vector<std::string>> tag_exclude;
-			std::optional<std::vector<FontKerning>> kerning;
-			std::optional<std::vector<FontCharacter>> character;
+			std::string name;
+			std::vector<std::string> tag_require;
+			std::vector<std::string> tag_exclude;
+			std::vector<FontKerning> kerning;
+			std::vector<FontCharacter> character;
 			int multiply_red;
 			int multiply_green;
 			int multiply_blue;
@@ -236,7 +235,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			int add_green;
 			int add_blue;
 			int add_alpha;
-			std::optional<std::string> image_file;
+			std::string image_file;
 			int draw_mode;
 			int offset_x;
 			int offset_y;
@@ -303,21 +302,11 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 		FontLayer & font
 	) -> void
 	{
-		if(is_not_null_object(json, "name")){
-			json.at("name").get_to(font.name.value());
-		}
-		if(is_not_null_object(json, "tag_require")){
-			json.at("tag_require").get_to(font.tag_require.value());
-		}
-		if(is_not_null_object(json, "tag_exclude")){
-			json.at("tag_exclude").get_to(font.tag_exclude.value());
-		}
-		if(is_not_null_object(json, "kerning")){
-			json.at("kerning").get_to(font.kerning.value());
-		}
-		if(is_not_null_object(json, "character")){
-			json.at("character").get_to(font.character.value());
-		}
+		json.at("name").get_to(font.name);
+		json.at("tag_require").get_to(font.tag_require);
+		json.at("tag_exclude").get_to(font.tag_exclude);
+		json.at("kerning").get_to(font.kerning);
+		json.at("character").get_to(font.character);
 		json.at("multiply_red").get_to(font.multiply_red);
 		json.at("multiply_green").get_to(font.multiply_green);
 		json.at("multiply_blue").get_to(font.multiply_blue);
@@ -326,9 +315,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 		json.at("add_green").get_to(font.add_green);
 		json.at("add_blue").get_to(font.add_blue);
 		json.at("add_alpha").get_to(font.add_alpha);
-		if(is_not_null_object(json, "image_file")){
-			json.at("image_file").get_to(font.image_file.value());
-		}
+		json.at("image_file").get_to(font.image_file);
 		json.at("draw_mode").get_to(font.draw_mode);
 		json.at("offset_x").get_to(font.offset_x);
 		json.at("offset_y").get_to(font.offset_y);
@@ -356,21 +343,11 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 	) -> void
 	{
 		json = nlohmann::ordered_json{};
-		if(font.name.has_value()){
-			json["name"] = font.name.value();
-		}
-		if(font.tag_require.has_value()){
-			json["tag_require"] = font.tag_require.value();
-		}
-		if(font.tag_exclude.has_value()){
-			json["tag_exclude"] = font.tag_exclude.value();
-		}
-		if(font.kerning.has_value()){
-			json["kerning"] = font.kerning.value();
-		}
-		if(font.character.has_value()){
-			json["character"] = font.character.value();
-		}
+		json["name"] = font.name;
+		json["tag_require"] = font.tag_require;
+		json["tag_exclude"] = font.tag_exclude;
+		json["kerning"] = font.kerning;
+		json["character"] = font.character;
 		json["multiply_red"] = font.multiply_red;
 		json["multiply_green"] = font.multiply_green;
 		json["multiply_blue"] = font.multiply_blue;
@@ -379,9 +356,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 		json["add_green"] = font.add_green;
 		json["add_blue"] = font.add_blue;
 		json["add_alpha"] = font.add_alpha;
-		if(font.image_file.has_value()){
-			json["image_file"] = font.image_file.value();
-		}
+		json["image_file"] = font.image_file;
 		json["draw_mode"] = font.draw_mode;
 		json["offset_x"] = font.offset_x;
 		json["offset_y"] = font.offset_y;
@@ -405,6 +380,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 	struct CharacterFontWidget2 {
 
 		public:
+
 			std::vector<uint8_t> unknown;
 			int ascent;
 			int ascent_padding;
@@ -412,12 +388,12 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			int line_sepacing_offset;
 			bool initialized;
 			int default_point_size;
-			std::optional<std::vector<CharacterItem>> character;
-			std::optional<std::vector<FontLayer>> layer;
-			std::optional<std::string> source_file;
-			std::optional<std::string> error_header;
+			std::vector<CharacterItem> character;
+			std::vector<FontLayer> layer;
+			std::string source_file;
+			std::string error_header;
 			int point_size;
-			std::optional<std::vector<std::string>> tag;
+			std::vector<std::string> tag;
 			double scale;
 			bool force_scaled_image_white;
 			bool activate_all_layer;
@@ -454,22 +430,12 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 		json.at("line_sepacing_offset").get_to(font.line_sepacing_offset);
 		json.at("initialized").get_to(font.initialized);
 		json.at("default_point_size").get_to(font.default_point_size);
-		if (is_not_null_object(json, "character")){
-			json.at("character").get_to(font.character.value());
-		}
-		if (is_not_null_object(json, "layer")){
-			json.at("layer").get_to(font.layer.value());
-		}
-		if (is_not_null_object(json, "source_file")){
-			json.at("source_file").get_to(font.source_file.value());
-		}
-		if (is_not_null_object(json, "error_header")){
-			json.at("error_header").get_to(font.error_header.value());
-		}
+		json.at("character").get_to(font.character);
+		font.layer = json.at("layer");
+		font.source_file = json.at("source_file");
+		json.at("error_header").get_to(font.error_header);
 		json.at("point_size").get_to(font.point_size);
-		if (is_not_null_object(json, "tag")){
-			json.at("tag").get_to(font.tag.value());
-		}
+		json.at("tag").get_to(font.tag);
 		json.at("scale").get_to(font.scale);
 		json.at("force_scaled_image_white").get_to(font.force_scaled_image_white);
 		json.at("activate_all_layer").get_to(font.activate_all_layer);
@@ -494,22 +460,12 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			{"initialized", font.initialized},
 			{"default_point_size", font.default_point_size}
 		};
-		if (font.character.has_value()){
-			json["character"] = font.character.value();
-		}
-		if (font.layer.has_value()){
-			json["layer"] = font.layer.value();
-		}
-		if (font.source_file.has_value()){
-			json["source_file"] = font.source_file.value();
-		}
-		if (font.error_header.has_value()){
-			json["error_header"] = font.error_header.value();
-		}
+		json["character"] = font.character;
+		json["layer"] = font.layer;
+		json["source_file"] = font.source_file;
+		json["error_header"] = font.error_header;
 		json["point_size"] = font.point_size;
-		if (font.tag.has_value()){
-			json["tag"] = font.tag.value();
-		}
+		json["tag"] = font.tag;
 		json["scale"] = font.scale;
 		json["force_scaled_image_white"] = font.force_scaled_image_white;
 		json["activate_all_layer"] = font.activate_all_layer;

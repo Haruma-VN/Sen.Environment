@@ -254,14 +254,16 @@ namespace Sen::Kernel::Definition
                 }
 
                 inline auto writeInt32BE(
-                    std::int32_t value) -> void
+                    std::int32_t value
+                ) const -> void
                 {
                     this->writeBE<std::int32_t>(value);
                     return;
                 }
 
                 inline auto writeInt64BE(
-                    std::int64_t value) -> void
+                    std::int64_t value
+                ) const -> void
                 {
                     this->writeBE<std::int64_t>(value);
                     return;
@@ -623,6 +625,118 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
+                inline auto writeCharByUint8(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint8(static_cast<uint8_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint16LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint16LE(static_cast<uint16_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint16BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint16BE(static_cast<uint16_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint32LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint32LE(static_cast<uint32_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint32BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint32BE(static_cast<uint32_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint64LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint64LE(static_cast<uint64_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByUint64BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeUint64BE(static_cast<uint64_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt8(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt8(static_cast<int8_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt16LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt16LE(static_cast<int16_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt16BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt16BE(static_cast<int16_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt32LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt32LE(static_cast<int32_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt32BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt32BE(static_cast<int32_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt64LE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt64LE(static_cast<int64_t>(value));
+                    return;
+                }
+
+                inline auto writeCharByInt64BE(
+                    char value
+                ) const -> void
+                {
+                    this->writeInt64BE(static_cast<int64_t>(value));
+                    return;
+                }
+
                 inline auto readChar(
 
                 ) const -> char
@@ -913,7 +1027,7 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByUInt16(
+                inline auto writeStringByUInt16LE(
                     const std::string & str
                 ) const -> void
                 {
@@ -927,7 +1041,21 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByInt16(
+                inline auto writeStringByUInt16BE(
+                    const std::string & str
+                ) const -> void
+                {
+                    if (str.empty())
+                    {
+                        this->writeUint16BE(0);
+                        return;
+                    }
+                    this->writeUint16BE(str.size());
+                    this->writeString(str);
+                    return;
+                }
+
+                inline auto writeStringByInt16LE(
                     const std::string & str
                 ) const -> void
                 {
@@ -941,7 +1069,21 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByUInt32(
+                inline auto writeStringByInt16BE(
+                    const std::string & str
+                ) const -> void
+                {
+                    if (str.empty())
+                    {
+                        this->writeInt16LE(0);
+                        return;
+                    }
+                    this->writeInt16LE(str.size());
+                    this->writeString(str);
+                    return;
+                }
+
+                inline auto writeStringByUInt32LE(
                     const std::string & str
                 ) const -> void
                 {
@@ -955,9 +1097,23 @@ namespace Sen::Kernel::Definition
                     return;
                 }
 
-                inline auto writeStringByInt32(
-                    const std::string &str
-                ) -> void
+                inline auto writeStringByUInt32BE(
+                    const std::string & str
+                ) const -> void
+                {
+                    if (str.empty())
+                    {
+                        this->writeUint32BE(0);
+                        return;
+                    }
+                    this->writeUint32BE(str.size());
+                    this->writeString(str);
+                    return;
+                }
+
+                inline auto writeStringByInt32LE(
+                    const std::string & str
+                ) const -> void
                 {
                     if (str.empty())
                     {
@@ -965,6 +1121,20 @@ namespace Sen::Kernel::Definition
                         return;
                     }
                     this->writeInt32LE(str.size());
+                    this->writeString(str);
+                    return;
+                }
+
+                inline auto writeStringByInt32BE(
+                    const std::string &str
+                ) -> void
+                {
+                    if (str.empty())
+                    {
+                        this->writeInt32BE(0);
+                        return;
+                    }
+                    this->writeInt32BE(str.size());
                     this->writeString(str);
                     return;
                 }
@@ -1283,6 +1453,10 @@ namespace Sen::Kernel::Definition
 
                 ) const -> T
                 {
+                    if (this->position + sizeof(T) > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     T value = 0;
                     std::memcpy(&value, this->data.data() + this->position, sizeof(T));
                     this->position += sizeof(T);
@@ -1294,6 +1468,10 @@ namespace Sen::Kernel::Definition
                     
                 ) const -> T
                 {
+                    if (this->position + sizeof(T) > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     T value = 0;
                     std::memcpy(&value, this->data.data() + this->position, sizeof(T));
                     this->position += sizeof(T);
@@ -1331,8 +1509,13 @@ namespace Sen::Kernel::Definition
 
                 template <typename T>
                 inline auto readLE_has(
-                    std::size_t size = sizeof(T)) const -> T
+                    std::size_t size = sizeof(T)
+                ) const -> T
                 {
+                    if (this->position + size > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     T value;
                     std::memcpy(&value, &this->data[this->position], sizeof(T));
                     this->position += sizeof(T);
@@ -1344,6 +1527,10 @@ namespace Sen::Kernel::Definition
                     std::size_t size = sizeof(T)
                 ) const -> T
                 {
+                    if (this->position + size > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     T value = 0;
                     for (auto i = 0; i < size; ++i)
                     {
@@ -1380,6 +1567,10 @@ namespace Sen::Kernel::Definition
                     std::size_t size
                 ) const -> T
                 {
+                    if (this->position + size > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     auto value = T{};
                     std::memcpy(&value, &this->data[this->position], size);
                     this->position += size;
@@ -1391,6 +1582,10 @@ namespace Sen::Kernel::Definition
                     std::size_t size
                 ) const -> T
                 {
+                    if (this->position + size > this->size())
+                    {
+                        throw std::runtime_error(std::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
+                    }
                     auto value = T{};
                     for (auto i = 0; i < size; i++)
                     {

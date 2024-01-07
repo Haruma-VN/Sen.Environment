@@ -2265,7 +2265,7 @@ namespace Sen::Kernel::Interface::Script {
 
 				/**
 				 * ----------------------------------------
-				 * JavaScript RenderEffects Decode File
+				 * CFW2 Decode File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
 				 * @returns: Decoded file
@@ -2290,29 +2290,26 @@ namespace Sen::Kernel::Interface::Script {
 
 				/**
 				 * ----------------------------------------
-				 * JavaScript Crypt-Data Encrypt
+				 * CFW2 Encode
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
-				 * @param argv[2]: key
 				 * @returns: Encrypted file
 				 * ----------------------------------------
 				*/
 
-				inline static auto encrypt_fs(
+				inline static auto encode_fs(
 					JSContext *context, 
 					JSValueConst this_val, 
 					int argc, 
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS_ToCString(context, argv[0]);
 					auto destination = JS_ToCString(context, argv[1]);
-					auto key = JS_ToCString(context, argv[2]);
-					Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
+					Sen::Kernel::Support::PopCap::CFW2::Encode::process_fs(source, destination);
 					JS_FreeCString(context, source);
 					JS_FreeCString(context, destination);
-					JS_FreeCString(context, key);
 					return JS::Converter::get_undefined();
 				}
 

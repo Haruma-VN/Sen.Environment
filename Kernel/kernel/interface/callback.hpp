@@ -369,6 +369,8 @@ namespace Sen::Kernel::Interface {
 				{
 					// decode fs
 					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CharacterFontWidget2"}, std::string{"decode_fs"});
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Support"}, std::string{"PopCap"}, std::string{"CharacterFontWidget2"}, std::string{"encode_fs"});
 				}
 				// rsb
 				{
