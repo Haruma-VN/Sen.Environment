@@ -41,7 +41,7 @@ add_subdirectory("./dependencies/open_vcdiff")
 add_subdirectory("./dependencies/zip")
 
 if (MSVC)
-add_subdirectory("./dependencies/dirent")
+  add_subdirectory("./dependencies/dirent")
 endif()
 
 if(UNIX OR APPLE OR ANDROID OR IOS)

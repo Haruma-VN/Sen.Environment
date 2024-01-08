@@ -58,6 +58,7 @@ add_library(
 	./dependencies/bzip2.hpp
 	./dependencies/quickjs.hpp
 	./dependencies/zip.hpp
+	./dependencies/dirent.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp

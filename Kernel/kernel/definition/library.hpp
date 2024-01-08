@@ -49,3 +49,4 @@
 #include "kernel/dependencies/open_vcdiff.hpp"
 #include "kernel/dependencies/bzip2.hpp"
 #include "kernel/dependencies/zip.hpp"
+#include "kernel/dependencies/dirent.hpp"
