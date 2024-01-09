@@ -186,11 +186,16 @@ namespace Sen.Script {
             //  "AS23DSREPLKL335KO4439032N8345NF"
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
-            Sen.Script.Console.send(`Sen ~ Shell: ${Sen.Shell.version} & Kernel: ${Sen.Kernel.version} & Script: ${Sen.Script.version} ~ ${Sen.Kernel.OperatingSystem.current()} & ${Sen.Kernel.OperatingSystem.architecture()}`);
+            Sen.Script.Console.send(
+                `Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`,
+            );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
             // Sen.Kernel.Support.PopCap.CharacterFontWidget2.decode_fs("D:/Workspace/HOUSEOFTERROR_o.TXT.cfw2", "D:/Workspace/HOUSEOFTERROR.TXT.cfw2.json");
-            Sen.Kernel.Support.PopCap.CharacterFontWidget2.encode_fs("D:/Workspace/HOUSEOFTERROR.TXT.cfw2.json", "D:/Workspace/HOUSEOFTERROR.TXT1.cfw2");
+            Executor.clock.start_safe();
+            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/pp.rton", "D:/test/pp.json");
+            Executor.clock.stop_safe();
+            Kernel.Console.print(`${Executor.clock.duration}s`);
             // Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;
