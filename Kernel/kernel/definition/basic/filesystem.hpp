@@ -18,9 +18,9 @@ namespace Sen::Kernel::FileSystem
 		const std::string & filepath
 	) -> std::string
 	{
-        std::ifstream file(filepath);
+        auto file = std::ifstream(filepath);
         if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filepath);
+            throw Exception("Could not open file: " + filepath);
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();
@@ -39,7 +39,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ofstream(filepath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filepath);
+            throw Exception("Could not open file: " + filepath);
         }
 		file << content;
 		file.close();
@@ -55,7 +55,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ifstream(filePath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filePath);
+            throw Exception("Could not open file: " + filePath);
         }
 		auto jsonData = nlohmann::ordered_json::parse(file);
 		file.close();
@@ -73,7 +73,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ofstream(filePath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filePath);
+            throw Exception("Could not open file: " + filePath);
         }
 		file << content.dump(1, '\t');
 		file.close();
@@ -95,7 +95,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ofstream(filePath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filePath);
+            throw Exception("Could not open file: " + filePath);
         }
 		file << content.dump(indent, indent_char);
 		file.close();
@@ -115,7 +115,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ofstream(filePath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filePath);
+            throw Exception("Could not open file: " + filePath);
         }
 		file << content.dump(1, indent_char);
 		file.close();
@@ -139,7 +139,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ofstream(filePath);
 		if (!file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filePath);
+            throw Exception("Could not open file: " + filePath);
         }
 		file << content.dump(indent, indent_char, ensureAscii);
 		file.close();
@@ -236,7 +236,7 @@ namespace Sen::Kernel::FileSystem
 		auto file = std::ifstream(filePath, std::ios::binary);
 		if(!file)
 		{
-			throw std::runtime_error(fmt::format("Could not open file: {}", filePath));
+			throw Exception(fmt::format("Could not open file: {}", filePath));
 		}
 		file.seekg(0, std::ios::end);
 		auto size = static_cast<std::streamsize>(file.tellg());
@@ -244,7 +244,7 @@ namespace Sen::Kernel::FileSystem
 		auto data = std::vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
-			throw std::runtime_error(fmt::format("Could not read file: {}", filePath));
+			throw Exception(fmt::format("Could not read file: {}", filePath));
 		}
 		file.close();
 		return data;	
@@ -338,7 +338,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto out = std::ofstream(outFile, std::ios::binary);
 		if(!out.is_open()){
-			throw std::runtime_error(fmt::format("Unable to open: {}", outFile));
+			throw Exception(fmt::format("Unable to open: {}", outFile));
 		}
 		out.write(reinterpret_cast<const char *>(data.data()), data.size());
 		out.close();

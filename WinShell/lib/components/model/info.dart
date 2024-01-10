@@ -2,8 +2,8 @@
 
 import 'package:fluent_ui/fluent_ui.dart';
 
-class InfoField extends StatelessWidget {
-  const InfoField({
+class WinShellInfoField extends StatelessWidget {
+  const WinShellInfoField({
     super.key,
     required this.header,
     required this.child,

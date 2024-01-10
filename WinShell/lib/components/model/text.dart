@@ -2,33 +2,37 @@
 
 import 'package:fluent_ui/fluent_ui.dart';
 
-class InputField extends StatelessWidget {
-  const InputField({
+class WinShellInputField extends StatelessWidget {
+  const WinShellInputField({
     super.key,
     required this.label,
     required this.placeHolder,
+    required this.controller,
   });
 
   final String label;
   final String placeHolder;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
     return InfoLabel(
       label: label,
       child: TextBox(
-        placeholder: placeHolder,
+        controller: this.controller,
+        placeholder: this.placeHolder,
         expands: false,
       ),
     );
   }
 }
 
-class InputFieldWithIcon extends InputField {
-  const InputFieldWithIcon({
+class WinShellInputFieldWithIcon extends WinShellInputField {
+  const WinShellInputFieldWithIcon({
     super.key,
     required super.label,
     required super.placeHolder,
+    required super.controller,
     required this.iconBegin,
     required this.iconEnd,
   });
@@ -39,16 +43,38 @@ class InputFieldWithIcon extends InputField {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IgnorePointer(
-          child: Icon(this.iconBegin),
-        ),
-        super.build(context),
-        IgnorePointer(
-          child: Icon(this.iconEnd),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 20.0, 0.0, 0.0),
+              child: Icon(
+                this.iconBegin,
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 10.0,
+          ),
+          Flexible(
+            child: super.build(context),
+          ),
+          const SizedBox(
+            width: 10.0,
+          ),
+          IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 20.0, 0.0, 0.0),
+              child: Icon(
+                this.iconEnd,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -169,7 +169,10 @@ namespace Sen.Script {
      */
 
     export function main(): void {
-        Sen.Script.Console.error(Sen.Script.launch());
+        let result = Sen.Script.launch();
+        if (result !== undefined) {
+            throw new Error(result);
+        }
         return;
     }
 
@@ -191,15 +194,11 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            // Sen.Kernel.Support.PopCap.CharacterFontWidget2.decode_fs("D:/Workspace/HOUSEOFTERROR_o.TXT.cfw2", "D:/Workspace/HOUSEOFTERROR.TXT.cfw2.json");
-            Executor.clock.start_safe();
-            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/pp.rton", "D:/test/pp.json");
-            Executor.clock.stop_safe();
-            Kernel.Console.print(`${Executor.clock.duration}s`);
+            Sen.Kernel.FileSystem.read_file("D:/HelloWorld.txt");
+
             // Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
-            result = `${Sen.Script.Setting.Language.get(`runtime_error`)}: `;
-            result += e.message;
+            result = e.message;
             result += `\n`;
             result += e.stack;
         }

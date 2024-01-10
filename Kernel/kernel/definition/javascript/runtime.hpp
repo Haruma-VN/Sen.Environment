@@ -82,7 +82,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				result += std::string{exceptionStack};
 				if(JS_IsError(thiz.ctx, exception)){
 					auto stackTrace = JS_GetPropertyStr(thiz.ctx, exception, "stack");
-					if(JS_IsUndefined(stackTrace)){
+					if(!JS_IsUndefined(stackTrace)){
 						auto js_exception = JS_ToCString(thiz.ctx, stackTrace);
 						result += std::string{js_exception};
 						thiz.free_string(js_exception);

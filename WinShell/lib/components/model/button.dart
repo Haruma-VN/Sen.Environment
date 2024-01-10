@@ -7,16 +7,38 @@ class WinShellButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    required this.iconBegin,
-    required this.iconEnd,
     this.height,
     this.width,
   });
-  final IconData iconBegin;
-  final IconData iconEnd;
+
   final String text;
   final void Function() onPressed;
   final double? width, height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: this.width,
+      height: this.height,
+      child: Button(
+        onPressed: this.onPressed,
+        child: Text(this.text),
+      ),
+    );
+  }
+}
+
+class WinShellButtonWithIcon extends WinShellButton {
+  const WinShellButtonWithIcon({
+    super.key,
+    required super.text,
+    required super.onPressed,
+    required this.iconBegin,
+    required this.iconEnd,
+  });
+
+  final IconData iconBegin;
+  final IconData iconEnd;
 
   @override
   Widget build(BuildContext context) {
