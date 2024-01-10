@@ -2,12 +2,15 @@
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:winshell/api/kernel.dart';
 import 'package:winshell/components/model/page_view.dart';
 import 'package:winshell/components/model/text.dart';
 import 'package:winshell/components/model/theme.dart';
 import 'package:winshell/interface/shell.dart';
 
 void main() {
+  var kernel = Kernel();
+  kernel.execute();
   runApp(const MyApp());
 }
 

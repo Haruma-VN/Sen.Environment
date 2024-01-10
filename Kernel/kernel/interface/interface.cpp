@@ -12,35 +12,29 @@ int version(
 
 M_EXPORT_API
 int execute(
-    Interface::BasicStringView* argument, 
-    Interface::Parameter* params, 
-    Interface::callback sendMessage,
-    Interface::input input,
-    Interface::MShellAPI shell
+    Interface::CStringView* argument,
+    Interface::ShellCallback m_callback
 )
 {
     try{
-        auto process = Interface::convert_basic_string_view_to_string(argument);
-        auto parameters = Interface::convert_parameter_to_vector_string(params);
-        Interface::Shell::input = input;
-        Interface::Shell::print = sendMessage;
-        auto callback = std::make_shared<Interface::Callback>(process, parameters, shell);
+        auto script = Interface::make_standard_string(argument);
+        Interface::Shell::callback = m_callback;
+        auto callback = std::make_unique<Interface::Callback>(script, m_callback);
         callback->execute();
     }
     catch(const std::exception & ex)
     {
-        sendMessage(fmt::format("Runtime Exception found: {}", parse_exception().what()).c_str(), Sen::Kernel::Interface::Color::RED);
+        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Runtime Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}));
         return 1;
     }
     catch(int errorCode)
     {
-        // 
-        sendMessage(fmt::format("Exception found: {}", fmt::format("Error caught with error code: {}", errorCode)).c_str(), Sen::Kernel::Interface::Color::RED);
+        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Exception found: {} with error code {}", parse_exception().what(), errorCode), std::string{""}, std::string{"red"}}));
         return 1;
     }
     catch(...)
     {
-        sendMessage(fmt::format("Assertation Error: {}", "An error occured during runtime").c_str(), Sen::Kernel::Interface::Color::RED);
+        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Unknown Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}));
         return 1;
     }
     return 0;

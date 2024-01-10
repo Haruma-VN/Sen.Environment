@@ -380,6 +380,27 @@ namespace Sen::Kernel::Interface::Script {
 	*/
 
 	namespace Console {
+
+		inline static auto exchange_color(
+			Sen::Kernel::Interface::Color color
+		) -> std::string
+		{
+			using Color = Sen::Kernel::Interface::Color;
+			if (color == Color::RED) {
+				return "red";
+			}
+			if (color == Color::GREEN) {
+				return "green";
+			}
+			if (color == Color::CYAN) {
+				return "cyan";
+			}
+			if (color == Color::YELLOW) {
+				return "yellow";
+			}
+			return "default";
+		}
+
 		/**
 		 * ----------------------------------------
 		 * JS Print method
@@ -395,15 +416,21 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 2 or argc == 1, fmt::format("argument expected {} but received {}", "2 or 1", argc));
-			auto str = JS_ToCString(context, argv[0]);
-			if(argc == 2){
-				Shell::print(JS::Converter::get_string(context, argv[0]).c_str(),static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[1])));
+			try_assert(argc >= 1, fmt::format("argument expected greater than {} but received {}", "1", argc));
+			switch (argc){
+				case 1: {
+					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0])}));
+					break;
+				}
+				case 2: {
+					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1])}));
+					break;
+				}
+				default: {
+					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}));
+					break;
+				}
 			}
-			else{
-				Shell::print(JS::Converter::get_string(context, argv[0]).c_str(), Sen::Kernel::Interface::Color::DEFAULT);
-			}
-			JS_FreeCString(context, str);
 			return JS::Converter::get_undefined();
 		}
 
@@ -422,9 +449,8 @@ namespace Sen::Kernel::Interface::Script {
 		) -> JSValue
 		{
 			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
-			auto result = Shell{}.input();
-			auto m_result = std::string{result.data, result.size};
-			return JS::Converter::to_string(context, m_result);
+			auto result = Shell::callback(construct_string_list(std::vector{std::string{"input"}}));
+			return JS::Converter::to_string(context, std::string{result.value, result.size});
 		}
 	}
 

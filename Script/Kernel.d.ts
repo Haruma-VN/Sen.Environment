@@ -330,7 +330,7 @@ declare namespace Sen {
              * --------------------------------------------------
              */
 
-            export function print(title: string, color: Script.Definition.Console.Color): void;
+            export function print(title: string, message: string, color: Script.Definition.Console.Color): void;
             /**
              * --------------------------------------------------
              * This method print the message to the debug console

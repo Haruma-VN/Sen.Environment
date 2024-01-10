@@ -16,30 +16,58 @@ namespace Sen::Kernel::Interface {
 	struct StringList {
 		StringView* value;
 		size_t size;
+
+		~StringList(
+
+		) 
+		{
+			delete[] thiz.value;
+		}
 	};
 
 	using CStringView = StringView;
 	
 	using CStringList = StringList;
 
-	typedef CStringView (*shell_callback)(CStringList list);
+	typedef CStringView (*ShellCallback)(CStringList list);
+
+	// Construct CStringView from standard String
+
+	inline static auto construct_string(
+		const std::string & that
+	) -> CStringView
+	{
+		return CStringView{
+			.value = that.c_str(),
+			.size = that.size()
+		};
+	}
+
+	// Construct std::string from CStringView
+
+	inline static auto make_standard_string(
+		CStringView* that
+	) -> std::string
+	{
+		return std::string{that->value, that->size};
+	}
+
+	inline static auto construct_string_list(
+		const std::vector<std::string> & that
+	) -> CStringList
+	{
+		auto destination = CStringList{
+			.value = new StringView[that.size()],
+			.size = that.size()
+		};
+		for	(auto i : Range<size_t>(that.size())){
+			destination.value[i] = construct_string(that.at(i));
+		}
+		return destination;
+	}
 
 	struct Shell {
 		private:
-			inline static auto input_cb(
-
-			) -> BasicStringView
-			{
-				return BasicStringView{"", 0};
-			}
-
-			inline static auto print_cb(
-				const char* title,
-				Interface::Color color
-			) -> void
-			{
-				return;
-			}
 
 			inline static auto shell_cb(
 				CStringList list
@@ -49,11 +77,8 @@ namespace Sen::Kernel::Interface {
 			}
 
 		public:
-			inline static Interface::input input = input_cb;
 
-			inline static Interface::callback print = print_cb;
-
-			inline static Interface::shell_callback callback = shell_cb;
+			inline static Interface::ShellCallback callback = shell_cb;
 	};
 
 	struct MShellAPI {

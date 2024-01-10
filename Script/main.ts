@@ -15,9 +15,9 @@ namespace Sen.Script {
 
         export function send(str: any, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
             if (!Sen.Shell.is_gui) {
-                Sen.Kernel.Console.print(`● ${str}`, color);
+                Sen.Kernel.Console.print(`● ${str}`, ``, color);
             } else {
-                Sen.Kernel.Console.print(str, color);
+                Sen.Kernel.Console.print(str, ``, color);
             }
             return;
         }
@@ -34,11 +34,11 @@ namespace Sen.Script {
 
         export function display(title: string, message: any, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
             if (!Sen.Shell.is_gui) {
-                Sen.Kernel.Console.print(`● ${title}:`, color);
+                Sen.Kernel.Console.print(`● ${title}:`, ``, color);
                 Sen.Kernel.Console.print(`    ${message}`);
             } else {
-                Sen.Kernel.Console.print(title, color);
-                Sen.Kernel.Console.print(message, color);
+                Sen.Kernel.Console.print(title, ``, color);
+                Sen.Kernel.Console.print(message, ``, color);
             }
             return;
         }
@@ -81,10 +81,10 @@ namespace Sen.Script {
 
         export function finished(subtitle: string, message: string): void {
             if (!Sen.Shell.is_gui) {
-                Sen.Kernel.Console.print(`● ${Setting.Language.get(`execution_finished`)}: ${subtitle}`, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(`● ${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
                 Sen.Kernel.Console.print(`    ${message}`);
             } else {
-                Sen.Kernel.Console.print(`${Setting.Language.get(`execution_finished`)}: ${subtitle}`, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(`${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
                 Sen.Kernel.Console.print(message);
             }
             return;
@@ -194,9 +194,8 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Kernel.FileSystem.read_file("D:/HelloWorld.txt");
 
-            // Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
+            Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;

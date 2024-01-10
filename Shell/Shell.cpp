@@ -1,20 +1,22 @@
 ﻿#include "Shell.h"
 #define DEBUG true
 
-inline auto static getLine(
+inline auto static get_line(
 
-) -> BasicStringView
+) -> CStringView
 {
     auto str = std::string{};
     std::getline(std::cin, str);
-    auto m = BasicStringView{str.c_str()};
-    m.size = str.size();
-    return m;
+    return CStringView{
+        .value = str.c_str(), 
+        .size = str.size()
+    };
 }
 
 inline auto static print(
-    char const* title,
-    const Sen::Shell::Interactive::Color color
+    const std::string & title,
+    const std::string & message = std::string{""},
+    const Sen::Shell::Interactive::Color color = Sen::Shell::Interactive::Color::DEFAULT
 ) -> void
 {
     #if WIN32
@@ -38,8 +40,7 @@ inline auto static print(
             case Sen::Shell::Interactive::Color::YELLOW: {
                 std::cout << "\033[33m" << title << "\033[0m" << std::endl;
                 break;
-            
-            case Sen::Shell::Interactive::Color::WHITE: {
+            case Sen::Shell::Interactive::Color::DEFAULT: {
                 std::cout << title << std::endl;
                 break;
             }
@@ -51,7 +52,68 @@ inline auto static print(
     #if WIN32
        SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
     #endif
+   if (message != "") {
+      std::cout << message << std::endl;
+   }
     return;
+}
+
+#define EMPTY_STRING_VIEW CStringView{.value = "", .size = 0};
+
+inline static auto convert_color(
+   const std::string& that
+) -> Sen::Shell::Interactive::Color
+{
+    if (that == "red") {
+        return Sen::Shell::Interactive::Color::RED;
+    }
+    if (that == "green") {
+        return Sen::Shell::Interactive::Color::GREEN;
+    }
+    if (that == "cyan") {
+        return Sen::Shell::Interactive::Color::CYAN;
+    }
+    if (that == "yellow") {
+        return Sen::Shell::Interactive::Color::YELLOW;
+    }
+    return Sen::Shell::Interactive::Color::DEFAULT;
+}
+
+inline static auto callback(
+    CStringList list
+) -> CStringView
+{
+    auto result = StringList::to_vector(list);
+    try_assert(result.size() >= 1, "argument must be greater than 1");
+    if (result[0] == "display") {
+        try_assert(result.size() >= 2, "argument must be greater than 2");
+        switch (result.size()) {
+            case 2: {
+                print(result[1]);
+                break;
+            }
+            case 3: {
+                print(result[1], result[2]);
+                break;
+            }
+            case 4: {
+                print(result[1], result[2], convert_color(result[3]));
+                break;
+            }
+        }
+        return EMPTY_STRING_VIEW;
+    }
+    if (result[0] == "input") {
+        return get_line();
+    }
+    if (result[0] == "is_gui") {
+        return CStringView{ .value = "0", .size = 1 };
+    }
+    if (result[0] == "version") {
+        auto version = std::to_string(Sen::Shell::version);
+        return CStringView{ .value = "1", .size = version.size()};
+    }
+    return EMPTY_STRING_VIEW;
 }
 
 MAIN_FUNCTION
@@ -60,8 +122,8 @@ MAIN_FUNCTION
         try_assert(size >= 3, "argument too few, expected: arg.size >= 3");
     }
     catch (const std::runtime_error& e) {
-        print(e.what(), Sen::Shell::Interactive::Color::RED);
-        input();
+        print(e.what(), "", Sen::Shell::Interactive::Color::RED);
+        get_line();
         return 1;
     }
     #if WIN32
@@ -75,7 +137,7 @@ MAIN_FUNCTION
         auto hinstLib = dlopen(argc[1], RTLD_LAZY);
     #endif
     if (hinstLib == NULL) {
-        print("Kernel cannot be loaded", Sen::Shell::Interactive::Color::RED);
+        print("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
         return 1;
     }
     #if WIN32
@@ -84,7 +146,7 @@ MAIN_FUNCTION
         auto execute_method = (execute)dlsym(hinstLib, "execute");
     #endif
     if (execute_method == NULL) {
-        print("Method not found", Sen::Shell::Interactive::Color::RED);
+        print("Method not found", "", Sen::Shell::Interactive::Color::RED);
         #if WIN32
                 FreeLibrary(hinstLib);
         #else
@@ -92,9 +154,12 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto argument = std::unique_ptr<BasicStringView>(new BasicStringView{ argc[2] });
-    auto parameter = std::unique_ptr<Parameter>(new Parameter{std::vector<std::string>{}});
-    auto result = execute_method(argument.get(), parameter.get(), print, getLine, MShellAPI{Sen::Shell::version, false});
+    auto argument = std::string{ argc[2] };
+    auto script = std::unique_ptr<CStringView>(new CStringView{
+        .value = argument.data(),
+        .size = argument.size()
+        });
+    auto result = execute_method(script.get(), callback);
     #if WIN32
         FreeLibrary(hinstLib);
     #else

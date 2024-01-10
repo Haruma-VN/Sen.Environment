@@ -2,6 +2,7 @@
 
 #include "kernel/interface/script.hpp"
 #include "kernel/interface/version.hpp"
+#include "kernel/interface/shell.hpp"
 
 namespace Sen::Kernel::Interface {
 
@@ -19,61 +20,7 @@ namespace Sen::Kernel::Interface {
 
 			std::string argument;
 
-			std::vector<std::string> params;
-
-			Interface::Shell shell;
-
-			Interface::MShellAPI shell_api;
-
-			/**
-			 * 
-			 * @param index: the index in the parameter need input
-			 * @return: the input value
-			*/
-
-			auto parameter_require_input(
-				size_t index
-			) -> void
-			{
-				if(index < thiz.params.size()){
-					return;
-				}
-				auto input_data = shell.input();
-				thiz.params.push_back(std::string {input_data.data, input_data.size});
-				return;
-			}
-
-			/**
-			 * Require input the argument [argc]
-			*/
-
-			auto argument_require_input(
-
-			) -> void
-			{
-				if(std::filesystem::exists(Path::normalize(thiz.argument)))
-				{
-					return;
-				}
-				auto input_data = shell.input();
-				thiz.argument = string{input_data.data, input_data.size};
-				return;
-			}
-
-			/**
-			 * Invoke caller in Shell
-			*/
-
-			auto printc(
-				const std::string & title,
-				const std::string & message,
-				Interface::Color color
-			) -> void
-			{
-				shell.print(fmt::format("{}\n  ", title).c_str(), color);
-				shell.print(fmt::format("{}\n  ", message).c_str(), Interface::Color::DEFAULT);
-				return;
-			}
+			ShellCallback callback;
 
 			/**
 			 * empty string
@@ -84,10 +31,9 @@ namespace Sen::Kernel::Interface {
 		public:
 
 			explicit Callback(
-				const std::string &argument, 
-				const std::vector<std::string> &params,
-				const Interface::MShellAPI & shell_api
-			) : argument(argument), params(params), shell_api(shell_api)
+				const std::string & argument,
+				ShellCallback callback
+			) : argument(argument), callback(callback)
 			{
 
 			}
@@ -112,9 +58,11 @@ namespace Sen::Kernel::Interface {
 				auto script_path = thiz.argument;
 				// kernel version
 				{
+					auto is_gui = thiz.callback(construct_string_list(std::vector{std::string{"is_gui"}}));
+					auto shell_version = thiz.callback(construct_string_list(std::vector{std::string{"version"}}));
 					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});
-					javascript->add_constant(thiz.shell_api.version, std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
-					javascript->add_constant(thiz.shell_api.is_gui, std::string{"Sen"}, std::string{"Shell"}, std::string{"is_gui"});
+					javascript->add_constant(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
+					javascript->add_constant(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), std::string{"Sen"}, std::string{"Shell"}, std::string{"is_gui"});
 				}
 				// json
 				{
