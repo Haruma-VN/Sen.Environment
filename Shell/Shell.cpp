@@ -8,8 +8,8 @@ inline auto static get_line(
     auto str = std::string{};
     std::getline(std::cin, str);
     return CStringView{
-        .value = str.c_str(), 
-        .size = str.size()
+        .size = str.size(),
+        .value = str.c_str()
     };
 }
 
@@ -58,7 +58,7 @@ inline auto static print(
     return;
 }
 
-#define EMPTY_STRING_VIEW CStringView{.value = "", .size = 0};
+#define EMPTY_STRING_VIEW CStringView{.size = 0, .value = ""};
 
 inline static auto convert_color(
    const std::string& that
@@ -107,11 +107,11 @@ inline static auto callback(
         return get_line();
     }
     if (result[0] == "is_gui") {
-        return CStringView{ .value = "0", .size = 1 };
+        return CStringView{ .size = 1, .value = "0" };
     }
     if (result[0] == "version") {
         auto version = std::to_string(Sen::Shell::version);
-        return CStringView{ .value = "1", .size = version.size()};
+        return CStringView{ .size = version.size(), .value = "1" };
     }
     return EMPTY_STRING_VIEW;
 }
@@ -156,8 +156,8 @@ MAIN_FUNCTION
     }
     auto argument = std::string{ argc[2] };
     auto script = std::unique_ptr<CStringView>(new CStringView{
+        .size = argument.size(),
         .value = argument.data(),
-        .size = argument.size()
         });
     auto result = execute_method(script.get(), callback);
     #if WIN32

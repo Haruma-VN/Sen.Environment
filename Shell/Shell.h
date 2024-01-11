@@ -16,8 +16,8 @@
 
 #define MAIN_FUNCTION int main(int size, char** argc)
 struct StringView {
-	const char* value;
 	size_t size;
+	const char* value;
 };
 
 struct StringList {

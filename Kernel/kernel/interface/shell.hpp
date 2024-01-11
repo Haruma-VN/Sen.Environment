@@ -9,20 +9,22 @@
 namespace Sen::Kernel::Interface {
 
 	struct StringView {
-		const char* value;
-		size_t size;
+		public:
+			size_t size;
+			const char* value;
 	};
 
 	struct StringList {
-		StringView* value;
-		size_t size;
+		public:
+			StringView* value;
+			size_t size;
 
-		~StringList(
+			~StringList(
 
-		) 
-		{
-			delete[] thiz.value;
-		}
+			) 
+			{
+				delete[] thiz.value;
+			}
 	};
 
 	using CStringView = StringView;
@@ -38,8 +40,8 @@ namespace Sen::Kernel::Interface {
 	) -> CStringView
 	{
 		return CStringView{
-			.value = that.c_str(),
-			.size = that.size()
+			.size = that.size(),
+			.value = that.c_str()
 		};
 	}
 
@@ -73,7 +75,7 @@ namespace Sen::Kernel::Interface {
 				CStringList list
 			) -> CStringView
 			{
-				return CStringView{"", 0};
+				return CStringView{0, ""};
 			}
 
 		public:

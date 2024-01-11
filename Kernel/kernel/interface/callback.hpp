@@ -54,7 +54,7 @@ namespace Sen::Kernel::Interface {
 
 			) -> void
 			{
-				auto javascript = std::make_shared<JS::Runtime>();
+				auto javascript = std::unique_ptr<JS::Runtime>(new JS::Runtime());
 				auto script_path = thiz.argument;
 				// kernel version
 				{

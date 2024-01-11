@@ -3,14 +3,15 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:winshell/api/define.dart';
 import 'package:winshell/api/converter.dart';
 
 class Kernel {
   late DynamicLibrary dylib;
 
-  static Pointer<CStringView> debug(
-    Pointer<CStringList> list,
+  static Pointer<StringView> debug(
+    Pointer<StringList> list,
   ) {
     var result = CStringConverter.toList(list);
     assert(result.length >= 1, "result must be greater or equals 1");
@@ -27,14 +28,14 @@ class Kernel {
         }
       case 'version':
         {
-          return CStringConverter.toCStringView('1');
+          return CStringConverter.toStringView('1');
         }
       case 'is_gui':
         {
-          return CStringConverter.toCStringView('1');
+          return CStringConverter.toStringView('1');
         }
     }
-    return CStringConverter.toCStringView('');
+    return CStringConverter.toStringView('');
   }
 
   Kernel() {
@@ -51,15 +52,22 @@ class Kernel {
     const String scriptPath = 'D:/Code/Sen.Environment/Script/build/main.js';
     final KernelExecuteDartAPI executeMethod = this
         .dylib
-        .lookup<NativeFunction<KernelExecuteCAPI>>('execute')
-        .asFunction();
-    Pointer<CStringView> script = calloc<CStringView>(scriptPath.length);
+        .lookupFunction<KernelExecuteCAPI, KernelExecuteDartAPI>('execute');
+    Pointer<StringView> script = calloc<StringView>(scriptPath.length);
     script.ref
       ..value = scriptPath.toNativeUtf8()
       ..size = scriptPath.length;
-    return executeMethod(
-      script,
-      Pointer.fromFunction(Kernel.debug),
-    );
+    int result = 0;
+    try {
+      result = executeMethod(
+        script,
+        Pointer.fromFunction(Kernel.debug),
+      );
+    } catch (e) {
+      print(e);
+      debugPrintStack();
+    }
+    calloc.free(script);
+    return result;
   }
 }
