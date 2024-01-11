@@ -54,6 +54,13 @@ namespace Sen::Kernel::Interface {
 		return std::string{that->value, that->size};
 	}
 
+	inline static auto construct_standard_string(
+		const CStringView & that
+	) -> std::string
+	{
+		return std::string{that.value, that.size};
+	}
+
 	inline static auto construct_string_list(
 		const std::vector<std::string> & that
 	) -> CStringList

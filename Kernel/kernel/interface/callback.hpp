@@ -56,13 +56,18 @@ namespace Sen::Kernel::Interface {
 			{
 				auto javascript = std::unique_ptr<JS::Runtime>(new JS::Runtime());
 				auto script_path = thiz.argument;
-				// kernel version
+				// shell callback
 				{
-					auto is_gui = thiz.callback(construct_string_list(std::vector{std::string{"is_gui"}}));
-					auto shell_version = thiz.callback(construct_string_list(std::vector{std::string{"version"}}));
+					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}));
+					auto shell_version = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}));
 					javascript->add_constant(Kernel::version, std::string{"Sen"}, std::string{"Kernel"}, std::string{"version"});
 					javascript->add_constant(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), std::string{"Sen"}, std::string{"Shell"}, std::string{"version"});
 					javascript->add_constant(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), std::string{"Sen"}, std::string{"Shell"}, std::string{"is_gui"});
+					javascript->add_proxy([](JSContext *context, JSValueConst this_val, int argc, JSValueConst *argv){
+						try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+						auto result = Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])));
+						return JS::Converter::to_string(context, construct_standard_string(result));
+						}, std::string{"Sen"}, std::string{"Shell"}, std::string{"callback"});
 				}
 				// json
 				{

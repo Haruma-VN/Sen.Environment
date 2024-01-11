@@ -11,11 +11,10 @@ class CStringConverter {
     return String.fromCharCodes(charCodes);
   }
 
-  static List<String> toList(Pointer<StringList> list) {
-    print(list.ref.size);
+  static List<String> toList(StringList list) {
     var result = <String>[];
-    for (var i = 0; i < list.ref.size; i++) {
-      result.add(list.ref.value.elementAt(i).ref.value.toDartString());
+    for (var i = 0; i < list.size; i++) {
+      result.add(list.value.elementAt(i).ref.value.toDartString());
     }
     return result;
   }

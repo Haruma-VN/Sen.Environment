@@ -183,10 +183,11 @@ namespace Sen.Script {
      * --------------------------------------------------
      */
 
+    //  "AS23DSREPLKL335KO4439032N8345NF"
+
     export function launch(): string {
         let result: string = undefined!;
         try {
-            //  "AS23DSREPLKL335KO4439032N8345NF"
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
             Sen.Script.Console.send(
@@ -194,7 +195,6 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-
             Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = e.message;

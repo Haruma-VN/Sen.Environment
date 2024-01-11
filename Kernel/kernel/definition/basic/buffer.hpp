@@ -402,7 +402,7 @@ namespace Sen::Kernel::Definition
                 {
                     for (auto & c : str)
                     {
-                        this->writeInt8((int)c);
+                        this->writeInt8((int8_t)c);
                     }
                     return;
                 }

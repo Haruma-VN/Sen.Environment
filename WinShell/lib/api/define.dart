@@ -4,7 +4,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 final class StringView extends Struct {
-  @Int32()
+  @Uint64()
   external int size;
 
   external Pointer<Utf8> value;
@@ -13,16 +13,16 @@ final class StringView extends Struct {
 final class StringList extends Struct {
   external Pointer<StringView> value;
 
-  @Int32()
+  @Uint64()
   external int size;
 }
 
-typedef ShellCallbackCView = Pointer<StringView> Function(
-  Pointer<StringList> list,
+typedef ShellCallbackCView = StringView Function(
+  StringList list,
 );
 
-typedef ShellCallbackDartView = Pointer<StringView> Function(
-  Pointer<StringList> list,
+typedef ShellCallbackDartView = StringView Function(
+  StringList list,
 );
 
 typedef KernelExecuteCAPI = Int32 Function(

@@ -17,6 +17,8 @@ declare namespace Sen {
          */
 
         export const is_gui: boolean;
+
+        export function callback(argument: [string, ...string]): string;
     }
 
     /**

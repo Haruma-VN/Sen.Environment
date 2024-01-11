@@ -18,7 +18,6 @@ int execute(
 {
     try{
         auto script = Interface::make_standard_string(argument);
-        debug(script);
         Interface::Shell::callback = m_callback;
         auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script, m_callback));
         callback->execute();
