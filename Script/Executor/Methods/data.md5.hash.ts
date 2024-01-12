@@ -15,6 +15,8 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
         directory: string;
     }
 
+    export interface AsyncArgument extends Base {}
+
     /**
      * Configuration file if needed
      */
@@ -29,18 +31,23 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
      */
 
     export function forward(): void {
-        push_as_module<Argument, BatchArgument, Base>({
+        Sen.Script.Executor.push_as_module<
+            Sen.Script.Executor.Methods.Data.MD5.Hash.Argument,
+            Sen.Script.Executor.Methods.Data.MD5.Hash.BatchArgument,
+            Sen.Script.Executor.Methods.Data.MD5.Hash.AsyncArgument
+        >({
             id: `data.md5.hash`,
-            configuration_file: Home.query(`~/Executor/Configuration/data.md5.hash.json`),
-            direct_forward({ source }) {
-                clock.start_safe();
-                Console.obtained(source);
-                Console.output(Kernel.Encryption.MD5.hash_fs(source));
+            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/data.md5.hash.json`),
+            direct_forward(argument) {
+                Sen.Script.Executor.clock.start_safe();
+                Sen.Script.Console.obtained(argument.source);
+                Sen.Script.Console.output(Sen.Kernel.Encryption.MD5.hash_fs(argument.source));
+                Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward({ directory }) {
-                Kernel.FileSystem.read_directory(directory)
-                    .filter((path: string) => Kernel.FileSystem.is_file(path))
+            batch_forward(argument) {
+                Sen.Kernel.FileSystem.read_directory(argument.directory)
+                    .filter((path: string) => Sen.Kernel.FileSystem.is_file(path))
                     .forEach((source: string) => this.direct_forward({ source }));
                 return;
             },

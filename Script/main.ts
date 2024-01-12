@@ -236,6 +236,7 @@ namespace Sen.Script {
             `~/Support/PopCap/ResourceGroup/Convert.js`,
             `~/Executor/Executor.js`,
             `~/Executor/Methods/data.md5.hash.js`,
+            `~/Executor/Methods/data.base64.encode.js`,
         ];
     }
 }

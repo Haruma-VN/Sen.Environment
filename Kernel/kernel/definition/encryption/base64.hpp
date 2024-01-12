@@ -65,5 +65,43 @@ namespace Sen::Kernel::Definition::Encryption {
 				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::read_file(filePath)));
 				return;
 			}
+
+			inline static auto encode_fs_as_multiple_thread(
+				const std::vector<std::vector<std::string>> & paths
+			) -> void 
+			{
+				auto threads = std::vector<std::thread>{};
+				auto file_mutexes = std::map<std::string, std::mutex>{};
+				for (const auto & data : paths) {
+					threads.emplace_back([=, &file_mutexes]() { 
+					auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);
+					auto lock_destination = std::lock_guard<std::mutex>(file_mutexes[data[1]]);
+						Base64::encode_fs(data[0], data[1]); 
+					});
+				}
+				for (auto & thread : threads) {
+					thread.join();
+				}
+				return;
+			}
+
+			inline static auto decode_fs_as_multiple_thread(
+				const std::vector<std::vector<std::string>> & paths
+			) -> void 
+			{
+				auto threads = std::vector<std::thread>{};
+				auto file_mutexes = std::map<std::string, std::mutex>{};
+				for (const auto & data : paths) {
+					threads.emplace_back([=, &file_mutexes]() { 
+					auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);
+					auto lock_destination = std::lock_guard<std::mutex>(file_mutexes[data[1]]);
+						Base64::decode_fs(data[0], data[1]); 
+					});
+				}
+				for (auto & thread : threads) {
+					thread.join();
+				}
+				return;
+			}
 	};
 }

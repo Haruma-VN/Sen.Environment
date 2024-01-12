@@ -60,6 +60,13 @@ namespace Sen.Script.Executor {
         return;
     }
 
+    export function defined_or_default<Argument extends Base, T>(argument: Argument, key: string, defined_value: T): void {
+        if ((argument as any & Argument)[key] === undefined) {
+            (argument as any & Argument)[key] = defined_value;
+        }
+        return;
+    }
+
     /**
      * ----------------------------------------------------------
      * JavaScript Implementation of Runner

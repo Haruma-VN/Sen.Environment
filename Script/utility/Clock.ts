@@ -28,6 +28,16 @@ namespace Sen.Script {
         }
 
         /**
+         * Reset the clock
+         */
+
+        public reset(): void {
+            this._start = null;
+            this._duration = 0;
+            return;
+        }
+
+        /**
          * In the start, we first check if the current start is null.
          * If it's really not null, should not do anything,
          * because the clock is already started

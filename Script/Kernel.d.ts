@@ -781,6 +781,26 @@ declare namespace Sen {
                  */
 
                 export function decode_fs(source: string, destination: string): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 decoding method as async
+                 * @param argument - Argument to call
+                 * @returns: async call
+                 * --------------------------------------------------
+                 */
+
+                export function decode_fs_as_multiple_threads<source extends string, desitnation extends string>(argument: Array<[source, destination]>): void;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript Base64 encoding method as async
+                 * @param argument - Argument to call
+                 * @returns: async call
+                 * --------------------------------------------------
+                 */
+
+                export function encode_fs_as_multiple_threads<source extends string, desitnation extends string>(argument: Array<[source, destination]>): void;
             }
         }
 

@@ -286,6 +286,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Encryption::Base64::encode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode_fs"});
 					// decode base64 for file
 					javascript->add_proxy(Script::Encryption::Base64::decode_fs, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs"});
+					// encode base64 for file as thread
+					javascript->add_proxy(Script::Encryption::Base64::encode_fs_as_multiple_threads, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"encode_fs_as_multiple_thread"});
+					// decode base64 for file as thread
+					javascript->add_proxy(Script::Encryption::Base64::decode_fs_as_multiple_threads, std::string{"Sen"}, std::string{"Kernel"}, std::string{"Encryption"}, std::string{"Base64"}, std::string{"decode_fs_as_multiple_threads"});
 				}
 				// texture
 				{

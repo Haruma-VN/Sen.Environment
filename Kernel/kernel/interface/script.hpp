@@ -1270,6 +1270,54 @@ namespace Sen::Kernel::Interface::Script {
 				return JS::Converter::to_string(context, result);
 			}
 
+				/**
+				 * ----------------------------------------
+				 * JavaScript Base64 Encode File as Threads
+				 * @returns: Encoded files
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs_as_multiple_threads(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					auto paths = std::vector<std::vector<std::string>>{};
+					for (const auto & i : Range<int>(argc)) {
+						const auto & data = JS::Converter::get_vector<std::string>(context, argv[i]);
+						try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+						paths.emplace_back(data);
+					}
+					Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
+					return JS::Converter::get_undefined();
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Base64 Decode File as Threads
+				 * @returns: Decoded files
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs_as_multiple_threads(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					auto paths = std::vector<std::vector<std::string>>{};
+					for (const auto & i : Range<int>(argc)) {
+						const auto & data = JS::Converter::get_vector<std::string>(context, argv[i]);
+						try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+						paths.emplace_back(data);
+					}
+					Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
+					return JS::Converter::get_undefined();
+				}
+
 			/**
 			 * ----------------------------------------
 			 * JavaScript Base 64 Decode method
