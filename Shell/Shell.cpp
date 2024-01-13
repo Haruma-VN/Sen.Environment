@@ -159,6 +159,15 @@ MAIN_FUNCTION
         .size = argument.size(),
         .value = argument.data(),
         });
+    auto argument_size = static_cast<uint64_t>(size);
+    auto string_list = std::unique_ptr<CStringList>(new CStringList{
+         .value = new CStringView[argument_size],
+         .size = argument_size,
+    });
+    for (auto i = 0; i < size; i++) {
+       (string_list.get())->value[i].value = argc[i];
+       (string_list.get())->value[i].size = strlen(argc[i]);
+    }
     auto result = execute_method(script.get(), callback);
     #if WIN32
         FreeLibrary(hinstLib);

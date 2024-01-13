@@ -79,13 +79,17 @@ namespace Sen.Script {
          * --------------------------------------------------
          */
 
-        export function finished(subtitle: string, message: string): void {
+        export function finished(subtitle: string, message?: string): void {
             if (!Sen.Shell.is_gui) {
                 Sen.Kernel.Console.print(`● ${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
-                Sen.Kernel.Console.print(`    ${message}`);
+                if (message) {
+                    Sen.Kernel.Console.print(`    ${message}`);
+                }
             } else {
                 Sen.Kernel.Console.print(`${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
-                Sen.Kernel.Console.print(message);
+                if (message) {
+                    Sen.Kernel.Console.print(message);
+                }
             }
             return;
         }
@@ -196,6 +200,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
             Sen.Script.Executor.run_as_module(`data.base64.encode`, { directory: `D:/test/g` }, Executor.Forward.BATCH);
+            Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`method_are_succeeded`));
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;

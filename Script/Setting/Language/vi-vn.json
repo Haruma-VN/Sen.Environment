@@ -1,0 +1,20 @@
+{
+    "script_has_been_loaded": "Scripts đã được nạp!",
+    "execution_time": "Thời gian xử lý",
+    "runtime_error": "Runtime Error",
+    "current_status": "Tình trạng hiện tại",
+    "result": "Kết quả",
+    "execution_argument": "Đối số thực thi",
+    "execution_finished": "Đối số hoàn tất",
+    "method_loaded": "Hàm đã được nạp: {}",
+    "data.md5.hash": "Dữ liệu: Băm MD5",
+    "input_argument": "Đối số đầu vào",
+    "output_argument": "Đối số đầu ra",
+    "clock_has_already_been_started": "Đồng hồ đã được chạy",
+    "clock_has_not_started": "Đồng hồ chưa chạy để dừng",
+    "method_does_not_support_async_implementation": "Phương pháp {} không hỗ trợ triển khai bất đồng bộ",
+    "forward_enumeration_is_not_found": "Không tìm thấy loại chuyển tiếp {}",
+    "data.base64.encode": "Dữ liệu: Mã hoá Base64",
+    "data.base64.decode": "Dữ liệu: Giải mã Base64",
+    "method_are_succeeded": "Tất cả phương thức được thực hiện thành công!"
+}

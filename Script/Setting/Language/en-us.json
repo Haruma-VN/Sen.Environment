@@ -7,11 +7,14 @@
     "execution_argument": "Execution argument",
     "execution_finished": "Execution finished",
     "method_loaded": "Method loaded: {}",
-    "data.md5.hash": "MD5 Hash",
+    "data.md5.hash": "Data: MD5 Hash",
     "input_argument": "Input argument",
     "output_argument": "Output argument",
     "clock_has_already_been_started": "Clock has already been started",
     "clock_has_not_started": "Clock is not been started to stop",
     "method_does_not_support_async_implementation": "Method {} does not support async implementation",
-    "forward_enumeration_is_not_found": "Forward {} is not found"
+    "forward_enumeration_is_not_found": "Forward {} is not found",
+    "data.base64.encode": "Data: Base64 Encode",
+    "data.base64.decode": "Data: Base64 Decode",
+    "method_are_succeeded": "All methods are executed successful!"
 }
