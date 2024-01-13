@@ -195,7 +195,7 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Script.Executor.run_as_module("data.md5.hash", { directory: `D:/test/g` }, Executor.Forward.BATCH);
+            Sen.Script.Executor.run_as_module(`data.base64.encode`, { directory: `D:/test/g` }, Executor.Forward.BATCH);
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
@@ -237,6 +237,7 @@ namespace Sen.Script {
             `~/Executor/Executor.js`,
             `~/Executor/Methods/data.md5.hash.js`,
             `~/Executor/Methods/data.base64.encode.js`,
+            `~/Executor/Methods/data.base64.decode.js`,
         ];
     }
 }

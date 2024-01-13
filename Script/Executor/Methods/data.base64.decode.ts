@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
+namespace Sen.Script.Executor.Methods.Data.Base64.Decode {
     /**
      * Argument for the current method
      */
@@ -21,7 +21,7 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
      */
 
     export interface AsyncArgument<source extends string, destination extends string> extends Sen.Script.Executor.Base {
-        parameter: Array<[source, destination]>;
+        worker: Array<[source, destination]>;
     }
 
     /**
@@ -39,30 +39,30 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.Data.Base64.Encode.Argument,
-            Sen.Script.Executor.Methods.Data.Base64.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>,
-            Sen.Script.Executor.Methods.Data.Base64.Encode.Configuration
+            Sen.Script.Executor.Methods.Data.Base64.Decode.Argument,
+            Sen.Script.Executor.Methods.Data.Base64.Decode.BatchArgument,
+            Sen.Script.Executor.Methods.Data.Base64.Decode.AsyncArgument<string, string>,
+            Sen.Script.Executor.Methods.Data.Base64.Decode.Configuration
         >({
-            id: `data.base64.encode`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/data.base64.encode.json`),
-            direct_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.Argument): void {
+            id: `data.base64.decode`,
+            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/data.base64.decode.json`),
+            direct_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Decode.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.Data.Base64.Encode.Argument, string>(argument, `destination`, Sen.Kernel.Path.resolve(`${argument.source}.bin`));
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.Data.Base64.Decode.Argument, string>(argument, `destination`, Sen.Kernel.Path.resolve(`${argument.source}.bin`));
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Kernel.Encryption.Base64.encode_fs(argument.source, argument.destination!);
+                Sen.Kernel.Encryption.Base64.decode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.BatchArgument): void {
+            batch_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Decode.BatchArgument): void {
                 Sen.Kernel.FileSystem.read_directory(argument.directory)
                     .filter((path: string) => Sen.Kernel.FileSystem.is_file(path))
                     .forEach((source: string) => this.direct_forward({ source }));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>): void {
-                Sen.Kernel.Encryption.Base64.encode_fs_as_multiple_threads<string, string>(argument.parameter);
+            async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Decode.AsyncArgument<string, string>): void {
+                Sen.Kernel.Encryption.Base64.decode_fs_as_multiple_threads<string, string>(argument.worker);
                 return;
             },
             is_enabled: false,
@@ -72,4 +72,4 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
     }
 }
 
-Sen.Script.Executor.Methods.Data.Base64.Encode.forward();
+Sen.Script.Executor.Methods.Data.Base64.Decode.forward();
