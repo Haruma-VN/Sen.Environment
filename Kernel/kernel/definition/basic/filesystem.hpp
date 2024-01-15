@@ -15,12 +15,12 @@ namespace Sen::Kernel::FileSystem
 	// return: the file data as string
 
 	inline static auto read_file(
-		const std::string & filepath
+		std::string_view filepath
 	) -> std::string
 	{
-        auto file = std::ifstream(filepath);
+        auto file = std::ifstream(filepath.data());
         if (!file.is_open()) {
-            throw Exception("Could not open file: " + filepath);
+            throw Exception(fmt::format("Could not open file: {}", filepath));
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();

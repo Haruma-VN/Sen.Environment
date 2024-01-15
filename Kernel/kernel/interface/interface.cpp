@@ -12,14 +12,15 @@ int version(
 
 M_EXPORT_API
 int execute(
-    Interface::StringView* argument,
+    Interface::StringView* script,
+    Interface::StringList* argument,
     Interface::ShellCallback m_callback
 )
 {
     try{
-        auto script = Interface::make_standard_string(argument);
+        auto script_path = Interface::make_standard_string(script);
         Interface::Shell::callback = m_callback;
-        auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script, m_callback));
+        auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script_path, m_callback));
         callback->execute();
     }
     catch(const std::exception & ex)

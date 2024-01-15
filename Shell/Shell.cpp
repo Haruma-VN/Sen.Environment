@@ -160,15 +160,16 @@ MAIN_FUNCTION
         .value = argument.data(),
         });
     auto argument_size = static_cast<uint64_t>(size);
-    auto string_list = std::unique_ptr<CStringList>(new CStringList{
+    auto argument_list = std::unique_ptr<CStringList>(new CStringList{
          .value = new CStringView[argument_size],
          .size = argument_size,
     });
     for (auto i = 0; i < size; i++) {
-       (string_list.get())->value[i].value = argc[i];
-       (string_list.get())->value[i].size = strlen(argc[i]);
+       (argument_list.get())->value[i].value = argc[i];
+       (argument_list.get())->value[i].size = strlen(argc[i]);
     }
-    auto result = execute_method(script.get(), callback);
+    auto result = execute_method(script.get(), argument_list.get(), callback);
+    delete[] argument_list->value;
     #if WIN32
         FreeLibrary(hinstLib);
     #else

@@ -39,14 +39,16 @@ namespace Sen::Kernel {
 			Exception(Exception &&that) = default;
 			Exception(const std::string &arg, const std::source_location &loc = std::source_location::current()) : std::runtime_error(arg)
 			{
-				msg = arg;
+				{
+					auto current_stack = std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line());
+					#if _WIN32 // Windows using seperator '\\'
+						std::replace(current_stack.begin(), current_stack.end(), '\\', '/');
+					#endif
+					msg = current_stack;
+				}
+				msg += arg;
 				msg += '\n';
 				msg += ' ';
-				auto current_stack = std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line());
-				#if _WIN32 // Windows using seperator '\\'
-					std::replace(current_stack.begin(), current_stack.end(), '\\', '/');
-				#endif
-				msg += current_stack;
 			}
 			~Exception () throw () {}
 			const char *what () const throw () {

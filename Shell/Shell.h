@@ -50,7 +50,7 @@ namespace Sen::Shell {
 }
 
 typedef int (*execute)
-(CStringView* argument, ShellCallback m_callback);
+(CStringView* script, CStringList* argument, ShellCallback m_callback);
 
 #define try_assert(condition, message) \
 	if(!(condition)) {\

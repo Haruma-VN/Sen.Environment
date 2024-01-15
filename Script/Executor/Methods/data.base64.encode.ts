@@ -56,9 +56,14 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.BatchArgument): void {
+                let count: bigint = 0n;
                 Sen.Kernel.FileSystem.read_directory(argument.directory)
                     .filter((path: string) => Sen.Kernel.FileSystem.is_file(path))
-                    .forEach((source: string) => this.direct_forward({ source }));
+                    .forEach((source: string) => {
+                        this.direct_forward({ source });
+                        count++;
+                    });
+                Sen.Script.Console.finished(`Processed ${count} files`);
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>): void {
