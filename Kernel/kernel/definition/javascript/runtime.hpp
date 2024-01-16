@@ -5,6 +5,8 @@
 namespace Sen::Kernel::Definition::JavaScript
 {
 
+	namespace FileSystem = Sen::Kernel::FileSystem;
+
 	/**
 	 * Template
 	*/

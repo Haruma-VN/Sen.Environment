@@ -199,7 +199,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
             const before = Date.now();
-            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.json", "D:/test/RESOURCES.s");
+            Sen.Kernel.FileSystem.read_file("D:/test/RESOURCES.json");
             const after = Date.now();
             Script.Console.send(`Duration: ${(after - before) / 1000}s`);
         } catch (e: unknown & any) {
