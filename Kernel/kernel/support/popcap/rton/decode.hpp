@@ -65,10 +65,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline static constexpr auto varint32_indexed_string2_bytecode = 0x93_byte;
 
-        inline static constexpr auto k_none_size = 0_byte;
+        inline static constexpr auto k_none_size = 0;
 
+        DataStreamView sen;
 
-        SenBuffer sen;
+        JsonWriter json_writer = JsonWriter{};
 
         std::vector<std::string> r0x90_list;
 
@@ -76,35 +77,38 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_object(
 
-        ) -> nlohmann::ordered_json
+        ) -> void
         {
-            auto object_json = nlohmann::ordered_json::object();
+            json_writer.WriteStartObject();
             auto bytecode = thiz.sen.readUint8();
             while (bytecode != end_bytecode)
             {
                 const auto & property_name = thiz.read_bytecode_property(bytecode);
-                object_json[property_name] = thiz.read_bytecode(thiz.sen.readUint8());
+                json_writer.WritePropertyName(property_name);
+                thiz.read_bytecode(thiz.sen.readUint8());
                 bytecode = thiz.sen.readUint8();
             }
-            return object_json;
+            json_writer.WriteEndObject();
+            return;
         }
 
         inline auto read_array(
 
-        ) -> std::vector<nlohmann::ordered_json>
+        ) -> void
         {
+            json_writer.WriteStartArray();
             if (thiz.sen.readUint8() != array_byte_start){
                 throw std::runtime_error("Invaild array start");
             }
-            auto array_json = std::vector<nlohmann::ordered_json>{};
             for (const auto & i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
-                array_json.emplace_back(thiz.read_bytecode(thiz.sen.readUint8()));
+                thiz.read_bytecode(thiz.sen.readUint8());
             }
             if (thiz.sen.readUint8() != array_byte_end){
                 throw std::runtime_error("Invaild array end");
             }
-            return array_json;
+            json_writer.WriteEndArray();
+            return;
         }
 
         inline auto read_RTID(
@@ -121,7 +125,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 {
                     const auto value_0x1_2 = thiz.sen.readVarInt32();
                     const auto value_0x1_1 = thiz.sen.readVarInt32();
-                    const auto x16_1 = thiz.sen.readUint32LE();
+                    const auto x16_1 = thiz.sen.readUint32();
                     return fmt::format("RTID({}.{}.{:08x}@)", value_0x1_1, value_0x1_2, x16_1);
                 }
                 case 0x02:
@@ -130,7 +134,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     const auto & str = thiz.sen.readStringByVarInt32();
                     const auto value_0x2_2 = thiz.sen.readVarInt32();
                     const auto value_0x2_1 = thiz.sen.readVarInt32();
-                    const auto x16_2 = thiz.sen.readUint32LE();
+                    const auto x16_2 = thiz.sen.readUint32();
                     return fmt::format("RTID({}.{}.{:08x}@{})", value_0x2_2, value_0x2_1, x16_2, str);
                 }
                 case 0x03:
@@ -153,7 +157,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) const -> std::string const
         {
             // debug("read binary");
-            thiz.sen.appendPosition(position_increment);
+            thiz.sen.read_pos += position_increment;
             const auto & str = thiz.sen.readStringByVarInt32();
             const auto num = thiz.sen.readVarInt32();
             return fmt::format("BINARY({}, {})", str, num);
@@ -161,21 +165,25 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto read_bytecode(
             uint8_t bytecode
-        ) -> nlohmann::ordered_json
+        ) -> void
         {
             switch (bytecode)
                 {
                 case 0x0:{
-                    return false;
+                    json_writer.WriteBoolean(false);
+                    return;
                 }
                 case 0x1:{
-                    return true;
+                    json_writer.WriteBoolean(true);
+                    return;
                 }
                 case 0x2:{
-                    return star;
+                    json_writer.WriteValue(star_s);
+                    return;
                 }
                 case 0x8:{
-                    return thiz.sen.readUint8();
+                    json_writer.WriteValue(thiz.sen.readUint8());
+                    return;
                 }
                 case 0x9:
                 case 0xB:
@@ -187,92 +195,118 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 case 0x41:
                 case 0x43:
                 case 0x47:{
-                    return k_none_size;
+                    json_writer.WriteValue(k_none_size);
+                    return;
                 }
                 case 0xA:{
-                    return thiz.sen.readInt8();
+                    json_writer.WriteValue(thiz.sen.readInt8());
+                    return;
                 }
                 case 0x10:{
-                    return thiz.sen.readInt16LE();
+                    json_writer.WriteValue(thiz.sen.readInt16());
+                    return;
                 }
                 case 0x12:{
-                    return thiz.sen.readUint16LE();
+                    json_writer.WriteValue(thiz.sen.readUint16());
+                    return;
                 }
                 case 0x20:{
-                    return thiz.sen.readInt32LE();
+                    json_writer.WriteValue(thiz.sen.readInt32());
+                    return;
                 }
                 case 0x22:{
-                    return thiz.sen.readFloatLE();
+                    json_writer.WriteValue(thiz.sen.readFloat());
+                    return;
                 }
                 case 0x24:{
-                    return thiz.sen.readVarInt32();
+                    json_writer.WriteValue(thiz.sen.readVarInt32());
+                    return;
                 }
                 case 0x25:{
-                    return thiz.sen.readZigZag32();
+                    json_writer.WriteValue(thiz.sen.readZigZag32());
+                    return;
                 }
                 case 0x26:{
-                    return thiz.sen.readUint32LE();
+                    json_writer.WriteValue(thiz.sen.readUint32());
+                    return;
                 }
                 case 0x28:{
-                    return thiz.sen.readVarUInt32();
+                    json_writer.WriteValue(thiz.sen.readVarUint32());
+                    return;
                 }
                 case 0x40:{
-                    return thiz.sen.readInt64LE();
-                    break;
+                    json_writer.WriteValue(thiz.sen.readInt64());
+                    return;
                 }
                 case 0x42:{
-                    return thiz.sen.readDoubleLE();
+                    json_writer.WriteValue(thiz.sen.readDouble());
+                    return;
                 }
                 case 0x44:{
-                    return thiz.sen.readVarInt64();
+                    json_writer.WriteValue(thiz.sen.readVarInt64());
+                    return;
                 }
                 case 0x45:{
-                    return thiz.sen.readZigZag64();
+                    json_writer.WriteValue(thiz.sen.readZigZag64());
+                    return;
                 }
                 case 0x46:{
-                    return thiz.sen.readUint64LE();
+                    json_writer.WriteValue(thiz.sen.readUint64());
+                    return;
                 }
                 case 0x48:{
-                    return thiz.sen.readVarUInt64();
+                    json_writer.WriteValue(thiz.sen.readVarUint64());
+                    return;
                 }
                 case 0x81:{
-                    return thiz.sen.readStringByVarInt32();
+                    json_writer.WriteValue(thiz.sen.readStringByVarInt32());
+                    return;
                 }
                 case 0x82:{
                     thiz.sen.readVarInt32();
-                    return thiz.sen.readStringByVarInt32();
+                    json_writer.WriteValue(thiz.sen.readStringByVarInt32());
+                    return;
                 }
                 case 0x83:{
-                    return read_RTID();
+                    json_writer.WriteValue(read_RTID());
+                    return;
                 }
                 case 0x84:{
-                    return rtid_0;
+                    json_writer.WriteValue(rtid_0_s);
+                    return;
                 }
                 case 0x85:{
-                    return read_object();
+                    read_object();
+                    return;
                 }
                 case 0x86:{
-                    return read_array();
+                    read_array();
+                    return;
                 }
                 case 0x87:{
-                    return read_binary();
+                    json_writer.WriteValue(read_binary());
+                    return;
                 }
                 case 0x90:{
                     auto temp_string = thiz.sen.readStringByVarInt32();
                     r0x90_list.emplace_back(temp_string);
-                    return temp_string;
+                    json_writer.WriteValue(temp_string);
+                    return;
                 }
                 case 0x91:{
-                    return thiz.r0x90_list.at(thiz.sen.readVarInt32());
+                    json_writer.WriteValue(thiz.r0x90_list.at(thiz.sen.readVarInt32()));
+                    return;
                 }
                 case 0x92:{
                     thiz.sen.readVarInt32();
-                    auto temp_string = thiz.sen.readStringByInt32LE();
+                    auto temp_string = thiz.sen.readStringByVarInt32();
                     thiz.r0x92_list.emplace_back(temp_string);
-                    return temp_string;
+                    json_writer.WriteValue(temp_string);
+                    return;
                 }
                 case 0x93:{
-                    return thiz.r0x92_list.at(thiz.sen.readVarInt32());
+                    json_writer.WriteValue(thiz.r0x92_list.at(thiz.sen.readVarInt32()));
+                    return;
                 }
                 default:{
                     throw std::runtime_error("Invaild bytecode");
@@ -324,7 +358,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 case varint32_int32_temp_string_bytecode:
                 {
                     thiz.sen.readVarInt32();
-                    const auto & temp_string = thiz.sen.readStringByInt32LE();
+                    const auto & temp_string = thiz.sen.readStringByVarInt32();
                     thiz.r0x92_list.emplace_back(temp_string);
                     return temp_string;
                 }
@@ -349,7 +383,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         explicit constexpr Decode(
-            SenBuffer & it
+            DataStreamView & it
         ) : sen(it)
         {
 
@@ -361,7 +395,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto decode_rton(
 
-        ) -> nlohmann::ordered_json const
+        ) -> std::string const
         {
             {
                 const auto & magic = sen.readString(magic_count);
@@ -371,9 +405,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
             }
             {
-                sen.readBytesLE<uint8_t>(version_count);
+                sen.readUint32();
             }
-            return thiz.read_object();
+            json_writer.Clear();
+            json_writer.WriteIndent = true;
+            thiz.read_object();
+            return json_writer.ToString();
         }
 
         inline static auto decode_fs(
@@ -383,7 +420,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             auto c = std::unique_ptr<Decode>(new Decode{source});
             const auto & result = c->decode_rton();
-            FileSystem::write_json(destination, result);
+            FileSystem::write_file(destination, result);
             return;
         }
 
@@ -394,10 +431,10 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const std::string & iv
         ) -> void
         {
-            auto source_buffer = SenBuffer{source};
-            auto source_iv = SenBuffer{iv};
-            fill_rijndael_block(source_buffer, source_iv);
-            FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
+            auto source_buffer = DataStreamView{source};
+            auto source_iv = DataStreamView{iv};
+            // fill_rijndael_block(source_buffer, source_iv);
+           //  FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.length())), key, iv, source_buffer.length(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
             return;
         }
 
@@ -408,12 +445,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const std::string & iv
         ) -> void
         {
-            auto source_buffer = SenBuffer{source};
-            auto source_iv = SenBuffer{iv};
-            fill_rijndael_block(source_buffer, source_iv);
-            auto sen = SenBuffer{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size())), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
-            auto rton = Decode{sen};
-            FileSystem::write_binary<unsigned char>(destination, rton.decode_rton());
+            auto source_buffer = DataStreamView{source};
+            auto source_iv = DataStreamView{iv};
+            // fill_rijndael_block(source_buffer, source_iv);
+            // auto sen = DataStreamView{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.length())), key, iv, source_buffer.length(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
+            // auto rton = Decode{sen};
+           // FileSystem::write_binary<unsigned char>(destination, rton.decode_rton());
             return;
         }
 

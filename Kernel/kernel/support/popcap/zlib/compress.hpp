@@ -78,18 +78,18 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				const std::vector<unsigned char> & source
 			) -> std::vector<unsigned char> override final
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				// magic
-				sen.writeUint32LE(static_cast<uint32_t>(thiz.magic));
+				sen.writeUint32(static_cast<uint32_t>(thiz.magic));
 				if(thiz.use_64_bit_variant){
 					// 4 blank byte
-					sen.writeUint32LE(static_cast<uint32_t>(0x00));
+					sen.writeUint32(static_cast<uint32_t>(0x00));
 				}
 				// size
-				sen.writeUint32LE(static_cast<uint32_t>(source.size()));
+				sen.writeUint32(static_cast<uint32_t>(source.size()));
 				if(thiz.use_64_bit_variant){
 					// 4 blank byte
-					sen.writeUint32LE(static_cast<uint32_t>(0x00));
+					sen.writeUint32(static_cast<uint32_t>(0x00));
 				}
 				// compressed zlib part
 				sen.append<unsigned char>(Compression::Zlib::compress(source, level));

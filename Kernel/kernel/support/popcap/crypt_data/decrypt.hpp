@@ -43,7 +43,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 				auto result = DataStreamView{};
 				auto code = std::vector<uint8_t>{key.begin(), key.end()};
 				try_assert((view.readString(BasicDefinition::magic.size()) == std::string{BasicDefinition::magic.begin(), BasicDefinition::magic.end()}), "Mismatch Crypt-Data magic");
-            	auto size = view.readUint64LE();
+            	auto size = view.readUint64();
 				if (view.size() > 0x112){
 					auto index = 0;
 					auto arysize = key.size();
@@ -53,7 +53,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 						index %= arysize;
 					}
 				}
-				result.append(view.get(view.get_position(), view.size()));
+				result.append(view.get(view.get_read_pos(), view.size()));
 				return result;
 			}
 

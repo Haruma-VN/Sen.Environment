@@ -74,12 +74,12 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			auto process(
 
-			) -> SenBuffer
+			) -> DataStreamView
 			{
-				auto sen = SenBuffer{};
+				auto sen = DataStreamView{};
 				try_assert(is_not_null_object(resource, "slot_count"), "slot_count cannot be null");
-				sen.writeInt32LE(resource["slot_count"].get<int>());
-				sen.writeInt32LE(static_cast<int>(resource["groups"].size()));
+				sen.writeInt32(resource["slot_count"].get<int>());
+				sen.writeInt32(static_cast<int>(resource["groups"].size()));
 				for(auto & m_data : thiz.resource["groups"]){
 					if(m_data["type"] == "composite"){
 						sen.writeUint8(0x01);
@@ -92,9 +92,9 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					}
 					auto subgroups_count = is_null_object(m_data, "subgroups") ? 0x00 : m_data["subgroups"].size();
       				auto resources_count = is_null_object(m_data, "resources") ? 0x00 : m_data["resources"].size();
-					sen.writeInt32LE(is_null_object(m_data, "res") ? 0x00 : std::stoi(m_data["res"].get<std::string>()));
-					sen.writeInt32LE(subgroups_count);
-					sen.writeInt32LE(resources_count);
+					sen.writeInt32(is_null_object(m_data, "res") ? 0x00 : std::stoi(m_data["res"].get<std::string>()));
+					sen.writeInt32(subgroups_count);
+					sen.writeInt32(resources_count);
 					sen.writeUint8(0x01);
 					if (is_not_null_object(m_data, "parent")) {
 						sen.writeUint8(0x01);
@@ -102,22 +102,22 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					else {
 						sen.writeUint8(0x00);
 					}
-					sen.writeUint32LE(m_data["id"].get<std::string>().size());
+					sen.writeUint32(m_data["id"].get<std::string>().size());
 					sen.writeString(m_data["id"]);
 					if (is_not_null_object(m_data, "parent")) {
-						sen.writeUint32LE(m_data["parent"].get<std::string>().size());
+						sen.writeUint32(m_data["parent"].get<std::string>().size());
 						sen.writeString(m_data["parent"]);
 					}
 					if(m_data["type"] == "composite"){
 						try_assert(is_null_object(m_data, "resources"), "resources must be null in composite object");
 						for(auto & current : m_data["subgroups"]){
 							if(is_not_null_object(current, "res")){
-								sen.writeInt32LE(std::stoi(current["res"].get<std::string>()));
+								sen.writeInt32(std::stoi(current["res"].get<std::string>()));
 							}
 							else{
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							}
-							sen.writeUint32LE(current["id"].get<std::string>().size());
+							sen.writeUint32(current["id"].get<std::string>().size());
 							sen.writeString(current["id"]);
 						}
 					}
@@ -149,77 +149,77 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							else {
 								throw std::runtime_error(fmt::format("Invalid type"));
 							}
-							sen.writeInt32LE(resource_x["slot"]);
+							sen.writeInt32(resource_x["slot"]);
 							if (is_null_object(resource_x, "width")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["width"]);
+								sen.writeInt32(resource_x["width"]);
 							}
 							if (is_null_object(resource_x, "height")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["height"]);
+								sen.writeInt32(resource_x["height"]);
 							}
 							auto is_sprite = is_not_null_object(resource_x, "aw") and resource_x["aw"] != 0 and is_not_null_object(resource_x, "ah") and resource_x["ah"] != 0;
 							if (is_null_object(resource_x, "x")) {
 								if (is_sprite) {
-									sen.writeInt32LE(0x00);
+									sen.writeInt32(0x00);
 								} 
 								else {
-									sen.writeInt32LE(0x7FFFFFFF);
+									sen.writeInt32(0x7FFFFFFF);
 								}
 							} 
 							else {
-								sen.writeInt32LE(resource_x["x"]);
+								sen.writeInt32(resource_x["x"]);
 							}
 							if (is_null_object(resource_x, "y")) {
 								if (is_sprite) {
-									sen.writeInt32LE(0x00);
+									sen.writeInt32(0x00);
 								} 
 								else {
-									sen.writeInt32LE(0x7FFFFFFF);
+									sen.writeInt32(0x7FFFFFFF);
 								}
 							} 
 							else {
-								sen.writeInt32LE(resource_x["y"]);
+								sen.writeInt32(resource_x["y"]);
 							}
 							if (is_null_object(resource_x, "ax")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["ax"]);
+								sen.writeInt32(resource_x["ax"]);
 							}
 							if (is_null_object(resource_x, "ay")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["ay"]);
+								sen.writeInt32(resource_x["ay"]);
 							}
 							if (is_null_object(resource_x, "aw")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["aw"]);
+								sen.writeInt32(resource_x["aw"]);
 							}
 							if (is_null_object(resource_x, "ah")) {
-								sen.writeInt32LE(0x00);
+								sen.writeInt32(0x00);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["ah"]);
+								sen.writeInt32(resource_x["ah"]);
 							}
 							if (is_null_object(resource_x, "cols")) {
-								sen.writeInt32LE(0x01);
+								sen.writeInt32(0x01);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["cols"]);
+								sen.writeInt32(resource_x["cols"]);
 							}
 							if (is_null_object(resource_x, "rows")) {
-								sen.writeInt32LE(0x01);
+								sen.writeInt32(0x01);
 							} 
 							else {
-								sen.writeInt32LE(resource_x["rows"]);
+								sen.writeInt32(resource_x["rows"]);
 							}
 							if (is_not_null_object(resource_x, "atlas") and resource_x["atlas"]) {
 								sen.writeUint8(0x01);
@@ -236,12 +236,12 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							else {
 								sen.writeUint8(0x00);
 							}
-							sen.writeUint32LE(resource_x["id"].get<std::string>().size());
+							sen.writeUint32(resource_x["id"].get<std::string>().size());
 							sen.writeString(resource_x["id"]);
-							sen.writeUint32LE(resource_x["path"].get<std::string>().size());
+							sen.writeUint32(resource_x["path"].get<std::string>().size());
 							sen.writeString(resource_x["path"]);
 							if (resource_has_parent) {
-								sen.writeUint32LE(resource_x["parent"].get<std::string>().size());
+								sen.writeUint32(resource_x["parent"].get<std::string>().size());
 								sen.writeString(resource_x["parent"]);
 							}
 						}

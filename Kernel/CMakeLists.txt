@@ -44,11 +44,6 @@ if (MSVC)
   add_subdirectory("./dependencies/dirent")
 endif()
 
-if (MSVC)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Od")
-endif()
-
 if(UNIX OR APPLE OR ANDROID OR IOS)
     add_subdirectory("./dependencies/quickjs")
 endif()

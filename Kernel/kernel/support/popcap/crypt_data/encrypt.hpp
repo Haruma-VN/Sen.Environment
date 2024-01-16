@@ -43,7 +43,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
             	auto size = view.size();
 				auto result = DataStreamView{};
 				result.append<uint8_t, BasicDefinition::magic.size()>(BasicDefinition::magic);
-				result.writeUint64LE(size);
+				result.writeUint64(size);
 				auto code = std::vector<uint8_t>{key.begin(), key.end()};
 				if (size >= 0x100)
 				{
@@ -55,7 +55,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 						index %= arysize;
 					}
 				}
-				result.append(view.get(view.get_position(), view.size()));
+				result.append(view.get(view.get_write_pos(), view.size()));
 				return result;
 			}
 

@@ -29,7 +29,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Buffer handling
 			*/
 
-			SenBuffer sen;
+			DataStreamView sen;
 
 			/**
 			 * Key for compiled text
@@ -83,7 +83,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			}
 
 			explicit Encode(
-				SenBuffer & it,
+				DataStreamView & it,
 				const std::string & key,
 				const std::string & iv,
 				bool use_64_bit_variant
@@ -100,15 +100,17 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 
 			auto process(
 
-			) -> SenBuffer
+			) -> DataStreamView
 			{
-				auto buffer = SenBuffer{};
+				auto buffer = DataStreamView{};
 				buffer.append(PopCap::Zlib::Compress{use_64_bit_variant}.compress(thiz.sen.get()));
     			buffer.writeNull(buffer.size() - ((buffer.size() + iv.size() - 1) % iv.size() + 1));
-				auto result = SenBuffer{};
+				auto result = DataStreamView{};
 				result.writeUint8(0x10);
 				result.writeUint8(0x00);
-				result.append(SenBuffer::fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data()))).get());
+				auto decoded_base64 = DataStreamView{};
+				decoded_base64.fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data())));
+				result.writeBytes(decoded_base64.get());
 				return result;
 			}
 

@@ -199,7 +199,10 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Script.Executor.run_as_module(`data.base64.encode`, { directory: `D:/test/g` }, Executor.Forward.BATCH);
+            const before = Date.now();
+            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.rton", "D:/test/RESOURCES.json");
+            const after = Date.now();
+            Script.Console.send(`Duration: ${(after - before) / 1000}s`)
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`method_are_succeeded`));
         } catch (e: unknown & any) {
             result = e.message;

@@ -21,7 +21,6 @@ endif()
 # Add source to this project's executable.
 add_executable (
     ${PROJECT_NAME} 
-    ./callback/method.hpp
     ./interactive/color.hpp
     Shell.h
     Shell.cpp 

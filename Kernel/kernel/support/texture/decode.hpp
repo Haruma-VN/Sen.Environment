@@ -75,7 +75,7 @@ namespace Sen::Kernel::Support::Texture {
 			inline static auto readOneBit(
 				int & bitPostion,
 				unsigned char & buffer,
-				DataStreamView & image_bytes
+				DataStreamViewBigEndian & image_bytes
 			) -> int
 			{
 				if (bitPostion == 0)
@@ -90,7 +90,7 @@ namespace Sen::Kernel::Support::Texture {
 				int bits,
 				int & bitPostion,
 				unsigned char & buffer,
-				DataStreamView & image_bytes
+				DataStreamViewBigEndian & image_bytes
 			) -> int
 			{
 				auto ans = 0;
@@ -153,7 +153,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
 					for(auto x : Range<int>(width)){
-						auto temp_pixel = sen.readUint16LE();
+						auto temp_pixel = sen.readUint16();
 						auto red = temp_pixel >> 12;
 						auto green = (temp_pixel & 0xF00) >> 8;
 						auto blue = (temp_pixel & 0xF0) >> 4;
@@ -186,7 +186,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
 					for(auto x : Range<int>(width)){
-						auto temp_pixel = sen.readUint16LE();
+						auto temp_pixel = sen.readUint16();
 						auto red = temp_pixel >> 12;
 						auto green = (temp_pixel & 0x7E0) >> 5;
 						auto blue = temp_pixel & 0x1F;
@@ -218,7 +218,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for(auto y : Range<int>(height)){
 					for(auto x : Range<int>(width)){
-						auto temp_pixel = sen.readUint16LE();
+						auto temp_pixel = sen.readUint16();
 						auto red = (temp_pixel & 0xF800) >> 11;
 						auto green = (temp_pixel & 0x7E0) >> 5;
 						auto blue = (temp_pixel & 0x3E) >> 1;
@@ -252,7 +252,7 @@ namespace Sen::Kernel::Support::Texture {
 					for(auto w : Range<int>(0, width, 32)){
 						for(auto j : Range<int>(32)){
 							for(auto k : Range<int>(32)){
-            					auto temp_pixel = sen.readUint16LE();
+            					auto temp_pixel = sen.readUint16();
 								if ((i + j) < height and (w + k) < width) {
 									auto red = temp_pixel >> 12;
 									auto green = (temp_pixel & 0xF00) >> 8;
@@ -291,7 +291,7 @@ namespace Sen::Kernel::Support::Texture {
 					for(auto w : Range<int>(0, width, 32)){
 						for(auto j : Range<int>(32)){
 							for(auto k : Range<int>(32)){
-            					auto temp_pixel = sen.readUint16LE();
+            					auto temp_pixel = sen.readUint16();
 								if ((i + j) < height and (w + k) < width) {
 									auto red = (temp_pixel & 0xF800) >> 8;
 									auto green = (temp_pixel & 0x7E0) >> 3;
@@ -329,7 +329,7 @@ namespace Sen::Kernel::Support::Texture {
 					for(auto w : Range<int>(0, width, 32)){
 						for(auto j : Range<int>(32)){
 							for(auto k : Range<int>(32)){
-            					auto temp_pixel = sen.readUint16LE();
+            					auto temp_pixel = sen.readUint16();
 								if ((i + j) < height and (w + k) < width) {
 									auto red = temp_pixel >> 11;
 									auto green = (temp_pixel & 0x7C0) >> 6;
@@ -360,14 +360,14 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = DataStreamView{color};
+				auto sen = DataStreamViewBigEndian{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
-						auto block_part_1 = sen.readUint32BE();
-						auto block_part_2 = sen.readUint32BE();
+						auto block_part_1 = sen.readUint32();
+						auto block_part_2 = sen.readUint32();
 						decompressBlockETC2c(
 							static_cast<unsigned int>(block_part_1),
 							static_cast<unsigned int>(block_part_2),
@@ -406,14 +406,14 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				auto sen = DataStreamView{color};
+				auto sen = DataStreamViewBigEndian{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
-						auto block_part_1 = sen.readUint32BE();
-						auto block_part_2 = sen.readUint32BE();
+						auto block_part_1 = sen.readUint32();
+						auto block_part_2 = sen.readUint32();
 						decompressBlockETC2c(
 							static_cast<unsigned int>(block_part_1),
 							static_cast<unsigned int>(block_part_2),
@@ -547,7 +547,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
-				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()));
+				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()).data());
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {
 						auto index = set_pixel(x, y, width);
@@ -591,7 +591,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for (auto i = 0; i < area; i += 4) {
-                	auto pixel_color = sen.readUint16LE();
+                	auto pixel_color = sen.readUint16();
 					auto red = (pixel_color & 0x7C00) >> 10;
 					auto green = (pixel_color & 0x3E0) >> 5;
 					auto blue = pixel_color & 0x1F;
@@ -613,7 +613,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for (auto i = 0; i < area; i += 4) {
-                	auto pixel_color = sen.readUint16LE();
+                	auto pixel_color = sen.readUint16();
 					auto alpha = pixel_color >> 12;
 					auto red = (pixel_color & 0xF00) >> 8;
 					auto green = (pixel_color & 0xF0) >> 4;
@@ -677,7 +677,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
 				for (auto i = 0; i < area; i += 4) {
-                	auto pixel_color = sen.readUint16LE();
+                	auto pixel_color = sen.readUint16();
 					auto color = (pixel_color >> 8);
 					data[i] = color;
 					data[i + 1] = color;

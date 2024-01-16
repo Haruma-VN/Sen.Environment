@@ -12,15 +12,15 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto encode_rton(
             const nlohmann::ordered_json & json
-        ) -> SenBuffer
+        ) -> DataStreamView
         {
             auto r0x90_stringpool = nlohmann::ordered_json::object();
             auto r0x92_stringpool = nlohmann::ordered_json::object();
             auto r0x90_index = 0;
             auto r0x92_index = 0;
-            auto sen = SenBuffer{};
+            auto sen = DataStreamView{};
             sen.writeString("RTON");
-            sen.writeUint32LE(0x01);
+            sen.writeUint32(0x01);
             write_object(json, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
             sen.writeString("DONE");
             return sen;
@@ -28,7 +28,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_object(
             const nlohmann::ordered_json &json,
-            SenBuffer &sen,
+            DataStreamView &sen,
             nlohmann::ordered_json &r0x90_stringpool,
             nlohmann::ordered_json &r0x92_stringpool,
             int & r0x90_index,
@@ -46,7 +46,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_array(
             const nlohmann::ordered_json & json,
-            SenBuffer & sen,
+            DataStreamView & sen,
             nlohmann::ordered_json & r0x90_stringpool,
             nlohmann::ordered_json & r0x92_stringpool,
             int & r0x90_index,
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_value(
             const nlohmann::ordered_json & value,
-            SenBuffer & sen,
+            DataStreamView & sen,
             nlohmann::ordered_json & r0x90_stringpool,
             nlohmann::ordered_json & r0x92_stringpool,
             int & r0x90_index,
@@ -120,7 +120,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_float(
             const nlohmann::ordered_json & num,
-            SenBuffer & sen
+            DataStreamView & sen
         ) -> void
         {
             auto f64 = num.get<double>();
@@ -134,12 +134,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 if ((double)f32 == f64)
                 {
                     sen.writeUint8(0x22);
-                    sen.writeFloatLE(f32);
+                    sen.writeFloat(f32);
                 }
                 else
                 {
                     sen.writeUint8(0x42);
-                    sen.writeDoubleBE(f64);
+                    sen.writeDouble(f64);
                 }
             }
             return;
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_num(
             const size_t & num, 
-            SenBuffer &sen
+            DataStreamView &sen
         ) -> void
         {
             if (num == 0)
@@ -167,12 +167,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
             else if (-2147483648 <= num and num <= 2147483648)
             {
                 sen.writeUint8(0x20);
-                sen.writeInt32LE(num);
+                sen.writeInt32(num);
             }
             else if (0 <= num and num <= 4294967295)
             {
                 sen.writeUint8(0x26);
-                sen.writeUint32LE(num);
+                sen.writeUint32(num);
             }
             else if (0 <= num and num <= 562949953421311)
             {
@@ -187,12 +187,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
             else if (-9223372036854775808 <= num and num <= 9223372036854775807)
             {
                 sen.writeUint8(0x40);
-                sen.writeInt64LE(num);
+                sen.writeInt64(num);
             }
             else if (0 <= num and num > 9223372036854775807)
             {
                 sen.writeUint8(0x46);
-                sen.writeUint64LE(num);
+                sen.writeUint64(num);
             }
             else if (0 <= num)
             {
@@ -209,7 +209,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_string(
             const std::string & str,
-            SenBuffer & sen,
+            DataStreamView & sen,
             nlohmann::ordered_json & r0x90_stringpool,
             nlohmann::ordered_json & r0x92_stringpool,
             int & r0x90_index,
@@ -269,7 +269,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_RTID(
             const std::string & str, 
-            SenBuffer &sen
+            DataStreamView &sen
         ) -> bool
         {
             auto p_str = String{str};
@@ -299,7 +299,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                         auto hex_string = int_str[2];
                         std::reverse(hex_string.begin(), hex_string.end());
                         auto hex_int = (int)strtol(hex_string.c_str(), NULL, 16);
-                        sen.writeInt32LE(hex_int);
+                        sen.writeInt32(hex_int);
                     }
                     else
                     {
@@ -317,7 +317,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_binary(
             const std::string & str, 
-            SenBuffer &sen
+            DataStreamView &sen
         ) -> bool
         {
             auto p_str = String{str};
@@ -353,9 +353,6 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const std::string & destination
         ) -> void
         {
-            auto c = Encode{};
-            auto result = c.encode_rton(FileSystem::read_json(source));
-            result.out_file(destination);
             return;
         }
     };

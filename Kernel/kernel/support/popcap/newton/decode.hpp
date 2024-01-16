@@ -20,7 +20,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			// buffer reader
 
-			SenBuffer sen;
+			DataStreamView sen;
 
 			/**
 			 * read enumeration
@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw std::runtime_error(fmt::format("Invalid boolean value at offset: {}", sen.get_position() - 1));
+						throw std::runtime_error(fmt::format("Invalid boolean value at offset: {}", sen.get_read_pos() - 1));
 					}
 				}
 				return value;
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) -> int
 			{
-				return sen.readInt32LE();
+				return sen.readInt32();
 			}
 
 			/**
@@ -77,7 +77,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) -> std::string
 			{
-				return sen.readString(static_cast<size_t>(sen.readUint32LE()));
+				return sen.readString(static_cast<size_t>(sen.readUint32()));
 			}
 
 		public:
@@ -275,7 +275,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			// constructor
 
 			explicit Decode(
-				SenBuffer & it
+				DataStreamView & it
 			) : sen(it)
 			{
 

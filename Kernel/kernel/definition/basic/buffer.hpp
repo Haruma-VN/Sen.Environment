@@ -1,1599 +1,1509 @@
 #pragma once
 
 #include "kernel/definition/library.hpp"
+#include "kernel/definition/macro.hpp"
 
 namespace Sen::Kernel::Definition
 {
-
     template <typename Type>
     concept CharacterOnView = std::is_same_v<Type, char> || std::is_same_v<Type, unsigned char>;
+    namespace Buffer
+    {
+        template <bool use_big_endian>
+        struct Stream
+        {
+        private:
+            std::vector<std::uint8_t> mutable data;
 
-    namespace Buffer {
+            std::size_t mutable length;
 
-        struct Stream {
+            inline static std::size_t constexpr buffer_size = 8192U;
 
-            private:
-                std::vector<std::uint8_t> mutable data;
+        public:
+            std::size_t mutable read_pos;
 
-                std::size_t mutable position;
+            std::size_t mutable write_pos;
 
-            public:
-                Stream() : position(
-                            0) {}
+            Stream() : read_pos(0), write_pos(0)
+            {
+            }
 
-                ~Stream(
+            Stream(
+                const std::vector<std::uint8_t> &data
+            ) :  data(std::move(data)), read_pos(0), write_pos(data.size()), length(data.size())
+            {
+                return;
+            }
 
-                )
+            Stream(
+                const std::string & filepath
+            ) : read_pos(0), write_pos(0)
+            {
+                auto file = std::ifstream(filepath, std::ios::binary);
+                if (!file)
                 {
-                    this->close();
+                    throw std::runtime_error("Could not open file: " + filepath);
                 }
+                file.seekg(0, std::ios::end);
+                auto size = file.tellg();
+                file.seekg(0, std::ios::beg);
+                thiz.reserve((size_t)size + thiz.buffer_size);
+                file.read(reinterpret_cast<char *>(thiz.data.data()), size);
+                thiz.length = size;
+                thiz.write_pos = size;
+                return;
+            }
 
-                Stream(
-                    const std::vector<std::uint8_t> &data) : position(0)
+            Stream(
+                const std::size_t & length
+            ) : read_pos(0), write_pos(length), length(length)
+            {
+                thiz.reserve(length + thiz.buffer_size);
+                return;
+            }
+
+            ~Stream()
+            {
+                thiz.close();
+            }
+
+            inline auto fromString(
+                const std::string &it) const -> void
+            {
+                thiz.close();
+                thiz.data = std::vector<unsigned char>(it.begin(), it.end());
+                thiz.length = thiz.data.size();
+                thiz.write_pos = thiz.length;
+                return;
+            }
+
+            inline auto get_length(
+
+            ) const -> uint64_t
+            {
+                return thiz.length;
+            }
+
+            inline auto size() const -> uint64_t
+            {
+                return thiz.length;
+            }
+
+            inline auto capacity(
+
+            ) const -> uint64_t
+            {
+                return thiz.data.size();
+            }
+
+            inline auto reserve(
+                const std::size_t &capacity
+            ) const -> void
+            {
+                thiz.data.resize(capacity);
+                return;
+            }
+
+            inline auto toBytes(
+
+            ) const -> std::vector<std::uint8_t>
+            {
+                return thiz.get();
+            }
+
+            inline auto get(
+
+            ) const -> const std::vector<std::uint8_t> &
+            {
+                return std::vector<unsigned char>(thiz.data.begin(), thiz.data.begin() + thiz.length);
+            }
+
+            inline auto get(
+                const size_t &from,
+                const size_t &to
+
+            ) const -> std::vector<uint8_t>
+            {
+                if (from < 0 || to > thiz.data.size())
                 {
-                    this->data = std::move(data);
+                    throw std::runtime_error("Invalid vector size");
                 }
+                return std::vector<unsigned char>(thiz.data.begin() + from, thiz.data.begin() + to);
+            }
 
-                Stream(
-                    std::uint8_t *data,
-                    std::size_t size) : position(0)
+            inline auto get_read_pos() const -> std::size_t
+            {
+                return thiz.read_pos;
+            }
+
+            inline auto get_write_pos() const -> std::size_t
+            {
+                return thiz.write_pos;
+            }
+
+            inline auto change_read_pos(std::size_t pos) const -> void
+            {
+                thiz.read_pos = pos;
+                return;
+            }
+
+            inline auto change_write_pos(std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                return;
+            }
+
+            inline auto toString(
+
+                ) -> std::string
+            {
+                std::stringstream ss;
+                auto bytes = std::unique_ptr<uint8_t>(thiz.data.data());
+                ss << bytes;
+                return ss.str();
+            }
+
+            // insert to end of vector, write_pos will set to end.
+
+            template <typename T>
+                requires CharacterOnView<T>
+            inline auto append(
+                const std::vector<T> &m_data) const -> void
+            {
+                thiz.data.insert(thiz.data.begin() + thiz.length, m_data.begin(), m_data.end());
+                thiz.length += m_data.size();
+                thiz.write_pos = thiz.length;
+                return;
+            }
+
+            template <typename T, size_t n>
+                requires CharacterOnView<T>
+            inline auto append(
+                const std::array<T, n> &m_data) const -> void
+            {
+                thiz.data.insert(thiz.data.begin() + thiz.length, m_data.begin(), m_data.end());
+                thiz.length += m_data.size();
+                thiz.write_pos = thiz.length;
+                return;
+            }
+
+            inline auto out_file(
+                const std::string &path) const -> void
+            {
+                auto filePath = std::filesystem::path(path);
+                if (filePath.has_parent_path())
                 {
-                    this->data.assign(data, data + size);
+                    std::filesystem::create_directories(filePath.parent_path());
                 }
-
-                Stream(
-                    const std::string & filepath
-                ) : position(0)
+                auto file = std::ofstream(path, std::ios::binary);
+                if (file)
                 {
-                    auto file = std::ifstream(filepath, std::ios::binary);
-                    if (!file)
+                    file.write(reinterpret_cast<const char *>(thiz.data.data()), thiz.length);
+                }
+                else
+                {
+                    throw std::runtime_error(fmt::format("Could not open file: {}", path));
+                }
+                return;
+            }
+
+            inline auto writeUint8(
+                std::uint8_t value) const -> void
+            {
+                this->template write_LE<std::uint8_t>(value);
+                return;
+            }
+
+            inline auto writeUint8(
+                std::uint8_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint8(value);
+                return;
+            }
+
+            inline auto writeUint16(
+                std::uint16_t value) const -> void
+            {
+                if constexpr (use_big_endian)
+                {
+                    this->template write_BE<std::uint16_t>(value);
+                }
+                else
+                {
+                    this->template write_LE<std::uint16_t>(value);
+                }
+                return;
+            }
+
+            inline auto writeUint16(
+                std::uint16_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint16(value);
+                return;
+            }
+
+            inline auto writeUint24(
+                std::uint32_t value) const -> void
+            {
+                auto size = 3;
+                if constexpr (use_big_endian)
+                {
+                    for (auto i : Range(size))
                     {
-                        throw Exception("Could not open file: " + filepath);
+                        thiz.writeUint8((value >> ((size - 1 - i) * 8)) & 0xFF);
                     }
-                    file.seekg(0, std::ios::end);
-                    auto size = file.tellg();
-                    file.seekg(0, std::ios::beg);
-                    this->data.resize(size);
-                    file.read(reinterpret_cast<char *>(this->data.data()), size);
                 }
-
-                inline auto fill(
-                    size_t count,
-                    uint8_t value = 0x00
-                ) const -> void
+                else
                 {
-                    this->data = std::vector<uint8_t>(count, value);
-                    return;
+                    for (auto i : Range(size))
+                    {
+                        thiz.writeUint8((value >> (i * 8)) & 0xFF);
+                    }
                 }
+                return;
+            }
 
-                inline auto reserve(
-                    size_t capacity
-                ) const -> void
+            inline auto writeUint24(
+                std::uint32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint24(value);
+                return;
+            }
+
+            inline auto writeUint32(
+                std::uint32_t value) const -> void
+            {
+                if constexpr (use_big_endian)
                 {
-                    this->data.reserve(capacity);
-                    return;
+                    this->template write_BE<std::uint32_t>(value);
                 }
-
-                inline auto capacity(
-                    size_t range
-                ) const -> size_t
+                else
                 {
-                    return this->data.capacity();
+                    this->template write_LE<std::uint32_t>(value);
                 }
+                return;
+            }
 
-                inline auto begin(
+            inline auto writeUint32(
+                std::uint32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint32(value);
+                return;
+            }
 
-                ) -> std::vector<std::uint8_t>::iterator
+            inline auto writeUint64(
+                std::uint64_t value) const -> void
+            {
+                if constexpr (use_big_endian)
                 {
-                    return this->data.begin();
+                    this->template write_BE<std::uint64_t>(value);
                 }
-
-                inline auto get(
-
-                ) const -> const std::vector<std::uint8_t> &
+                else
                 {
-                    return this->data;
+                    this->template write_LE<std::uint64_t>(value);
                 }
+                return;
+            }
 
-                inline auto get_position(
+            inline auto writeUint64(
+                std::uint64_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint64(value);
+                return;
+            }
 
-                ) const -> size_t
+            inline auto writeInt8(
+                std::int8_t value) const -> void
+            {
+                this->template write_LE<std::int8_t>(value);
+                return;
+            }
+
+            inline auto writeInt8(
+                std::int8_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeInt8(value);
+                return;
+            }
+
+            inline auto writeInt16(
+                std::int16_t value) const -> void
+            {
+                if constexpr (use_big_endian)
                 {
-                    return this->position;
+                    this->template write_BE<std::int16_t>(value);
                 }
-
-                inline auto writeUint8(
-                    std::uint8_t value
-                ) const -> void
+                else
                 {
-                    this->writeLE<std::uint8_t>(value);
-                    return;
+                    this->template write_LE<std::int16_t>(value);
                 }
+                return;
+            }
 
-                inline auto static reverseEndian(uint32_t num) -> uint32_t
+            inline auto writeInt16(
+                std::int16_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeInt16(value);
+                return;
+            }
+
+            inline auto writeInt24(
+                std::int32_t value) const -> void
+            {
+                auto size = 3;
+                if constexpr (use_big_endian)
                 {
-                    auto bytes = std::bit_cast<std::array<uint8_t, 4>>(num);
+                    for (auto i : Range(size))
+                    {
+                        thiz.writeInt8((value >> ((size - 1 - i) * 8)) & 0xFF);
+                    }
+                }
+                else
+                {
+                    for (auto i : Range(size))
+                    {
+                        thiz.writeInt8((value >> (i * 8)) & 0xFF);
+                    }
+                }
+                return;
+            }
+
+            inline auto writeInt24(
+                std::int32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeInt24(value);
+                return;
+            }
+
+            inline auto writeInt32(
+                std::int32_t value) const -> void
+            {
+                if constexpr (use_big_endian)
+                {
+                    this->template write_BE<std::int32_t>(value);
+                }
+                else
+                {
+                    this->template write_LE<std::int32_t>(value);
+                }
+                return;
+            }
+
+            inline auto writeInt32(
+                std::int32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeInt32(value);
+                return;
+            }
+
+            inline auto writeInt64(
+                std::int64_t value) const -> void
+            {
+                if constexpr (use_big_endian)
+                {
+                    this->template write_BE<std::int64_t>(value);
+                }
+                else
+                {
+                    this->template write_LE<std::int64_t>(value);
+                }
+                return;
+            }
+
+            inline auto writeInt64(
+                std::int64_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeInt64(value);
+                return;
+            }
+
+            inline auto writeBytes(
+                const std::vector<std::uint8_t>& inputBytes
+            ) const -> void
+            {
+                auto bytes = inputBytes;
+                auto new_pos = thiz.write_pos + bytes.size();
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
+                if constexpr (use_big_endian)
+                {
                     std::reverse(bytes.begin(), bytes.end());
-                    return std::bit_cast<uint32_t>(bytes);
                 }
+                std::move(bytes.begin(), bytes.end(), thiz.data.begin() + thiz.write_pos);
+                thiz.write_pos = new_pos;
+                return;
+            }
 
-                inline auto change_position(
-                    std::vector<std::uint8_t>::size_type pos
-                ) const -> void
+
+            inline auto writeBytes(
+                const std::vector<std::uint8_t> &bytes,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeBytes(bytes);
+                return;
+            }
+
+            inline auto writeFloat(
+                float value) const -> void
+            {
+                if constexpr (use_big_endian)
                 {
-                    if (pos <= data.capacity())
+                    thiz.writeBytes_LE(
+                        reinterpret_cast<std::uint8_t *>(&value),
+                        sizeof(float));
+                }
+                else
+                {
+                    thiz.writeBytes_BE(
+                        reinterpret_cast<std::uint8_t *>(&value),
+                        sizeof(float));
+                }
+                return;
+            }
+
+            inline auto writeFloat(
+                float value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeFloat(value);
+                return;
+            }
+
+            inline auto writeDouble(
+                double value) const -> void
+            {
+                if constexpr (use_big_endian)
+                {
+                    thiz.writeBytes_LE(
+                        reinterpret_cast<std::uint8_t *>(&value),
+                        sizeof(double));
+                }
+                else
+                {
+                    thiz.writeBytes_BE(
+                        reinterpret_cast<std::uint8_t *>(&value),
+                        sizeof(double));
+                }
+                return;
+            }
+
+            inline auto writeDouble(
+                double value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeDouble(value);
+                return;
+            }
+
+            inline auto writeChar(
+                char value) const -> void
+            {
+                thiz.writeUint8(static_cast<uint8_t>(value));
+                return;
+            }
+
+            inline auto writeChar(
+                char value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeUint8(static_cast<uint8_t>(value));
+                return;
+            }
+
+            inline auto writeVarInt32(
+                std::int32_t value) const -> void
+            {
+                auto num = 0;
+                for (num = (uint32_t)value; num >= 128; num >>= 7)
+                {
+                    thiz.writeUint8((uint8_t)(num | 0x80));
+                }
+                thiz.writeUint8((uint8_t)num);
+                return;
+            }
+
+            inline auto writeVarInt32(
+                std::int32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeVarInt32(value);
+                return;
+            }
+
+            inline auto writeVarInt64(
+                std::int64_t value) const -> void
+            {
+                auto num = 0;
+                for (num = (uint64_t)value; num >= 128; num >>= 7)
+                {
+                    thiz.writeUint8((uint8_t)(num | 0x80));
+                }
+                thiz.writeUint8((uint8_t)num);
+                return;
+            }
+
+            inline auto writeVarInt64(
+                std::int64_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeVarInt64(value);
+                return;
+            }
+
+            inline auto writeZigZag32(
+                std::int32_t value) const -> void
+            {
+                auto zigzag_num = (std::uint32_t)((value << 1) ^ (value >> 31));
+                thiz.writeVarInt32(zigzag_num);
+                return;
+            }
+
+            inline auto writeZigZag32(
+                std::int32_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeZigZag32(value);
+                return;
+            }
+
+            inline auto writeZigZag64(
+                std::int64_t value) const -> void
+            {
+                auto zigzag_num = (std::uint64_t)((value << 1) ^ (value >> 31));
+                thiz.writeVarInt64(zigzag_num);
+                return;
+            }
+
+            inline auto writeZigZag64(
+                std::int64_t value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeZigZag64(value);
+                return;
+            }
+
+            inline auto writeString(
+                const std::string &str) const -> void
+            {
+                auto new_pos = thiz.write_pos + str.size();
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
+                for (auto &c : str)
+                {
+                    thiz.data[thiz.write_pos++] = (uint8_t)c;
+                }
+                return;
+            }
+
+            inline auto writeString(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringFourByte(
+                const std::string &str) const -> void
+            {
+                auto new_pos = thiz.write_pos + str.size() * 4;
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                for (auto &c : str)
+                {
+                    thiz.data[thiz.write_pos++] = (uint8_t)c;
+                    thiz.data[thiz.write_pos++] = 0;
+                    thiz.data[thiz.write_pos++] = 0;
+                    thiz.data[thiz.write_pos++] = 0;
+                }
+                return;
+            }
+
+            inline auto writeStringFourByte(
+                const std::string &str,
+                std::size_t pos)
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringFourByte(str);
+                return;
+            }
+
+            inline auto writeNull(
+                std::size_t size) const -> void
+            {
+                if (size == 0)
+                {
+                    return;
+                }
+                auto new_pos = thiz.write_pos + size;
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                return;
+            }
+
+            inline auto writeNull(
+                std::size_t size,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeNull(size);
+                return;
+            }
+
+            inline auto writeCharByInt16(
+                char value) const -> void
+            {
+                thiz.writeInt16(static_cast<int16_t>(value));
+                return;
+            }
+
+            inline auto writeCharByInt16(
+                char value,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeCharByInt16(value);
+                return;
+            }
+
+            inline auto writeStringByUint8(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeUint8(0);
+                    return;
+                }
+                thiz.writeUint8(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByUint8(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByUint8(str);
+                return;
+            }
+
+            inline auto writeStringByUint16(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeUint16(0);
+                    return;
+                }
+                thiz.writeUint16(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByUint16(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByUint16(str);
+                return;
+            }
+
+            inline auto writeStringByUint32(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeUint32(0);
+                    return;
+                }
+                thiz.writeUint32(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByUint32(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByUint32(str);
+                return;
+            }
+
+            inline auto writeStringByInt8(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeInt8(0);
+                    return;
+                }
+                thiz.writeInt8(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByInt8(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByInt8(str);
+                return;
+            }
+
+            inline auto writeStringByInt16(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeInt16(0);
+                    return;
+                }
+                thiz.writeInt16(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByInt16(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByInt16(str);
+                return;
+            }
+
+            inline auto writeStringByInt32(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeInt32(0);
+                    return;
+                }
+                thiz.writeInt32(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByInt32(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByInt32(str);
+                return;
+            }
+
+            inline auto writeStringByVarInt32(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeVarInt32(0);
+                    return;
+                }
+                thiz.writeVarInt32(str.size());
+                thiz.writeString(str);
+                return;
+            }
+
+            inline auto writeStringByVarInt32(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByVarInt32(str);
+                return;
+            }
+
+            inline auto writeStringByEmpty(
+                const std::string &str) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeUint8(0);
+                    return;
+                }
+                thiz.writeString(str);
+                thiz.readUint8(0);
+                return;
+            }
+
+            inline auto writeStringByEmpty(
+                const std::string &str,
+                std::size_t pos) const -> void
+            {
+                thiz.read_pos = pos;
+                thiz.writeStringByEmpty(str);
+                return;
+            }
+
+            inline auto writeBoolean(
+                bool value) const -> void
+            {
+                if (value)
+                {
+                    thiz.writeUint8(0x01);
+                }
+                else
+                {
+                    thiz.writeUint8(0x00);
+                }
+                return;
+            }
+
+            inline auto operator[](
+                size_t position) const -> uint8_t &
+            {
+                return this->data.at(position);
+            }
+
+            inline auto writeBytes_LE(
+                std::uint8_t *bytes,
+                std::size_t size) const -> void
+            {
+                thiz.data.insert(thiz.data.end(), bytes, bytes + size);
+                thiz.write_pos += size;
+                return;
+            }
+
+            inline auto writeBytes_BE(
+                std::uint8_t *bytes,
+                std::size_t size) const -> void
+            {
+                thiz.data.insert(thiz.data.end(), std::reverse_iterator(bytes + size), std::reverse_iterator(bytes));
+                thiz.write_pos += size;
+                return;
+            }
+
+            template <typename T>
+            inline auto write_LE(
+                T value) const -> void
+            {
+                auto size = sizeof(T);
+                auto new_pos = thiz.write_pos + size;
+                // append capacity.
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
+                for (auto i = 0; i < size; i++)
+                {
+                    thiz.data[thiz.write_pos++] = ((value >> (i * 8)) & 0xFF);
+                }
+                return;
+            }
+
+            template <typename T>
+            inline auto write_BE(
+                T value) const -> void
+            {
+                auto size = sizeof(T);
+                auto new_pos = thiz.write_pos + size;
+                // append capacity.
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
+                for (auto i : Range(size))
+                {
+                    thiz.data[thiz.write_pos++] = ((value >> ((size - 1 - i) * 8)) & 0xFF);
+                }
+                return;
+            }
+
+            inline auto readUint8() const -> std::uint8_t
+            {
+                return this->template read<std::uint8_t>();
+            }
+
+
+            inline auto readUint8(std::size_t pos) const -> std::uint8_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readUint8();
+            }
+
+            inline auto readUint16() const -> std::uint16_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return reverseEndian(this->template read<std::uint16_t>());
+                }
+                else
+                {
+                    return this->template read<std::uint16_t>();
+                }
+            }
+
+            inline auto readUint16(std::size_t pos) const -> std::uint16_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readUint16();
+            }
+
+            inline auto readUint24() const -> std::uint32_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read_has<std::uint32_t>(3));
+                }
+                else
+                {
+                    return this->template read_has<std::uint32_t>(3);
+                }
+            }
+
+            inline auto readUint24(std::size_t pos) const -> std::uint32_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readUint24();
+            }
+
+            inline auto readUint32() const -> std::uint32_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return reverseEndian(this->template read<std::uint32_t>());
+                }
+                else
+                {
+                    return this->template read<std::uint32_t>();
+                }
+            }
+
+            inline auto readUint32(std::size_t pos) const -> std::uint32_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readUint32();
+            }
+
+            inline auto readUint64() const -> std::uint64_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read<std::uint64_t>());
+                }
+                else
+                {
+                    return this->template read<std::uint64_t>();
+                }
+            }
+
+            inline auto readUint64(std::size_t pos) const -> std::uint64_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readUint64();
+            }
+
+            inline auto readInt8() const -> std::int8_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read<std::int8_t>());
+                }
+                else
+                {
+                    return this->template read<std::int8_t>();
+                }
+            }
+
+            inline auto readInt8(std::size_t pos) const -> std::int8_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readInt8();
+            }
+
+            inline auto readInt16() const -> std::int16_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read<std::int16_t>());
+                }
+                else
+                {
+                    return this->template read<std::int16_t>();
+                }
+            }
+
+            inline auto readInt16(std::size_t pos) const -> std::int16_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readInt16();
+            }
+
+            inline auto readInt24() const -> std::int32_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read_has<std::int32_t>(3));
+                }
+                else
+                {
+                    return this->template read_has<std::int32_t>(3);
+                }
+            }
+
+            inline auto readInt24(std::size_t pos) const -> std::int32_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readInt24();
+            }
+
+            inline auto readInt32() const -> std::int32_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read<std::int32_t>());
+                }
+                else
+                {
+                    return this->template read<std::int32_t>();
+                }
+            }
+
+            inline auto readInt32(std::size_t pos) const -> std::int32_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readInt32();
+            }
+
+            inline auto readInt64() const -> std::int64_t
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverseEndian(this->template read<std::int64_t>());
+                }
+                else
+                {
+                    return this->template read<std::int64_t>();
+                }
+            }
+
+            inline auto readInt64(std::size_t pos) const -> std::int64_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readInt64();
+            }
+
+            inline auto readFloat() const -> float
+            {
+                return this->template read<float>();
+            }
+
+            inline auto readFloat(std::size_t pos) const -> float
+            {
+                thiz.read_pos = pos;
+                return thiz.readFloat();
+            }
+
+            inline auto readDouble() const -> double
+            {
+                return this->template read<double>();
+            }
+
+            inline auto readDouble(std::size_t pos) const -> double
+            {
+                thiz.read_pos = pos;
+                return thiz.readDouble();
+            }
+
+            inline auto readBoolean() const -> bool
+            {
+                return thiz.readUint8() == 0x01;
+            }
+
+            inline auto readBoolean(std::size_t pos) const -> bool
+            {
+                thiz.read_pos = pos;
+                return thiz.readBoolean();
+            }
+
+            inline auto readString(std::size_t size) const -> std::string
+            {
+                auto str = std::string{};
+                for (auto i : Range(size))
+                {
+                    str += ((char)thiz.readUint8());
+                }
+                return str;
+            }
+
+            inline auto readString(std::size_t size, std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readString(size);
+            }
+
+            inline auto readCharByInt16(
+
+            ) const -> char
+            {
+                auto value = static_cast<char>(
+                    thiz.readInt16());
+                return value;
+            }
+
+            inline auto readCharByInt16(
+                std::size_t pos) const -> char
+            {
+                thiz.read_pos = pos;
+                return thiz.readCharByInt16();
+            }
+
+            inline auto readStringByUint8() const -> std::string
+            {
+                return thiz.readString(thiz.readUint8());
+            }
+
+            inline auto readStringByUint8(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByUint8();
+            }
+
+            inline auto readStringByUint16() const -> std::string
+            {
+                return thiz.readString(thiz.readUint16());
+            }
+
+            inline auto readStringByUint16(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByUint16();
+            }
+
+            inline auto readStringByUint32() const -> std::string
+            {
+                return thiz.readString(thiz.readUint32());
+            }
+
+            inline auto readStringByUint32(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByUint32();
+            }
+
+            inline auto readStringByInt8() const -> std::string
+            {
+                return thiz.readString(thiz.readInt8());
+            }
+
+            inline auto readStringByInt8(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByInt8();
+            }
+
+            inline auto readStringByInt16() const -> std::string
+            {
+                return thiz.readString(thiz.readInt16());
+            }
+
+            inline auto readStringByInt16(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByInt16();
+            }
+
+            inline auto readStringByInt32() const -> std::string
+            {
+                return thiz.readString(thiz.readInt32());
+            }
+
+            inline auto readStringByInt32(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByInt32();
+            }
+
+            inline auto readStringByVarInt32() const -> std::string
+            {
+                return thiz.readString(thiz.readVarInt32());
+            }
+
+            inline auto readStringByVarInt32(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByVarInt32();
+            }
+
+            inline auto readStringByEmpty() const -> std::string
+            {
+                auto ss = std::string{};
+                auto byte = 0;
+                while (true)
+                {
+                    if ((byte = thiz.readUint8()) == 0)
                     {
-                        this->position = pos;
+                        break;
                     }
-                    else {
-                        throw Exception("Out of range");
-                    }
+                    ss += (char)byte;
                 }
+                return ss;
+            }
 
+            inline auto readStringByEmpty(std::size_t pos) const -> std::string
+            {
+                thiz.read_pos = pos;
+                return thiz.readStringByEmpty();
+            }
 
-                inline auto appendPosition(
-                    std::size_t pos
-                ) const -> void 
+            inline auto getBytes(
+                const size_t &from,
+                const size_t &to) const -> std::vector<std::uint8_t>
+            {
+                auto bytes = std::vector<std::uint8_t>{};
+                bytes.reserve(to - from);
+                if (use_big_endian)
                 {
-                    auto new_pos = this->position + pos;
-                    change_position(new_pos);
-                    return;
-                }
-
-                inline auto writeUint16LE(
-                    std::uint16_t value
-                ) const -> void
-                {
-                    this->writeLE<std::uint16_t>(value);
-                    return;
-                }
-
-                inline auto writeUint32LE(
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->writeLE<std::uint32_t>(value);
-                    return;
-                }
-
-                inline auto writeUint64LE(
-                    std::uint64_t value
-                ) const -> void
-                {
-                    this->writeLE<std::uint64_t>(value);
-                    return;
-                }
-
-                inline auto out_file(
-                    const std::string &path
-                ) const -> void
-                {
-                    auto filePath = std::filesystem::path(path);
-                    if (filePath.has_parent_path())
+                    for (auto i = to; i >= from; i++)
                     {
-                        std::filesystem::create_directories(filePath.parent_path());
+                        bytes.emplace_back(thiz.data.at(i));
                     }
-                    auto file = std::ofstream(path, std::ios::binary);
-                    if (file)
-                    {
-                        file.write(reinterpret_cast<const char *>(this->data.data()), this->size());
-                    }
-                    else
-                    {
-                        throw Exception(fmt::format("Could not open file: {}", path));
-                    }
-                    return;
                 }
-
-                inline auto writeInt8(
-                    std::int8_t value
-                ) const -> void
+                else
                 {
-                    this->writeLE<std::int8_t>(value);
-                    return;
-                }
-
-                inline auto writeInt16LE(
-                    std::int16_t value
-                ) const -> void
-                {
-                    this->writeLE<std::int16_t>(value);
-                    return;
-                }
-
-                inline auto writeInt32LE(
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->writeLE<std::int32_t>(value);
-                    return;
-                }
-
-                inline auto writeInt64LE(
-                    std::int64_t value
-                ) const -> void
-                {
-                    this->writeLE<std::int64_t>(value);
-                    return;
-                }
-
-                inline auto writeUint16BE(
-                    std::uint16_t value
-                ) const -> void
-                {
-                    this->writeBE<std::uint16_t>(value);
-                    return;
-                }
-
-                inline auto writeUint32BE(
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->writeBE<std::uint32_t>(value);
-                    return;
-                }
-
-                inline auto writeUint64BE(
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->writeBE<std::uint64_t>(value);
-                    return;
-                }
-
-                inline auto writeInt16BE(
-                    std::int16_t value
-                ) const -> void
-                {
-                    this->writeBE<std::int16_t>(value);
-                    return;
-                }
-
-                inline auto writeInt32BE(
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->writeBE<std::int32_t>(value);
-                    return;
-                }
-
-                inline auto writeInt64BE(
-                    std::int64_t value
-                ) const -> void
-                {
-                    this->writeBE<std::int64_t>(value);
-                    return;
-                }
-
-                inline auto size(
-
-                ) const -> std::size_t
-                {
-                    return this->data.size();
-                }
-
-                inline auto toBytes(
-
-                ) const -> const std::uint8_t *
-                {
-                    return this->data.data();
-                }
-
-                inline auto readUint8(
-
-                ) const -> std::uint8_t
-                {
-                    return this->readLE<std::uint8_t>();
-                }
-
-                inline auto readUint16LE(
-
-                ) const -> std::uint16_t
-                {
-                    return this->readLE<std::uint16_t>();
-                }
-
-                inline auto readUint32LE(
-
-                ) const -> std::uint32_t
-                {
-                    return this->readLE<std::uint32_t>();
-                }
-
-                inline auto readUint64LE(
-
-                ) const -> std::uint64_t
-                {
-                    return this->readLE<std::uint64_t>();
-                }
-
-                inline auto readInt8(
-
-                ) const -> std::int8_t
-                {
-                    return this->readLE<std::int8_t>();
-                }
-
-                inline auto readInt16LE(
-
-                ) const -> std::int16_t
-                {
-                    return this->readLE<std::int16_t>();
-                }
-
-                inline auto readInt32LE(
-
-                ) const -> std::int32_t
-                {
-                    return this->readLE<std::int32_t>();
-                }
-
-                inline auto readInt64LE(
-
-                ) const -> std::int64_t
-                {
-                    return this->readLE<std::int64_t>();
-                }
-
-                inline auto readUint16BE(
-
-                ) const -> std::uint16_t
-                {
-                    return this->readBE<std::uint16_t>();
-                }
-
-                inline auto readUint32BE(
-
-                ) const -> std::uint32_t
-                {
-                    return this->readBE<std::uint32_t>();
-                }
-
-                inline auto readUint64BE(
-
-                ) const -> std::uint64_t
-                {
-                    return this->readBE<std::uint64_t>();
-                }
-
-                inline auto readInt16BE(
-
-                ) const -> std::int16_t
-                {
-                    return this->readBE<std::int16_t>();
-                }
-
-                inline auto readInt32BE(
-
-                ) const -> std::int32_t
-                {
-                    return this->readBE<std::int32_t>();
-                }
-
-                inline auto readInt64BE(
-
-                ) const -> std::int64_t
-                {
-                    return this->readBE<std::int64_t>();
-                }
-                
-                inline auto readBoolean(
-
-                ) const -> bool
-                {
-                    return this->readInt8() == 0x01;
-                }
-
-                inline auto readString(
-                    std::size_t size
-                ) const -> std::string
-                {
-                    auto c = std::string{};
-                    for (auto i = 0; i < size; ++i)
-                    {
-                        c.push_back((char)this->readInt8());
-                    }
-                    return c;
-                }
-
-                inline auto writeString(
-                    const std::string & str
-                ) const -> void
-                {
-                    for (auto & c : str)
-                    {
-                        this->writeInt8((int8_t)c);
-                    }
-                    return;
-                }
-
-                inline auto current_pointer(
-
-                ) -> std::vector<std::uint8_t>::iterator
-                {
-                    return this->data.begin() + this->position;
-                }
-
-                inline auto getBytes(
-                    const size_t & from,
-                    const size_t & to
-                ) const -> uint8_t *
-                {
-                    auto c = std::vector<uint8_t>{};
                     for (auto i = from; i <= to; i++)
                     {
-                        c.push_back(this->data.at(i));
+                        bytes.emplace_back(thiz.data.at(i));
                     }
-                    return c.data();
                 }
+                return bytes;
+            }
 
-                inline auto get(
-                    const size_t & from,
-                    const size_t & to
-
-                ) const -> std::vector<uint8_t>
+            inline auto readBytes(std::size_t size) const -> std::vector<std::uint8_t>
+            {
+                std::vector<std::uint8_t> bytes;
+                bytes.resize(size);
+                if constexpr (use_big_endian)
                 {
-                    if (from < 0 || to > this->data.size())
+
+                    for (auto i = size - 1; i >= 0; i--)
                     {
-                        throw Exception("Invalid vector size");
+                        bytes[i] = thiz.data[thiz.read_pos++];
                     }
-                    return std::vector<unsigned char>(this->data.begin() + from, this->data.begin() + to);
                 }
-
-                inline auto cut_buffer(
-                    size_t from,
-                    size_t to
-                ) const -> Stream
+                else
                 {
-                    return Stream{this->get(from, to)};
-                }
-
-                inline auto writeBoolean(
-                    bool val
-                ) const -> void
-                {
-                    if (val)
+                    for (auto i : Range(size))
                     {
-                        this->writeUint8(0x01);
+                        bytes[i] = thiz.data[thiz.read_pos++];
                     }
-                    else
+                }
+                return bytes;
+            }
+
+            inline auto readBytes(std::size_t size, std::size_t pos) const -> std::vector<std::uint8_t>
+            {
+                thiz.read_pos = pos;
+                return thiz.readBytes(size);
+            }
+
+            inline auto readVarInt32() const -> std::int32_t
+            {
+                auto num = 0;
+                auto num_2 = 0;
+                auto byte = 0;
+                do
+                {
+                    if (num_2 == 35)
                     {
-                        this->writeUint8(0x00);
+                        throw std::runtime_error("Invaild varint num");
                     }
-                    return;
-                }
+                    byte = thiz.readUint8();
+                    num |= ((byte & 0x7F) << num_2);
+                    num_2 += 7;
+                } while ((byte & 0x80) != 0);
+                return num;
+            }
 
-                inline auto writeUint24LE(
-                    std::uint32_t value
-                ) const -> void
+            inline auto readVarInt32(std::size_t pos) const -> std::int32_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readVarInt32();
+            }
+
+            inline auto readVarInt64() const -> std::int64_t
+            {
+                auto num = 0;
+                auto num_2 = 0;
+                auto byte = 0;
+                do
                 {
-                    this->writeLE_has<std::uint32_t>(value, 3);
-                    return;
-                }
-
-                inline auto writeInt24LE(
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->writeLE_has<std::int32_t>(value, 3);
-                    return;
-                }
-
-                inline auto writeUint24BE(
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->writeBE_has<std::uint32_t>(value, 3);
-                    return;
-                }
-
-                inline auto writeInt24BE(
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->writeBE_has<std::int32_t>(value, 3);
-                    return;
-                }
-
-                inline auto readUint24LE(
-
-                ) const -> std::uint32_t
-                {
-                    return this->readLE_has<std::uint32_t>(3);
-                }
-
-                inline auto readInt24LE(
-
-                ) const -> std::int32_t
-                {
-                    return this->readLE_has<std::int32_t>(3);
-                }
-
-                inline auto readUint24BE(
-
-                ) const -> std::uint32_t
-                {
-                    return this->readBE_has<std::uint32_t>(3);
-                }
-
-                inline auto readInt24BE(
-
-                ) const -> std::int32_t
-                {
-                    return this->readBE_has<std::int32_t>(3);
-                }
-
-                inline auto flush(
-
-                ) const -> void
-                {
-                    this->position = 0;
-                    return;
-                }
-
-                inline auto close(
-
-                ) const -> void
-                {
-                    this->data.clear();
-                    this->position = 0;
-                    return;
-                }
-
-                inline auto writeFloatLE(
-                    float value
-                ) const -> void
-                {
-                    this->writeBytesLE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(float));
-                    return;
-                }
-
-                inline auto writeDoubleLE(
-                    double value
-                ) const -> void
-                {
-                    this->writeBytesLE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(double));
-                    return;
-                }
-
-                inline auto writeFloatBE(
-                    float value
-                ) const -> void
-                {
-                    this->writeBytesBE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(float));
-                    return;
-                }
-
-                inline auto writeDoubleBE(
-                    double value
-                ) const -> void
-                {
-                    this->writeBytesBE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(double));
-                    return;
-                }
-
-                inline auto readFloatLE(
-
-                ) const -> float
-                {
-                    return this->readBytesLE<float>(
-                        sizeof(float));
-                }
-
-                inline auto readDoubleLE(
-
-                ) const -> double
-                {
-                    return this->readBytesLE<double>(
-                        sizeof(double));
-                }
-
-                inline auto readFloatBE(
-
-                ) const -> float
-                {
-                    return this->readBytesBE<float>(
-                        sizeof(float));
-                }
-
-                inline auto readDoubleBE(
-
-                ) const -> double
-                {
-                    return this->readBytesBE<double>(
-                        sizeof(double));
-                }
-
-                inline auto writeChar(
-                    char value
-                ) const -> void
-                {
-                    this->data.push_back(
-                        static_cast<std::uint8_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint8(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint8(static_cast<uint8_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint16LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint16LE(static_cast<uint16_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint16BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint16BE(static_cast<uint16_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint32LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint32LE(static_cast<uint32_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint32BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint32BE(static_cast<uint32_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint64LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint64LE(static_cast<uint64_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByUint64BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeUint64BE(static_cast<uint64_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt8(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt8(static_cast<int8_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt16LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt16LE(static_cast<int16_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt16BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt16BE(static_cast<int16_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt32LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt32LE(static_cast<int32_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt32BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt32BE(static_cast<int32_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt64LE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt64LE(static_cast<int64_t>(value));
-                    return;
-                }
-
-                inline auto writeCharByInt64BE(
-                    char value
-                ) const -> void
-                {
-                    this->writeInt64BE(static_cast<int64_t>(value));
-                    return;
-                }
-
-                inline auto readChar(
-
-                ) const -> char
-                {
-                    auto value = static_cast<char>(
-                        this->data[this->position]);
-                    this->position++;
-                    return value;
-                }
-
-                inline auto readCharByInt16LE(
-
-                ) const -> char
-                {
-                    auto value = static_cast<char>(
-                        this->readInt16LE());
-                    return value;
-                }
-
-                inline auto readVarInt32(
-
-                ) const -> std::int32_t
-                {
-                    auto num = 0;
-                    auto num_2 = 0;
-                    auto byte = 0;
-                    do
+                    if (num_2 == 70)
                     {
-                        if (num_2 == 35)
-                            throw Exception("Invaild varint num");
-                        byte = this->readUint8();
-                        num |= (byte & 0x7F) << num_2;
-                        num_2 += 7;
-                    } while ((byte & 0x80) != 0);
-                    return num;
-                }
-
-                inline auto writeVarInt32(
-                    std::int32_t value
-                ) const -> void
-                {
-                    auto num = 0;
-                    for (num = (uint32_t)value; num >= 128; num >>= 7)
-                    {
-                        this->writeUint8((uint8_t)(num | 0x80));
+                        throw std::runtime_error("Invaild varint num");
                     }
-                    this->writeUint8((uint8_t)num);
-                    return;
-                }
-
-                inline auto writeVarInt64(
-                    std::int32_t value
-                ) const -> void
-                {
-                    auto num = 0;
-                    for (num = (uint32_t)value; num >= 128; num >>= 7)
-                    {
-                        this->writeUint8((uint8_t)(num | 0x80));
-                    }
-                    this->writeUint8((uint8_t)num);
-                    return;
-                }
-
-                inline auto readVarInt64(
-
-                ) const -> std::int64_t
-                {
-                    auto num = 0;
-                    auto num_2 = 0;
-                    auto byte = 0;
-                    do
-                    {
-                        if (num_2 == 70)
-                            throw Exception("Invaild varint num");
-                        byte = this->readUint8();
-                        num |= ((int64_t)(byte & 0x7F)) << num_2;
-                        num_2 += 7;
-                    } while ((byte & 0x80) != 0);
-                    return num;
-                }
-
-                inline auto readVarUInt32(
-
-                ) const -> std::uint32_t
-                {
-                    return (uint32_t)this->readVarInt32();
-                }
-
-                inline auto readVarUInt64(
-
-                ) const -> std::uint64_t
-                {
-                    return (uint64_t)this->readVarInt64();
-                }
-
-                inline auto writeZigZag32(
-                    std::int32_t value
-                ) const -> void
-                {
-                    auto zigzagEncoded = (std::uint32_t)((value << 1) ^ (value >> 31));
-                    this->writeVarInt32(zigzagEncoded);
-                    return;
-                }
-
-                inline auto readZigZag32(
-
-                ) const -> std::int32_t
-                {
-                    auto zigzagEncoded = this->readVarUInt32();
-                    auto decoded = (std::int32_t)((zigzagEncoded >> 1) ^ -(zigzagEncoded & 1));
-                    return decoded;
-                }
-
-                inline auto writeZigZag64(
-                    std::int64_t value
-                ) const -> void
-                {
-                    auto zigzagEncoded = (std::uint64_t)((value << 1) ^ (value >> 63));
-                    this->writeVarInt64(zigzagEncoded);
-                    return;
-                }
-
-                inline auto readZigZag64(
-
-                ) const -> std::int64_t
-                {
-                    auto zigzagEncoded = (std::uint64_t)this->readVarUInt64();
-                    auto decoded = (std::int64_t)((zigzagEncoded >> 1) ^ -(zigzagEncoded & 1));
-                    return decoded;
-                }
-
-                inline auto readStringByUInt8(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readUint8());
-                }
-
-                inline auto readStringByInt8(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readInt8());
-                }
-
-                inline auto readStringByUInt16LE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readUint16LE());
-                }
-
-                inline auto readStringByInt16LE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readInt16LE());
-                }
-
-                inline auto readStringByUInt16BE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readUint16BE());
-                }
-
-                inline auto readStringByInt16BE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readInt16BE());
-                }
-
-                inline auto readStringByUInt32LE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readUint32LE());
-                }
-
-                inline auto readStringByInt32LE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readInt32LE());
-                }
-
-                inline auto readStringByUInt32BE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readUint32BE());
-                }
-
-                inline auto readStringByInt32BE(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readInt32BE());
-                }
-
-                inline auto readStringByVarInt32(
-
-                ) const -> std::string
-                {
-                    return this->readString(this->readVarInt32());
-                }
-
-                inline auto readStringByEmpty() -> std::string
-                {
-                    std::string c = "";
-                    auto b = 0;
-                    while (true)
-                    {
-                        if ((b = this->readUint8()) == 0)
-                        {
-                            break;
-                        }
-                        c += (char)b;
-                    }
-                    return c;
-                }
-
-                inline auto writeStringByEmpty(
-                    const std::string & str
-                ) -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint8(0);
-                        return;
-                    }
-                    this->writeString(str);
-                    this->writeUint8(0);
-                    return;
-                }
-
-                inline auto writeNull(
-                    std::size_t size
-                ) const -> void
-                {
-                    if (size < 0)
-                        throw Exception("Invaild size");
-                    if (size == 0)
-                        return;
-                    uint8_t *null_bytes = new uint8_t(size);
-                    this->writeBytesLE(null_bytes, size);
-                    return;
-                }
-
-                inline auto writeStringFourByte(
-                    const std::string & str
-                ) const -> void
-                {
-                    for (auto & c : str)
-                    {
-                        this->writeUint8((uint8_t)c);
-                        this->writeUint24LE(0);
-                    }
-                    return;
-                }
-
-                inline auto writeStringByUInt8(
-                    const std::string &str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint8(0);
-                        return;
-                    }
-                    this->writeUint8(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByInt8(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeInt8(0);
-                        return;
-                    }
-                    this->writeInt8(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByUInt16LE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint16LE(0);
-                        return;
-                    }
-                    this->writeUint16LE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByUInt16BE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint16BE(0);
-                        return;
-                    }
-                    this->writeUint16BE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByInt16LE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeInt16LE(0);
-                        return;
-                    }
-                    this->writeInt16LE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByInt16BE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeInt16LE(0);
-                        return;
-                    }
-                    this->writeInt16LE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByUInt32LE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint32LE(0);
-                        return;
-                    }
-                    this->writeUint32LE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByUInt32BE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeUint32BE(0);
-                        return;
-                    }
-                    this->writeUint32BE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByInt32LE(
-                    const std::string & str
-                ) const -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeInt32LE(0);
-                        return;
-                    }
-                    this->writeInt32LE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByInt32BE(
-                    const std::string &str
-                ) -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeInt32BE(0);
-                        return;
-                    }
-                    this->writeInt32BE(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto writeStringByVarInt32(
-                    const std::string & str
-                ) -> void
-                {
-                    if (str.empty())
-                    {
-                        this->writeVarInt32(0);
-                        return;
-                    }
-                    this->writeVarInt32(str.size());
-                    this->writeString(str);
-                    return;
-                }
-
-                inline auto peekUInt8(
-                    std::size_t offset
-                ) const -> std::uint8_t
-                {
-                    return this->data[offset];
-                }
-
-                inline auto peekUInt16(
-                    std::size_t offset
-                ) const -> std::uint16_t
-                {
-                    return (this->data[offset] | (this->data[offset + 1] << 8));
-                }
-
-                inline auto peekUInt24(
-                    std::size_t offset
-                ) const -> std::uint32_t
-                {
-                    return (this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16));
-                }
-
-                inline auto peekUInt32(
-                    std::size_t offset
-                ) const -> std::uint32_t
-                {
-                    return (this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16) | (this->data[offset + 3] << 24));
-                }
-
-                inline auto peekInt8(
-                    std::size_t offset
-                ) const -> std::int8_t
-                {
-                    return static_cast<std::int8_t>(this->data[offset]);
-                }
-
-                inline auto peekInt16(
-                    std::size_t offset
-                ) const -> std::int16_t
-                {
-                    return static_cast<std::int16_t>(this->data[offset] | (this->data[offset + 1] << 8));
-                }
-
-                inline auto peekInt24(
-                    std::size_t offset
-                ) const -> std::int32_t
-                {
-                    return static_cast<std::int32_t>(this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16));
-                }
-
-                inline auto peekInt32(
-                    std::size_t offset
-                ) const -> std::int32_t
-                {
-                    return static_cast<std::int32_t>(this->data[offset] | (this->data[offset + 1] << 8) | (this->data[offset + 2] << 16) | (this->data[offset + 3] << 24));
-                }
-
-                inline auto peekString(
-                    std::size_t offset,
-                    std::size_t size
-                ) const -> std::string
-                {
-                    auto str = std::string{};
-                    str.reserve(size);
-                    for (auto i = offset; i < offset + size; ++i)
-                    {
-                        str.push_back(static_cast<char>(this->data[i]));
-                    }
-                    return str;
-                }
-
-                inline auto peekChar(
-                    std::size_t offset
-                ) const -> char
-                {
-                    return static_cast<char>(this->data[offset]);
-                }
-
-                inline auto insertUInt16BE(
-                    std::size_t offset,
-                    std::uint16_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, value & 0xFF);
-                    return;
-                }
-
-                inline auto insertUInt32BE(
-                    std::size_t offset,
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 24) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 3, value & 0xFF);
-                    return;
-                }
-
-                inline auto insertInt16BE(
-                    std::size_t offset,
-                    std::int16_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, value & 0xFF);
-                    return;
-                }
-
-                inline auto insertInt32BE(
-                    std::size_t offset,
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 24) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 3, value & 0xFF);
-                    return;
-                }
-
-                inline auto insertUInt16LE(
-                    std::size_t offset,
-                    std::uint16_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, value & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    return;
-                }
-
-                inline auto insertUInt32LE(
-                    std::size_t offset,
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, value & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 3, (value >> 24) & 0xFF);
-                    return;
-                }
-
-                inline auto insertInt16LE(
-                    std::size_t offset,
-                    std::int16_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, value & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    return;
-                }
-
-                inline auto insertInt32LE(
-                    std::size_t offset,
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, value & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 3, (value >> 24) & 0xFF);
-                    return;
-                }
-
-                inline auto operator[](
-                    size_t position
-                ) const -> uint8_t &
-                {
-                    return this->data.at(position);
-                }
-
-                inline auto insertString(
-                    std::size_t offset,
-                    const std::string &str
-                ) const -> void
-                {
-                    this->data.insert(
-                        this->data.begin() + offset,
-                        str.begin(),
-                        str.end());
-                    return;
-                }
-
-                inline auto insertChar(
-                    std::size_t offset,
-                    char c
-                ) const -> void
-                {
-                    this->data.insert(
-                        this->data.begin() + offset,
-                        static_cast<std::uint8_t>(c));
-                    return;
-                }
-
-                inline auto insertUInt24BE(
-                    std::size_t offset,
-                    std::uint32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, value & 0xFF);
-                    return;
-                }
-
-                inline auto insertInt24BE(
-                    std::size_t offset,
-                    std::int32_t value
-                ) const -> void
-                {
-                    this->data.insert(this->data.begin() + offset, (value >> 16) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 1, (value >> 8) & 0xFF);
-                    this->data.insert(this->data.begin() + offset + 2, value & 0xFF);
-                    return;
-                }
-
-                inline static auto fromString(
-                    const std::string & it
-                ) -> Buffer::Stream
-                {
-                    return Buffer::Stream{std::vector<unsigned char>(it.begin(), it.end())};
-                }
-
-                inline auto toString(
-
-                ) const -> std::string
-                {
-                    auto c = std::string{};
-                    for (auto & p : this->data)
-                    {
-                        c.push_back((char)p);
-                    }
-                    return c;
-                }
-
-                template <typename T>
-                    requires CharacterOnView<T>
-                inline auto append(
-                    const std::vector<T> & m_data
-                ) const -> void
-                {
-                    this->data.insert(this->data.end(), m_data.begin(), m_data.end());
-                    return;
-                }
-
-                template <typename T, size_t n>
-                    requires CharacterOnView<T>
-                inline auto append(
-                    const std::array<T, n> & m_data
-                ) const -> void
-                {
-                    this->data.insert(this->data.end(), m_data.begin(), m_data.end());
-                    return;
-                }
-
-                inline auto move(
-                    const std::vector<uint8_t> & data
-                ) const -> void
-                {
-                    std::move(data.begin(), data.end(), this->data.end());
-                    return;
-                }
-
-                template <typename T>
-                inline auto writeLE(
-                    T value
-                ) const -> void
-                {
-                    auto size = sizeof(T);
-                    this->data.reserve(this->data.size() + size);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back((value >> (i * 8)) & 0xFF);
-                    }
-                    this->position += size;
-                    return;
-                }
-
-
-                template <typename T>
-                inline auto writeBE(
-                    T value
-                ) const -> void
-                {
-                    auto size = sizeof(T);
-                    this->data.reserve(this->data.size() + size);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
-                    }
-                    this->position += size;
-                    return;
-                }
-
-                template <typename T>
-                inline auto readLE(
-
-                ) const -> T
-                {
-                    if (this->position + sizeof(T) > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    auto value = T{0};
-                    std::memcpy(&value, this->data.data() + this->position, sizeof(T));
-                    this->position += sizeof(T);
-                    return value;
-                }
-
-                template <typename T>
-                inline auto readBE(
-                    
-                ) const -> T
-                {
-                    if (this->position + sizeof(T) > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    T value = 0;
-                    std::memcpy(&value, this->data.data() + this->position, sizeof(T));
-                    this->position += sizeof(T);
-                    return reverseEndian(value);
-                }
-
-
-                template <typename T>
-                inline auto writeLE_has(
-                    T value,
-                    std::size_t size = sizeof(T)) const -> void
-                {
-                    this->data.reserve(this->data.size() + size);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back((value >> (i * 8)) & 0xFF);
-                    }
-                    this->position += size;
-                    return;
-                }
-
-                template <typename T>
-                inline auto writeBE_has(
-                    T value,
-                    std::size_t size = sizeof(T)) const -> void
-                {
-                    this->data.reserve(this->data.size() + size);
-                    for (auto i = 0; i < size; i++)
-                    {
-                        this->data.push_back((value >> ((size - 1 - i) * 8)) & 0xFF);
-                    }
-                    this->position += size;
-                    return;
-                }
-
-                template <typename T>
-                inline auto readLE_has(
-                    std::size_t size = sizeof(T)
-                ) const -> T
-                {
-                    if (this->position + size > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    T value;
-                    std::memcpy(&value, &this->data[this->position], sizeof(T));
-                    this->position += sizeof(T);
-                    return value;
-                }
-
-                template <typename T>
-                inline auto readBE_has(
-                    std::size_t size = sizeof(T)
-                ) const -> T
-                {
-                    if (this->position + size > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    T value = 0;
-                    for (auto i = 0; i < size; ++i)
-                    {
-                        value = (value << 8) | this->data[this->position + i];
-                    }
-                    this->position += size;
-                    return value;
-                }
-
-
-                inline auto writeBytesLE(
-                    std::uint8_t *bytes,
-                    std::size_t size
-                ) const -> void
-                {
-                    this->data.insert(this->data.end(), bytes, bytes + size);
-                    this->position += size;
-                    return;
-                }
-
-                inline auto writeBytesBE(
-                    std::uint8_t *bytes,
-                    std::size_t size
-                ) const -> void
-                {
-                    this->data.insert(this->data.end(), std::reverse_iterator(bytes + size), std::reverse_iterator(bytes));
-                    this->position += size;
-                    return;
-                }
-
-
-                template <typename T>
-                inline auto readBytesLE(
-                    std::size_t size
-                ) const -> T
-                {
-                    if (this->position + size > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    auto value = T{};
-                    std::memcpy(&value, &this->data[this->position], size);
-                    this->position += size;
-                    return value;
-                }
-
-                template <typename T>
-                inline auto readBytesBE(
-                    std::size_t size
-                ) const -> T
-                {
-                    if (this->position + size > this->size())
-                    {
-                        throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", this->position, this->size()));
-                    }
-                    auto value = T{};
-                    for (auto i = 0; i < size; i++)
-                    {
-                        reinterpret_cast<std::uint8_t *>(&value)[size - 1 - i] = this->data[this->position + i];
-                    }
-                    this->position += size;
-                    return value;
-                }
+                    byte = thiz.readUint8();
+                    num |= ((byte & 0x7F) << num_2);
+                    num_2 += 7;
+                } while ((byte & 0x80) != 0);
+                return num;
+            }
+
+            inline auto readVarInt64(std::size_t pos) const -> std::int64_t
+            {
+                thiz.read_pos = pos;
+                return thiz.readVarInt64();
+            }
+
+            inline auto readVarUint32() const -> std::uint32_t
+            {
+                return (uint32_t)thiz.readVarInt32();
+            }
+
+            inline auto readVarUint32(std::size_t pos) const -> std::uint32_t
+            {
+                thiz.read_pos = pos;
+                return (uint32_t)thiz.readVarInt32();
+            }
+
+            inline auto readVarUint64() const -> std::uint64_t
+            {
+                return (uint32_t)thiz.readVarInt64();
+            }
+
+            inline auto readVarUint64(std::size_t pos) const -> std::uint64_t
+            {
+                thiz.read_pos = pos;
+                return (uint64_t)thiz.readVarUint64();
+            }
+
+            inline auto readZigZag32() const -> std::int32_t
+            {
+                auto zigzag_num = thiz.readVarInt32();
+                auto decoded = (std::int32_t)((zigzag_num >> 1) ^ -(zigzag_num & 1));
+                return decoded;
+            }
+
+            inline auto readZigZag32(std::size_t pos) const -> std::int32_t
+            {
+                thiz.read_pos + pos;
+                return thiz.readZigZag32();
+            }
+
+            inline auto readZigZag64() const -> std::int64_t
+            {
+                auto zigzag_num = thiz.readVarInt64();
+                auto decoded = (std::int64_t)((zigzag_num >> 1) ^ -(zigzag_num & 1));
+                return decoded;
+            }
+
+            inline auto readZigZag64(std::size_t pos) const -> std::int64_t
+            {
+                thiz.read_pos + pos;
+                return thiz.readZigZag64();
+            }
+
+            template <typename T> requires std::is_integral_v<T>
+            inline auto static reverseEndian(T num) -> T
+            {
+                auto bytes = std::array<uint8_t, sizeof(T)>{};
+                std::memcpy(bytes.data(), &num, sizeof(T));
+                std::reverse(bytes.begin(), bytes.end());
+                return std::bit_cast<T>(bytes);
+            }
+
+            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            inline auto read(
+
+            ) const -> T
+            {
+                if (thiz.read_pos + sizeof(T) > thiz.size())
+                {
+                    throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
+                }
+                auto value = T{0};
+                std::memcpy(&value, thiz.data.data() + thiz.read_pos, sizeof(T));
+                thiz.read_pos += sizeof(T);
+                return value;
+            }
+
+            template <typename T>
+            inline auto read_has(
+                std::size_t size) const -> T
+            {
+                if (thiz.read_pos + size > thiz.size())
+                {
+                    throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
+                }
+                T value = 0;
+                std::memcpy(&value, thiz.data.data() + thiz.read_pos, size);
+                this->read_pos += size;
+                return;
+            }
+
+            inline auto close() const -> void
+            {
+                thiz.data.clear();
+                thiz.read_pos = 0;
+                thiz.write_pos = 0;
+                return;
+            }
         };
     }
+    template <bool T>
+    using SenBuffer = Sen::Kernel::Definition::Buffer::Stream<T>;
 
-    using SenBuffer = Sen::Kernel::Definition::Buffer::Stream;
+    using DataStreamView = SenBuffer<false>;
 
-    using DataStreamView = SenBuffer;
+    using DataStreamViewBigEndian = SenBuffer<true>;
 }

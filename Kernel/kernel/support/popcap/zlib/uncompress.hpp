@@ -69,14 +69,14 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 				const std::vector<unsigned char> & source 
 			) -> std::vector<unsigned char> override final
 			{
-				auto sen = SenBuffer{source};
-				auto magic = sen.readUint32LE();
+				auto sen = DataStreamView{source};
+				auto magic = sen.readUint32();
 				try_assert(magic == static_cast<uint32_t>(Uncompress::magic), fmt::format("Mismatch zlib magic, should begin with: 0x{:X}", Uncompress::magic));
 				auto cut_offset = static_cast<size_t>(8);
 				if(thiz.use_64_bit_variant){
 					cut_offset += 8;
-					sen.readUint32LE();
-					sen.readUint32LE();
+					sen.readUint32();
+					sen.readUint32();
 				}
 				auto result = Compression::Zlib::uncompress(sen.get(cut_offset, sen.size()));
 				return result;

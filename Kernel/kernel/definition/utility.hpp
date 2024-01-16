@@ -12,6 +12,7 @@
 #include "kernel/definition/basic/timer.hpp"
 #include "kernel/definition/basic/image.hpp"
 #include "kernel/definition/basic/json.hpp"
+#include "kernel/definition/basic/utf8json.hpp"
 #include "kernel/definition/basic/buffer.hpp"
 #include "kernel/definition/basic/collections.hpp"
 #include "kernel/definition/basic/system.hpp"

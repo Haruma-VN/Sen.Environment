@@ -132,7 +132,7 @@ namespace Sen::Kernel::Support::Texture {
 						auto index = set_pixel(x, y, image.width);
 						auto color = ((data[index + 3]) >> 4 | ((data[index + 2]) & 0xF0) | (((data[index + 1]) & 0xF0) << 4) |
 							(((data[index]) & 0xF0) << 8));
-						sen.writeUint16LE(color);
+						sen.writeUint16(color);
 					}
 				}
 				return sen.get();
@@ -148,7 +148,7 @@ namespace Sen::Kernel::Support::Texture {
 					for (auto x : Range<int>(image.width)) {
 						auto index = set_pixel(x, y, image.width);
 						auto color = ((data[index + 2]) >> 3 | (((data[index + 1]) & 0xFC) << 3) | (((data[index]) & 0xF8) << 8));
-						sen.writeUint16LE(color);
+						sen.writeUint16(color);
 					}
 				}
 				return sen.get();
@@ -167,7 +167,7 @@ namespace Sen::Kernel::Support::Texture {
 						(((data[index + 2]) & 0xF8) >> 2) |
 						(((data[index + 1]) & 0xF8) << 3) |
 						(((data[index + 0]) & 0xF8) << 8));
-						sen.writeUint16LE(color);
+						sen.writeUint16(color);
 					}
 				}
 				return sen.get();
@@ -189,10 +189,10 @@ namespace Sen::Kernel::Support::Texture {
 										(data[index + 2]) & 0xF0 |
 										(((data[index + 1]) & 0xF0) << 4) |
 										(((data[index + 0]) & 0xF0) << 8));
-									sen.writeUint16LE(color);
+									sen.writeUint16(color);
 								} 
 								else {
-									sen.writeUint16LE(0x00);
+									sen.writeUint16(0x00);
 								}
 							}
 						}
@@ -216,10 +216,10 @@ namespace Sen::Kernel::Support::Texture {
 									auto color = (((data[index + 2]) & 0xF8 >> 3) |
 												(((data[index + 1]) & 0xFC) << 3) |
 												(((data[index + 0]) & 0xF8) << 8));
-									sen.writeUint16LE(color);
+									sen.writeUint16(color);
 								} 
 								else {
-									sen.writeUint16LE(0x00);
+									sen.writeUint16(0x00);
 								}
 							}
 						}
@@ -244,10 +244,10 @@ namespace Sen::Kernel::Support::Texture {
 												((data[index + 2]) & 0xF8 >> 2) |
 												(((data[index + 1]) & 0xF8) << 3) |
 												(((data[index + 0]) & 0xF8) << 8));
-									sen.writeUint16LE(color);
+									sen.writeUint16(color);
 								} 
 								else {
-									sen.writeUint16LE(0x00);
+									sen.writeUint16(0x00);
 								}
 							}
 						}
@@ -273,9 +273,9 @@ namespace Sen::Kernel::Support::Texture {
 				auto destination_size = size / 16;
 				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = DataStreamView{};
+				auto sen = DataStreamViewBigEndian{};
 				for (auto i : Range<int>(destination_size)) {
-					sen.writeUint64LE(destination[i]);
+					sen.writeUint64(destination[i]);
 				}
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
@@ -302,9 +302,9 @@ namespace Sen::Kernel::Support::Texture {
 				auto destination_size = size / 16;
 				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = DataStreamView{};
+				auto sen = DataStreamViewBigEndian{};
 				for (auto i : Range<int>(destination_size)) {
-					sen.writeUint64LE(destination[i]);
+					sen.writeUint64(destination[i]);
 				}
 				sen.writeUint8(0x10);
 				for (auto i : Range<uint8_t>(16)) {
@@ -339,7 +339,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto i = 0; i < image.area() * 4; i += 4) {
-					sen.writeUint16LE(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
+					sen.writeUint16(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
 				}
 				return sen.get();
 			}
@@ -351,7 +351,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto i = 0; i < image.area() * 4; i += 4){
-					sen.writeUint16LE(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
+					sen.writeUint16(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
 				}
 				return sen.get();
 			}
@@ -387,7 +387,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamView{};
 				auto data = image.data();
 				for (auto i = 0; i < image.area() * 4; i += 4){
-					sen.writeUint16LE(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
+					sen.writeUint16(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
 				}
 				return sen.get();
 			}
