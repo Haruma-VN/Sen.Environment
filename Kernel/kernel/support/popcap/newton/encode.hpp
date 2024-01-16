@@ -88,7 +88,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						sen.writeUint8(0x02);
 					}
 					else{
-						throw std::runtime_error(fmt::format("unknown type {} at id {}", m_data["type"], m_data["id"]));
+						throw Exception(fmt::format("unknown type {} at id {}", m_data["type"], m_data["id"]));
 					}
 					auto subgroups_count = is_null_object(m_data, "subgroups") ? 0x00 : m_data["subgroups"].size();
       				auto resources_count = is_null_object(m_data, "resources") ? 0x00 : m_data["resources"].size();
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								sen.writeUint8(0x07);
 							}
 							else {
-								throw std::runtime_error(fmt::format("Invalid type"));
+								throw Exception(fmt::format("Invalid type"));
 							}
 							sen.writeInt32(resource_x["slot"]);
 							if (is_null_object(resource_x, "width")) {

@@ -98,14 +98,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             json_writer.WriteStartArray();
             if (thiz.sen.readUint8() != array_byte_start){
-                throw std::runtime_error("Invaild array start");
+                throw Exception("Invalid array start");
             }
             for (const auto & i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
                 thiz.read_bytecode(thiz.sen.readUint8());
             }
             if (thiz.sen.readUint8() != array_byte_end){
-                throw std::runtime_error("Invaild array end");
+                throw Exception("Invalid array end");
             }
             json_writer.WriteEndArray();
             return;
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw std::runtime_error("Invaild RTID");
+                    throw Exception("Invalid RTID");
                 }
             }
         }
@@ -309,7 +309,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return;
                 }
                 default:{
-                    throw std::runtime_error("Invaild bytecode");
+                    throw Exception("Invalid bytecode");
                 }
             }
         }
@@ -368,7 +368,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw std::runtime_error("Invalid bytecode property");
+                    throw Exception("Invalid bytecode property");
                 }
             }
     }
@@ -401,7 +401,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const auto & magic = sen.readString(magic_count);
                 if (magic != thiz.magic)
                 {
-                    throw std::runtime_error("Invaild RTON head");
+                    throw Exception("Invalid RTON head");
                 }
             }
             {

@@ -396,7 +396,7 @@ namespace Sen::Kernel::Definition {
 				auto source_data = source.data();
 				for (const auto& img : data) {
 					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
-						throw std::runtime_error("Image does not fit within the source image");
+						throw Exception("Image does not fit within the source image");
 					}
 					for (auto j : Range<T>(img.height)) {
 						for (auto i : Range<T>(img.width)) {
@@ -585,23 +585,23 @@ namespace Sen::Kernel::Definition {
 			{
 				auto *fp = fopen(source.c_str(), "rb");
 				if(!fp){
-					throw std::runtime_error(fmt::format("Open png failed: {}", source));
+					throw Exception(fmt::format("Open png failed: {}", source));
 				}
 				auto png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
 					fclose(fp);
-					throw std::runtime_error(fmt::format("PNG Pointer initialize failed: {}", source));
+					throw Exception(fmt::format("PNG Pointer initialize failed: {}", source));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);  
 				if(!info_ptr){
 					png_destroy_read_struct(&png_ptr, NULL, NULL);
 					fclose(fp);
-					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", source));
+					throw Exception(fmt::format("Info Pointer initialize failed: {}", source));
 				}
 				if (setjmp(png_jmpbuf(png_ptr))) {
 					png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 					fclose(fp);
-					throw std::runtime_error("unknown error");
+					throw Exception("unknown error");
 				}
 				png_init_io(png_ptr, fp);
 				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
@@ -647,25 +647,25 @@ namespace Sen::Kernel::Definition {
 			{
 				auto *fp = fopen(filepath.c_str(), "wb");
 				if(!fp){
-					throw std::runtime_error(fmt::format("Open png failed: {}", filepath));
+					throw Exception(fmt::format("Open png failed: {}", filepath));
 				}
 				auto png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
 					fclose(fp);
-					throw std::runtime_error(fmt::format("PNG Pointer initialize failed: {}", filepath));
+					throw Exception(fmt::format("PNG Pointer initialize failed: {}", filepath));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);
 				if (!info_ptr) {
 					png_destroy_write_struct(&png_ptr, NULL);
 					fclose(fp);
-					throw std::runtime_error(fmt::format("Info Pointer initialize failed: {}", filepath));
+					throw Exception(fmt::format("Info Pointer initialize failed: {}", filepath));
 				}
 				#define PNG_WRITE_SETJMP(png_ptr, info_ptr, fp) \
 				if (setjmp(png_jmpbuf(png_ptr)))  \
 				{ \
 					png_destroy_write_struct(&png_ptr, &info_ptr);   \
 					fclose(fp);     \
-					throw std::runtime_error("unknown error"); \
+					throw Exception("unknown error"); \
 				}
 				PNG_WRITE_SETJMP(png_ptr, info_ptr, fp);
 				png_init_io(png_ptr, fp);

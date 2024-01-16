@@ -42,7 +42,7 @@ namespace Sen::Kernel::Definition
                 auto file = std::ifstream(filepath, std::ios::binary);
                 if (!file)
                 {
-                    throw std::runtime_error("Could not open file: " + filepath);
+                    throw Exception("Could not open file: " + filepath);
                 }
                 file.seekg(0, std::ios::end);
                 auto size = file.tellg();
@@ -126,7 +126,7 @@ namespace Sen::Kernel::Definition
             {
                 if (from < 0 || to > thiz.data.size())
                 {
-                    throw std::runtime_error("Invalid vector size");
+                    throw Exception("Invalid vector size");
                 }
                 return std::vector<unsigned char>(thiz.data.begin() + from, thiz.data.begin() + to);
             }
@@ -202,7 +202,7 @@ namespace Sen::Kernel::Definition
                 }
                 else
                 {
-                    throw std::runtime_error(fmt::format("Could not open file: {}", path));
+                    throw Exception(fmt::format("Could not open file: {}", path));
                 }
                 return;
             }
@@ -1055,14 +1055,7 @@ namespace Sen::Kernel::Definition
 
             inline auto readInt8() const -> std::int8_t
             {
-                if constexpr (use_big_endian)
-                {
-                    return thiz.reverseEndian(this->template read<std::int8_t>());
-                }
-                else
-                {
-                    return this->template read<std::int8_t>();
-                }
+                return this->template read<std::int8_t>();
             }
 
             inline auto readInt8(std::size_t pos) const -> std::int8_t
@@ -1366,7 +1359,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 35)
                     {
-                        throw std::runtime_error("Invaild varint num");
+                        throw Exception("Invalid varint num");
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1390,7 +1383,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 70)
                     {
-                        throw std::runtime_error("Invaild varint num");
+                        throw Exception("Invalid varint num");
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1453,7 +1446,7 @@ namespace Sen::Kernel::Definition
                 return thiz.readZigZag64();
             }
 
-            template <typename T> requires std::is_integral_v<T>
+            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
             inline auto static reverseEndian(T num) -> T
             {
                 auto bytes = std::array<uint8_t, sizeof(T)>{};
@@ -1477,13 +1470,13 @@ namespace Sen::Kernel::Definition
                 return value;
             }
 
-            template <typename T>
+            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
             inline auto read_has(
                 std::size_t size) const -> T
             {
                 if (thiz.read_pos + size > thiz.size())
                 {
-                    throw std::runtime_error(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
+                    throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
                 }
                 T value = 0;
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, size);

@@ -23,7 +23,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto magic = sen.readString(4);
                 if (magic != "1bsr")
                 {
-                    throw std::runtime_error("Invaild RSB head");
+                    throw Exception("Invalid RSB head");
                 }
                 auto version = sen.readUint32();
                 sen.readString(4);

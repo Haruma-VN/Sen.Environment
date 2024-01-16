@@ -53,7 +53,7 @@ namespace Sen.Script {
 
         export function error(str: string | undefined): void {
             if (str !== undefined) {
-                Sen.Script.Console.send(str, Sen.Script.Definition.Console.Color.RED);
+                Sen.Script.Console.send(`${Sen.Script.Setting.Language.get(`runtime_error`)}: ${str}`, Sen.Script.Definition.Console.Color.RED);
             }
             return;
         }
@@ -174,9 +174,8 @@ namespace Sen.Script {
 
     export function main(): void {
         let result = Sen.Script.launch();
-        if (result !== undefined) {
-            throw new Error(result);
-        }
+        Console.error(result);
+        Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`method_are_succeeded`));
         return;
     }
 
@@ -200,10 +199,9 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
             const before = Date.now();
-            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.rton", "D:/test/RESOURCES.json");
+            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/RESOURCES.json", "D:/test/RESOURCES.s");
             const after = Date.now();
-            Script.Console.send(`Duration: ${(after - before) / 1000}s`)
-            Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`method_are_succeeded`));
+            Script.Console.send(`Duration: ${(after - before) / 1000}s`);
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;

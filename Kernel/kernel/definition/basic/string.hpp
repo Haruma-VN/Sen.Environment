@@ -114,7 +114,7 @@ namespace Sen::Kernel {
 			) -> short 
 			{
 				if(index >= value.length()){
-					throw std::runtime_error(fmt::format("Does not have the index {} in the string {}", index, thiz.value));
+					throw Exception(fmt::format("Does not have the index {} in the string {}", index, thiz.value));
 				}
 				return value[index];
 			}

@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw std::runtime_error(fmt::format("Invalid boolean value at offset: {}", sen.get_read_pos() - 1));
+						throw Exception(fmt::format("Invalid boolean value at offset: {}", sen.get_read_pos() - 1));
 					}
 				}
 				return value;
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							break;
 						}
 						default:{
-							throw std::runtime_error(fmt::format("Unknown group index at index {}", i));
+							throw Exception(fmt::format("Unknown group index at index {}", i));
 						}
 					}
 					auto res = thiz.read_integer();
@@ -177,7 +177,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									break;
 								}
 								default:{
-									throw std::runtime_error(fmt::format("resource type cannot be specified at {}", group["id"].get<std::string>()));
+									throw Exception(fmt::format("resource type cannot be specified at {}", group["id"].get<std::string>()));
 								}
 							}
 							auto slot = thiz.read_integer();

@@ -135,7 +135,7 @@ namespace Sen::Kernel::Support::Texture {
 						break;
 					}
 					default:{
-						throw std::runtime_error("Format is not supported");
+						throw Exception("Format is not supported");
 					}
 				}
 				return;
@@ -235,7 +235,7 @@ namespace Sen::Kernel::Support::Texture {
 						break;
 					}
 					default:{
-						throw std::runtime_error("Format is not supported");
+						throw Exception("Format is not supported");
 					}
 				}
 				FileSystem::write_binary<unsigned char>(destination, result);

@@ -14,7 +14,7 @@ namespace Sen::Kernel::Definition::Encryption::XOR
 
 	inline static auto encrypt(
 		const std::string & plain,
-		const char* & key
+		const char* key
 	) -> std::string
 	{
 		auto result = plain;
@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::Encryption::XOR
 	inline static auto encrypt_fs(
 		const std::string & source,
 		const std::string & destination,
-		const char* & key
+		const char* key
 	) -> void
 	{
 		FileSystem::write_file(destination, XOR::encrypt(FileSystem::read_file(source), key));

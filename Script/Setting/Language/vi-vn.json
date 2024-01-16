@@ -1,7 +1,7 @@
 {
     "script_has_been_loaded": "Scripts đã được nạp!",
     "execution_time": "Thời gian xử lý",
-    "runtime_error": "Runtime Error",
+    "runtime_error": "Lỗi thời gian chạy",
     "current_status": "Tình trạng hiện tại",
     "result": "Kết quả",
     "execution_argument": "Đối số thực thi",

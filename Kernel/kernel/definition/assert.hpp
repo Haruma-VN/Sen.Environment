@@ -32,22 +32,33 @@ namespace Sen::Kernel {
 
 
 	class Exception : public std::runtime_error {
-		std::string msg;
-		public:
-			Exception() = default;
-			Exception(const Exception &that) = default;
-			Exception(Exception &&that) = default;
-			Exception(const std::string &arg, const std::source_location &loc = std::source_location::current()) : std::runtime_error(arg)
+	std::string msg;
+	std::string arg;
+
+	public:
+		std::string source;
+		Exception() = default;
+		Exception(const Exception &that) = default;
+		Exception(Exception &&that) = default;
+
+		inline auto message(
+
+		) -> std::string
+		{
+			return this->arg;
+		}
+
+		Exception(const std::string &arg, const std::source_location &loc = std::source_location::current()) : std::runtime_error(arg), source(std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line())), arg(arg)
+		{
 			{
-				{
-					auto current_stack = std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line());
+					auto current_stack = source;
 					#if _WIN32 // Windows using seperator '\\'
 						std::replace(current_stack.begin(), current_stack.end(), '\\', '/');
 					#endif
 					msg = current_stack;
 				}
-				msg += arg;
 				msg += '\n';
+				msg += arg;
 				msg += ' ';
 			}
 			~Exception () throw () {}

@@ -112,7 +112,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 break;
             }
             default:{
-                throw std::runtime_error("invalid value");
+                throw Exception("invalid value");
             }
             }
             return;

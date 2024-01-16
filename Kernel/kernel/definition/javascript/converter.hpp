@@ -35,7 +35,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = int32_t{};
 				if(JS_ToInt32(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to int"));
+					throw Exception(fmt::format("Failed when converting JS number to int"));
 				}
 				return m_value;
 			}
@@ -51,7 +51,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = double{};
 				if(JS_ToFloat64(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to double"));
+					throw Exception(fmt::format("Failed when converting JS number to double"));
 				}
 				return m_value;
 			}
@@ -68,7 +68,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = double{};
 				if(JS_ToFloat64(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to float"));
+					throw Exception(fmt::format("Failed when converting JS number to float"));
 				}
 				return static_cast<float>(m_value);
 			}
@@ -84,7 +84,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = int64_t{};
 				if(JS_ToInt64(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to long long"));
+					throw Exception(fmt::format("Failed when converting JS number to long long"));
 				}
 				return m_value;
 			}
@@ -100,7 +100,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = uint32_t{};
 				if(JS_ToUint32(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to C++ unsigned int"));
+					throw Exception(fmt::format("Failed when converting JS number to C++ unsigned int"));
 				}
 				return m_value;
 			}
@@ -116,7 +116,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = uint64_t{};
 				if(JS_ToIndex(context, &m_value, that) < 0){
-					throw std::runtime_error(fmt::format("Failed when converting JS number to C++ unsigned long long"));
+					throw Exception(fmt::format("Failed when converting JS number to C++ unsigned long long"));
 				}
 				return m_value;
 			}
@@ -443,7 +443,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				FILE *fp = fopen(source.c_str(), "rb");
 				auto file_size = long{};
 				if (fp == NULL) {
-					throw std::runtime_error(fmt::format("File does not found: {}", source));
+					throw Exception(fmt::format("File does not found: {}", source));
 				}
 				fseek(fp, 0, SEEK_END);
 				file_size = ftell(fp);
@@ -451,13 +451,13 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto buffer = (char*) malloc(file_size * sizeof(char));
 				if (buffer == NULL) {
 					fclose(fp);
-					throw std::runtime_error(fmt::format("C malloc allocating memory failed, source file: {}", source));
+					throw Exception(fmt::format("C malloc allocating memory failed, source file: {}", source));
 				}
 				auto result = fread(buffer, 1, file_size, fp);
 				if (result != file_size) {
 					free(buffer);
 					fclose(fp);
-					throw std::runtime_error(fmt::format("Read file {} failed", source));
+					throw Exception(fmt::format("Read file {} failed", source));
 				}
 				auto array_buffer = JS_NewArrayBufferCopy(ctx, reinterpret_cast<uint8_t*>(buffer), file_size);
 				free(buffer);
@@ -478,16 +478,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto size = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &size, that);
 				if(data == NULL){
-					throw std::runtime_error(fmt::format("Failed when get ArrayBuffer from JavaScript"));
+					throw Exception(fmt::format("Failed when get ArrayBuffer from JavaScript"));
 				}
 				auto ofs = std::ofstream(destination, std::ios::binary | std::ios::out);
 				if (!ofs) {
-					throw std::runtime_error(fmt::format("File cannot be opened for write operation: {}", destination));
+					throw Exception(fmt::format("File cannot be opened for write operation: {}", destination));
 				}
 				ofs.write(reinterpret_cast<const char*>(data), size);
 				if (!ofs) {
 					ofs.close();
-					throw std::runtime_error(fmt::format("File cannot be written: {}", destination));
+					throw Exception(fmt::format("File cannot be written: {}", destination));
 				}
 				ofs.close();
 				return;

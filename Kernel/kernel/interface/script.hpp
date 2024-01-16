@@ -2,6 +2,17 @@
 
 #include "kernel/interface/shell.hpp"
 
+#define M_JS_EXCEPTION_THROW(context, error, source)                       \
+	auto evaluate_context = fmt::format("throw new Error(\"{}\")", error); \
+	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
+
+#define M_JS_EVALUATE_WRAPPER(context, code)                                         \
+	try code catch (...)                                                             \
+	{                                                                                \
+		auto exception = parse_exception();                                          \
+		M_JS_EXCEPTION_THROW(context, exception.message(), exception.source); \
+	}
+
 namespace Sen::Kernel::Interface::Script {
 
 	/**
@@ -41,10 +52,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto time = JS::Converter::get_int64(context, argv[0]);
-			Sen::Kernel::Definition::Timer::sleep(time);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto time = JS::Converter::get_int64(context, argv[0]);
+				Sen::Kernel::Definition::Timer::sleep(time);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -61,9 +74,11 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
-			auto current = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
-			return JS::Converter::to_number(context, current);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+				auto current = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+				return JS::Converter::to_number(context, current);
+			});
 		}
 
 	}
@@ -79,7 +94,10 @@ namespace Sen::Kernel::Interface::Script {
 		*/
 
 		namespace VCDiff {
-			
+
+			/**
+			 * Encode VCDiff
+			*/
 
 			inline static auto encode_fs(
 				JSContext *context, 
@@ -88,17 +106,20 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
-				auto before_file = JS_ToCString(context, argv[0]);
-				auto after_file = JS_ToCString(context, argv[1]);
-				auto patch_file = JS_ToCString(context, argv[2]);
-				auto flag = JS::Converter::get_int32(context, argv[3]);
-				Sen::Kernel::Definition::Diff::VCDiff::encode_fs(before_file, after_file, patch_file, static_cast<Sen::Kernel::Definition::Diff::VCDiff::Flag>(flag));
-				JS_FreeCString(context, before_file);
-				JS_FreeCString(context, after_file);
-				JS_FreeCString(context, patch_file);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+					auto before_file = JS::Converter::get_string(context, argv[0]);
+					auto after_file = JS::Converter::get_string(context, argv[1]);
+					auto patch_file = JS::Converter::get_string(context, argv[2]);
+					auto flag = JS::Converter::get_int32(context, argv[3]);
+					Sen::Kernel::Definition::Diff::VCDiff::encode_fs(before_file, after_file, patch_file, static_cast<Sen::Kernel::Definition::Diff::VCDiff::Flag>(flag));
+					return JS::Converter::get_undefined();
+				});
 			}
+
+			/**
+			 * Decode VCDiff
+			*/
 
 			inline static auto decode_fs(
 				JSContext *context, 
@@ -107,15 +128,14 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-				auto before_file = JS_ToCString(context, argv[0]);
-				auto patch_file = JS_ToCString(context, argv[1]);
-				auto after_file = JS_ToCString(context, argv[2]);
-				Sen::Kernel::Definition::Diff::VCDiff::decode_fs(before_file, after_file, patch_file);
-				JS_FreeCString(context, before_file);
-				JS_FreeCString(context, patch_file);
-				JS_FreeCString(context, after_file);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto before_file = JS::Converter::get_string(context, argv[0]);
+					auto patch_file = JS::Converter::get_string(context, argv[1]);
+					auto after_file = JS::Converter::get_string(context, argv[2]);
+					Sen::Kernel::Definition::Diff::VCDiff::decode_fs(before_file, after_file, patch_file);
+					return JS::Converter::get_undefined();
+				});
 			}
 
 		}
@@ -142,7 +162,6 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
 			#if WINDOWS
 				return JS::Converter::to_string(context, std::string{"Windows"});
 			#elif LINUX
@@ -198,54 +217,65 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
 			#if WINDOWS
-				auto si = SYSTEM_INFO{};
-				GetNativeSystemInfo(&si);
-				switch (si.wProcessorArchitecture)
+					auto si = SYSTEM_INFO{};
+					GetNativeSystemInfo(&si);
+					switch (si.wProcessorArchitecture)
 					{
-						case PROCESSOR_ARCHITECTURE_AMD64:{
+						case PROCESSOR_ARCHITECTURE_AMD64:
+						{
 							return JS::Converter::to_string(context, std::string{"x64"});
 						}
-						case PROCESSOR_ARCHITECTURE_ARM:{
+						case PROCESSOR_ARCHITECTURE_ARM:
+						{
 							return JS::Converter::to_string(context, std::string{"x86"});
 						}
-						case PROCESSOR_ARCHITECTURE_IA64:{
+						case PROCESSOR_ARCHITECTURE_IA64:
+						{
 							return JS::Converter::to_string(context, std::string{"arm64"});
 						}
-						case PROCESSOR_ARCHITECTURE_INTEL:{
+						case PROCESSOR_ARCHITECTURE_INTEL:
+						{
 							return JS::Converter::to_string(context, std::string{"arm"});
 						}
-						default:{
+						default:
+						{
 							return JS::Converter::to_string(context, std::string{"Unknown"});
 						}
 					}
-			#else
-				auto buffer = std::array<char, 128>();
-				auto result = std::string();
-				auto pipe = std::unique_ptr<FILE, FileDeleter>(popen("uname -m", "r"));
-				if (!pipe) {
-					throw std::runtime_error("cannot open pipe");
-				}
-				while (fgets(buffer.data(), 128, pipe.get()) != nullptr) {
-					result += buffer.data();
-				}
-				result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
-				if (result == "x86_64"){
-					return JS::Converter::to_string(context, std::string{"x64"});
-				}
-				else if (result == "i686"){
-					return JS::Converter::to_string(context, std::string{"x86"});
-				}
-				else if (result == "aarch64"){
-					return JS::Converter::to_string(context, std::string{"arm64"});
-				}
-				else if (result == "armv7l"){
-					return JS::Converter::to_string(context, std::string{"arm"});
-				}
-				else{
-					return JS::Converter::to_string(context, std::string{"Unknown"});
-				}
+				#else
+					auto buffer = std::array<char, 128>();
+					auto result = std::string();
+					auto pipe = std::unique_ptr<FILE, FileDeleter>(popen("uname -m", "r"));
+					if (!pipe)
+					{
+						throw Exception("cannot open pipe");
+					}
+					while (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+					{
+						result += buffer.data();
+					}
+					result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+					if (result == "x86_64")
+					{
+						return JS::Converter::to_string(context, std::string{"x64"});
+					}
+					else if (result == "i686")
+					{
+						return JS::Converter::to_string(context, std::string{"x86"});
+					}
+					else if (result == "aarch64")
+					{
+						return JS::Converter::to_string(context, std::string{"arm64"});
+					}
+					else if (result == "armv7l")
+					{
+						return JS::Converter::to_string(context, std::string{"arm"});
+					}
+					else
+					{
+						return JS::Converter::to_string(context, std::string{"Unknown"});
+					}
 			#endif
 		}	
 
@@ -268,11 +298,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = JS::Converter::read_file_as_js_arraybuffer(context, source);
-			JS_FreeCString(context, source);
-			return result;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = JS::Converter::read_file_as_js_arraybuffer(context, source);
+				return result;
+			});
 		}
 
 		/**
@@ -291,12 +322,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			auto array_buffer = argv[1];
-			JS::Converter::write_file_as_arraybuffer(context, destination, array_buffer);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto array_buffer = argv[1];
+				JS::Converter::write_file_as_arraybuffer(context, destination, array_buffer);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 	}
@@ -322,11 +354,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			Sen::Kernel::Process::run(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				Sen::Kernel::Process::run(source);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -344,11 +377,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Process::is_exists_in_path_environment(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_bool(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Process::is_exists_in_path_environment(source);
+				return JS::Converter::to_bool(context, result);
+			});
 		}
 
 		/**
@@ -366,11 +400,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Process::execute(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Process::execute(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 	}
@@ -416,22 +451,28 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc >= 1, fmt::format("argument expected greater than {} but received {}", "1", argc));
-			switch (argc){
-				case 1: {
-					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0])}));
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc >= 1, fmt::format("argument expected greater than {} but received {}", "1", argc));
+				switch (argc)
+				{
+				case 1:
+				{
+					Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0])}));
 					break;
 				}
-				case 2: {
-					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1])}));
+				case 2:
+				{
+					Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1])}));
 					break;
 				}
-				default: {
+				default:
+				{
 					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}));
 					break;
 				}
-			}
-			return JS::Converter::get_undefined();
+				}
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -448,9 +489,11 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
-			auto result = Shell::callback(construct_string_list(std::vector{std::string{"input"}}));
-			return JS::Converter::to_string(context, std::string{result.value, result.size});
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
+				auto result = Shell::callback(construct_string_list(std::vector{std::string{"input"}}));
+				return JS::Converter::to_string(context, std::string{result.value, result.size});
+			});
 		}
 	}
 
@@ -470,13 +513,15 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			auto v = std::vector<std::string>{};
-			for(auto i : Range<int>(argc)){
-				auto source = JS_ToCString(context, argv[i]);
-				v.push_back(std::string{source});
-				JS_FreeCString(context, source);
-			}
-			return JS::Converter::to_string(context, Sen::Kernel::Path::Script::join(v));
+			M_JS_EVALUATE_WRAPPER(context, {
+				auto v = std::vector<std::string>{};
+				for(auto i : Range<int>(argc))
+				{
+					auto source = JS::Converter::get_string(context, argv[i]);
+					v.push_back(std::string{source});
+				}
+				return JS::Converter::to_string(context, Sen::Kernel::Path::Script::join(v));
+			});
 		}
 
 		/**
@@ -494,11 +539,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::basename(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::basename(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -516,8 +562,10 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			auto result = Sen::Kernel::Path::Script::delimiter();
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				auto result = Sen::Kernel::Path::Script::delimiter();
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -535,11 +583,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::dirname(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::dirname(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -557,15 +606,15 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto dir = JS_GetPropertyStr(context, argv[0], "dir");
-			auto base = JS_GetPropertyStr(context, argv[0], "base");
-			auto source_1 = JS_ToCString(context, dir);
-			auto source_2 = JS_ToCString(context, base);
-			auto result = Sen::Kernel::Path::Script::format(Sen::Kernel::Path::Format{source_1,source_2});
-			JS_FreeCString(context, source_1);
-			JS_FreeCString(context, source_2);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto dir = JS_GetPropertyStr(context, argv[0], "dir");
+				auto base = JS_GetPropertyStr(context, argv[0], "base");
+				auto source_1 = JS::Converter::get_string(context, dir);
+				auto source_2 = JS::Converter::get_string(context, base);
+				auto result = Sen::Kernel::Path::Script::format(Sen::Kernel::Path::Format{source_1, source_2});
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -583,11 +632,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::normalize(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::normalize(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -605,11 +655,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::resolve(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::resolve(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -627,11 +678,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::extname(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::extname(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -649,11 +701,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::Path::Script::is_absolute(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_bool(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::is_absolute(source);
+				return JS::Converter::to_bool(context, result);
+			});
 		}
 
 		/**
@@ -672,13 +725,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-			auto from = JS_ToCString(context, argv[0]);
-			auto to = JS_ToCString(context, argv[1]);
-			auto result = Sen::Kernel::Path::Script::relative(from, to);
-			JS_FreeCString(context, from);
-			JS_FreeCString(context, to);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto from = JS::Converter::get_string(context, argv[0]);
+				auto to = JS::Converter::get_string(context, argv[1]);
+				auto result = Sen::Kernel::Path::Script::relative(from, to);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 	}
@@ -704,11 +757,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::read_file(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_string(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_file(source);
+				return JS::Converter::to_string(context, result);
+			});
 		}
 
 		/**
@@ -726,13 +780,14 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readFileByUtf16LE(source);
-			JS_FreeCString(context, source);
-			auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
-			auto utf8_string = std::string{converter.to_bytes(result)};
-			return JS::Converter::to_string(context, utf8_string);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::readFileByUtf16LE(source);
+				auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+				auto utf8_string = std::string{converter.to_bytes(result)};
+				return JS::Converter::to_string(context, utf8_string);
+			});
 		}
 
 		/**
@@ -751,13 +806,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			auto data = JS_ToCString(context, argv[1]);
-			Sen::Kernel::FileSystem::write_file(destination, data);
-			JS_FreeCString(context, destination);
-			JS_FreeCString(context, data);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto data = JS::Converter::get_string(context, argv[1]);
+				Sen::Kernel::FileSystem::write_file(destination, data);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -776,15 +831,15 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			auto data = JS_ToCString(context, argv[1]);
-			auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
-			auto result = std::wstring{converter.from_bytes(data)};
-			Sen::Kernel::FileSystem::write_fileByUtf16LE(destination, result);
-			JS_FreeCString(context, destination);
-			JS_FreeCString(context, data);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto data = JS::Converter::get_string(context, argv[1]);
+				auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
+				auto result = std::wstring{converter.from_bytes(data)};
+				Sen::Kernel::FileSystem::write_fileByUtf16LE(destination, result);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -802,11 +857,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readDirectory(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_array(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::readDirectory(source);
+				return JS::Converter::to_array(context, result);
+			});
 		}
 
 		/**
@@ -824,11 +880,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readDirectoryOnlyFile(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_array(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyFile(source);
+				return JS::Converter::to_array(context, result);
+			});
 		}
 
 		/**
@@ -846,11 +903,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readDirectoryOnlyDirectory(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_array(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyDirectory(source);
+				return JS::Converter::to_array(context, result);
+			});
 		}
 
 		/**
@@ -868,11 +926,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = Sen::Kernel::FileSystem::readWholeDirectory(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_array(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::readWholeDirectory(source);
+				return JS::Converter::to_array(context, result);
+			});
 		}
 
 		/**
@@ -890,11 +949,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			Sen::Kernel::FileSystem::createDirectory(destination);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				Sen::Kernel::FileSystem::createDirectory(destination);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -912,11 +972,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = std::filesystem::is_regular_file(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_bool(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = std::filesystem::is_regular_file(source);
+				return JS::Converter::to_bool(context, result);
+			});
 		}
 
 		/**
@@ -934,11 +995,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto result = std::filesystem::is_directory(source);
-			JS_FreeCString(context, source);
-			return JS::Converter::to_bool(context, result);
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = std::filesystem::is_directory(source);
+				return JS::Converter::to_bool(context, result);
+			});
 		}
 
 		// Basic Operation for JS
@@ -961,13 +1023,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
+					return JS::Converter::get_undefined(); 
+				});
 			}
 
 			/**
@@ -986,13 +1048,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				std::filesystem::copy(std::filesystem::path{source}, std::filesystem::path{destination});
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					std::filesystem::copy(std::filesystem::path{source}, std::filesystem::path{destination});
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1010,11 +1072,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				std::filesystem::remove(std::filesystem::path{source});
-				JS_FreeCString(context, source);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					std::filesystem::remove(std::filesystem::path{source});
+					return JS::Converter::get_undefined();
+				});
 			}
 
 		}
@@ -1043,14 +1106,14 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto destination = JS_ToCString(context, argv[1]);
-			auto percentage = JS::Converter::get_float32(context, argv[2]);
-			Sen::Kernel::Definition::ImageIO::scale_png(source, destination, percentage);
-			JS_FreeCString(context, source);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto destination = JS::Converter::get_string(context, argv[1]);
+				auto percentage = JS::Converter::get_float32(context, argv[2]);
+				Sen::Kernel::Definition::ImageIO::scale_png(source, destination, percentage);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -1068,13 +1131,14 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			auto width = JS::Converter::get_int32(context, argv[1]);
-			auto height = JS::Converter::get_int32(context, argv[2]);
-			Sen::Kernel::Definition::ImageIO::transparent_png(destination, width, height);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto width = JS::Converter::get_int32(context, argv[1]);
+				auto height = JS::Converter::get_int32(context, argv[2]);
+				Sen::Kernel::Definition::ImageIO::transparent_png(destination, width, height);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -1094,14 +1158,14 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto destination = JS_ToCString(context, argv[1]);
-			auto percentage = JS::Converter::get_float32(context, argv[2]);
-			Sen::Kernel::Definition::ImageIO::resize_png(source, destination, percentage);
-			JS_FreeCString(context, source);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto destination = JS::Converter::get_string(context, argv[1]);
+				auto percentage = JS::Converter::get_float32(context, argv[2]);
+				Sen::Kernel::Definition::ImageIO::resize_png(source, destination, percentage);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 		/**
@@ -1121,14 +1185,14 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto destination = JS_ToCString(context, argv[1]);
-			auto percentage = JS::Converter::get_float64(context, argv[2]);
-			Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
-			JS_FreeCString(context, source);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto destination = JS::Converter::get_string(context, argv[1]);
+				auto percentage = JS::Converter::get_float64(context, argv[2]);
+				Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
+				return JS::Converter::get_undefined();
+			});
 		}
 
 
@@ -1154,11 +1218,12 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto m_value = JS_Eval(context, source, strlen(source), "unknown", JS_EVAL_TYPE_GLOBAL);
-			JS_FreeCString(context, source);
-			return m_value;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto m_value = JS_Eval(context, source.c_str(), source.size(), "unknown", JS_EVAL_TYPE_GLOBAL);
+				return m_value;
+			});
 		}
 
 		/**
@@ -1176,12 +1241,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto js_source = Sen::Kernel::FileSystem::read_file(source);
-			auto m_value = JS_Eval(context, js_source.c_str(), js_source.size(), source, JS_EVAL_TYPE_GLOBAL);
-			JS_FreeCString(context, source);
-			return m_value;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto js_source = Sen::Kernel::FileSystem::read_file(source);
+				auto m_value = JS_Eval(context, js_source.c_str(), js_source.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
+				return m_value;
+			});
 		}
 	}
 
@@ -1211,12 +1277,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto str = std::string{source};
-				auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto str = std::string{source};
+					auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1234,11 +1301,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::MD5::hash_fs(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::MD5::hash_fs(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 		}
 
@@ -1263,11 +1331,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 				/**
@@ -1284,14 +1353,17 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					auto paths = std::vector<std::vector<std::string>>{};
-					for (const auto & i : Range<int>(argc)) {
-						const auto & data = JS::Converter::get_vector<std::string>(context, argv[i]);
-						try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
-						paths.emplace_back(data);
-					}
-					Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						auto paths = std::vector<std::vector<std::string>>{};
+						for (const auto &i : Range<int>(argc))
+						{
+							const auto &data = JS::Converter::get_vector<std::string>(context, argv[i]);
+							try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+							paths.emplace_back(data);
+						}
+						Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -1308,14 +1380,17 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					auto paths = std::vector<std::vector<std::string>>{};
-					for (const auto & i : Range<int>(argc)) {
-						const auto & data = JS::Converter::get_vector<std::string>(context, argv[i]);
-						try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
-						paths.emplace_back(data);
-					}
-					Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						auto paths = std::vector<std::vector<std::string>>{};
+						for (const auto &i : Range<int>(argc))
+						{
+							const auto &data = JS::Converter::get_vector<std::string>(context, argv[i]);
+							try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+							paths.emplace_back(data);
+						}
+						Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 			/**
@@ -1333,11 +1408,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::Base64::decode(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::Base64::decode(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1355,13 +1431,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Encryption::Base64::encode_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Encryption::Base64::encode_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1379,13 +1455,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Encryption::Base64::decode_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Encryption::Base64::decode_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 		}
 
@@ -1409,11 +1485,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1431,11 +1508,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::Sha224::hash_fs(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash_fs(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 		}
@@ -1460,11 +1538,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA256::hash(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1482,11 +1561,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA256::hash_fs(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash_fs(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 		}
 
@@ -1510,11 +1590,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA384::hash(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1532,11 +1613,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA384::hash_fs(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash_fs(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 		}
 
@@ -1560,11 +1642,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA512::hash(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1582,11 +1665,12 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto result = Sen::Kernel::Definition::Encryption::SHA512::hash_fs(source);
-				JS_FreeCString(context, source);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash_fs(source);
+					return JS::Converter::to_string(context, result);
+				});
 			}
 		}
 
@@ -1611,13 +1695,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto plain = JS_ToCString(context, argv[0]);
-				auto key = JS_ToCString(context, argv[1]);
-				auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key);
-				JS_FreeCString(context, plain);
-				JS_FreeCString(context, key);
-				return JS::Converter::to_string(context, result);
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto plain = JS::Converter::get_string(context, argv[0]);
+					auto key = JS::Converter::get_string(context, argv[1]);
+					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key.c_str());
+					return JS::Converter::to_string(context, result);
+				});
 			}
 
 			/**
@@ -1637,15 +1721,14 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				auto key = JS_ToCString(context, argv[2]);
-				Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source, destination, key);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				JS_FreeCString(context, key);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					auto key = JS::Converter::get_string(context, argv[2]);
+					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source, destination, key.c_str());
+					return JS::Converter::get_undefined();
+				});
 			}
 
 		}
@@ -1684,13 +1767,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Definition::Compression::Zip::Compress::directory(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Definition::Compression::Zip::Compress::directory(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -1710,19 +1793,21 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3 || argc == 2, fmt::format("argument expected {} but received {}", "2 or 3", argc));
-					auto source = JS::Converter::get_vector<std::string>(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					if (argc == 3){
-						auto root = JS_ToCString(context, argv[2]);
-						Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination, root);
-						JS_FreeCString(context, root);
-					}
-					else {
-						Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination);
-					}
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3 || argc == 2, fmt::format("argument expected {} but received {}", "2 or 3", argc));
+						auto source = JS::Converter::get_vector<std::string>(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						if (argc == 3)
+						{
+							auto root = JS::Converter::get_string(context, argv[2]);
+							Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination, root);
+						}
+						else
+						{
+							Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination);
+						}
+						return JS::Converter::get_undefined();
+					});
 				}
 
 			}
@@ -1749,13 +1834,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Definition::Compression::Zip::Uncompress::process(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Definition::Compression::Zip::Uncompress::process(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 			}
@@ -1785,19 +1870,18 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				auto level = JS::Converter::get_int32(context, argv[2]);
-				if(!(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT <= level or level <= Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9)){
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					throw std::invalid_argument(fmt::format("Invalid zlib level, expected level from 0 to 9, received {}", level));
-				}
-				Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					auto level = JS::Converter::get_int32(context, argv[2]);
+					if (!(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT <= level or level <= Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9))
+					{
+						throw std::invalid_argument(fmt::format("Invalid zlib level, expected level from 0 to 9, received {}", level));
+					}
+					Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1816,13 +1900,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 			
 		}
@@ -1849,13 +1933,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Bzip2::compress_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Bzip2::compress_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1874,13 +1958,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Bzip2::uncompress_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Bzip2::uncompress_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 			
 		}
@@ -1907,13 +1991,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Lzma::compress_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Lzma::compress_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1933,14 +2017,14 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				auto actual_size = JS::Converter::get_uint64(context, argv[2]);
-				Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination, actual_size);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					auto actual_size = JS::Converter::get_uint64(context, argv[2]);
+					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination, actual_size);
+					return JS::Converter::get_undefined();
+				});
 			}
 			
 		}
@@ -1966,13 +2050,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 
 			/**
@@ -1991,13 +2075,13 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source = JS_ToCString(context, argv[0]);
-				auto destination = JS_ToCString(context, argv[1]);
-				Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(source, destination);
-				JS_FreeCString(context, source);
-				JS_FreeCString(context, destination);
-				return JS::Converter::get_undefined();
+				M_JS_EVALUATE_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(source, destination);
+					return JS::Converter::get_undefined();
+				});
 			}
 		}
 	}
@@ -2032,16 +2116,16 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto width = JS::Converter::get_int32(context, argv[2]);
-					auto height = JS::Converter::get_int32(context, argv[3]);
-					auto format = JS::Converter::get_int32(context, argv[4]);
-					Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source, destination, width, height, static_cast<Sen::Kernel::Support::Texture::Format>(format));
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto width = JS::Converter::get_int32(context, argv[2]);
+						auto height = JS::Converter::get_int32(context, argv[3]);
+						auto format = JS::Converter::get_int32(context, argv[4]);
+						Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source, destination, width, height, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2060,14 +2144,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto format = JS::Converter::get_int32(context, argv[2]);
-					Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto format = JS::Converter::get_int32(context, argv[2]);
+						Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+						return JS::Converter::get_undefined();
+					});
 				}
 
 		}
@@ -2100,14 +2184,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-					Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
+						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2126,14 +2210,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-					Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
+						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+						return JS::Converter::get_undefined();
+					});
 				}
 				
 			}
@@ -2163,18 +2247,16 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto key = JS_ToCString(context, argv[2]);
-					auto iv = JS_ToCString(context, argv[3]);
-					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
-					Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source, destination, key, iv, use_64_bit_variant);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					JS_FreeCString(context, key);
-					JS_FreeCString(context, iv);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto key = JS::Converter::get_string(context, argv[2]);
+						auto iv = JS::Converter::get_string(context, argv[3]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
+						Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source, destination, key, iv, use_64_bit_variant);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2193,16 +2275,16 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto key = JS_ToCString(context, argv[2]);
-					auto iv = JS_ToCString(context, argv[3]);
-					auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
-					Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source, destination, key, iv, use_64_bit_variant);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto key = JS::Converter::get_string(context, argv[2]);
+						auto iv = JS::Converter::get_string(context, argv[3]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
+						Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source, destination, key, iv, use_64_bit_variant);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 			}
@@ -2230,13 +2312,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::split(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::split(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2255,13 +2337,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::merge(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::merge(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2281,14 +2363,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto path_style = JS::Converter::get_int32(context, argv[2]);
-					Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(source, destination, static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(path_style));
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto path_style = JS::Converter::get_int32(context, argv[2]);
+						Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(source, destination, static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(path_style));
+						return JS::Converter::get_undefined();
+					});
 				}
 
 
@@ -2316,13 +2398,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::split_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::split_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2341,13 +2423,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::merge_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::merge_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2366,13 +2448,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 
@@ -2400,13 +2482,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::RenderEffects::Decode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RenderEffects::Decode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2425,13 +2507,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::RenderEffects::Encode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RenderEffects::Encode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 
@@ -2459,13 +2541,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::CFW2::Decode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::CFW2::Decode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2484,13 +2566,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::CFW2::Encode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::CFW2::Encode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 
@@ -2518,15 +2600,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto key = JS_ToCString(context, argv[2]);
-					Sen::Kernel::Support::PopCap::CryptData::Decrypt::process_fs(source, destination, key);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					JS_FreeCString(context, key);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto key = JS::Converter::get_string(context, argv[2]);
+						Sen::Kernel::Support::PopCap::CryptData::Decrypt::process_fs(source, destination, key);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2546,15 +2627,14 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					auto key = JS_ToCString(context, argv[2]);
-					Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					JS_FreeCString(context, key);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto key = JS::Converter::get_string(context, argv[2]);
+						Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 
@@ -2582,13 +2662,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2607,13 +2687,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 			}
@@ -2639,13 +2719,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2662,14 +2742,17 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					auto paths = std::vector<std::vector<std::string>>{};
-					for (const auto & i : Range<int>(argc)) {
-						const auto & data = JS::Converter::get_vector<std::string>(context, argv[i]);
-						try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
-						paths.emplace_back(data);
-					}
-					Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs_as_multiple_threads(paths);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						auto paths = std::vector<std::vector<std::string>>{};
+						for (const auto &i : Range<int>(argc))
+						{
+							const auto &data = JS::Converter::get_vector<std::string>(context, argv[i]);
+							try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+							paths.emplace_back(data);
+						}
+						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs_as_multiple_threads(paths);
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2688,13 +2771,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
+						return JS::Converter::get_undefined();
+					});
 				}
 			}
 
@@ -2719,13 +2802,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2744,13 +2827,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 			}
 
@@ -2775,13 +2858,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2801,13 +2884,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 			}
 
@@ -2832,13 +2915,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2857,13 +2940,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 			}
 		}
@@ -2895,13 +2978,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 
 				/**
@@ -2920,13 +3003,13 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-					auto source = JS_ToCString(context, argv[0]);
-					auto destination = JS_ToCString(context, argv[1]);
-					// encode method
-					JS_FreeCString(context, source);
-					JS_FreeCString(context, destination);
-					return JS::Converter::get_undefined();
+					M_JS_EVALUATE_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						// encode method
+						return JS::Converter::get_undefined();
+					});
 				}
 			}
 		}
@@ -3001,12 +3084,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto json = nlohmann::ordered_json::parse(source);
-			auto js_obj = json_to_js_value(context, json);
-			JS_FreeCString(context, source);
-			return js_obj;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto json = nlohmann::ordered_json::parse(source);
+				auto js_obj = json_to_js_value(context, json);
+				return js_obj;
+			});
 		}
 
 		/**
@@ -3024,12 +3108,13 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-			auto source = JS_ToCString(context, argv[0]);
-			auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::read_file(source));
-			auto js_obj = json_to_js_value(context, json);
-			JS_FreeCString(context, source);
-			return js_obj;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::read_file(source));
+				auto js_obj = json_to_js_value(context, json);
+				return js_obj;
+			});
 		}
 
 		/**
@@ -3079,13 +3164,12 @@ namespace Sen::Kernel::Interface::Script {
 						return json;
 					}
 					else{
-						throw std::runtime_error("Unknown type");
+						throw Exception("Unknown type");
 					}
 				}
 				case JS_TAG_STRING: {
-					auto str = JS_ToCString(context, value);
+					auto str = JS::Converter::get_string(context, value);
 					auto json = nlohmann::ordered_json(str);
-					JS_FreeCString(context, str);
 					return json;
 				}
 				case JS_TAG_BOOL:{
@@ -3123,13 +3207,15 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-			auto json = js_object_to_json(context, argv[0]);
-			auto indent = JS::Converter::get_int32(context, argv[1]);
-			auto ensure_ascii = JS::Converter::get_bool(context, argv[2]);;
-			auto source = json.dump(indent, '\t', ensure_ascii);
-			auto js_val = JS_NewString(context, source.c_str());
-			return js_val;
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto json = js_object_to_json(context, argv[0]);
+				auto indent = JS::Converter::get_int32(context, argv[1]);
+				auto ensure_ascii = JS::Converter::get_bool(context, argv[2]);;
+				auto source = json.dump(indent, '\t', ensure_ascii);
+				auto js_val = JS_NewString(context, source.c_str());
+				return js_val;
+			});
 		}
 
 		/**
@@ -3150,15 +3236,17 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
-			auto destination = JS_ToCString(context, argv[0]);
-			auto json = js_object_to_json(context, argv[1]);
-			auto indent = JS::Converter::get_int32(context, argv[2]);
-			auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);;
-			auto result = json.dump(indent, '\t', ensure_ascii);
-			Sen::Kernel::FileSystem::write_file(destination, result);
-			JS_FreeCString(context, destination);
-			return JS::Converter::get_undefined();
+			M_JS_EVALUATE_WRAPPER(context, {
+				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto json = js_object_to_json(context, argv[1]);
+				auto indent = JS::Converter::get_int32(context, argv[2]);
+				auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);
+				;
+				auto result = json.dump(indent, '\t', ensure_ascii);
+				Sen::Kernel::FileSystem::write_file(destination, result);
+				return JS::Converter::get_undefined();
+			});
 		}
 	}
 

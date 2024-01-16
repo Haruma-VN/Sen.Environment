@@ -208,7 +208,7 @@ namespace Sen::Kernel::Definition::Compression {
 				zlib_init.avail_in = 0;
 				zlib_init.next_in = Z_NULL;
 				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
-					throw std::runtime_error("Uncompress initialize failed");
+					throw Exception("Uncompress initialize failed");
 				}
 				zlib_init.avail_in = static_cast<uInt>(data.size());
 				zlib_init.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data.data()));
@@ -226,7 +226,7 @@ namespace Sen::Kernel::Definition::Compression {
 					}
 					if(ret != Z_OK){
 						inflateEnd(&zlib_init);
-						throw std::runtime_error("Uncompress failed"); 
+						throw Exception("Uncompress failed"); 
 					}
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
@@ -266,7 +266,7 @@ namespace Sen::Kernel::Definition::Compression {
 				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto uncompressedData = Zlib::uncompress(data);
 				if(uncompressedData.empty()){
-					throw std::runtime_error(fmt::format("The specific file cannot be uncompressed: {}", fileIn));
+					throw Exception(fmt::format("The specific file cannot be uncompressed: {}", fileIn));
 				}
 				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
 				return;
