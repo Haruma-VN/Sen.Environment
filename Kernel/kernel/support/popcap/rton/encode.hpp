@@ -4,150 +4,156 @@
 
 namespace Sen::Kernel::Support::PopCap::RTON
 {
+
+    // Use DataStream
+
     using namespace Definition;
 
-    class Encode
-    {
-    protected:
+    // Use simdjson
 
-        inline auto encode_rton(
-            const nlohmann::ordered_json & json
-        ) -> DataStreamView
-        {
-            auto r0x90_stringpool = nlohmann::ordered_json::object();
-            auto r0x92_stringpool = nlohmann::ordered_json::object();
-            auto r0x90_index = 0;
-            auto r0x92_index = 0;
-            auto sen = DataStreamView{};
-            sen.writeString("RTON");
-            sen.writeUint32(0x01);
-            write_object(json, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
-            sen.writeString("DONE");
-            return sen;
+    using namespace simdjson;
+
+    struct Encode
+    {
+        
+        private:
+
+            inline static constexpr auto RTON_head = std::string_view{"RTON"};
+            inline static constexpr auto RTON_end = std::string_view{"DONE"};
+            inline static constexpr auto star = std::string_view{"*"};
+            inline static constexpr auto empty_string = std::string_view{""};
+            inline static constexpr auto rtid_0 = std::string_view{"RTID(0)"};
+            inline static constexpr auto RTON_vesion = 0x01_byte;
+            inline static constexpr auto object_begin = 0x85_byte;
+            inline static constexpr auto object_end = 0xFF_byte;
+            inline static constexpr auto array_begin = 0x86_byte;
+            inline static constexpr auto array_start = 0xFD_byte;
+            inline static constexpr auto array_end = 0xFE_byte;
+            inline static constexpr auto null_byte = 0x84_byte;
+            std::map<std::string_view, int> r0x90_stringpool;
+            std::map<std::string_view, int> r0x92_stringpool;
+            int r0x90_index;
+            int r0x92_index;
+            DataStreamView sen;
+
+        protected:
+            inline auto encode_rton(
+                ondemand::document &json) -> DataStreamView
+            {
+                sen.writeStringView(RTON_head);
+                sen.writeUint32(RTON_vesion);
+                auto object = static_cast<ondemand::object>(json.get_object());
+                write_object(object);
+                sen.writeStringView(RTON_end);
+                return sen;
         }
 
         inline auto write_object(
-            const nlohmann::ordered_json &json,
-            DataStreamView &sen,
-            nlohmann::ordered_json &r0x90_stringpool,
-            nlohmann::ordered_json &r0x92_stringpool,
-            int & r0x90_index,
-            int & r0x92_index
+            ondemand::object object
         ) -> void
         {
-            for (auto &[key, value] : json.items())
+            for (auto field : object)
             {
-                write_string(key, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
-                write_value(value, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
+                write_string(field.unescaped_key());
+                write_value(field.value());
             }
-            sen.writeUint8(0xFF);
+            sen.writeUint8(object_end);
             return;
         }
 
         inline auto write_array(
-            const nlohmann::ordered_json & json,
-            DataStreamView & sen,
-            nlohmann::ordered_json & r0x90_stringpool,
-            nlohmann::ordered_json & r0x92_stringpool,
-            int & r0x90_index,
-            int & r0x92_index
+            ondemand::array array
         ) -> void
         {
-            sen.writeUint8(0xFD);
-            auto array_length = json.size();
-            sen.writeVarInt32(array_length);
-            for (auto value : json)
+            sen.writeUint8(array_start);
+            sen.writeVarInt32((int)array.count_elements());
+            for (auto child : array)
             {
-                write_value(value, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
+                write_value(child.value());
             }
-            sen.writeUint8(0xFE);
+            sen.writeUint8(array_end);
             return;
         }
 
         inline auto write_value(
-            const nlohmann::ordered_json & value,
-            DataStreamView & sen,
-            nlohmann::ordered_json & r0x90_stringpool,
-            nlohmann::ordered_json & r0x92_stringpool,
-            int & r0x90_index,
-            int & r0x92_index
+            ondemand::value element
         ) -> void
         {
-            using value_t = nlohmann::ordered_json::value_t;
-            switch (value.type())
+            switch (element.type())
             {
-            case value_t::object:{
-                sen.writeUint8(0x85);
-                write_object(value, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
+            case ondemand::json_type::object:
+            {
+                sen.writeUint8(object_begin);
+                write_object(element.get_object());
                 break;
             }
-            case value_t::array:{
-                sen.writeUint8(0x86);
-                write_array(value, sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
+            case ondemand::json_type::array:
+            {
+                sen.writeUint8(array_begin);
+                write_array(element.get_array());
                 break;
             }
-            case value_t::boolean:{
-                auto bool_value = value.get<bool>();
-                sen.writeBoolean(bool_value);
+            case ondemand::json_type::boolean:
+            {
+                sen.writeBoolean(static_cast<bool>(element.get_bool()));
                 break;
             }
-            case value_t::null:{
-                sen.writeUint8(0x84);
+            case ondemand::json_type::null:
+            {
+                sen.writeUint8(null_byte);
                 break;
             }
-            case value_t::string:{
-                write_string(value.get<string>(), sen, r0x90_stringpool, r0x92_stringpool, r0x90_index, r0x92_index);
+            case ondemand::json_type::string:
+            {
+                write_string(static_cast<std::string_view>(element.get_string()));
                 break;
             }
-            case value_t::number_integer:{
-                write_num(value.get<long>(), sen);
+            case ondemand::json_type::number:
+            {
+                if (element.is_integer())
+                {
+                    write_num(static_cast<int64_t>(element.get_int64()));
+                }
+                else
+                {
+                    write_float(static_cast<double>(element.get_double()));
+                }
                 break;
             }
-            case value_t::number_unsigned:{
-                write_num(value.get<u_long>(), sen);
-                break;
-            }
-            case value_t::number_float:{
-                write_float(value, sen);
-                break;
-            }
-            default:{
+            default:
+            {
                 throw Exception("invalid value");
             }
             }
             return;
         }
 
-        inline auto write_float(
-            const nlohmann::ordered_json & num,
-            DataStreamView & sen
+        inline auto constexpr write_float(
+            double num
         ) -> void
         {
-            auto f64 = num.get<double>();
             if (num == 0.0)
             {
                 sen.writeUint8(0x23);
             }
             else
             {
-                auto f32 = num.get<float>();
-                if ((double)f32 == f64)
+                if ((float)num == num)
                 {
                     sen.writeUint8(0x22);
-                    sen.writeFloat(f32);
+                    sen.writeFloat(num);
                 }
                 else
                 {
                     sen.writeUint8(0x42);
-                    sen.writeDouble(f64);
+                    sen.writeDouble(num);
                 }
             }
             return;
         }
 
         inline auto write_num(
-            const size_t & num, 
-            DataStreamView &sen
+            int64_t num
         ) -> void
         {
             if (num == 0)
@@ -208,21 +214,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline auto write_string(
-            const std::string & str,
-            DataStreamView & sen,
-            nlohmann::ordered_json & r0x90_stringpool,
-            nlohmann::ordered_json & r0x92_stringpool,
-            int & r0x90_index,
-            int & r0x92_index
+            std::string_view str
         ) -> void
         {
-            if (str == "*")
+            if (str == star)
             {
-                sen.writeUint8(2);
+                sen.writeUint8(0x02);
             }
-            else if (write_binary(str, sen))
+            else if (write_binary(str))
                 return;
-            else if (write_RTID(str, sen))
+            else if (write_RTID(str))
                 return;
             else if (is_ascii(str))
             {
@@ -234,8 +235,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 else
                 {
                     sen.writeUint8(0x90);
-                    sen.writeStringByVarInt32(str);
-                    r0x90_stringpool += {str, r0x90_index++};
+                    sen.writeStringViewByVarInt32(str);
+                    r0x90_stringpool.insert({str, r0x90_index++});
                 }
             }
             else
@@ -248,47 +249,73 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 else
                 {
                     sen.writeUint8(0x92);
-                    sen.writeStringByVarInt32(str);
-                    r0x92_stringpool += {str, r0x92_index++};
+                    sen.writeVarInt32(get_utf8_size(str));
+                    sen.writeStringViewByVarInt32(str);
+                    r0x92_stringpool.insert({str, r0x92_index++});
                 }
             }
             return;
         }
 
+        inline auto constexpr get_utf8_size(
+            std::string_view q
+        ) -> std::size_t
+        {
+            auto utf8_size = 0Ui64;
+            for (auto & i : q)
+            {
+                if (i <= 0b01111111){
+                    ++utf8_size;
+                }
+                else if (i >= 0b11000010 && i <= 0b11011111){
+                    ++utf8_size;
+                }
+                else if (i >= 0b11100001 && i <= 0b11101111){
+                    ++utf8_size;
+                }
+                else if (i >= 0b11110000 && i <= 0b11110111){
+                    ++utf8_size;
+                }
+            }
+            return utf8_size;
+        }
+
         inline auto is_ascii(
-            const std::string & str
+            std::string_view str
         ) -> bool
         {
-            for (auto &c : str)
-            {
-                if ((int)c > 127)
+            /*
+            for (auto &c : str) {
+                if ((u_char)c > 127) {
                     return false;
-            };
+                }
+            }
+            */
+            if (get_utf8_size(str) != str.length()) {
+                return false;
+            }
             return true;
         }
 
         inline auto write_RTID(
-            const std::string & str, 
-            DataStreamView &sen
+            std::string_view str
         ) -> bool
         {
             auto p_str = String{str};
-            if (p_str.startsWith(std::string{"RTID("}) and p_str.endsWith(std::string{")"}))
+            if (str.starts_with("RTID(") and str.ends_with(")"))
             {
-                if (str == std::string{"RTID(0)"})
+                if (str == rtid_0)
                 {
-                    sen.writeUint8(0x84);
+                    sen.writeUint8(null_byte);
                     return true;
                 }
                 auto new_str = p_str.slice(5, p_str.length() - 1);
-                if (new_str.indexOf(std::string{"@"}) != -1)
+                if (new_str.indexOf("@") != -1)
                 {
-                    auto name_str = new_str.split(std::string{"@"});
-                    auto s = std::string {"132AB.78.BB"};
-                    auto re = std::regex("\\.", std::regex_constants::egrep);
-                    auto c = std::distance(std::sregex_token_iterator(s.begin(), s.end(), re), std::sregex_token_iterator());
+                    auto name_str = new_str.split("@");
+                    auto dot_count = (std::size_t)std::count(name_str[0].begin(), name_str[0].end(), '.');
                     sen.writeUint8(0x83);
-                    if (c == 2)
+                    if (dot_count == 2)
                     {
                         auto int_str = String{name_str[0]}.split(".");
                         sen.writeUint8(0x02);
@@ -298,7 +325,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                         sen.writeVarInt32(std::stoi(int_str[0]));
                         auto hex_string = int_str[2];
                         std::reverse(hex_string.begin(), hex_string.end());
-                        auto hex_int = (int)strtol(hex_string.c_str(), NULL, 16);
+                        auto hex_int = static_cast<int>(strtol(hex_string.c_str(), NULL, 16));
                         sen.writeInt32(hex_int);
                     }
                     else
@@ -316,12 +343,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline auto write_binary(
-            const std::string & str, 
-            DataStreamView &sen
+            std::string_view str_v
         ) -> bool
         {
-            auto p_str = String{str};
-            if (p_str.startsWith("$BINARY(\"") && p_str.endsWith(")"))
+            auto p_str = String{str_v};
+            if (str_v.starts_with("$BINARY(\"") and str_v.ends_with(")"))
             {
                 auto index = p_str.lastIndexOf("\", ");
                 if (index == -1)
@@ -331,16 +357,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 auto v = 0;
                 try
                 {
-                    v = std::stoi(str.substr(index + 3, str.length() - 1));
+                    v = std::stoi(p_str.value.substr(index + 3, p_str.length() - 1));
                 }
                 catch (int err)
                 {
                     return false;
                 }
-                auto m_string = str.substr(9, index);
+                auto m_string = str_v.substr(9, index);
                 sen.writeUint8(0x87);
                 sen.writeUint8(0);
-                sen.writeStringByVarInt32(m_string);
+                sen.writeStringViewByVarInt32(m_string);
                 sen.writeVarInt32(v);
                 return true;
             }
@@ -348,11 +374,32 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
     public:
-        static auto encode_fs(
-            const std::string & source,
-            const std::string & destination
+
+        Encode(
+
+        ) = default;
+
+        ~Encode(
+
+        ) = default;
+
+        inline static auto instance(
+
+        ) -> Encode&
+        {
+            static auto INSTANCE = Encode{};
+            return INSTANCE;
+        }
+
+        inline static auto encode_fs(
+            std::string_view source,
+            std::string_view destination
         ) -> void
         {
+            auto parser = ondemand::parser{};
+            auto str = padded_string::load(source);
+            auto json = static_cast<ondemand::document>(parser.iterate(str));
+            Encode::instance().encode_rton(json).out_file(destination);
             return;
         }
     };

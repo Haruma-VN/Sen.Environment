@@ -6,7 +6,7 @@
     "result": "Kết quả",
     "execution_argument": "Đối số thực thi",
     "execution_finished": "Đối số hoàn tất",
-    "method_loaded": "Hàm đã được nạp: {}",
+    "method_loaded": "Hàm đã được nạp",
     "data.md5.hash": "Dữ liệu: Băm MD5",
     "input_argument": "Đối số đầu vào",
     "output_argument": "Đối số đầu ra",
@@ -17,5 +17,8 @@
     "data.base64.encode": "Dữ liệu: Mã hoá Base64",
     "data.base64.decode": "Dữ liệu: Giải mã Base64",
     "method_are_succeeded": "Tất cả phương thức được thực hiện thành công!",
-    "cannot_read_file": "Không thể đọc tệp, có thể không được tìm thấy, đường dẫn"
+    "cannot_read_file": "Không thể đọc tệp, có thể không được tìm thấy, đường dẫn",
+    "popcap.rton.decode": "PopCap RTON: Giải mã",
+    "popcap.rton.encode": "PopCap RTON: Mã hoá",
+    "batch.process.count": "Xử lý {} tệp tin hoàn tất"
 }

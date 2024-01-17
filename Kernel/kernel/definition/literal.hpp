@@ -1,8 +1,6 @@
 #pragma once
 
 namespace Sen::Kernel {
-
-
 	/**
 	 * Char literal
 	*/
@@ -68,5 +66,4 @@ namespace Sen::Kernel {
 	{
     	return std::string_view{n};
 	}
-
 }

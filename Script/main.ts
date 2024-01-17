@@ -38,7 +38,7 @@ namespace Sen.Script {
                 Sen.Kernel.Console.print(`    ${message}`);
             } else {
                 Sen.Kernel.Console.print(title, ``, color);
-                Sen.Kernel.Console.print(message, ``, color);
+                Sen.Kernel.Console.print(message);
             }
             return;
         }
@@ -198,14 +198,7 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
-            Sen.Kernel.FileSystem.read_file("D:/TESTSSSS.SDS");
-            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.RTON.Decode.BatchArgument>(
-            //     `popcap.rton.decode`,
-            //     {
-            //         directory: `D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PACKAGES - Copy`,
-            //     },
-            //     Executor.Forward.BATCH,
-            // );
+            Executor.run_as_module(`popcap.rton.encode`, { source: "D:/test/RESOURCES.json" }, Executor.Forward.DIRECT);
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
@@ -249,6 +242,7 @@ namespace Sen.Script {
             `~/Executor/Methods/data.base64.encode.js`,
             `~/Executor/Methods/data.base64.decode.js`,
             `~/Executor/Methods/popcap.rton.decode.js`,
+            `~/Executor/Methods/popcap.rton.encode.js`,
         ];
     }
 }

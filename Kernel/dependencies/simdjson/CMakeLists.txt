@@ -1,14 +1,18 @@
+cmake_minimum_required(VERSION 3.14)
+
 project(
-	tinyxml2
-	VERSION 9.0.0
-	HOMEPAGE_URL https://github.com/leethomason/tinyxml2
-	LANGUAGES CXX
+    simdjson
+    # The version number is modified by tools/release.py
+    VERSION 3.6.3
+    DESCRIPTION "Parsing gigabytes of JSON per second"
+    HOMEPAGE_URL "https://simdjson.org/"
+    LANGUAGES CXX
 )
 
 add_library(
 	${PROJECT_NAME} STATIC
-	./tinyxml2.h
-	./tinyxml2.cpp
+	./simdjson.h
+	./simdjson.cpp
 )
 
 if (MSVC)

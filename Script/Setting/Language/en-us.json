@@ -6,7 +6,7 @@
     "result": "Result",
     "execution_argument": "Execution argument",
     "execution_finished": "Execution finished",
-    "method_loaded": "Method loaded: {}",
+    "method_loaded": "Method loaded",
     "data.md5.hash": "Data: MD5 Hash",
     "input_argument": "Input argument",
     "output_argument": "Output argument",
@@ -17,5 +17,8 @@
     "data.base64.encode": "Data: Base64 Encode",
     "data.base64.decode": "Data: Base64 Decode",
     "method_are_succeeded": "All methods are executed successful!",
-    "cannot_read_file": "Cannot read file, it might be missing, path"
+    "cannot_read_file": "Cannot read file, it might be missing, path",
+    "popcap.rton.decode": "PopCap RTON: Decode",
+    "popcap.rton.encode": "PopCap RTON: Encode",
+    "batch.process.count": "Processed {} files finished"
 }

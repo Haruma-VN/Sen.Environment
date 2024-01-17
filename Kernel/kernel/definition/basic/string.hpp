@@ -61,6 +61,14 @@ namespace Sen::Kernel {
 
 			}
 
+			explicit constexpr String(
+				std::string_view source
+			) : value(source)
+			{
+
+			}
+
+
 			// destructor
 
 			~String(
@@ -247,7 +255,7 @@ namespace Sen::Kernel {
 			*/
 
 			inline constexpr auto indexOf(
-				const std::string & source
+				std::string_view source
 			) -> long
 			{
 				auto pos = thiz.value.find(source);
@@ -256,6 +264,7 @@ namespace Sen::Kernel {
 				}
 				return static_cast<long>(pos);
 			}
+
 
 			/**
 			 * The indexOf() method returns the position of the first occurrence of a value in a string.
@@ -285,7 +294,7 @@ namespace Sen::Kernel {
 			*/
 
 			inline constexpr auto indexOf(
-				const std::string & source,
+				std::string_view source,
 				size_t start
 			) -> long
 			{
@@ -352,7 +361,7 @@ namespace Sen::Kernel {
 			*/
 
 			inline constexpr auto lastIndexOf(
-				const std::string & source
+				std::string_view source
 			) -> long
 			{
 				auto pos = value.rfind(source);
@@ -728,7 +737,7 @@ namespace Sen::Kernel {
 			*/
 
 			inline constexpr auto split(
-				const string &delimiter
+				std::string_view delimiter
 			) -> std::vector<std::string> const
 			{
 				auto str = thiz.value;

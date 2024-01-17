@@ -39,6 +39,7 @@ add_subdirectory("./dependencies/avir")
 add_subdirectory("./dependencies/bzip2")
 add_subdirectory("./dependencies/open_vcdiff")
 add_subdirectory("./dependencies/zip")
+add_subdirectory("./dependencies/simdjson")
 
 if (MSVC)
   add_subdirectory("./dependencies/dirent")

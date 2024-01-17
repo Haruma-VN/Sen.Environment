@@ -111,7 +111,7 @@ namespace Sen.Script.Executor {
             throw new Error(`Method ${id} not found`);
         }
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
-        Sen.Script.Console.send(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_loaded`), Sen.Kernel.Language.get(id)!), Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.display(`${Sen.Kernel.Language.get(`method_loaded`)}`, Sen.Kernel.Language.get(id), Sen.Script.Definition.Console.Color.GREEN);
         switch (forward_type) {
             case Sen.Script.Executor.Forward.ASYNC: {
                 if (worker.async_forward === undefined) {

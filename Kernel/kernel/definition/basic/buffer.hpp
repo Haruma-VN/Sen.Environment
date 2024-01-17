@@ -17,7 +17,7 @@ namespace Sen::Kernel::Definition
 
             std::size_t mutable length;
 
-            inline static auto constexpr buffer_size = 8192Ui64;
+            inline static auto constexpr buffer_size = static_cast<size_t>(8192);
 
             inline static auto constexpr close_file =  [](auto f){ if (f) fclose(f); };
 
@@ -31,8 +31,7 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                const std::vector<std::uint8_t> &data
-            ) :  data(std::move(data)), read_pos(0), write_pos(data.size()), length(data.size())
+                const std::vector<std::uint8_t> &data) : data(std::move(data)), read_pos(0), write_pos(data.size()), length(data.size())
             {
                 return;
             }
@@ -53,11 +52,11 @@ namespace Sen::Kernel::Definition
                 fread(thiz.data.data(), 1, size, file.get());
                 thiz.length = size;
                 thiz.write_pos = size;
+
             }
 
             Stream(
-                const std::size_t & length
-            ) : read_pos(0), write_pos(length), length(length)
+                const std::size_t &length) : read_pos(0), write_pos(length), length(length)
             {
                 thiz.reserve(length + thiz.buffer_size);
                 return;
@@ -98,8 +97,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto reserve(
-                const std::size_t &capacity
-            ) const -> void
+                const std::size_t &capacity) const -> void
             {
                 thiz.data.resize(capacity);
                 return;
@@ -189,22 +187,21 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto out_file(
-                const std::string &path) const -> void
+                std::string_view path
+            ) const -> void
             {
-                auto filePath = std::filesystem::path(path);
-                if (filePath.has_parent_path())
                 {
-                    std::filesystem::create_directories(filePath.parent_path());
+                    auto filePath = std::filesystem::path(path);
+                    if (filePath.has_parent_path())
+                    {
+                        std::filesystem::create_directories(filePath.parent_path());
+                    }
                 }
-                auto file = std::ofstream(path, std::ios::binary);
-                if (file)
-                {
-                    file.write(reinterpret_cast<const char *>(thiz.data.data()), thiz.length);
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(path.data(), "wb"), close_file);
+                if (!file) {
+                    throw Exception(fmt::format("Could not write file: {}", path));
                 }
-                else
-                {
-                    throw Exception(fmt::format("Could not open file: {}", path));
-                }
+                fwrite(thiz.data.data(), 1, thiz.length, file.get());
                 return;
             }
 
@@ -439,8 +436,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeBytes(
-                const std::vector<std::uint8_t>& inputBytes
-            ) const -> void
+                const std::vector<std::uint8_t> &inputBytes) const -> void
             {
                 auto bytes = inputBytes;
                 auto new_pos = thiz.write_pos + bytes.size();
@@ -461,7 +457,6 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-
             inline auto writeBytes(
                 const std::vector<std::uint8_t> &bytes,
                 std::size_t pos) const -> void
@@ -471,21 +466,19 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
+            template <class T>
+            inline static auto set_raw_data(const T &val) -> std::vector<uint8_t>
+            {
+                auto res = std::vector<uint8_t> (sizeof(T));
+                *(reinterpret_cast<T *>(res.data())) = val;
+                return res;
+            }
+
             inline auto writeFloat(
                 float value) const -> void
             {
-                if constexpr (use_big_endian)
-                {
-                    thiz.writeBytes_LE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(float));
-                }
-                else
-                {
-                    thiz.writeBytes_BE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(float));
-                }
+                auto res = set_raw_data(value);
+                thiz.writeBytes(res);
                 return;
             }
 
@@ -501,18 +494,8 @@ namespace Sen::Kernel::Definition
             inline auto writeDouble(
                 double value) const -> void
             {
-                if constexpr (use_big_endian)
-                {
-                    thiz.writeBytes_LE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(double));
-                }
-                else
-                {
-                    thiz.writeBytes_BE(
-                        reinterpret_cast<std::uint8_t *>(&value),
-                        sizeof(double));
-                }
+                auto res = set_raw_data(value);
+                thiz.writeBytes(res);
                 return;
             }
 
@@ -614,6 +597,35 @@ namespace Sen::Kernel::Definition
             {
                 thiz.write_pos = pos;
                 thiz.writeZigZag64(value);
+                return;
+            }
+
+            inline auto writeStringView(
+                 std::string_view str
+            ) const -> void
+            {
+                auto new_pos = thiz.write_pos + str.size();
+                if (new_pos > thiz.capacity())
+                {
+                    thiz.reserve(new_pos + thiz.buffer_size);
+                }
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
+                for (auto &c : str)
+                {
+                    thiz.data[thiz.write_pos++] = (uint8_t)c;
+                }
+                return;
+            }
+
+            inline auto writeStringView(
+                std::string_view str,
+                std::size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeString(str);
                 return;
             }
 
@@ -844,6 +856,30 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
+            inline auto writeStringViewByVarInt32(
+                std::string_view str
+            ) const -> void
+            {
+                if (str.empty())
+                {
+                    thiz.writeVarInt32(0);
+                    return;
+                }
+                thiz.writeVarInt32(str.size());
+                thiz.writeStringView(str);
+                return;
+            }
+
+            inline auto writeStringViewByVarInt32(
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeStringByVarInt32(str);
+                return;
+            }
+
             inline auto writeStringByVarInt32(
                 const std::string &str) const -> void
             {
@@ -907,7 +943,7 @@ namespace Sen::Kernel::Definition
             {
                 return this->data.at(position);
             }
-
+            /*
             inline auto writeBytes_LE(
                 std::uint8_t *bytes,
                 std::size_t size) const -> void
@@ -925,6 +961,7 @@ namespace Sen::Kernel::Definition
                 thiz.write_pos += size;
                 return;
             }
+            */
 
             template <typename T>
             inline auto write_LE(
@@ -974,7 +1011,6 @@ namespace Sen::Kernel::Definition
             {
                 return this->template read<std::uint8_t>();
             }
-
 
             inline auto readUint8(std::size_t pos) const -> std::uint8_t
             {
@@ -1447,7 +1483,8 @@ namespace Sen::Kernel::Definition
                 return thiz.readZigZag64();
             }
 
-            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            template <typename T>
+                requires std::is_integral_v<T> || std::is_floating_point_v<T>
             inline auto static reverseEndian(T num) -> T
             {
                 auto bytes = std::array<uint8_t, sizeof(T)>{};
@@ -1456,7 +1493,8 @@ namespace Sen::Kernel::Definition
                 return std::bit_cast<T>(bytes);
             }
 
-            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            template <typename T>
+                requires std::is_integral_v<T> || std::is_floating_point_v<T>
             inline auto read(
 
             ) const -> T
@@ -1471,7 +1509,8 @@ namespace Sen::Kernel::Definition
                 return value;
             }
 
-            template <typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            template <typename T>
+                requires std::is_integral_v<T> || std::is_floating_point_v<T>
             inline auto read_has(
                 std::size_t size) const -> T
             {

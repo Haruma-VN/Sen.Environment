@@ -52,3 +52,4 @@
 #include "kernel/dependencies/bzip2.hpp"
 #include "kernel/dependencies/zip.hpp"
 #include "kernel/dependencies/dirent.hpp"
+#include "kernel/dependencies/simdjson.hpp"

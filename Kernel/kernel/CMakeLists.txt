@@ -61,6 +61,7 @@ add_library(
 	./dependencies/quickjs.hpp
 	./dependencies/zip.hpp
 	./dependencies/dirent.hpp
+	./dependencies/simdjson.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -174,6 +175,7 @@ target_link_libraries(
 	bzip2
 	quickjs
 	zip
+	simdjson
 )
 
 
