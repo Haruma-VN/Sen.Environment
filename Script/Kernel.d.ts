@@ -34,6 +34,12 @@ declare namespace Sen {
 
         declare const version: number;
 
+        declare namespace Language {
+            export function load_language(source: string): void;
+
+            export function get(key: string): string;
+        }
+
         /**
          * JS Operating System
          */

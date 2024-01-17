@@ -23,19 +23,9 @@ int execute(
         auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script_path, m_callback));
         callback->execute();
     }
-    catch(const std::exception & ex)
-    {
-        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Runtime Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}));
-        return 1;
-    }
-    catch(int errorCode)
-    {
-        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Exception found: {} with error code {}", parse_exception().what(), errorCode), std::string{""}, std::string{"red"}}));
-        return 1;
-    }
     catch(...)
     {
-        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Unknown Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}));
+        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Runtime Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}));
         return 1;
     }
     return 0;

@@ -21,6 +21,22 @@ namespace Sen.Script.Setting {
 
     /**
      * --------------------------------------------------
+     * JavaScript custom formatter
+     * @param str - string to format
+     * @param args - arguments
+     * @returns formatted string
+     * --------------------------------------------------
+     */
+
+    export function format(str: string, ...args: Array<any>): string {
+        for (const arg of args) {
+            str = str.replace("{}", arg.toString());
+        }
+        return str;
+    }
+
+    /**
+     * --------------------------------------------------
      * JavaScript current configuration file
      * @abstract: Configuration file
      * --------------------------------------------------
@@ -37,7 +53,7 @@ namespace Sen.Script.Setting {
 
     export function load(): void {
         setting = Sen.Kernel.JSON.deserialize_fs<Entry>(setting_file);
-        Sen.Script.Setting.Language.read_language(Sen.Script.Home.query(`~/Setting/Language/${setting.language}.json`));
+        Sen.Kernel.Language.load_language(Sen.Script.Home.query(`~/Setting/Language/${setting.language}.json`));
         return;
     }
 }

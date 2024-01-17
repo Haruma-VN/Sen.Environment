@@ -49,6 +49,38 @@ namespace Sen::Kernel::Interface::Script {
 		});
 	}
 
+	namespace Language {
+		
+		inline static auto load_language(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+				Sen::Kernel::Language::read_language(JS::Converter::get_c_string(context, argv[0]).get());
+				return JS::Converter::get_undefined();
+			});
+		}
+
+		inline static auto get(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+				auto result = Sen::Kernel::Language::get(JS::Converter::get_c_string(context, argv[0]).get());
+				return JS::Converter::to_string(context, result.data());
+			});
+		}
+
+	}
+
 	/**
 	 * JavaScript Thread
 	*/

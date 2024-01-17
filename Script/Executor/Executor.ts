@@ -111,11 +111,11 @@ namespace Sen.Script.Executor {
             throw new Error(`Method ${id} not found`);
         }
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
-        Sen.Script.Console.send(Sen.Script.Setting.Language.format(Sen.Script.Setting.Language.get(`method_loaded`), Sen.Script.Setting.Language.get(id)!), Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.send(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_loaded`), Sen.Kernel.Language.get(id)!), Sen.Script.Definition.Console.Color.GREEN);
         switch (forward_type) {
             case Sen.Script.Executor.Forward.ASYNC: {
                 if (worker.async_forward === undefined) {
-                    throw new Error(Setting.Language.format(Setting.Language.get(`method_does_not_support_async_implementation`), id));
+                    throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_async_implementation`), id));
                 }
                 worker.async_forward(argument);
                 break;
@@ -129,11 +129,11 @@ namespace Sen.Script.Executor {
                 break;
             }
             default: {
-                throw new Error(Sen.Script.Setting.Language.format(Setting.Language.get(`method_does_not_support_async_implementation`), forward_type));
+                throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_async_implementation`), forward_type));
             }
         }
         Sen.Script.Executor.clock.stop_safe();
-        Sen.Script.Console.send(`${Sen.Script.Setting.Language.get(`execution_time`)}: ${Sen.Script.Executor.clock.duration.toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.send(`${Sen.Kernel.Language.get(`execution_time`)}: ${Sen.Script.Executor.clock.duration.toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
         return;
     }
 }

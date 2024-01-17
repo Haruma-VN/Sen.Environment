@@ -45,7 +45,7 @@ namespace Sen.Script {
 
         public start(): void {
             if (this.is_started) {
-                throw new Error(Sen.Script.Setting.Language.get(`clock_has_already_been_started`));
+                throw new Error(Sen.Kernel.Language.get(`clock_has_already_been_started`));
             }
             this._start = Sen.Kernel.Thread.now();
             return;
@@ -59,7 +59,7 @@ namespace Sen.Script {
 
         public stop(): void {
             if (this.is_stopped) {
-                throw new Error(Sen.Script.Setting.Language.get(`clock_has_not_started`));
+                throw new Error(Sen.Kernel.Language.get(`clock_has_not_started`));
             }
             this._duration += Sen.Kernel.Thread.now() - this._start!;
             this._start = null;

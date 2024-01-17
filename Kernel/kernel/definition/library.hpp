@@ -28,6 +28,7 @@
 #include <codecvt>
 #include <cstdint>
 #include "kernel/definition/assert.hpp"
+#include "kernel/definition/basic/language.hpp"
 #include "kernel/definition/range.hpp"
 #include "kernel/definition/literal.hpp"
 #include "kernel/dependencies/zlib.hpp"

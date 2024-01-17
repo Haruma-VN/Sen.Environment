@@ -16,5 +16,6 @@
     "forward_enumeration_is_not_found": "Không tìm thấy loại chuyển tiếp {}",
     "data.base64.encode": "Dữ liệu: Mã hoá Base64",
     "data.base64.decode": "Dữ liệu: Giải mã Base64",
-    "method_are_succeeded": "Tất cả phương thức được thực hiện thành công!"
+    "method_are_succeeded": "Tất cả phương thức được thực hiện thành công!",
+    "cannot_read_file": "Không thể đọc tệp, có thể không được tìm thấy, đường dẫn"
 }

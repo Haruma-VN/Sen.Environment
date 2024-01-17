@@ -143,6 +143,13 @@ namespace Sen::Kernel::Interface {
 					// read line
 					javascript->add_proxy(Script::Console::readline, "Sen", "Kernel", "Console" ,"readline");
 				}
+				// language
+				{
+					// load language
+					javascript->add_proxy(Script::Language::load_language, "Sen", "Kernel", "Language" ,"load_language");
+					// get language
+					javascript->add_proxy(Script::Language::get, "Sen", "Kernel", "Language" ,"get");
+				}
 				// process
 				{
 					// run

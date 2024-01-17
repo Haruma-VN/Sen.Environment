@@ -44,7 +44,7 @@ namespace Sen::Kernel::Definition
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "rb"), close_file);
                 if (!file)
                 {
-                    throw Exception(fmt::format("Could not open file: {}", filepath));
+                    throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath));
                 }
                 fseek(file.get(), 0, SEEK_END);
                 auto size = ftell(file.get());

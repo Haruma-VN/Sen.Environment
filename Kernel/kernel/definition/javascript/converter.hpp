@@ -524,4 +524,39 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				ofs.close();
 				return;
 			}
+
+			/**
+			 * Convert JSValue to std::map
+			*/
+
+			inline static auto get_map(
+				JSContext *ctx, 
+				JSValueConst val
+			) -> std::map<std::string, std::string>
+			{
+				auto result = std::map<std::string, std::string>{};
+				if (JS_IsObject(val)) {
+					auto tab = static_cast<JSPropertyEnum *>(nullptr);
+					auto tab_len = uint32_t{};
+					if (JS_GetOwnPropertyNames(ctx, &tab, &tab_len, val, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
+						for (auto i : Range<uint32_t>(tab_len)) {
+							auto atom = tab[i].atom;
+							auto prop_val = JS_GetProperty(ctx, val, atom);
+							if (JS_IsString(prop_val)) {
+								auto prop_key = JS_AtomToCString(ctx, atom);
+								auto prop_str_val = JS_ToCString(ctx, prop_val);
+								if (prop_key && prop_str_val) {
+									result[prop_key] = prop_str_val;
+								}
+								JS_FreeCString(ctx, prop_key);
+								JS_FreeCString(ctx, prop_str_val);
+							}
+							JS_FreeValue(ctx, prop_val);
+							JS_FreeAtom(ctx, atom);
+						}
+						js_free(ctx, tab);
+					}
+				}
+				return result;
+			}
 }

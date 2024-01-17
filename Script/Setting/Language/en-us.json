@@ -16,5 +16,6 @@
     "forward_enumeration_is_not_found": "Forward {} is not found",
     "data.base64.encode": "Data: Base64 Encode",
     "data.base64.decode": "Data: Base64 Decode",
-    "method_are_succeeded": "All methods are executed successful!"
+    "method_are_succeeded": "All methods are executed successful!",
+    "cannot_read_file": "Cannot read file, it might be missing, path"
 }

@@ -53,7 +53,7 @@ namespace Sen.Script {
 
         export function error(str: string | undefined): void {
             if (str !== undefined) {
-                Sen.Script.Console.send(`${Sen.Script.Setting.Language.get(`runtime_error`)}: ${str}`, Sen.Script.Definition.Console.Color.RED);
+                Sen.Script.Console.send(`${Sen.Kernel.Language.get(`runtime_error`)}: ${str}`, Sen.Script.Definition.Console.Color.RED);
             }
             return;
         }
@@ -67,7 +67,7 @@ namespace Sen.Script {
          */
 
         export function argument(str: any): void {
-            display(Setting.Language.get(`execution_argument`), str, Definition.Console.Color.CYAN);
+            display(Sen.Kernel.Language.get(`execution_argument`), str, Definition.Console.Color.CYAN);
             return;
         }
 
@@ -81,12 +81,12 @@ namespace Sen.Script {
 
         export function finished(subtitle: string, message?: string): void {
             if (!Sen.Shell.is_gui) {
-                Sen.Kernel.Console.print(`● ${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(`● ${Sen.Kernel.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
                 if (message) {
                     Sen.Kernel.Console.print(`    ${message}`);
                 }
             } else {
-                Sen.Kernel.Console.print(`${Setting.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
+                Sen.Kernel.Console.print(`${Sen.Kernel.Language.get(`execution_finished`)}: ${subtitle}`, ``, Definition.Console.Color.GREEN);
                 if (message) {
                     Sen.Kernel.Console.print(message);
                 }
@@ -103,7 +103,7 @@ namespace Sen.Script {
          */
 
         export function obtained(source: string): void {
-            Sen.Script.Console.display(Setting.Language.get(`input_argument`), source, Definition.Console.Color.CYAN);
+            Sen.Script.Console.display(Sen.Kernel.Language.get(`input_argument`), source, Definition.Console.Color.CYAN);
         }
 
         /**
@@ -115,7 +115,7 @@ namespace Sen.Script {
          */
 
         export function output(source: string): void {
-            Sen.Script.Console.display(Setting.Language.get(`output_argument`), source, Definition.Console.Color.GREEN);
+            Sen.Script.Console.display(Sen.Kernel.Language.get(`output_argument`), source, Definition.Console.Color.GREEN);
         }
     }
 
@@ -175,7 +175,7 @@ namespace Sen.Script {
     export function main(): void {
         let result = Sen.Script.launch();
         Console.error(result);
-        Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`method_are_succeeded`));
+        Sen.Script.Console.finished(Sen.Kernel.Language.get(`method_are_succeeded`));
         return;
     }
 
@@ -197,16 +197,8 @@ namespace Sen.Script {
                 `Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`,
             );
             Sen.Script.Setting.load();
-            Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.RTON.Decode.AsyncArgument>(
-                `popcap.rton.decode`,
-                {
-                    parameter: Sen.Kernel.FileSystem.read_directory(`D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PACKAGES - Copy`).map(
-                        (e) => [e, `${Sen.Kernel.Path.except_extension(e)}.json`] as [string, string],
-                    ),
-                },
-                Executor.Forward.ASYNC,
-            );
+            Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
+            Sen.Kernel.FileSystem.read_file("D:/TESTSSSS.SDS");
             // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.RTON.Decode.BatchArgument>(
             //     `popcap.rton.decode`,
             //     {
@@ -218,6 +210,7 @@ namespace Sen.Script {
             result = e.message;
             result += `\n`;
             result += e.stack;
+            result = result.replace(/\n$/, ``);
         }
         return result;
     }
@@ -246,7 +239,6 @@ namespace Sen.Script {
          */
 
         export const script_list: Array<string> = [
-            `~/Setting/Language/Format.js`,
             `~/Setting/Setting.js`,
             `~/utility/Definition.js`,
             `~/utility/Clock.js`,

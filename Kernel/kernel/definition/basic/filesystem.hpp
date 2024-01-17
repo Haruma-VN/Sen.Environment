@@ -28,7 +28,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "r"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("Could not open file: {}", filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		std::fseek(file.get(), 0, SEEK_END);
 		auto length = std::ftell(file.get());
@@ -51,7 +51,7 @@ namespace Sen::Kernel::FileSystem
 		
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("Could not open file: {}", filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		fwrite(content.data(), 1, content.size(), file.get());
 		return;
@@ -61,16 +61,19 @@ namespace Sen::Kernel::FileSystem
 	// return: if the json is valid, the json data will be parsed as object
 
 	inline static auto read_json(
-		const std::string &filePath
-	) -> nlohmann::ordered_json const
+		std::string_view filePath
+	) -> nlohmann::ordered_json const 
 	{
-		auto file = std::ifstream(filePath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filePath);
-        }
-		auto jsonData = nlohmann::ordered_json::parse(file);
-		file.close();
-		return jsonData;
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "r"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filePath));
+		}
+		fseek(file.get(), 0, SEEK_END);
+		auto size = ftell(file.get());
+		fseek(file.get(), 0, SEEK_SET);
+		auto buffer = std::vector<char>(size);
+		fread(buffer.data(), 1, size, file.get());
+		return nlohmann::ordered_json::parse(buffer.begin(), buffer.end());
 	}
 
 	// Provide file path to write
@@ -78,13 +81,13 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		std::string_view filePath,
+		std::string_view filepath,
 		const nlohmann::ordered_json & content
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("Could not open file: {}", filePath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		auto dumped_content = content.dump(1, '\t');
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -98,15 +101,15 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		std::string_view filePath,
+		std::string_view filepath,
 		const nlohmann::ordered_json & content,
 		int indent,
 		char indent_char
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("Could not open file: {}", filePath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		auto dumped_content = content.dump(indent, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -119,14 +122,14 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		std::string_view filePath,
+		std::string_view filepath,
 		const nlohmann::ordered_json & content,
 		char indent_char
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("Could not open file: {}", filePath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		auto dumped_content = content.dump(1, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -161,11 +164,11 @@ namespace Sen::Kernel::FileSystem
 	// return: the utf16le string
 
 	inline static auto readFileByUtf16LE(
-		const std::string &filePath
+		std::string_view filepath
 	) -> std::wstring const
 	{
-		auto wif = std::wifstream(filePath, std::ios::binary);
-		try_assert(!wif.fail(), fmt::format("Could not open file: {}", filePath));
+		auto wif = std::wifstream(filepath.data(), std::ios::binary);
+		try_assert(!wif.fail(), fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		wif.imbue(std::locale(wif.getloc(), new std::codecvt_utf8<wchar_t, 0x10ffff>));
 		auto wss = std::wstringstream{};
 		wss << wif.rdbuf();
@@ -239,15 +242,15 @@ namespace Sen::Kernel::FileSystem
 	}
 
 	
-	template <CharacterBufferView T> 
+	template <typename T> requires CharacterBufferView<T> 
 	inline static auto read_binary(
-		const std::string &filePath
+		std::string_view filepath
 	) -> std::vector<T> const
 	{
-		auto file = std::ifstream(filePath, std::ios::binary);
+		auto file = std::ifstream(filepath.data(), std::ios::binary);
 		if(!file)
 		{
-			throw Exception(fmt::format("Could not open file: {}", filePath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
 		}
 		file.seekg(0, std::ios::end);
 		auto size = static_cast<std::streamsize>(file.tellg());
@@ -255,7 +258,7 @@ namespace Sen::Kernel::FileSystem
 		auto data = std::vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
-			throw Exception(fmt::format("Could not read file: {}", filePath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath));
 		}
 		file.close();
 		return data;	
