@@ -21,7 +21,7 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Decode {
      */
 
     export interface AsyncArgument<source extends string, destination extends string> extends Sen.Script.Executor.Base {
-        worker: Array<[source, destination]>;
+        parameter: Array<[source, destination]>;
     }
 
     /**
@@ -67,7 +67,7 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Decode {
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Decode.AsyncArgument<string, string>): void {
-                Sen.Kernel.Encryption.Base64.decode_fs_as_multiple_threads<string, string>(argument.worker);
+                Sen.Kernel.Encryption.Base64.decode_fs_as_multiple_threads<string, string>(argument.parameter);
                 return;
             },
             is_enabled: false,

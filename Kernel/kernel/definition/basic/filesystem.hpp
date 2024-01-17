@@ -11,21 +11,32 @@ namespace Sen::Kernel::FileSystem
 	template <typename T>
 	concept CharacterBufferView = std::is_same_v<T, char> || std::is_same_v<T, unsigned char>;
 
+	/**
+	 * Lambda
+	*/
+	
+	inline static auto constexpr close_file =  [](auto f){ 
+		if (f) fclose(f); 
+	};
+
 	// give file path to open
 	// return: the file data as string
 
 	inline static auto read_file(
 		std::string_view filepath
-	) -> std::string
+	) -> std::string 
 	{
-        auto file = std::ifstream(filepath.data());
-        if (!file.is_open()) {
-            throw Exception(fmt::format("Could not open file: {}", filepath));
-        }
-        auto buffer = std::stringstream{};
-        buffer << file.rdbuf();
-        return buffer.str();
-    }
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "r"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("Could not open file: {}", filepath));
+		}
+		std::fseek(file.get(), 0, SEEK_END);
+		auto length = std::ftell(file.get());
+		std::fseek(file.get(), 0, SEEK_SET);
+		auto buffer = std::string(length, ' ');
+		std::fread(buffer.data(), 1, length, file.get());
+		return buffer;
+	}
 
 
 	// path: file path to open
@@ -33,16 +44,16 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written
 
 	inline static auto write_file(
-		const std::string &filepath, 
-		const std::string &content
+		std::string_view filepath, 
+		std::string_view content
 	) -> void 
 	{
-		auto file = std::ofstream(filepath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filepath);
-        }
-		file << content;
-		file.close();
+		
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("Could not open file: {}", filepath));
+		}
+		fwrite(content.data(), 1, content.size(), file.get());
 		return;
 	}
 
@@ -67,16 +78,16 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		const std::string & filePath,
+		std::string_view filePath,
 		const nlohmann::ordered_json & content
 	) -> void
 	{
-		auto file = std::ofstream(filePath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filePath);
-        }
-		file << content.dump(1, '\t');
-		file.close();
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("Could not open file: {}", filePath));
+		}
+		auto dumped_content = content.dump(1, '\t');
+		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -87,18 +98,18 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		const std::string &filePath,
-		const nlohmann::ordered_json &content,
-		const int &indent,
-		const char &indent_char
+		std::string_view filePath,
+		const nlohmann::ordered_json & content,
+		int indent,
+		char indent_char
 	) -> void
 	{
-		auto file = std::ofstream(filePath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filePath);
-        }
-		file << content.dump(indent, indent_char);
-		file.close();
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("Could not open file: {}", filePath));
+		}
+		auto dumped_content = content.dump(indent, indent_char);
+		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -108,17 +119,17 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		const string &filePath,
-		const nlohmann::ordered_json &content,
-		const char &indent_char
+		std::string_view filePath,
+		const nlohmann::ordered_json & content,
+		char indent_char
 	) -> void
 	{
-		auto file = std::ofstream(filePath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filePath);
-        }
-		file << content.dump(1, indent_char);
-		file.close();
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("Could not open file: {}", filePath));
+		}
+		auto dumped_content = content.dump(1, indent_char);
+		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 

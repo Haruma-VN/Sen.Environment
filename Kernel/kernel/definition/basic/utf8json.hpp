@@ -10,35 +10,35 @@ namespace Sen::Kernel::Definition
         class JsonConstants
         {
         public:
-            inline static const auto OpenBrace = std::string{'{'};
-            inline static const auto CloseBrace = std::string{'}'};
-            inline static const auto OpenBracket = std::string{'['};
-            inline static const auto CloseBracket = std::string{']'};
-            inline static const auto Space = std::string{' '};
-            inline static const auto CarriageReturn = std::string{'\r'};
-            inline static const auto LineFeed = std::string{'\n'};
-            inline static const auto Tab = std::string{'\t'};
-            inline static const auto ListSeparator = std::string{','};
-            inline static const auto KeyValueSeparator = std::string{':'};
-            inline static const auto Quote = std::string{'"'};
-            inline static const auto BackSlash = std::string{'\\'};
-            inline static const auto Slash = std::string{'/'};
-            inline static const auto BackSpace = std::string{'\b'};
-            inline static const auto FormFeed = std::string{'\f'};
-            inline static const auto Asterisk = std::string{'*'};
-            inline static const auto Colon = std::string{':'};
-            inline static const auto Period = std::string{'.'};
-            inline static const auto Plus = std::string{'+'};
-            inline static const auto Hyphen = std::string{'-'};
-            inline static const auto UtcOffsetToken = std::string{'Z'};
-            inline static const auto TimePrefix = std::string{'T'};
+            inline static constexpr auto OpenBrace = std::string_view{"{"};
+            inline static constexpr auto CloseBrace = std::string_view{"}"};
+            inline static constexpr auto OpenBracket = std::string_view{"["};
+            inline static constexpr auto CloseBracket = std::string_view{"]"};
+            inline static constexpr auto Space = std::string_view{" "};
+            inline static constexpr auto CarriageReturn = std::string_view{"\r"};
+            inline static constexpr auto LineFeed = std::string_view{"\n"};
+            inline static constexpr auto Tab = std::string_view{"\t"};
+            inline static constexpr auto ListSeparator = std::string_view{","};
+            inline static constexpr auto KeyValueSeparator = std::string_view{":"};
+            inline static constexpr auto Quote = std::string_view{"\""};
+            inline static constexpr auto BackSlash = std::string_view{"\\"};
+            inline static constexpr auto Slash = std::string_view{"/"};
+            inline static constexpr auto BackSpace = std::string_view{"\b"};
+            inline static constexpr auto FormFeed = std::string_view{"\f"};
+            inline static constexpr auto Asterisk = std::string_view{"*"};
+            inline static constexpr auto Colon = std::string_view{":"};
+            inline static constexpr auto Period = std::string_view{"."};
+            inline static constexpr auto Plus = std::string_view{"+"};
+            inline static constexpr auto Hyphen = std::string_view{"-"};
+            inline static constexpr auto UtcOffsetToken = std::string_view{"Z"};
+            inline static constexpr auto TimePrefix = std::string_view{"T"};
 
-            inline static const auto Utf8BOM = std::string{"ï»¿"};
-            inline static const auto TrueValue = std::string{"true"};
-            inline static const auto FalseValue = std::string{"false"};
-            inline static const auto NullValue = std::string{"null"};
+            inline static constexpr auto Utf8BOM = std::string_view{"ï»¿"};
+            inline static constexpr auto TrueValue = std::string_view{"true"};
+            inline static constexpr auto FalseValue = std::string_view{"false"};
+            inline static constexpr auto NullValue = std::string_view{"null"};
 
-            inline static const auto RemoveFlagsBitMask = 0x7FFFFFFF;
+            inline static constexpr auto RemoveFlagsBitMask = 0x7FFFFFFF;
         };
 
         /// This enum defines the various JSON tokens that make up a JSON text and is used by
@@ -258,7 +258,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteStringValue(std::string value) const -> void
+            inline auto WriteStringValue(std::string_view value) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -333,7 +333,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteStringIndented(std::string value) const -> void
+            inline auto WriteStringIndented(std::string_view value) const -> void
             {
                 if (thiz._currentDepth < 0)
                 {
@@ -354,7 +354,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteStringIndentedPropertyName(std::string propertyName) const -> void
+            inline auto WriteStringIndentedPropertyName(std::string_view propertyName) const -> void
             {
                 auto indent = thiz._currentDepth & JsonConstants::RemoveFlagsBitMask * thiz._indentLength;
                 if (thiz._currentDepth < 0)
@@ -374,7 +374,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteEndIndented(std::string token) const -> void
+            inline auto WriteEndIndented(std::string_view token) const -> void
             {
                 if (thiz._tokenType == StartArray || thiz._tokenType == StartObject)
                 {
@@ -394,7 +394,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteStartIndented(std::string token) const -> void
+            inline auto WriteStartIndented(std::string_view token) const -> void
             {
                 if (thiz._currentDepth < 0)
                 {
@@ -436,7 +436,7 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteStartObject() const -> void
             {
-                thiz.WriteStart(JsonConstants::OpenBrace);
+                thiz.WriteStart(JsonConstants::OpenBrace.data());
                 thiz._tokenType = StartObject;
                 return;
             }
@@ -445,7 +445,7 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteStartArray() const -> void
             {
-                thiz.WriteStart(JsonConstants::OpenBracket);
+                thiz.WriteStart(JsonConstants::OpenBracket.data());
                 thiz._tokenType = StartArray;
                 return;
             }
@@ -454,7 +454,7 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteEndObject() const -> void
             {
-                thiz.WriteEnd(JsonConstants::CloseBrace);
+                thiz.WriteEnd(JsonConstants::CloseBrace.data());
                 thiz._tokenType = EndObject;
                 return;
             }
@@ -463,7 +463,7 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteEndArray() const -> void
             {
-                thiz.WriteEnd(JsonConstants::CloseBracket);
+                thiz.WriteEnd(JsonConstants::CloseBracket.data());
                 thiz._tokenType = EndArray;
                 return;
             }
@@ -535,7 +535,7 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteNull() const -> void
             {
-                thiz.WriteSimpleValue(JsonConstants::NullValue);
+                thiz.WriteSimpleValue(JsonConstants::NullValue.data());
                 thiz._tokenType = NullValue;
                 return;
             }
@@ -547,12 +547,12 @@ namespace Sen::Kernel::Definition
             {
                 if (boolean)
                 {
-                    thiz.WriteSimpleValue(JsonConstants::TrueValue);
+                    thiz.WriteSimpleValue(JsonConstants::TrueValue.data());
                     thiz._tokenType = TrueValue;
                 }
                 else
                 {
-                    thiz.WriteSimpleValue(JsonConstants::FalseValue);
+                    thiz.WriteSimpleValue(JsonConstants::FalseValue.data());
                     thiz._tokenType = FalseValue;
                 }
                 return;

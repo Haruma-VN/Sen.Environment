@@ -376,7 +376,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
     public:
 
         explicit Decode(
-            const std::string & source
+            std::string_view source
         ) : sen(source)
         {
 
@@ -414,13 +414,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline static auto decode_fs(
-            const std::string & source,
-            const std::string & destination
+            std::string_view source,
+            std::string_view destination
         ) -> void
         {
             auto c = std::unique_ptr<Decode>(new Decode{source});
-            const auto & result = c->decode_rton();
-            FileSystem::write_file(destination, result);
+            FileSystem::write_file(destination, c->decode_rton());
             return;
         }
 

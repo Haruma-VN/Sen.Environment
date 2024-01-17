@@ -9,7 +9,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 
 	namespace JS = Sen::Kernel::Definition::JavaScript;
 
-	/**
+			/**
 			 * JS String to C++ String
 			*/
 
@@ -23,6 +23,22 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				JS_FreeCString(context, c_str);
 				return str;
 			}
+
+			/**
+			 * JS String to C String
+			*/
+
+			inline static auto get_c_string(
+				JSContext* context,
+				const JSValue & that
+			) -> std::shared_ptr<const char>
+			{
+				auto c_string = JS_ToCString(context, that);
+				auto deleter = [&context](auto ptr) { JS_FreeCString(context, ptr); };
+				return std::shared_ptr<const char>(c_string, deleter);
+			}
+
+
 
 			/**
 			 * JS Number to C++ Int32
@@ -85,6 +101,22 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto m_value = int64_t{};
 				if(JS_ToInt64(context, &m_value, that) < 0){
 					throw Exception(fmt::format("Failed when converting JS number to long long"));
+				}
+				return m_value;
+			}
+
+			/**
+			 * JS Number to C++ Int64
+			*/
+
+			inline static auto get_bigint64(
+				JSContext* context,
+				const JSValue & that
+			) -> int64_t
+			{
+				auto m_value = int64_t{};
+				if(JS_ToBigInt64(context, &m_value, that) < 0){
+					throw Exception(fmt::format("Failed when converting JS bigint to long long"));
 				}
 				return m_value;
 			}

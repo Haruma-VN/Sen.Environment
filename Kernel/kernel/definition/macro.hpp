@@ -26,6 +26,8 @@
 
 #define calculate_area(width, height) width * height
 
+#define countof(x) (sizeof(x) / sizeof((x)[0]))
+
 #if WINDOWS
 #include <windows.h>
 #endif

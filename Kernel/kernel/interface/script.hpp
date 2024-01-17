@@ -6,7 +6,7 @@
 	auto evaluate_context = fmt::format("throw new Error(\"{}\")", error); \
 	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
 
-#define M_JS_EVALUATE_WRAPPER(context, code)                                         \
+#define M_JS_PROXY_WRAPPER(context, code)                                         \
 	try code catch (...)                                                             \
 	{                                                                                \
 		auto exception = parse_exception();                                          \
@@ -32,6 +32,24 @@ namespace Sen::Kernel::Interface::Script {
 	typedef JSValue (*JavaScriptNativeMethod)(JSContext *, JSValueConst, int, JSValueConst *);
 
 	/**
+	 * Shell callback
+	*/
+
+	inline static auto callback(
+		JSContext *context, 
+		JSValueConst this_val, 
+		int argc, 
+		JSValueConst *argv
+	) -> JSValue
+	{
+		M_JS_PROXY_WRAPPER(context, {
+			try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+			auto result = Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])));
+			return JS::Converter::to_string(context, construct_standard_string(result));
+		});
+	}
+
+	/**
 	 * JavaScript Thread
 	*/
 
@@ -52,7 +70,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto time = JS::Converter::get_int64(context, argv[0]);
 				Sen::Kernel::Definition::Timer::sleep(time);
@@ -74,7 +92,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
 				auto current = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
 				return JS::Converter::to_number(context, current);
@@ -106,7 +124,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
 					auto before_file = JS::Converter::get_string(context, argv[0]);
 					auto after_file = JS::Converter::get_string(context, argv[1]);
@@ -128,7 +146,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 					auto before_file = JS::Converter::get_string(context, argv[0]);
 					auto patch_file = JS::Converter::get_string(context, argv[1]);
@@ -298,7 +316,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = JS::Converter::read_file_as_js_arraybuffer(context, source);
@@ -322,7 +340,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				auto array_buffer = argv[1];
@@ -354,7 +372,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				Sen::Kernel::Process::run(source);
@@ -377,7 +395,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Process::is_exists_in_path_environment(source);
@@ -400,7 +418,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Process::execute(source);
@@ -451,7 +469,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc >= 1, fmt::format("argument expected greater than {} but received {}", "1", argc));
 				switch (argc)
 				{
@@ -489,7 +507,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
 				auto result = Shell::callback(construct_string_list(std::vector{std::string{"input"}}));
 				return JS::Converter::to_string(context, std::string{result.value, result.size});
@@ -513,7 +531,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				auto v = std::vector<std::string>{};
 				for(auto i : Range<int>(argc))
 				{
@@ -539,7 +557,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::basename(source);
@@ -562,7 +580,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				auto result = Sen::Kernel::Path::Script::delimiter();
 				return JS::Converter::to_string(context, result);
 			});
@@ -583,7 +601,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::dirname(source);
@@ -606,7 +624,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto dir = JS_GetPropertyStr(context, argv[0], "dir");
 				auto base = JS_GetPropertyStr(context, argv[0], "base");
@@ -632,10 +650,56 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::normalize(source);
+				return JS::Converter::to_string(context, result);
+			});
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Normalize
+		 * @param argv[0]: source file
+		 * @return: normalize
+		 * ----------------------------------------
+		*/
+
+		inline static auto base_without_extension(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::base_without_extension(source);
+				return JS::Converter::to_string(context, result);
+			});
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JS Normalize
+		 * @param argv[0]: source file
+		 * @return: normalize
+		 * ----------------------------------------
+		*/
+
+		inline static auto except_extension(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Path::Script::except_extension(source);
 				return JS::Converter::to_string(context, result);
 			});
 		}
@@ -655,7 +719,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::resolve(source);
@@ -678,7 +742,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::extname(source);
@@ -701,7 +765,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::is_absolute(source);
@@ -725,7 +789,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 				auto from = JS::Converter::get_string(context, argv[0]);
 				auto to = JS::Converter::get_string(context, argv[1]);
@@ -757,7 +821,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_file(source);
@@ -780,7 +844,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::readFileByUtf16LE(source);
@@ -806,7 +870,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				auto data = JS::Converter::get_string(context, argv[1]);
@@ -831,7 +895,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				auto data = JS::Converter::get_string(context, argv[1]);
@@ -857,7 +921,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::readDirectory(source);
@@ -880,7 +944,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyFile(source);
@@ -903,7 +967,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyDirectory(source);
@@ -926,7 +990,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::readWholeDirectory(source);
@@ -949,7 +1013,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				Sen::Kernel::FileSystem::createDirectory(destination);
@@ -972,7 +1036,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = std::filesystem::is_regular_file(source);
@@ -995,7 +1059,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = std::filesystem::is_directory(source);
@@ -1023,7 +1087,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1048,7 +1112,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1072,7 +1136,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					std::filesystem::remove(std::filesystem::path{source});
@@ -1106,7 +1170,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1131,7 +1195,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				auto width = JS::Converter::get_int32(context, argv[1]);
@@ -1158,7 +1222,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1185,7 +1249,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1218,7 +1282,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto m_value = JS_Eval(context, source.c_str(), source.size(), "unknown", JS_EVAL_TYPE_GLOBAL);
@@ -1241,7 +1305,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto js_source = Sen::Kernel::FileSystem::read_file(source);
@@ -1277,7 +1341,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto str = std::string{source};
@@ -1301,7 +1365,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::MD5::hash_fs(source);
@@ -1331,7 +1395,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source);
@@ -1353,7 +1417,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						auto paths = std::vector<std::vector<std::string>>{};
 						for (const auto &i : Range<int>(argc))
 						{
@@ -1380,7 +1444,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						auto paths = std::vector<std::vector<std::string>>{};
 						for (const auto &i : Range<int>(argc))
 						{
@@ -1408,7 +1472,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Base64::decode(source);
@@ -1431,7 +1495,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1455,7 +1519,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1485,7 +1549,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
@@ -1508,7 +1572,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash_fs(source);
@@ -1538,7 +1602,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash(source);
@@ -1561,7 +1625,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash_fs(source);
@@ -1590,7 +1654,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash(source);
@@ -1613,7 +1677,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash_fs(source);
@@ -1642,7 +1706,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash(source);
@@ -1665,7 +1729,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash_fs(source);
@@ -1695,7 +1759,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto plain = JS::Converter::get_string(context, argv[0]);
 					auto key = JS::Converter::get_string(context, argv[1]);
@@ -1721,7 +1785,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1767,7 +1831,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1793,7 +1857,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3 || argc == 2, fmt::format("argument expected {} but received {}", "2 or 3", argc));
 						auto source = JS::Converter::get_vector<std::string>(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1834,7 +1898,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1870,7 +1934,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1900,7 +1964,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1933,7 +1997,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1958,7 +2022,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -1991,7 +2055,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2017,7 +2081,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2050,7 +2114,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2075,7 +2139,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst *argv
 			) -> JSValue
 			{
-				M_JS_EVALUATE_WRAPPER(context, {
+				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2116,7 +2180,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2144,7 +2208,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2184,7 +2248,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2210,7 +2274,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2247,7 +2311,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2275,7 +2339,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2312,7 +2376,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2337,7 +2401,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2363,7 +2427,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2398,7 +2462,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2423,7 +2487,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2448,7 +2512,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2482,7 +2546,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2507,7 +2571,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2541,7 +2605,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2566,7 +2630,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2600,7 +2664,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2627,7 +2691,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2662,7 +2726,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2687,7 +2751,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2719,11 +2783,11 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source, destination);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					});
 				}
@@ -2742,7 +2806,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						auto paths = std::vector<std::vector<std::string>>{};
 						for (const auto &i : Range<int>(argc))
 						{
@@ -2771,7 +2835,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2802,7 +2866,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2827,7 +2891,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2858,7 +2922,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2884,7 +2948,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2915,7 +2979,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2940,7 +3004,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -2978,7 +3042,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -3003,7 +3067,7 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
-					M_JS_EVALUATE_WRAPPER(context, {
+					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
@@ -3084,7 +3148,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto json = nlohmann::ordered_json::parse(source);
@@ -3108,7 +3172,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::read_file(source));
@@ -3207,7 +3271,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
 				auto json = js_object_to_json(context, argv[0]);
 				auto indent = JS::Converter::get_int32(context, argv[1]);
@@ -3236,7 +3300,7 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSValue
 		{
-			M_JS_EVALUATE_WRAPPER(context, {
+			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				auto json = js_object_to_json(context, argv[1]);

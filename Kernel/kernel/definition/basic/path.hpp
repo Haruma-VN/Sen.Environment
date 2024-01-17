@@ -209,6 +209,28 @@ namespace Sen::Kernel::Path
 			}
 
 			/**
+			 * Without extension
+			*/
+
+			inline static auto base_without_extension(
+				const std::string & source
+			) -> std::string
+			{
+				return std::filesystem::path(source).stem().string();
+			}
+
+			/**
+			 * Without extension
+			*/
+
+			inline static auto except_extension(
+				const std::string & source
+			) -> std::string
+			{
+				return fmt::format("{}/{}", dirname(source), base_without_extension(source));
+			}
+
+			/**
 			 * Return current platform delimiter
 			*/
 

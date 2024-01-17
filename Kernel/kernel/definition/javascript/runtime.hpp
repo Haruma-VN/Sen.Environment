@@ -97,6 +97,30 @@ namespace Sen::Kernel::Definition::JavaScript
 			}
 
 			/**
+			 * Use this to register an instance of JS Object
+			*/
+
+			inline auto register_object(
+				std::function<void (JSRuntime*, JSContext*)> register_method
+			) -> void
+			{
+				register_method(thiz.rt, thiz.ctx);
+				return;
+			}
+
+			/**
+			 * Use this to register an instance of JS Object
+			*/
+
+			inline auto register_object(
+				std::function<void (JSContext*)> register_method
+			) -> void
+			{
+				register_method(thiz.ctx);
+				return;
+			}
+
+			/**
 			 * --------------------------------
 			 * Evaluate JS through file reading
 			 * @param source: JS source
@@ -105,7 +129,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto evaluate_fs(
-				const std::string_view source
+				std::string_view source
 			) -> JSValue
 			{
 				return thiz.evaluate(FileSystem::read_file(source), source);

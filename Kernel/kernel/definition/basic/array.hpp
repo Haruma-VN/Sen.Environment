@@ -34,7 +34,7 @@ namespace Sen::Kernel {
 
 			// fill
 			
-			auto fill(
+			inline auto fill(
 				T value
 			) -> void
 			{
@@ -64,7 +64,7 @@ namespace Sen::Kernel {
 
 			// begin
 
-			auto begin(
+			inline auto begin(
 
 			) -> decltype(value.begin())
 			{
@@ -73,7 +73,7 @@ namespace Sen::Kernel {
 
 			// end
 
-			auto end(
+			inline auto end(
 
 			) -> decltype(value.end())
 			{
@@ -82,7 +82,7 @@ namespace Sen::Kernel {
 
 			// operator []
 
-			auto operator [](
+			inline auto operator [](
 				size_t index
 			) -> T&
 			{
@@ -91,7 +91,7 @@ namespace Sen::Kernel {
 
 			// operator =
 
-			auto operator =(
+			inline auto operator =(
 				Array & that
 			) -> Array
 			{
@@ -102,7 +102,7 @@ namespace Sen::Kernel {
 
 			// size
 
-			auto size(
+			inline auto size(
 
 			) const -> size_t
 			{
@@ -111,7 +111,7 @@ namespace Sen::Kernel {
 
 			// operator ==
 
-			auto operator ==(
+			inline auto operator ==(
 				Array & that
 			) -> bool
 			{
@@ -128,7 +128,7 @@ namespace Sen::Kernel {
 
 			// operator !=
 
-			auto operator !=(
+			inline auto operator !=(
 				Array & that
 			) -> bool
 			{
@@ -137,7 +137,7 @@ namespace Sen::Kernel {
 
 			// for each
 			
-			auto forEach(
+			inline auto forEach(
 				std::function<void(T& e, size_t i)> method
 			) -> void
 			{
@@ -149,7 +149,7 @@ namespace Sen::Kernel {
 
 			// for each
 
-			auto forEach(
+			inline auto forEach(
 				std::function<void(T& e)> method
 			) -> void
 			{
@@ -162,7 +162,7 @@ namespace Sen::Kernel {
 			// map
 
 			template <typename P>
-			auto map(
+			inline auto map(
 				std::function<P(T& e)> method
 			) -> Array<P, n_size>
 			{
@@ -177,7 +177,7 @@ namespace Sen::Kernel {
 			// map
 
 			template <typename P>
-			auto map(
+			inline auto map(
 				std::function<P(T& e, size_t index)> method
 			) -> Array<P, n_size>
 			{
@@ -192,7 +192,7 @@ namespace Sen::Kernel {
 			 * every
 			*/
 
-			auto every(
+			inline auto every(
 				std::function<bool(T& e)> method
 			) -> bool
 			{
@@ -208,7 +208,7 @@ namespace Sen::Kernel {
 			 * every
 			*/
 
-			auto every(
+			inline auto every(
 				std::function<bool(T& e, size_t index)> method
 			) -> bool
 			{
@@ -225,7 +225,7 @@ namespace Sen::Kernel {
 			*/
 
 			template <typename P>
-			auto sort(
+			inline auto sort(
 				std::function<P(T& a, T& b)> method
 			) -> void
 			{
@@ -237,7 +237,7 @@ namespace Sen::Kernel {
 			 * some
 			*/
 
-			auto some(
+			inline auto some(
 				std::function<bool(T& e)> method
 			) -> bool
 			{
@@ -253,7 +253,7 @@ namespace Sen::Kernel {
 			 * some
 			*/
 
-			auto some(
+			inline auto some(
 				std::function<bool(T& e, size_t index)> method
 			) -> bool
 			{

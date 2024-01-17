@@ -5,14 +5,26 @@
 #include <string>
 #include <stdio.h>
 #include <vector>
+#include <filesystem>
 #include "interactive/color.hpp"
 
-#if WIN32
+#define WINDOWS _WIN32
+
+#define LINUX __linux__
+
+#define ANDROID __ANDROID__
+
+#define APPLE __APPLE__
+
+#define IPHONE TARGET_OS_IPHONE
+
+#define MACINTOSH __MACH__
+
+#if WINDOWS
 #include <windows.h>
 #else
 #include <dlfcn.h>
 #endif
-
 
 #define MAIN_FUNCTION int main(int size, char** argc)
 struct StringView {
@@ -48,6 +60,14 @@ namespace Sen::Shell {
 	inline auto constexpr version = 1;
 
 }
+
+#if WINDOWS
+#define KERNEL_DEFAULT "kernel.dll"
+#elif MACINTOSH || IPHONE
+#define KERNEL_DEFAULT "kernel.dylib"
+#elif ANDROID || LINUX
+#define KERNEL_DEFAULT "kernel.so"
+#endif
 
 typedef int (*execute)
 (CStringView* script, CStringList* argument, ShellCallback m_callback);

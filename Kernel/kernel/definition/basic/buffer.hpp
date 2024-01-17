@@ -17,7 +17,9 @@ namespace Sen::Kernel::Definition
 
             std::size_t mutable length;
 
-            inline static std::size_t constexpr buffer_size = 8192U;
+            inline static auto constexpr buffer_size = 8192Ui64;
+
+            inline static auto constexpr close_file =  [](auto f){ if (f) fclose(f); };
 
         public:
             std::size_t mutable read_pos;
@@ -36,22 +38,21 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                const std::string & filepath
+                std::string_view filepath
             ) : read_pos(0), write_pos(0)
             {
-                auto file = std::ifstream(filepath, std::ios::binary);
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "rb"), close_file);
                 if (!file)
                 {
-                    throw Exception("Could not open file: " + filepath);
+                    throw Exception(fmt::format("Could not open file: {}", filepath));
                 }
-                file.seekg(0, std::ios::end);
-                auto size = file.tellg();
-                file.seekg(0, std::ios::beg);
+                fseek(file.get(), 0, SEEK_END);
+                auto size = ftell(file.get());
+                fseek(file.get(), 0, SEEK_SET);
                 thiz.reserve((size_t)size + thiz.buffer_size);
-                file.read(reinterpret_cast<char *>(thiz.data.data()), size);
+                fread(thiz.data.data(), 1, size, file.get());
                 thiz.length = size;
                 thiz.write_pos = size;
-                return;
             }
 
             Stream(

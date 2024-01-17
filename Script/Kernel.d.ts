@@ -316,6 +316,25 @@ declare namespace Sen {
              */
 
             export function relative(from: string, to: string): string;
+            /**
+             * --------------------------------------------------
+             * JavaScript base without extension
+             * @param source - path
+             * @returns: basename without ext
+             * --------------------------------------------------
+             */
+
+            export function base_without_extension(source: string): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript ignore extension
+             * @param source - path
+             * @returns: full path except extension
+             * --------------------------------------------------
+             */
+
+            export function except_extension(source: string): string;
         }
 
         /**

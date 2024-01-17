@@ -57,11 +57,7 @@ namespace Sen::Kernel::Interface {
 					javascript->add_constant(Kernel::version, "Sen", "Kernel", "version");
 					javascript->add_constant(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen", "Shell", "version");
 					javascript->add_constant(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen", "Shell", "is_gui");
-					javascript->add_proxy([](JSContext *context, JSValueConst this_val, int argc, JSValueConst *argv){
-						try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-						auto result = Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])));
-						return JS::Converter::to_string(context, construct_standard_string(result));
-						}, "Sen", "Shell", "callback");
+					javascript->add_proxy(Script::callback, "Sen", "Shell", "callback");
 				}
 				// json
 				{
@@ -135,6 +131,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Path::extname, "Sen", "Kernel", "Path", "extname");
 					// is_absolute
 					javascript->add_proxy(Script::Path::relative, "Sen", "Kernel", "Path", "is_absolute");
+					// base_without_extension
+					javascript->add_proxy(Script::Path::base_without_extension, "Sen", "Kernel", "Path", "base_without_extension");
+					// except_extension
+					javascript->add_proxy(Script::Path::except_extension, "Sen", "Kernel", "Path", "except_extension");
 				}
 				// console
 				{

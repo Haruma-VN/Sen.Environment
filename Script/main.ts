@@ -198,10 +198,22 @@ namespace Sen.Script {
             );
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Script.Setting.Language.get(`current_status`), Sen.Script.Setting.Language.get(`script_has_been_loaded`));
-            const before = Date.now();
-            Sen.Kernel.FileSystem.read_file("D:/test/RESOURCES.json");
-            const after = Date.now();
-            Script.Console.send(`Duration: ${(after - before) / 1000}s`);
+            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.RTON.Decode.AsyncArgument>(
+                `popcap.rton.decode`,
+                {
+                    parameter: Sen.Kernel.FileSystem.read_directory(`D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PACKAGES - Copy`).map(
+                        (e) => [e, `${Sen.Kernel.Path.except_extension(e)}.json`] as [string, string],
+                    ),
+                },
+                Executor.Forward.ASYNC,
+            );
+            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.RTON.Decode.BatchArgument>(
+            //     `popcap.rton.decode`,
+            //     {
+            //         directory: `D:/test/ipad3_10.8.1_main.rsb.bundle/resource/PACKAGES - Copy`,
+            //     },
+            //     Executor.Forward.BATCH,
+            // );
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
@@ -244,6 +256,7 @@ namespace Sen.Script {
             `~/Executor/Methods/data.md5.hash.js`,
             `~/Executor/Methods/data.base64.encode.js`,
             `~/Executor/Methods/data.base64.decode.js`,
+            `~/Executor/Methods/popcap.rton.decode.js`,
         ];
     }
 }

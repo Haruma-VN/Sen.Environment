@@ -16,6 +16,7 @@ namespace Sen.Script.Setting {
 
     export interface Entry {
         language: string;
+        thread_limit_count: bigint;
     }
 
     /**

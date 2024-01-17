@@ -118,23 +118,29 @@ inline static auto callback(
 
 MAIN_FUNCTION
 {
-    try {
-        try_assert(size >= 3, "argument too few, expected: arg.size >= 3");
-    }
-    catch (const std::runtime_error& e) {
-        print(e.what(), "", Sen::Shell::Interactive::Color::RED);
-        get_line();
-        return 1;
-    }
     #if WIN32
         SetConsoleCP(CP_UTF8);
         SetConsoleOutputCP(CP_UTF8);
     #endif
     std::setlocale(LC_ALL, "C");
+    auto kernel = std::string{};
+    auto script = std::string{};
+    if (size >= 2) {
+        kernel = argc[1];
+    }
+    else {
+        kernel = std::filesystem::absolute(KERNEL_DEFAULT).string();
+    }
+    if (size >= 3) {
+        script = argc[2];
+    }
+    else {
+        script = std::filesystem::absolute("./Script/main.js").string();
+    }
     #if WIN32
-        auto hinstLib = LoadLibrary(TEXT(argc[1]));
+        auto hinstLib = LoadLibrary(TEXT(kernel.c_str()));
     #else
-        auto hinstLib = dlopen(argc[1], RTLD_LAZY);
+        auto hinstLib = dlopen(kernel.c_str(), RTLD_LAZY);
     #endif
     if (hinstLib == NULL) {
         print("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
@@ -154,11 +160,10 @@ MAIN_FUNCTION
         #endif
         return 1;
     }
-    auto argument = std::string{ argc[2] };
-    auto script = std::unique_ptr<CStringView>(new CStringView{
-        .size = argument.size(),
-        .value = argument.data(),
-        });
+    auto script_pointer = std::unique_ptr<CStringView>(new CStringView{
+        .size = script.size(),
+        .value = script.data(),
+    });
     auto argument_size = static_cast<uint64_t>(size);
     auto argument_list = std::unique_ptr<CStringList>(new CStringList{
          .value = new CStringView[argument_size],
@@ -168,7 +173,7 @@ MAIN_FUNCTION
        (argument_list.get())->value[i].value = argc[i];
        (argument_list.get())->value[i].size = strlen(argc[i]);
     }
-    auto result = execute_method(script.get(), argument_list.get(), callback);
+    auto result = execute_method(script_pointer.get(), argument_list.get(), callback);
     delete[] argument_list->value;
     #if WIN32
         FreeLibrary(hinstLib);
