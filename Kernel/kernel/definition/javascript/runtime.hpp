@@ -1,5 +1,6 @@
 #pragma once
 
+#include "kernel/definition/utility.hpp"
 #include "kernel/definition/javascript/converter.hpp"
 
 namespace Sen::Kernel::Definition::JavaScript
@@ -18,8 +19,10 @@ namespace Sen::Kernel::Definition::JavaScript
 	/**
 	 * JS Runtime Native Handler
 	*/
-
 	struct Runtime {
+
+		protected:
+			using JS = Runtime;
 
 		private:
 			/**
@@ -80,21 +83,23 @@ namespace Sen::Kernel::Definition::JavaScript
 			{
 				auto result = std::string{};
 				auto exception = JS_GetException(thiz.ctx);
-				auto exceptionStack = JS_ToCString(thiz.ctx, exception);
-				result += std::string{exceptionStack};
+				auto exception_stack = JS_ToCString(thiz.ctx, exception);
+				result += std::string{exception_stack};
 				if(JS_IsError(thiz.ctx, exception)){
-					auto stackTrace = JS_GetPropertyStr(thiz.ctx, exception, "stack");
-					if(!JS_IsUndefined(stackTrace)){
-						auto js_exception = JS_ToCString(thiz.ctx, stackTrace);
+					auto js_stack = JS_GetPropertyStr(thiz.ctx, exception, "stack");
+					if(JS::not_undefined(js_stack)){
+						auto js_exception = JS_ToCString(thiz.ctx, js_stack);
 						result += std::string{js_exception};
 						thiz.free_string(js_exception);
 					}
-					thiz.free_value(stackTrace);
+					thiz.free_value(js_stack);
 				}
-				thiz.free_string(exceptionStack);
+				thiz.free_string(exception_stack);
 				thiz.free_value(exception);
 				return result;
 			}
+
+			#pragma region register object
 
 			/**
 			 * Use this to register an instance of JS Object
@@ -120,6 +125,10 @@ namespace Sen::Kernel::Definition::JavaScript
 				return;
 			}
 
+			#pragma endregion
+
+
+			#pragma region comment
 			/**
 			 * --------------------------------
 			 * Evaluate JS through file reading
@@ -128,11 +137,35 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------
 			*/
 
+			#pragma endregion
+
 			inline auto evaluate_fs(
 				std::string_view source
 			) -> JSValue
 			{
 				return thiz.evaluate(FileSystem::read_file(source), source);
+			}
+
+			/**
+			 * Check if an JSValue is undefined
+			*/
+
+			inline static auto constexpr not_undefined(
+				const JSValue & that
+			) -> bool
+			{
+				return JS_VALUE_GET_TAG(that) != JS_TAG_UNDEFINED;
+			}
+
+			/**
+			 * Check if an JSValue is null
+			*/
+
+			inline static auto constexpr not_null(
+				const JSValue & that
+			) -> bool
+			{
+				return JS_VALUE_GET_TAG(that) != JS_TAG_NULL;
 			}
 
 			/**
@@ -994,6 +1027,8 @@ namespace Sen::Kernel::Definition::JavaScript
 				return;
 			}
 
+			#pragma region comment
+
 			/**
 			 * --------------------------------------
 			 * Add a constant JS value to an object from C
@@ -1004,25 +1039,27 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
+			#pragma endregion
+
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj2, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1039,23 +1076,23 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj2, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1072,23 +1109,23 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj2, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1105,23 +1142,23 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				JS_SetPropertyStr(ctx, obj2, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj2, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1171,30 +1208,30 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1212,29 +1249,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1252,29 +1289,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1292,29 +1329,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1332,29 +1369,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1372,29 +1409,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1412,29 +1449,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1452,29 +1489,29 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				JS_SetPropertyStr(ctx, obj3, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj3, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1492,36 +1529,36 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1540,35 +1577,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1587,35 +1624,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1634,35 +1671,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1681,35 +1718,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				 JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				 JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1728,35 +1765,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1775,35 +1812,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1822,35 +1859,35 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				JS_SetPropertyStr(ctx, obj4, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj4, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1869,42 +1906,42 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1924,41 +1961,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -1978,41 +2015,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2032,41 +2069,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2086,41 +2123,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2140,41 +2177,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2194,41 +2231,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2248,41 +2285,41 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				JS_SetPropertyStr(ctx, obj5, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj5, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2302,48 +2339,48 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2364,47 +2401,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2425,47 +2462,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2486,47 +2523,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2547,47 +2584,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2608,47 +2645,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2669,47 +2706,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2730,47 +2767,47 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				JS_SetPropertyStr(ctx, obj6, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj6, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2791,54 +2828,54 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2860,53 +2897,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -2930,65 +2967,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3011,66 +3048,66 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3092,53 +3129,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3160,53 +3197,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3228,53 +3265,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3296,53 +3333,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3364,53 +3401,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3432,53 +3469,53 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3500,60 +3537,60 @@ namespace Sen::Kernel::Definition::JavaScript
 			*/
 
 			inline auto add_constant(
-				const std::string & value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewString(ctx, value.c_str()));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewString(ctx, value.data()));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3576,59 +3613,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt32(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewInt32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3651,59 +3688,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3726,59 +3763,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3801,59 +3838,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3877,59 +3914,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -3952,59 +3989,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4027,59 +4064,59 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				JS_SetPropertyStr(ctx, obj7, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj7, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4103,65 +4140,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				float value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, static_cast<double>(value)));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewFloat64(ctx, static_cast<double>(value)));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4185,65 +4222,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				bool value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewBool(ctx, value ? 1 : 0));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewBool(ctx, value ? 1 : 0));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4267,65 +4304,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint32_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewUint32(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewUint32(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4349,65 +4386,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				int64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewInt64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewInt64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4431,65 +4468,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				uint64_t value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewBigUint64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewBigUint64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}
@@ -4513,65 +4550,65 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			inline auto add_constant(
 				double value,
-				const std::string & obj1_name,
-				const std::string & obj2_name,
-				const std::string & obj3_name,
-				const std::string & obj4_name,
-				const std::string & obj5_name,
-				const std::string & obj6_name,
-				const std::string & obj7_name,
-				const std::string & obj8_name,
-				const std::string & obj9_name,
-				const std::string & property_name
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view obj9_name,
+				std::string_view property_name
 			) -> void 
 			{
 				auto global_obj = JS_GetGlobalObject(ctx);
-				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.c_str());
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
 				if (JS_IsUndefined(obj1)) {
 					obj1 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, global_obj, obj1_name.c_str(), obj1);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
 				}
-				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.c_str());
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
 				if (JS_IsUndefined(obj2)) {
 					obj2 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj1, obj2_name.c_str(), obj2);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
-				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.c_str());
+				auto obj3 = JS_GetPropertyStr(ctx, obj2, obj3_name.data());
 				if (JS_IsUndefined(obj3)) {
 					obj3 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj2, obj3_name.c_str(), obj3);
+					JS_SetPropertyStr(ctx, obj2, obj3_name.data(), obj3);
 				}
-				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.c_str());
+				auto obj4 = JS_GetPropertyStr(ctx, obj3, obj4_name.data());
 				if (JS_IsUndefined(obj4)) {
 					obj4 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj3, obj4_name.c_str(), obj4);
+					JS_SetPropertyStr(ctx, obj3, obj4_name.data(), obj4);
 				}
-				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.c_str());
+				auto obj5 = JS_GetPropertyStr(ctx, obj4, obj5_name.data());
 				if (JS_IsUndefined(obj5)) {
 					obj5 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj4, obj5_name.c_str(), obj5);
+					JS_SetPropertyStr(ctx, obj4, obj5_name.data(), obj5);
 				}
-				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.c_str());
+				auto obj6 = JS_GetPropertyStr(ctx, obj5, obj6_name.data());
 				if (JS_IsUndefined(obj6)) {
 					obj6 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj5, obj6_name.c_str(), obj6);
+					JS_SetPropertyStr(ctx, obj5, obj6_name.data(), obj6);
 				}
-				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.c_str());
+				auto obj7 = JS_GetPropertyStr(ctx, obj6, obj7_name.data());
 				if (JS_IsUndefined(obj7)) {
 					obj7 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj6, obj7_name.c_str(), obj7);
+					JS_SetPropertyStr(ctx, obj6, obj7_name.data(), obj7);
 				}
-				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.c_str());
+				auto obj8 = JS_GetPropertyStr(ctx, obj7, obj8_name.data());
 				if (JS_IsUndefined(obj8)) {
 					obj8 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj7, obj8_name.c_str(), obj8);
+					JS_SetPropertyStr(ctx, obj7, obj8_name.data(), obj8);
 				}
-				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.c_str());
+				auto obj9 = JS_GetPropertyStr(ctx, obj8, obj9_name.data());
 				if (JS_IsUndefined(obj9)) {
 					obj9 = JS_NewObject(ctx);
-					JS_SetPropertyStr(ctx, obj8, obj9_name.c_str(), obj9);
+					JS_SetPropertyStr(ctx, obj8, obj9_name.data(), obj9);
 				}
-				JS_SetPropertyStr(ctx, obj8, property_name.c_str(), JS_NewFloat64(ctx, value));
+				JS_SetPropertyStr(ctx, obj8, property_name.data(), JS_NewFloat64(ctx, value));
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}

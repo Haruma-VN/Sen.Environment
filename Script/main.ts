@@ -193,9 +193,7 @@ namespace Sen.Script {
         try {
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
-            Sen.Script.Console.send(
-                `Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`,
-            );
+            Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             Executor.run_as_module(`popcap.rton.encode`, { source: "D:/test/RESOURCES.json" }, Executor.Forward.DIRECT);
