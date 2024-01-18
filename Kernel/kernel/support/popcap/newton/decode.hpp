@@ -257,7 +257,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			// constructor
 
 			explicit Decode(
-				const std::string & source
+				std::string_view source
 			) : sen(source)
 			{
 
@@ -287,6 +287,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) = default;
 
+			M_INSTANCE_OF_STRUCT(
+				Decode
+			);
+
 			/**
 			 * This method will decode newton file
 			 * source: source file
@@ -295,12 +299,11 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			*/
 
 			inline static auto process_fs (
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto decode = Decode{source};
-				auto result = decode.process();
+				auto result = Decode::instance().process();
 				FileSystem::write_json(destination, result);
 				return;
 			}

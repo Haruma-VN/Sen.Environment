@@ -22,14 +22,14 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * Resource Enumeration
 			*/
 
-			std::map<std::string, unsigned char> ResourceTypeEnumeration = std::map<std::string, unsigned char> {
-				{"Image", 0x01},
-				{"PopAnim", 0x02},
-				{"SoundBank", 0x03},
-				{"File", 0x04},
-				{"PrimeFont", 0x05},
-				{"RenderEffect", 0x06},
-				{"DecodedSoundBank", 0x07}
+			inline static std::map<std::string, unsigned char> const ResourceTypeEnumeration = std::map<std::string, unsigned char> {
+				{"Image", 0x01_byte},
+				{"PopAnim", 0x02_byte},
+				{"SoundBank", 0x03_byte},
+				{"File", 0x04_byte},
+				{"PrimeFont", 0x05_byte},
+				{"RenderEffect", 0x06_byte},
+				{"DecodedSoundBank", 0x07_byte}
 			};
 
 			/***
@@ -42,27 +42,35 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			// constructor
 
-			Encode(
+			explicit Encode(
 
-				) = default;
+			) = default;
 
 			// destructor
 
 			~Encode(
 
-				) = default;
+			) = default;
+
+			// instance
+
+			M_INSTANCE_OF_STRUCT(
+				Encode
+			);
 
 			// constructor
 
 			explicit Encode(
-				const std::string &source) : resource(FileSystem::read_json(source))
+				const std::string_view source
+			) : resource(FileSystem::read_json(source))
 			{
 			}
 
 			// constructor
 
 			explicit Encode(
-				const String &source) : resource(FileSystem::read_json(source.value))
+				const String &source
+			) : resource(FileSystem::read_json(source.value))
 			{
 			}
 
@@ -72,7 +80,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * ---------------------
 			 */
 
-			auto process(
+			inline auto process(
 
 			) -> DataStreamView
 			{
@@ -257,13 +265,12 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			 * @returns: the output file after encoded
 			*/
 
-			static auto process_fs(
-				const std::string & source,
-				const std::string & destination
+			inline static auto process_fs(
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto encoder = Encode{source};
-				auto sen = encoder.process();
+				auto sen = Encode::instance().process();
 				FileSystem::write_binary<unsigned char>(destination, sen.get());
 				return;
 			}

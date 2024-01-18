@@ -36,6 +36,16 @@
 #include <Carbon/Carbon.h>
 #endif
 
+#define M_INSTANCE_OF_STRUCT(struct_name)\
+inline static auto instance(\
+) -> struct_name&\
+{\
+static auto INSTANCE = struct_name{};\
+return INSTANCE;\
+}
+
+#define M_INSTANCE_OF_CLASS(class_name) M_INSTANCE_OF_STRUCT(class_name)
+
 namespace Sen::Kernel {
 	
 }

@@ -130,8 +130,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			inline auto split(
-				const std::string_view source,
-				const std::string_view destination
+				std::string_view source,
+				std::string_view destination
 			) -> void override final
 			{
 				auto res_info = FileSystem::read_json(source);

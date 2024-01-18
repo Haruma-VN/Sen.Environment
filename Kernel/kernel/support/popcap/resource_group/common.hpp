@@ -13,7 +13,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 		protected:
 
-			static auto rewrite_slot_count(
+			inline static auto rewrite_slot_count(
 				nlohmann::ordered_json &resource
 			) -> void
 			{
@@ -50,6 +50,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 	class BasicConversion : public RewriteSlot {
 
 		public:
+
+			explicit BasicConversion(
+
+			) = default;
+
+			~BasicConversion(
+
+			) = default;
 
 			/**
 			 * inFile: the input file

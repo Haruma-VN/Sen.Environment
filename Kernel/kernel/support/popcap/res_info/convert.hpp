@@ -387,8 +387,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			inline static auto convert_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
 				FileSystem::write_json(destination, Convert::convert(FileSystem::read_json(source)));

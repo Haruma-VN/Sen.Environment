@@ -80,11 +80,19 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			*/
 
 			explicit Encode(
-				const std::string & source
+				std::string_view source
 			) : data(FileSystem::read_json(source))
 			{
 
 			}
+
+			/**
+			 * Get instance
+			*/
+
+			M_INSTANCE_OF_STRUCT(
+				Encode
+			);
 
 			/**
 			 * Destructor
@@ -215,13 +223,11 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			*/
 
 			inline static auto process_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto encoder = Encode{source};
-				auto sen = encoder.encode();
-				sen.out_file(destination);
+				Encode::instance().encode().out_file(destination);
 				return;
 			}
 	};

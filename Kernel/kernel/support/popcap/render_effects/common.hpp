@@ -89,7 +89,6 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects
 
 			) = default;
 
-
             explicit Common(
                 uint32_t block1_size,
                 uint32_t block1_section_offset,

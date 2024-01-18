@@ -82,6 +82,14 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			) = default;
 
 			/**
+			 * Create instance
+			*/
+
+			M_INSTANCE_OF_STRUCT(
+				Decode
+			);
+
+			/**
 			 * Decode method
 			*/
 			
@@ -187,12 +195,12 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			*/
 
 			inline static auto process_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto decoder = Decode{source};
-				FileSystem::write_json(destination, decoder.decode());
+				auto result = Decode::instance().decode();
+				FileSystem::write_json(destination, result);
 				return;
 			}
 
