@@ -39,13 +39,13 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 
 			// default constructor
 
-			Uncompress(
+			explicit Uncompress(
 
 			) = default;
 
 			// should use this
 
-			explicit Uncompress(
+			explicit constexpr Uncompress(
 				bool use_64_bit_variant
 			) : use_64_bit_variant(use_64_bit_variant)
 			{
@@ -65,7 +65,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 			 * return: uncompressed buffer source
 			*/
 
-			auto uncompress(
+			inline auto uncompress(
 				const std::vector<unsigned char> & source 
 			) -> std::vector<unsigned char> override final
 			{
@@ -89,9 +89,9 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 			 * @return: the uncompressed data
 			 */
 
-			static auto uncompress_fs(
-				const std::string & source,
-				const std::string & destination,
+			inline static auto uncompress_fs(
+				std::string_view source,
+				std::string_view destination,
 				bool use_64_bit_variant
 			) -> void
 			{

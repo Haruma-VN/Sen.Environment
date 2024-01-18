@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 
 			// constructor
 
-			Compress(
+			explicit constexpr Compress(
 				bool use_64_bit_variant
 			) : use_64_bit_variant(use_64_bit_variant)
 			{
@@ -104,21 +104,15 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 			 * @return: the compressed file
 			*/
 
-			static auto compress_fs(
-				const std::string & source,
-				const std::string & destination,
+			inline static auto compress_fs(
+				std::string_view source,
+				std::string_view destination,
 				bool use_64_bit_variant
 			) -> void
 			{
 				auto sen = std::unique_ptr<PopCap::Zlib::Compress>(new PopCap::Zlib::Compress{use_64_bit_variant});
 				FileSystem::write_binary<unsigned char>(destination, sen->compress(FileSystem::read_binary<unsigned char>(source)));
 				return;
-			}
-
-			static auto get_instance(
-
-			) -> Compress {
-
 			}
 
 	};

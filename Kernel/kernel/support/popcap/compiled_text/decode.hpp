@@ -42,13 +42,13 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		 * Key for compiled text
 		 */
 
-		std::string key;
+		std::string_view key;
 
 		/**
 		 * Iv for compiled text
 		 */
 
-		std::string iv;
+		std::string_view iv;
 
 		/**
 		 * The use of 64bit variant
@@ -63,7 +63,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 
 		explicit Decode(
 
-			) = default;
+		) = default;
 
 		/**
 		 * Default destructor
@@ -71,7 +71,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 
 		~Decode(
 
-			) = default;
+		) = default;
 
 		/**
 		 * @param source: source file
@@ -79,18 +79,20 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		 */
 
 		explicit Decode(
-			const std::string &source,
-			const std::string &key,
-			const std::string &iv,
-			bool use_64_bit_variant) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			std::string_view source,
+			std::string_view key,
+			std::string_view iv,
+			bool use_64_bit_variant
+		) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 		{
 		}
 
 		explicit Decode(
-			DataStreamView &it,
-			const std::string &key,
-			const std::string &iv,
-			bool use_64_bit_variant) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			const DataStreamView & it,
+			std::string_view key,
+			std::string_view iv,
+			bool use_64_bit_variant
+		) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 		{
 		}
 
@@ -118,11 +120,12 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		 */
 
 		inline static auto process_fs(
-			const std::string &source,
-			const std::string &destination,
-			const std::string &key,
-			const std::string &iv,
-			bool use_64_bit_variant) -> void
+			std::string_view source,
+			std::string_view destination,
+			std::string_view key,
+			std::string_view iv,
+			bool use_64_bit_variant
+		) -> void
 		{
 			auto compiled_text = Decode{source, key, iv, use_64_bit_variant};
 			auto sen = compiled_text.process();

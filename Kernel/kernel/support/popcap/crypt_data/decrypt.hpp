@@ -73,7 +73,8 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 				std::string_view key
 			) -> void
 			{
-				FileSystem::write_binary(destination, Decrypt::instance().process(DataStreamView{source}, key).get());
+				auto result = Decrypt::instance().process(DataStreamView{source}, key).get();
+				FileSystem::write_binary(destination, result);
 				return;
 			}
 

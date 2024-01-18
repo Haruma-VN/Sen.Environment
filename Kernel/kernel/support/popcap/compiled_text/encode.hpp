@@ -35,13 +35,13 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Key for compiled text
 			*/
 
-			std::string key;
+			std::string_view key;
 
 			/**
 			 * Iv for compiled text
 			*/
 
-			std::string iv;
+			std::string_view iv;
 
 			/**
 			 * The use of 64bit variant
@@ -55,7 +55,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * Default constructor
 			*/
 
-			Encode(
+			explicit Encode(
 
 			) = default;
 
@@ -73,9 +73,9 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			*/
 
 			explicit Encode(
-				const std::string & source,
-				const std::string & key,
-				const std::string & iv,
+				std::string_view source,
+				std::string_view key,
+				std::string_view iv,
 				bool use_64_bit_variant
 			) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
@@ -84,8 +84,8 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 
 			explicit Encode(
 				DataStreamView & it,
-				const std::string & key,
-				const std::string & iv,
+				std::string_view key,
+				std::string_view iv,
 				bool use_64_bit_variant
 			) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
@@ -121,10 +121,10 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			*/
 
 			static auto process_fs(
-				const std::string & source,
-				const std::string & destination,
-				const std::string & key,
-				const std::string & iv,
+				std::string_view source,
+				std::string_view destination,
+				std::string_view key,
+				std::string_view iv,
 				bool use_64_bit_variant
 			) -> void
 			{

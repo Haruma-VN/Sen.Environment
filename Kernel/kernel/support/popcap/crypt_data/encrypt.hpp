@@ -23,6 +23,10 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 
 			) = default;
 
+			M_INSTANCE_OF_STRUCT(
+				Encrypt
+			);
+
 			/**
 			 * Destructor
 			*/
@@ -35,9 +39,9 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 			 * Process method
 			*/
 
-			inline static auto process(
+			inline auto process(
 				const DataStreamView & view,
-				const std::string & key
+				std::string_view key
 			) -> DataStreamView
 			{
             	auto size = view.size();
@@ -64,12 +68,13 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 			*/
 
 			inline static auto process_fs(
-				const std::string & source,
-				const std::string & destination,
-				const std::string & key
+				std::string_view source,
+				std::string_view destination,
+				std::string_view key
 			) -> void
 			{
-				FileSystem::write_binary(destination, Encrypt::process(DataStreamView{source}, key).get());
+				auto result = Encrypt::instance().process(DataStreamView{source}, key).get();
+				FileSystem::write_binary(destination, result);
 				return;
 			}
 

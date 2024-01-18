@@ -18,6 +18,14 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			) = default;
 
 			/**
+			 * Get instance
+			*/
+
+			M_INSTANCE_OF_STRUCT(
+				Decode
+			);
+
+			/**
 			 * Destructor
 			*/
 
@@ -29,7 +37,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			 * Process method
 			*/
 
-			inline static auto process(
+			inline auto process(
 				const DataStreamView & view
 			) -> CharacterFontWidget2
 			{
@@ -143,11 +151,12 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 
 
 			inline static auto process_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				FileSystem::write_json(destination, Decode::process(DataStreamView{source}));
+				auto result = Decode::instance().process(DataStreamView{source});
+				FileSystem::write_json(destination, result);
 				return;
 			}
 

@@ -259,7 +259,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * @return: Resource group in source converted to Res-Info in destination
 			*/
 
-			static auto convert_fs(
+			inline static auto convert_fs(
 				std::string_view source,
 				std::string_view destination,
 				PathStyle style

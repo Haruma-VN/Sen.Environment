@@ -270,7 +270,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             std::string_view q
         ) noexcept -> std::size_t
         {
-            auto utf8_size = 0Ui64;
+            auto utf8_size = static_cast<std::size_t>(0);
             for (auto & i : q)
             {
                 if (i <= 0b01111111){

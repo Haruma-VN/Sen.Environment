@@ -52,9 +52,9 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: decoded image
 			*/
 
-			static auto decode_fs(
-				const std::string & source,
-				const std::string & destination,
+			inline static auto decode_fs(
+				std::string_view source,
+				std::string_view destination,
 				int width,
 				int height,
 				Format format
@@ -153,9 +153,9 @@ namespace Sen::Kernel::Support::Texture {
 			 * return: encoded file
 			*/
 
-			static auto encode_fs(
-				const std::string & source,
-				const std::string & destination,
+			inline static auto encode_fs(
+				std::string_view source,
+				std::string_view destination,
 				Format format
 			) -> void
 			{

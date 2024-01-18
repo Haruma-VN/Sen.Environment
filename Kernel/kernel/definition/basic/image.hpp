@@ -580,10 +580,10 @@ namespace Sen::Kernel::Definition {
 			*/
 			
 			inline static auto read_png(
-				const string & source
+				std::string_view source
 			) -> Image<int> 
 			{
-				auto *fp = fopen(source.c_str(), "rb");
+				auto *fp = fopen(source.data(), "rb");
 				if(!fp){
 					throw Exception(fmt::format("Open png failed: {}", source));
 				}
@@ -641,11 +641,11 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto write_png(
-				const std::string &filepath, 
+				std::string_view filepath, 
 				const Image<int> &data
 			) -> void
 			{
-				auto *fp = fopen(filepath.c_str(), "wb");
+				auto *fp = fopen(filepath.data(), "wb");
 				if(!fp){
 					throw Exception(fmt::format("Open png failed: {}", filepath));
 				}
@@ -704,8 +704,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto composite_png(
-				const std::string & source,
-				const std::string & destination,
+				std::string_view source,
+				std::string_view destination,
 				const Rectangle<int> & rectangle
 			) -> void
 			{
@@ -721,7 +721,7 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto composite_pngs(
-				const std::string & source,
+				std::string_view source,
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
 			{
@@ -741,7 +741,7 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto transparent_png(
-				const std::string & destination,
+				std::string_view destination,
 				int width,
 				int height
 			) -> void
@@ -759,7 +759,7 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			inline static auto join_png(
-				const std::string & destination,
+				std::string_view destination,
 				const Dimension<int> & dimension,
 				const std::vector<Image<int>> &data
 			) -> void
@@ -782,8 +782,8 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			inline static auto resize_png(
-				const std::string & source,
-				const std::string & destination,
+				std::string_view source,
+				std::string_view destination,
 				float percent
 			) -> void
 			{
@@ -800,8 +800,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto rotate_png(
-				const std::string & source,
-				const std::string & destination,
+				std::string_view source,
+				std::string_view destination,
 				double angle
 			) -> void
 			{
@@ -818,8 +818,8 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto scale_png(
-				const std::string & source,
-				const std::string & destination,
+				std::string_view source,
+				std::string_view destination,
 				float percent
 			) -> void
 			{

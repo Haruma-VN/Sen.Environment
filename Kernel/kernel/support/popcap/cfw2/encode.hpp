@@ -32,10 +32,18 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			) = default;
 
 			/**
+			 * Instance
+			*/
+
+			M_INSTANCE_OF_STRUCT(
+				Encode
+			);
+
+			/**
 			 * Process method
 			*/
 
-			inline static auto process(
+			inline auto process(
 				const CharacterFontWidget2 & cfw2_json
 			) -> DataStreamView
 			{
@@ -135,11 +143,11 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			*/
 
 			inline static auto process_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto c = Encode::process(FileSystem::read_json(source));
+				auto c = Encode::instance().process(FileSystem::read_json(source));
 				FileSystem::write_binary(destination, c.get());
 				return;
 			}
