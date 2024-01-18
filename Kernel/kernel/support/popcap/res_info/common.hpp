@@ -34,9 +34,9 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// constructor
 
-			Common(
+			explicit Common(
 
-			) = default;
+			) noexcept = default;
 
 			// destructor
 
@@ -49,8 +49,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			virtual auto split(
-				const std::string & source, 
-				const std::string & destination
+				std::string_view source, 
+				std::string_view destination
 			) -> void = 0;
 
 			/**
@@ -58,8 +58,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			virtual auto merge(
-				const std::string & source, 
-				const std::string & destination
+				std::string_view source, 
+				std::string_view destination
 			) -> void = 0;
 
 	};
@@ -76,7 +76,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: json map
 			*/
 
-			auto generate_subgroup(
+			inline auto generate_subgroup(
 				const nlohmann::ordered_json & resource
 			) -> nlohmann::ordered_json override final
 			{
@@ -90,7 +90,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * 
 			*/
 
-			auto convert_info(
+			inline auto convert_info(
 				const nlohmann::ordered_json & resource
 			) -> nlohmann::ordered_json override final
 			{
@@ -112,13 +112,13 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// constructor
 
-			BasicConversion(
+			explicit BasicConversion(
 
-			) = default;
+			) noexcept = default;
 
 			// destructor
 
-			~ BasicConversion(
+			~BasicConversion(
 
 			) = default;
 
@@ -129,9 +129,9 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: the newly directory with splitted content
 			*/
 
-			auto split(
-				const std::string & source,
-				const std::string & destination
+			inline auto split(
+				const std::string_view source,
+				const std::string_view destination
 			) -> void override final
 			{
 				auto res_info = FileSystem::read_json(source);
@@ -156,9 +156,9 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: the newly res-info
 			*/
 
-			auto merge(
-				const std::string & source,
-				const std::string & destination
+			inline auto merge(
+				std::string_view source,
+				std::string_view destination
 			) -> void override final
 			{
 				auto info = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "info.json")));
@@ -179,19 +179,30 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			}
 
 			/**
+			 * Singleton
+			*/
+
+			inline static auto instance(
+
+			) -> BasicConversion&
+			{
+				static auto INSTANCE = BasicConversion{};
+				return INSTANCE;
+			}
+
+			/**
 			 * Quick split method
 			 * @param source: source file
 			 * @param destination: destination directory
 			 * return: the newly directory with splitted content
 			*/
 
-			static auto split_fs(
-				const std::string & source,
-				const std::string & destination
+			inline static auto split_fs(
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto resource_handler = ResInfo::BasicConversion{};
-				resource_handler.split(source, destination);
+				ResInfo::BasicConversion::instance().split(source, destination);
 				return;
 			}
 
@@ -202,13 +213,12 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * @return: the newly res-info
 			*/
 
-			static auto merge_fs(
-				const std::string & source,
-				const std::string & destination
+			inline static auto merge_fs(
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto resource_handler = ResInfo::BasicConversion{};
-				resource_handler.merge(source, destination);
+				ResInfo::BasicConversion::instance().merge(source, destination);
 				return;
 			}
 

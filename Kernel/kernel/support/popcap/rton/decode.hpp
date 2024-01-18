@@ -424,32 +424,32 @@ namespace Sen::Kernel::Support::PopCap::RTON
         }
 
         inline static auto decrypt_fs(
-            const std::string & source,
-            const std::string & destination,
-            const std::string & key,
-            const std::string & iv
+            std::string_view source,
+            std::string_view destination,
+            std::string_view key,
+            std::string_view iv
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
             auto source_iv = DataStreamView{iv};
-            // fill_rijndael_block(source_buffer, source_iv);
-           //  FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.length())), key, iv, source_buffer.length(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
+            fill_rijndael_block(source_buffer, source_iv);
+            FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size()).data()), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
             return;
         }
 
         inline static auto decrypt_and_decode_fs(
-            const std::string & source,
-            const std::string & destination,
-            const std::string & key,
-            const std::string & iv
+            std::string_view source,
+            std::string_view destination,
+            std::string_view key,
+            std::string_view iv
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
             auto source_iv = DataStreamView{iv};
-            // fill_rijndael_block(source_buffer, source_iv);
-            // auto sen = DataStreamView{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.length())), key, iv, source_buffer.length(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
-            // auto rton = Decode{sen};
-           // FileSystem::write_binary<unsigned char>(destination, rton.decode_rton());
+            fill_rijndael_block(source_buffer, source_iv);
+            auto sen = DataStreamView{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size()).data()), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
+            auto rton = Decode{sen};
+            FileSystem::write_file(destination, rton.decode_rton());
             return;
         }
 

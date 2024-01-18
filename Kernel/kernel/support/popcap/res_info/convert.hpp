@@ -18,23 +18,23 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// id
 
-			std::string id;
+			std::string_view id;
 
 			// parent
 
-			std::string parent;
+			std::string_view parent;
 
 			// constructor
 
-			SubInformation(
+			explicit SubInformation(
 
 			) = default;
 
 			// should use this constructor
 
-			SubInformation(
-				const std::string & id,
-				const std::string & parent
+			explicit SubInformation(
+				std::string_view id,
+				std::string_view parent
 			) : id(id), parent(parent)
 			{
 
@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			// virtual composite generator
 
 			virtual auto generate_composite(
-				const std::string & id,
+				std::string_view id,
     			const nlohmann::ordered_json & composite
 			) -> nlohmann::ordered_json = 0;
 
@@ -84,17 +84,17 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// composite
 
-			inline static auto const Composite = std::string{"composite"};
+			inline static auto constexpr Composite = std::string_view{"composite"};
 
 			// simple
 
-			inline static auto const Simple = std::string{"simple"};
+			inline static auto constexpr Simple = std::string_view{"simple"};
 
 			// constructor
 
-			Virtual(
+			explicit Virtual(
 
-			) = default;
+			) noexcept = default;
 
 			// destructor
 
@@ -123,8 +123,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: new json object that has been generated
 			*/
 
-			auto generate_composite(
-				const std::string & id,
+			inline auto generate_composite(
+				std::string_view id,
     			const nlohmann::ordered_json & composite
 			) -> nlohmann::ordered_json override final
 			{
@@ -152,7 +152,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: generated common information
 			*/
 
-			auto generate_common(
+			inline auto generate_common(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
 			) -> nlohmann::ordered_json override final
@@ -200,7 +200,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: generated atlas information
 			*/
 
-			auto generate_image(
+			inline auto generate_image(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
 			) -> nlohmann::ordered_json override final
@@ -276,9 +276,18 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// constructor
 
-			Convert(
+			explicit Convert(
 
-			) = default;
+			) noexcept = default;
+
+			// constructor
+
+			explicit constexpr Convert(
+				bool use_string_for_style
+			) noexcept : use_string_for_style(use_string_for_style)
+			{
+
+			}
 
 			// destructor
 
@@ -292,7 +301,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: Resource Group
 			*/
 
-			auto convert_whole(
+			inline auto convert_whole(
 				const nlohmann::ordered_json & res_info
 			) -> nlohmann::ordered_json override final
 			{
@@ -347,20 +356,26 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				return result;
 			}
 
+
+			inline static auto instance(
+
+			) -> Convert&
+			{
+				static auto INSTANCE = Convert{};
+				return INSTANCE;
+			}
+
 			/**
 			 * Quick convert function
 			 * @param res_info: Res-Info object
 			 * @return: nlohmann json object as Resource Group
 			*/
 
-			static auto convert(
+			inline static auto convert(
 				const nlohmann::ordered_json & res_info
 			) -> nlohmann::ordered_json const
 			{
-				auto* convert_c = new ResInfo::Convert();
-				auto result = convert_c->convert_whole(res_info);
-				delete convert_c;
-				convert_c = nullptr;
+				auto result = ResInfo::Convert::instance().convert_whole(res_info);
 				return result;
 			}
 
@@ -371,7 +386,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * @return: Res-Info to Resource-Group
 			*/
 
-			static auto convert_fs(
+			inline static auto convert_fs(
 				const std::string & source,
 				const std::string & destination
 			) -> void

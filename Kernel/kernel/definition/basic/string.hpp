@@ -192,7 +192,7 @@ namespace Sen::Kernel {
 
 			inline static auto fromCharCode(
 				std::initializer_list<short> charCodes
-			) -> String 
+			) noexcept -> String 
 			{
 				auto value = std::string(charCodes.size(), '\0');
 				std::transform(charCodes.begin(), charCodes.end(), value.begin(), [](auto c) { return static_cast<char>(c); });
@@ -241,7 +241,7 @@ namespace Sen::Kernel {
 			inline constexpr auto includes(
 				const std::string & source,
 				const size_t & start
-			) -> bool
+			) noexcept -> bool
 			{
 				return thiz.value.find(source, start) != std::string::npos;
 			}
@@ -256,7 +256,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto indexOf(
 				std::string_view source
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = thiz.value.find(source);
 				if (pos == std::string::npos){
@@ -276,7 +276,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto indexOf(
 				const String & that
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = thiz.value.find(that.value);
 				if (pos == std::string::npos){
@@ -296,7 +296,7 @@ namespace Sen::Kernel {
 			inline constexpr auto indexOf(
 				std::string_view source,
 				size_t start
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = thiz.value.find(source, start);
 				if (pos == std::string::npos){
@@ -316,7 +316,7 @@ namespace Sen::Kernel {
 			inline constexpr auto indexOf(
 				const String & that,
 				const size_t & start
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = thiz.value.find(that.value, start);
 				if (pos == std::string::npos){
@@ -339,7 +339,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto lastIndexOf(
 				const String & that
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = value.rfind(that.value);
 				if(pos == std::string::npos){
@@ -362,7 +362,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto lastIndexOf(
 				std::string_view source
-			) -> long
+			) noexcept -> long
 			{
 				auto pos = value.rfind(source);
 				if(pos == std::string::npos){
@@ -377,7 +377,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto length(
 
-			) -> size_t
+			) noexcept -> size_t
 			{
 				return thiz.value.length();
 			}
@@ -560,7 +560,7 @@ namespace Sen::Kernel {
 
 			inline constexpr auto startsWith(
 				const std::string & prefix
-			) -> bool
+			) noexcept -> bool
 			{
 				if (prefix.length() > thiz.value.length()) 
 				{

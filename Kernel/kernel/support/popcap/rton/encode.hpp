@@ -23,6 +23,13 @@ namespace Sen::Kernel::Support::PopCap::RTON
             inline static constexpr auto star = std::string_view{"*"};
             inline static constexpr auto empty_string = std::string_view{""};
             inline static constexpr auto rtid_0 = std::string_view{"RTID(0)"};
+            inline static constexpr auto rtid_begin = std::string_view{"RTID("};
+            inline static constexpr auto rtid_close = std::string_view{")"};
+            inline static constexpr auto rtid_seperator = std::string_view{"@"};
+            inline static constexpr auto rtid_dot = std::string_view{"."};
+            inline static constexpr auto binary_begin = std::string_view{"$BINARY(\""};
+            inline static constexpr auto binary_end = std::string_view{")"};
+            inline static constexpr auto binary_seperator = std::string_view{"\", "};
             inline static constexpr auto RTON_vesion = 0x01_byte;
             inline static constexpr auto object_begin = 0x85_byte;
             inline static constexpr auto object_end = 0xFF_byte;
@@ -38,8 +45,10 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         protected:
             inline auto encode_rton(
-                ondemand::document &json) -> DataStreamView
+                ondemand::document &json
+            ) -> DataStreamView
             {
+                sen.close();
                 sen.writeStringView(RTON_head);
                 sen.writeUint32(RTON_vesion);
                 auto object = static_cast<ondemand::object>(json.get_object());
@@ -138,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             }
             else
             {
-                if ((float)num == num)
+                if (static_cast<float>(num) == num)
                 {
                     sen.writeUint8(0x22);
                     sen.writeFloat(num);
@@ -152,7 +161,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return;
         }
 
-        inline auto write_num(
+        inline auto constexpr write_num(
             int64_t num
         ) -> void
         {
@@ -213,7 +222,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return;
         }
 
-        inline auto write_string(
+        inline auto constexpr write_string(
             std::string_view str
         ) -> void
         {
@@ -259,7 +268,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto constexpr get_utf8_size(
             std::string_view q
-        ) -> std::size_t
+        ) noexcept -> std::size_t
         {
             auto utf8_size = 0Ui64;
             for (auto & i : q)
@@ -280,9 +289,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return utf8_size;
         }
 
-        inline auto is_ascii(
+        inline auto constexpr is_ascii(
             std::string_view str
-        ) -> bool
+        ) noexcept -> bool
         {
             /*
             for (auto &c : str) {
@@ -302,7 +311,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> bool
         {
             auto p_str = String{str};
-            if (str.starts_with("RTID(") and str.ends_with(")"))
+            if (str.starts_with(rtid_begin) and str.ends_with(rtid_close))
             {
                 if (str == rtid_0)
                 {
@@ -310,14 +319,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return true;
                 }
                 auto new_str = p_str.slice(5, p_str.length() - 1);
-                if (new_str.indexOf("@") != -1)
+                if (new_str.indexOf(rtid_seperator) != -1)
                 {
-                    auto name_str = new_str.split("@");
-                    auto dot_count = (std::size_t)std::count(name_str[0].begin(), name_str[0].end(), '.');
+                    auto name_str = new_str.split(rtid_seperator);
+                    auto dot_count = static_cast<std::size_t>(std::count(name_str[0].begin(), name_str[0].end(), '.'));
                     sen.writeUint8(0x83);
                     if (dot_count == 2)
                     {
-                        auto int_str = String{name_str[0]}.split(".");
+                        auto int_str = String{name_str[0]}.split(rtid_dot);
                         sen.writeUint8(0x02);
                         sen.writeVarInt32(name_str[1].length());
                         sen.writeStringByVarInt32(name_str[1]);
@@ -347,9 +356,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> bool
         {
             auto p_str = String{str_v};
-            if (str_v.starts_with("$BINARY(\"") and str_v.ends_with(")"))
+            if (str_v.starts_with(binary_begin) and str_v.ends_with(binary_end))
             {
-                auto index = p_str.lastIndexOf("\", ");
+                auto index = p_str.lastIndexOf(binary_seperator);
                 if (index == -1)
                 {
                     return false;
@@ -363,10 +372,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 {
                     return false;
                 }
-                auto m_string = str_v.substr(9, index);
                 sen.writeUint8(0x87);
-                sen.writeUint8(0);
-                sen.writeStringViewByVarInt32(m_string);
+                sen.writeUint8(0x00);
+                sen.writeStringViewByVarInt32(str_v.substr(9, index));
                 sen.writeVarInt32(v);
                 return true;
             }
@@ -375,9 +383,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
     public:
 
-        Encode(
+        explicit Encode(
 
-        ) = default;
+        ) noexcept = default;
 
         ~Encode(
 

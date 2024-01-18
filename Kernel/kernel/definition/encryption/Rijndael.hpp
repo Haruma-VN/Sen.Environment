@@ -33,14 +33,14 @@ namespace Sen::Kernel::Definition::Encryption
 
 			inline static auto encrypt(
 				char const* plain,
-				const std::string & key,
-				const std::string & iv,
+				std::string_view key,
+				std::string_view iv,
 				size_t plain_size,
 				RijndaelMode mode
 			) -> std::vector<unsigned char>
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
-				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
+				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = std::unique_ptr<char[]>(new char[plain_size]);
 				rijndael->Encrypt(plain, result.get(), plain_size, mode);
 				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + plain_size)};
@@ -58,14 +58,14 @@ namespace Sen::Kernel::Definition::Encryption
 
 			inline static auto decrypt(
 				char const* cipher,
-				const std::string & key,
-				const std::string & iv,
+				std::string_view key,
+				std::string_view iv,
 				size_t cipher_len,
 				RijndaelMode mode
 			) -> std::vector<unsigned char>
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
-				rijndael->MakeKey(key.c_str(), iv.c_str(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
+				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = std::unique_ptr<char[]>(new char[cipher_len]);
 				rijndael->Decrypt(cipher, result.get(), cipher_len, mode);
 				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + cipher_len)};

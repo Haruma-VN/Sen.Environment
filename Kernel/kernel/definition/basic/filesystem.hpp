@@ -48,7 +48,6 @@ namespace Sen::Kernel::FileSystem
 		std::string_view content
 	) -> void 
 	{
-		
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
@@ -344,13 +343,13 @@ namespace Sen::Kernel::FileSystem
 	*/
 
 
-	template <CharacterBufferView T>
+	template <typename T> requires CharacterBufferView<T>
 	inline static auto write_binary(
-		const std::string &outFile,
-		const std::vector<T> &data
+		std::string_view outFile,
+		const std::vector<T> & data
 	) -> void
 	{
-		auto out = std::ofstream(outFile, std::ios::binary);
+		auto out = std::ofstream(outFile.data(), std::ios::binary);
 		if(!out.is_open()){
 			throw Exception(fmt::format("Unable to open: {}", outFile));
 		}

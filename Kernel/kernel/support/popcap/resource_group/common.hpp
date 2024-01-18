@@ -38,9 +38,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 		public:
 
-			RewriteSlot(
+			explicit RewriteSlot(
 
-			) = default;
+			) noexcept = default;
 
 			~RewriteSlot(
 
@@ -56,14 +56,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * output: the output directory
 			*/
 
-			static auto split(
-				const string &infile,
-				const string &output
+			inline static auto split(
+				std::string_view infile,
+				std::string_view output
 			) -> void
 			{
 				auto resource = FileSystem::read_json(infile);
 				try_assert(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"));
-				FileSystem::createDirectory(fmt::format("{}/{}", Path::toPosixStyle(output), "subgroup"));
+				FileSystem::createDirectory(fmt::format("{}/{}", output, "subgroup"));
 				auto content = json{};
 				for(auto & c : resource["groups"])
 				{
@@ -108,9 +108,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * file output: file output path
 			*/
 
-			static auto merge(
-				const string &directoryPath,
-				const string &fileOutput
+			inline static auto merge(
+				std::string_view directoryPath,
+				std::string_view fileOutput
 			) -> void
 			{
 				auto content = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", directoryPath, "content.json")));

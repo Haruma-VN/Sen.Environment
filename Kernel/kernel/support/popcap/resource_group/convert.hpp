@@ -86,7 +86,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * return: the newly converted json
 			*/
 
-			auto convert_atlas(
+			inline auto convert_atlas(
 				const nlohmann::ordered_json & subgroup
 			) -> nlohmann::ordered_json
 			{
@@ -157,7 +157,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * return: map
 			*/
 
-			auto convert_common(
+			inline auto convert_common(
 				const nlohmann::ordered_json & subgroup
 			) -> nlohmann::ordered_json
 			{
@@ -192,7 +192,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * return: the subgroup
 			*/
 
-			auto first_where(
+			inline static auto first_where(
 				const nlohmann::ordered_json & resource_group,
 				const std::string & id
 			) -> nlohmann::ordered_json
@@ -260,23 +260,21 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			static auto convert_fs(
-				const std::string & source,
-				const std::string & destination,
+				std::string_view source,
+				std::string_view destination,
 				PathStyle style
 			) -> void 
 			{
-				auto *convert_c = new ResourceGroup::Convert{style};
+				auto convert_c = std::unique_ptr<ResourceGroup::Convert>{new ResourceGroup::Convert{style}};
 				FileSystem::write_json(destination, convert_c->convert_whole(FileSystem::read_json(source)));
-				delete convert_c;
-				convert_c = nullptr;
 				return;
 			}
 
 			// default constructor
 
-			Convert(
+			explicit constexpr Convert(
 				PathStyle style
-			) : use_string_for_style(style == PathStyle::WindowStyle)
+			) noexcept : use_string_for_style(style == PathStyle::WindowStyle)
 			{
 
 			}
