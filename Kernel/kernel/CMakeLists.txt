@@ -82,6 +82,9 @@ add_library(
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp
+	./support/popcap/animation/definition.hpp
+	./support/popcap/animation/decode.hpp
+	./support/popcap/animation/encode.hpp
 	./support/popcap/crypt_data/definition.hpp
 	./support/popcap/crypt_data/encrypt.hpp
 	./support/popcap/crypt_data/decrypt.hpp

@@ -3013,9 +3013,9 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						// encode method
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Animation::Decode::decode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					});
 				}
