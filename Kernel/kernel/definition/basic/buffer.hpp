@@ -125,7 +125,7 @@ namespace Sen::Kernel::Definition
             {
                 if (from < 0 || to > thiz.data.size())
                 {
-                    throw Exception("Invalid vector size");
+                    throw Exception(fmt::format("{} {} {} {}", Language::get("buffer.invalid.size"), from, Language::get("to"), to));
                 }
                 return std::vector<unsigned char>(thiz.data.begin() + from, thiz.data.begin() + to);
             }
@@ -199,7 +199,7 @@ namespace Sen::Kernel::Definition
                 }
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(path.data(), "wb"), close_file);
                 if (!file) {
-                    throw Exception(fmt::format("Could not write file: {}", path));
+                    throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path));
                 }
                 fwrite(thiz.data.data(), 1, thiz.length, file.get());
                 return;
@@ -1396,7 +1396,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 35)
                     {
-                        throw Exception("Invalid varint num");
+                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2));
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1420,7 +1420,7 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 70)
                     {
-                        throw Exception("Invalid varint num");
+                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2));
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1501,7 +1501,7 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + sizeof(T) > thiz.size())
                 {
-                    throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()));
                 }
                 auto value = T{0};
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, sizeof(T));
@@ -1516,7 +1516,7 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + size > thiz.size())
                 {
-                    throw Exception(fmt::format("Offset {} is outside bounds of the DataStreamView size", thiz.read_pos, thiz.size()));
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()));
                 }
                 T value = 0;
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, size);

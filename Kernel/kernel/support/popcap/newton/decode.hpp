@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw Exception(fmt::format("Invalid boolean value at offset: {}", sen.get_read_pos() - 1));
+						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen.get_read_pos() - 1));
 					}
 				}
 				return value;
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							break;
 						}
 						default:{
-							throw Exception(fmt::format("Unknown group index at index {}", i));
+							throw Exception(fmt::format("{} {}. {}: group[\"type\"] == 1 || group[\"type\"] == 2, {} {}", Language::get("popcap.newton.invalid_group_type"), i, Language::get("conditional"), Language::get("but_received"), group_type));
 						}
 					}
 					auto res = thiz.read_integer();
@@ -177,7 +177,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									break;
 								}
 								default:{
-									throw Exception(fmt::format("resource type cannot be specified at {}", group["id"].get<std::string>()));
+									throw Exception(fmt::format("{} {}, {}", Language::get("popcap.newton.invalid_resource_type"), group["id"].get<std::string>(), Language::get("popcap.newton.expected_from_to"), resource_type));
 								}
 							}
 							auto slot = thiz.read_integer();

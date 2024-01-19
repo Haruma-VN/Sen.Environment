@@ -29,10 +29,10 @@ namespace Sen::Kernel {
 		*/
 
 		inline static auto run(
-			const std::string & command
+			std::string_view command
 		) -> void
 		{
-			std::system(command.c_str());
+			std::system(command.data());
 			return;
 		}
 
@@ -41,10 +41,10 @@ namespace Sen::Kernel {
 		*/
 
 		inline static auto is_exists_in_path_environment(
-			const std::string & str
+			std::string_view str
 		) -> bool
 		{
-    		return std::getenv(str.c_str()) != nullptr;
+    		return std::getenv(str.data()) != nullptr;
 		}
 
 		/**
@@ -52,13 +52,13 @@ namespace Sen::Kernel {
 		*/
 
 		inline static auto execute(
-			const std::string & command
+			std::string_view command
 		) -> std::string
 		{
 			#if WINDOWS
 				auto buffer = std::array<char, 128>{};
 				auto result = std::string{};
-				std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
+				std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.data(), "r"), _pclose);
 				if (!pipe) {
 					throw Exception("_popen() failed!");
 				}
@@ -69,7 +69,7 @@ namespace Sen::Kernel {
 			#else
 				auto buffer = std::array<char, 128>{};
 				auto result = std::string{};
-				std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+				std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.data(), "r"), pclose);
 				if (!pipe) {
 					throw Exception("open process failed");
 				}

@@ -113,8 +113,8 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto normalize(
-		const string &mPath
-	) -> string const
+		const std::string &mPath
+	) -> std::string const
 	{
 		return Path::absolute(Path::toPosixStyle(mPath));
 	}

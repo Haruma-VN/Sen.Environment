@@ -208,7 +208,7 @@ namespace Sen::Kernel::Definition::Compression {
 				zlib_init.avail_in = 0;
 				zlib_init.next_in = Z_NULL;
 				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
-					throw Exception("Uncompress initialize failed");
+					throw Exception(fmt::format("{}", Language::get("gzip.init_stream.failed")));
 				}
 				zlib_init.avail_in = static_cast<uInt>(data.size());
 				zlib_init.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data.data()));
@@ -226,7 +226,7 @@ namespace Sen::Kernel::Definition::Compression {
 					}
 					if(ret != Z_OK){
 						inflateEnd(&zlib_init);
-						throw Exception("Uncompress failed"); 
+						throw Exception(fmt::format("{}", Language::get("gzip.uncompress.failed"))); 
 					}
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
@@ -241,9 +241,9 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto compress_fs(
-				const string &filePath,
-				const string &fileOut,
-				const Level &level
+				std::string_view filePath,
+				std::string_view fileOut,
+				Level level
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(filePath);
@@ -259,14 +259,14 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto uncompress_fs(
-				const string &fileIn,
-				const string &fileOut
+				std::string_view fileIn,
+				std::string_view fileOut
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto uncompressedData = Zlib::uncompress(data);
 				if(uncompressedData.empty()){
-					throw Exception(fmt::format("The specific file cannot be uncompressed: {}", fileIn));
+					throw Exception(fmt::format("{}: {}", Language::get("gzip.uncompress.file_is_not_compressed"), fileIn));
 				}
 				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
 				return;

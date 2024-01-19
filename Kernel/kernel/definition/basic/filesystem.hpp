@@ -86,7 +86,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
 		}
 		auto dumped_content = content.dump(1, '\t');
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -108,7 +108,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
 		}
 		auto dumped_content = content.dump(indent, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -128,7 +128,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
 		}
 		auto dumped_content = content.dump(1, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -143,26 +143,26 @@ namespace Sen::Kernel::FileSystem
 	// return: writed json content
 
 	inline static auto write_json(
-		const string &filePath,
+		std::string_view filepath,
 		const nlohmann::ordered_json &content,
-		const int &indent,
-		const char &indent_char,
-		const bool &ensureAscii
+		int indent,
+		char indent_char,
+		bool ensureAscii
 	) -> void
 	{
-		auto file = std::ofstream(filePath);
-		if (!file.is_open()) {
-            throw Exception("Could not open file: " + filePath);
-        }
-		file << content.dump(indent, indent_char, ensureAscii);
-		file.close();
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+		}
+		auto dumped_content = content.dump(indent, indent_char, ensureAscii);
+		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
 	// file path: the file uses utf16le encoding
 	// return: the utf16le string
 
-	inline static auto readFileByUtf16LE(
+	inline static auto read_file_by_utf16le(
 		std::string_view filepath
 	) -> std::wstring const
 	{
@@ -178,13 +178,13 @@ namespace Sen::Kernel::FileSystem
 	// data: utf16-le charset
 	// return: the data has been written
 
-	inline static auto write_fileByUtf16LE(
-		const std::string & filePath,
+	inline static auto write_file_by_utf16le(
+		std::string_view filePath,
 		const std::wstring & data
 	) -> void
 	{
 		auto utf16le_locale = static_cast<std::locale>(std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
-		auto file = std::wofstream(filePath);
+		auto file = std::wofstream(filePath.data());
 		file.imbue(utf16le_locale);
 		file << data;
 		file.close();
@@ -214,11 +214,11 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written
 
 	inline static auto outFile(
-		const std::string &filePath,
-		const std::string &content
+		std::string_view filePath,
+		std::string_view content
 	) -> void
 	{
-		auto temporary = Path::normalize(filePath);
+		auto temporary = Path::normalize(filePath.data());
 		auto data = String::split(temporary, "/");
 		auto last = data.at(data.size() - 1);
 		data.pop_back();
@@ -266,12 +266,12 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: everything inside it even directory or file
 
-	inline static auto readDirectory(
-		const std::string &directoryPath
+	inline static auto read_directory(
+		std::string_view directory_path
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<std::string>{};
-		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
+		for(auto &c : fs::directory_iterator(directory_path))
 		{
 			result.emplace_back(Path::normalize(c.path().string()));
 		}
@@ -281,12 +281,12 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only files inside
 
-	inline static auto readDirectoryOnlyFile(
-		const string &directoryPath
+	inline static auto read_directory_only_file(
+		std::string_view directory_path
 	) -> std::vector<string> const
 	{
 		auto result = std::vector<string>{};
-		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
+		for(auto &c : fs::directory_iterator(directory_path))
 		{
 			if(c.is_regular_file()){
 				result.emplace_back(Path::normalize(c.path().string()));
@@ -298,12 +298,12 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only dirs inside
 
-	inline static auto readDirectoryOnlyDirectory(
-		const std::string &directoryPath
+	inline static auto read_directory_only_directory(
+		std::string_view directory_path
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<std::string>{};
-		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
+		for(auto &c : fs::directory_iterator(directory_path))
 		{
 			if(c.is_directory()){
 				result.emplace_back(Path::normalize(c.path().string()));
@@ -316,15 +316,15 @@ namespace Sen::Kernel::FileSystem
 	// dirPath: directory to read
 	// return: only files inside nested directories
 
-	inline static auto readWholeDirectory(
-		const std::string &directoryPath
+	inline static auto read_whole_directory(
+		std::string_view directory_path
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<string>{};
-		for(auto &c : fs::directory_iterator(Path::normalize(directoryPath)))
+		for(auto &c : fs::directory_iterator(directory_path))
 		{
 			if(c.is_directory()){
-				for(auto &e : readWholeDirectory(Path::normalize(c.path().string())))
+				for(auto & e : read_whole_directory(c.path().string()))
 				{
 					result.emplace_back(Path::normalize(e));
 				}
@@ -351,7 +351,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto out = std::ofstream(outFile.data(), std::ios::binary);
 		if(!out.is_open()){
-			throw Exception(fmt::format("Unable to open: {}", outFile));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error") ,outFile));
 		}
 		out.write(reinterpret_cast<const char *>(data.data()), data.size());
 		out.close();
@@ -363,13 +363,13 @@ namespace Sen::Kernel::FileSystem
 	 * return: xml document
 	*/
 
-	inline static auto readXML(
-		const string &filePath
-	) -> tinyxml2::XMLDocument* const
+	inline static auto read_xml(
+		std::string_view filePath
+	) -> std::unique_ptr<tinyxml2::XMLDocument>
 	{
-		auto* xml = new tinyxml2::XMLDocument{};
+		auto xml = std::unique_ptr<tinyxml2::XMLDocument>(new tinyxml2::XMLDocument{});
 		auto data = FileSystem::read_file(filePath);
-		auto eResult = xml->Parse(data.c_str(), data.size());
+		auto eResult = xml->Parse(data.data(), data.size());
 		try_assert(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath));
 		return xml;
 	}
@@ -381,15 +381,14 @@ namespace Sen::Kernel::FileSystem
 	 * return: xml dumped data
 	*/
 
-	inline static auto writeXML(
-		const string &filePath,
-		tinyxml2::XMLDocument* &data
+	inline static auto write_xml(
+		std::string_view file_path,
+		tinyxml2::XMLDocument* data
 	) -> void
 	{
 		auto printer = tinyxml2::XMLPrinter{};
 		data->Print(&printer);
-		FileSystem::write_file(filePath, std::string{printer.CStr()});
-		delete data;
+		FileSystem::write_file(file_path, std::string{printer.CStr()});
 		return;
 	}
 

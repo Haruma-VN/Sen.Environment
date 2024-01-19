@@ -51,7 +51,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = int32_t{};
 				if(JS_ToInt32(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to int"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_int")));
 				}
 				return m_value;
 			}
@@ -67,7 +67,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = double{};
 				if(JS_ToFloat64(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to double"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_double")));
 				}
 				return m_value;
 			}
@@ -84,7 +84,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = double{};
 				if(JS_ToFloat64(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to float"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_float")));
 				}
 				return static_cast<float>(m_value);
 			}
@@ -100,7 +100,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = int64_t{};
 				if(JS_ToInt64(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to long long"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_long_long")));
 				}
 				return m_value;
 			}
@@ -116,7 +116,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = int64_t{};
 				if(JS_ToBigInt64(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS bigint to long long"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_bigint_to_long_long")));
 				}
 				return m_value;
 			}
@@ -132,7 +132,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = uint32_t{};
 				if(JS_ToUint32(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to C++ unsigned int"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_unsigned_int")));
 				}
 				return m_value;
 			}
@@ -148,7 +148,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto m_value = uint64_t{};
 				if(JS_ToIndex(context, &m_value, that) < 0){
-					throw Exception(fmt::format("Failed when converting JS number to C++ unsigned long long"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_convert_number_to_unsigned_long_long")));
 				}
 				return m_value;
 			}
@@ -463,6 +463,9 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				return js_array;
 			}
 
+			inline static auto constexpr close_buffer = [](auto buffer)
+			{ free(buffer); return; };
+
 			/**
 			 * Read and return JS ArrayBuffer
 			*/
@@ -472,28 +475,23 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const std::string & source
 			) -> JSValue
 			{
-				FILE *fp = fopen(source.c_str(), "rb");
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(source.c_str(), "rb"), Language::close_file);
 				auto file_size = long{};
-				if (fp == NULL) {
-					throw Exception(fmt::format("File does not found: {}", source));
+				if (!fp) {
+					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source));
 				}
-				fseek(fp, 0, SEEK_END);
-				file_size = ftell(fp);
-				rewind(fp);
-				auto buffer = (char*) malloc(file_size * sizeof(char));
+				fseek(fp.get(), 0, SEEK_END);
+				file_size = ftell(fp.get());
+				rewind(fp.get());
+				auto buffer = std::unique_ptr<char[], decltype(close_buffer)>((char*) malloc(file_size * sizeof(char)), close_buffer);
 				if (buffer == NULL) {
-					fclose(fp);
 					throw Exception(fmt::format("C malloc allocating memory failed, source file: {}", source));
 				}
-				auto result = fread(buffer, 1, file_size, fp);
+				auto result = fread(buffer.get(), 1, file_size, fp.get());
 				if (result != file_size) {
-					free(buffer);
-					fclose(fp);
-					throw Exception(fmt::format("Read file {} failed", source));
+					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source));
 				}
-				auto array_buffer = JS_NewArrayBufferCopy(ctx, reinterpret_cast<uint8_t*>(buffer), file_size);
-				free(buffer);
-				fclose(fp);
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, reinterpret_cast<uint8_t*>(buffer.get()), file_size);
 				return array_buffer;
 			}
 
@@ -510,16 +508,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto size = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &size, that);
 				if(data == NULL){
-					throw Exception(fmt::format("Failed when get ArrayBuffer from JavaScript"));
+					throw Exception(fmt::format("{}", Language::get("js.converter.failed_to_get_js_array_buffer")));
 				}
 				auto ofs = std::ofstream(destination, std::ios::binary | std::ios::out);
 				if (!ofs) {
-					throw Exception(fmt::format("File cannot be opened for write operation: {}", destination));
+					throw Exception(fmt::format("{}", Language::get("open_write_failed"), destination));
 				}
 				ofs.write(reinterpret_cast<const char*>(data), size);
 				if (!ofs) {
 					ofs.close();
-					throw Exception(fmt::format("File cannot be written: {}", destination));
+					throw Exception(fmt::format("{}", Language::get("popcap.newton.invalid_boolean_value"), destination));
 				}
 				ofs.close();
 				return;

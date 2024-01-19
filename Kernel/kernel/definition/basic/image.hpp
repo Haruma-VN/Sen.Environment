@@ -389,14 +389,14 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			inline static auto join(
-				Image<T> &source,
+				const Image<T> &source,
 				const std::vector<Image<T>> &data
 			) -> void
 			{
 				auto source_data = source.data();
 				for (const auto& img : data) {
 					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
-						throw Exception("Image does not fit within the source image");
+						throw Exception(fmt::format("{}", Language::get("image.does_not_fit_current_image")));
 					}
 					for (auto j : Range<T>(img.height)) {
 						for (auto i : Range<T>(img.width)) {
@@ -583,27 +583,24 @@ namespace Sen::Kernel::Definition {
 				std::string_view source
 			) -> Image<int> 
 			{
-				auto *fp = fopen(source.data(), "rb");
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(source.data(), "rb"), Language::close_file);
 				if(!fp){
-					throw Exception(fmt::format("Open png failed: {}", source));
+					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), source));
 				}
 				auto png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
-					fclose(fp);
-					throw Exception(fmt::format("PNG Pointer initialize failed: {}", source));
+					throw Exception(fmt::format("{}: {}", Language::get("image.png_pointer_init_failed"), source));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);  
 				if(!info_ptr){
 					png_destroy_read_struct(&png_ptr, NULL, NULL);
-					fclose(fp);
-					throw Exception(fmt::format("Info Pointer initialize failed: {}", source));
+					throw Exception(fmt::format("{}: {}", Language::get("image.info_pointer_init_failed"), source));
 				}
 				if (setjmp(png_jmpbuf(png_ptr))) {
 					png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-					fclose(fp);
-					throw Exception("unknown error");
+					throw Exception(fmt::format("{}: {}", Language::get("image.unknown_error"), source));
 				}
-				png_init_io(png_ptr, fp);
+				png_init_io(png_ptr, fp.get());
 				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
 				auto row_pointers = png_get_rows(png_ptr, info_ptr);
 				auto data = std::vector<unsigned char>();
@@ -615,8 +612,7 @@ namespace Sen::Kernel::Definition {
 					for (auto x : Range<int>(width * bit_depth * channels / 8)) {
 						data.push_back(row_pointers[y][x]);
 					}
-				}
-				fclose(fp);
+				};
 				auto color_type = static_cast<int>(png_get_color_type(png_ptr, info_ptr));
 				auto interlace_type = static_cast<int>(png_get_interlace_type(png_ptr, info_ptr));
 				auto rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
@@ -645,30 +641,28 @@ namespace Sen::Kernel::Definition {
 				const Image<int> &data
 			) -> void
 			{
-				auto *fp = fopen(filepath.data(), "wb");
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(filepath.data(), "wb"), Language::close_file);
 				if(!fp){
-					throw Exception(fmt::format("Open png failed: {}", filepath));
+					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), filepath));
 				}
 				auto png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 				if(!png_ptr){
-					fclose(fp);
-					throw Exception(fmt::format("PNG Pointer initialize failed: {}", filepath));
+					throw Exception(fmt::format("{}: {}", Language::get("image.png_pointer_init_failed"), filepath));
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);
 				if (!info_ptr) {
 					png_destroy_write_struct(&png_ptr, NULL);
-					fclose(fp);
-					throw Exception(fmt::format("Info Pointer initialize failed: {}", filepath));
+					throw Exception(fmt::format("{}: {}", Language::get("image.info_pointer_init_failed"), filepath));
 				}
 				#define PNG_WRITE_SETJMP(png_ptr, info_ptr, fp) \
 				if (setjmp(png_jmpbuf(png_ptr)))  \
 				{ \
 					png_destroy_write_struct(&png_ptr, &info_ptr);   \
 					fclose(fp);     \
-					throw Exception("unknown error"); \
+					throw Exception(fmt::format("{}: {}", Language::get("image.unknown_error"), filepath));\
 				}
-				PNG_WRITE_SETJMP(png_ptr, info_ptr, fp);
-				png_init_io(png_ptr, fp);
+				PNG_WRITE_SETJMP(png_ptr, info_ptr, fp.get());
+				png_init_io(png_ptr, fp.get());
 				png_set_IHDR(
 					png_ptr,
 					info_ptr,
@@ -688,10 +682,8 @@ namespace Sen::Kernel::Definition {
 				png_write_image(png_ptr, row_pointers.data());
 				png_write_end(png_ptr, NULL);
 				png_destroy_write_struct(&png_ptr, &info_ptr);
-				fclose(fp);
 				png_write_end(png_ptr, NULL);
 				png_destroy_write_struct(&png_ptr, &info_ptr);
-				fclose(fp);
 				return;
 			}
 

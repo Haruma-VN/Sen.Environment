@@ -879,7 +879,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::readFileByUtf16LE(source);
+				auto result = Sen::Kernel::FileSystem::read_file_by_utf16le(source);
 				auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
 				auto utf8_string = std::string{converter.to_bytes(result)};
 				return JS::Converter::to_string(context, utf8_string);
@@ -933,7 +933,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto data = JS::Converter::get_string(context, argv[1]);
 				auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
 				auto result = std::wstring{converter.from_bytes(data)};
-				Sen::Kernel::FileSystem::write_fileByUtf16LE(destination, result);
+				Sen::Kernel::FileSystem::write_file_by_utf16le(destination, result);
 				return JS::Converter::get_undefined();
 			});
 		}
@@ -956,7 +956,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::readDirectory(source);
+				auto result = Sen::Kernel::FileSystem::read_directory(source);
 				return JS::Converter::to_array(context, result);
 			});
 		}
@@ -979,7 +979,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyFile(source);
+				auto result = Sen::Kernel::FileSystem::read_directory_only_file(source);
 				return JS::Converter::to_array(context, result);
 			});
 		}
@@ -1002,7 +1002,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::readDirectoryOnlyDirectory(source);
+				auto result = Sen::Kernel::FileSystem::read_directory_only_directory(source);
 				return JS::Converter::to_array(context, result);
 			});
 		}
@@ -1025,7 +1025,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::readWholeDirectory(source);
+				auto result = Sen::Kernel::FileSystem::read_whole_directory(source);
 				return JS::Converter::to_array(context, result);
 			});
 		}
