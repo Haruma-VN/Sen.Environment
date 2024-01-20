@@ -37,6 +37,16 @@ namespace Sen::Kernel::Support::PopCap::Animation
         return;
     };
 
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationSize & anim
+	) -> void
+	{
+		json.at("width").get_to(anim.width);
+		json.at("height").get_to(anim.height);
+		return;
+	}
+
 #pragma endregion
 
 #pragma region AnimationPosition
@@ -70,6 +80,16 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
         return;
     };
+
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationPosition & anim
+	) -> void
+	{
+		json.at("x").get_to(anim.x);
+		json.at("y").get_to(anim.y);
+		return;
+	}
 
 #pragma endregion
 
@@ -144,6 +164,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
         return;
     };
 
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationImage & anim
+	) -> void
+	{
+		json.at("name").get_to(anim.name);
+		json.at("size").get_to(anim.size);
+		json.at("transform").get_to(anim.transform);
+		return;
+	}
+
 #pragma endregion
 
 
@@ -179,6 +210,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
         return;
     };
+
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationWorkArea & anim
+	) -> void
+	{
+		json.at("index").get_to(anim.index);
+		json.at("duration").get_to(anim.duration);
+		return;
+	}
+
 #pragma endregion
 
 
@@ -215,6 +257,16 @@ namespace Sen::Kernel::Support::PopCap::Animation
         return;
     };
 
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationCommand & anim
+	) -> void
+	{
+		json.at("command").get_to(anim.command);
+		json.at("parameter").get_to(anim.parameter);
+		return;
+	}
+
 #pragma endregion
 
 
@@ -249,6 +301,21 @@ namespace Sen::Kernel::Support::PopCap::Animation
         return;
     };
 
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationAppend & anim
+	) -> void
+	{
+		json.at("name").get_to(anim.name);
+		json.at("index").get_to(anim.index);
+		json.at("resource").get_to(anim.resource);
+		json.at("sprite").get_to(anim.sprite);
+		json.at("additive").get_to(anim.additive);
+		json.at("preload_frame").get_to(anim.preload_frame);
+		json.at("time_scale").get_to(anim.time_scale);
+		return;
+	}
+
 #pragma endregion
 
 
@@ -278,6 +345,19 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
         return;
     };
+
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationMove & anim
+	) -> void
+	{
+		json.at("index").get_to(anim.index);
+		json.at("transform").get_to(anim.transform);
+		json.at("color").get_to(anim.color);
+		json.at("source_rectangle").get_to(anim.source_rectangle);
+		json.at("sprite_frame_number").get_to(anim.sprite_frame_number);
+		return;
+	}
 
 #pragma endregion
 
@@ -310,6 +390,20 @@ namespace Sen::Kernel::Support::PopCap::Animation
         return;
     };
 
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationFrame & anim
+	) -> void
+	{
+		json.at("label").get_to(anim.label);
+		json.at("stop").get_to(anim.stop);
+		json.at("command").get_to(anim.command);
+		json.at("remove").get_to(anim.remove);
+		json.at("append").get_to(anim.append);
+		json.at("change").get_to(anim.change);
+		return;
+	}
+
 #pragma endregion
 
 #pragma region AnimationSprite
@@ -333,6 +427,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
         return;
     };
+
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		AnimationSprite & anim
+	) -> void
+	{
+		json.at("description").get_to(anim.description);
+		json.at("work_area").get_to(anim.work_area);
+		json.at("frame").get_to(anim.frame);
+		return;
+	}
 
 #pragma endregion
 
@@ -381,6 +486,21 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
         return;
     };
+
+    inline static auto from_json(
+		const nlohmann::ordered_json & json,
+		SexyAnimation & anim
+	) -> void
+	{
+		json.at("version").get_to(anim.version);
+		json.at("frame_rate").get_to(anim.frame_rate);
+		json.at("position").get_to(anim.position);
+		json.at("size").get_to(anim.size);
+		json.at("image").get_to(anim.image);
+		json.at("sprite").get_to(anim.sprite);
+		json.at("main_sprite").get_to(anim.main_sprite);
+		return;
+	}
 
 #pragma endregion
 }
