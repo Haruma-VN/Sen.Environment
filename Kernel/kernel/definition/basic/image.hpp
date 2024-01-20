@@ -517,7 +517,7 @@ namespace Sen::Kernel::Definition {
 		public:
 
 			// destination file
-			std::string destination;
+			std::string_view destination;
 
 			// constructor
 
@@ -532,7 +532,7 @@ namespace Sen::Kernel::Definition {
 				T y,
 				T width,
 				T height,
-				const std::string &destination
+				std::string_view destination
 			) : Rectangle<T>(x, y, width, height), destination(destination)
 			{
 			}
@@ -551,7 +551,7 @@ namespace Sen::Kernel::Definition {
 
 			RectangleFileIO(
 				const Rectangle<T> &that,
-				const std::string &destination
+				std::string_view destination
 			) : Rectangle<T>(that), destination(destination)
 			{
 			}
@@ -561,6 +561,20 @@ namespace Sen::Kernel::Definition {
 			~RectangleFileIO(
 
 			) = default;
+	};
+
+	template <typename T> requires Integral<T>
+	struct RectangleFileIOList : RectangleFileIO<T> {
+		public:
+			std::string_view source;
+			std::vector<RectangleFileIO<T>> data;
+			RectangleFileIOList(
+				std::string_view source,
+				std::vector<RectangleFileIO<T>> data
+			) : source(source), data(std::move(data))
+			{
+
+			}
 	};
 
 	/**
@@ -717,8 +731,28 @@ namespace Sen::Kernel::Definition {
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
 			{
-				for(auto &c : data) {
-					ImageIO::composite_png(source, c.destination, c);
+				auto image = ImageIO::read_png(source);
+				std::for_each(data.begin(), data.end(), [&](auto c)
+				{ 
+					ImageIO::write_png(c.destination, Image<int>::composite(image, c));
+				});
+				return;
+			}
+
+			inline static auto composite_pngs_asynchronous(
+				std::string_view source,
+				const std::vector<RectangleFileIO<int>> & data
+			) -> void
+			{
+				auto image = ImageIO::read_png(source);
+				std::vector<std::future<void>> futures;
+				for (auto &c : data) {
+					futures.push_back(std::async(std::launch::async, [&]{
+						ImageIO::write_png(c.destination, Image<int>::composite(image, c));
+					}));
+				}
+				for(auto &f : futures) {
+					f.get();
 				}
 				return;
 			}

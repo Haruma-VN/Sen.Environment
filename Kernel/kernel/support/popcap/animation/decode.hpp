@@ -270,22 +270,22 @@ namespace Sen::Kernel::Support::PopCap::Animation
             {
                 auto matrix = sen.readInt16() / 1000.0;
                 image.transform = std::vector<double>{
-                    std::cos(matrix),
-                    -std::sin(matrix),
-                    std::sin(matrix),
-                    std::cos(matrix),
-                    (double)(sen.readInt16() / 20.0),
-                    (double)(sen.readInt16() / 20.0)};
+                    Math::cos(matrix),
+                    -Math::sin(matrix),
+                    Math::sin(matrix),
+                    Math::cos(matrix),
+                    static_cast<double>(sen.readInt16() / 20.0),
+                    static_cast<double>(sen.readInt16() / 20.0)};
             }
             else
             {
                 image.transform = std::vector<double>{
-                    (double)(sen.readInt32() / 1310720.0),
-                    (double)(sen.readInt32() / 1310720.0),
-                    (double)(sen.readInt32() / 1310720.0),
-                    (double)(sen.readInt32() / 1310720.0),
-                    (double)(sen.readInt16() / 20.0),
-                    (double)(sen.readInt16() / 20.0)};
+                    static_cast<double>(sen.readInt32() / 1310720.0),
+                    static_cast<double>(sen.readInt32() / 1310720.0),
+                    static_cast<double>(sen.readInt32() / 1310720.0),
+                    static_cast<double>(sen.readInt32() / 1310720.0),
+                    static_cast<double>(sen.readInt16() / 20.0),
+                    static_cast<double>(sen.readInt16() / 20.0)};
             }
             json.image.insert(std::pair{name_list[1], image});
             return;

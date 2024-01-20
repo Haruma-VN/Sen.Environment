@@ -194,6 +194,12 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Image::resize_fs, "Sen", "Kernel", "Image", "resize_fs");
 					// rotate_fs
 					javascript->add_proxy(Script::Image::rotate_fs, "Sen", "Kernel", "Image", "rotate_fs");
+					// composite_fs
+					javascript->add_proxy(Script::Image::composite_fs, "Sen", "Kernel", "Image", "composite_fs");
+					// composite_multiple_fs
+					javascript->add_proxy(Script::Image::composite_multiple_fs, "Sen", "Kernel", "Image", "composite_multiple_fs");
+					// composite_multiple_fs_asynchronous
+					javascript->add_proxy(Script::Image::composite_multiple_fs_asynchronous, "Sen", "Kernel", "Image", "composite_multiple_fs_asynchronous");
 				}
 				// javascript
 				{

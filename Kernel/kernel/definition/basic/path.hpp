@@ -194,8 +194,11 @@ namespace Sen::Kernel::Path
 				for(const auto & arg : args) {
 					result /= arg;
 				}
-				return result.string();
+				auto posix_string = result.string();
+				std::replace(posix_string.begin(), posix_string.end(), '\\', '/');
+				return posix_string;
 			}
+
 
 			/**
 			 * Get basename of a file

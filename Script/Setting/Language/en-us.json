@@ -52,5 +52,7 @@
     "popcap.newton.invalid_boolean_value": "Invalid boolean value at offset",
     "popcap.newton.invalid_group_type": "Unknown group index at index",
     "popcap.newton.invalid_resource_type": "Resource type cannot be specified at",
-    "popcap.newton.expected_from_to": "expected from 1 to 7 but received"
+    "popcap.newton.expected_from_to": "expected from 1 to 7 but received",
+    "js.cannot_read_property": "Cannot read property",
+    "js.of_current_object": "of current object"
 }

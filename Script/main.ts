@@ -196,7 +196,15 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
-            Executor.run_as_module(`popcap.rton.encode`, { source: "D:/test/RESOURCES.json" }, Executor.Forward.DIRECT);
+            const before = Date.now();
+            Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(
+                ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
+                "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+                "path",
+                "array",
+            );
+            const after = Date.now();
+            Console.send(`Time spent: ${(after - before) / 1000}s`);
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
@@ -235,6 +243,8 @@ namespace Sen.Script {
             `~/utility/Clock.js`,
             `~/Support/Texture/Format.js`,
             `~/Support/PopCap/ResourceGroup/Convert.js`,
+            `~/Support/PopCap/Atlas/Structure.js`,
+            `~/Support/PopCap/Atlas/Split.js`,
             `~/Executor/Executor.js`,
             `~/Executor/Methods/data.md5.hash.js`,
             `~/Executor/Methods/data.base64.encode.js`,

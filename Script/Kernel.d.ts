@@ -18,6 +18,11 @@ declare namespace Sen {
 
         export const is_gui: boolean;
 
+        /**
+         * Shell callback
+         * @param argument - command and arguments
+         */
+
         export function callback(argument: [string, ...string]): string;
     }
 
@@ -175,6 +180,23 @@ declare namespace Sen {
              */
 
             export function transparent_fs(destination: string, width: number, height: number): void;
+
+            export interface Rectangle {
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+            }
+
+            export interface RectangleFileIO extends Rectangle {
+                destination: string;
+            }
+
+            export function composite_fs(source: string, destination: string, rectangle: Rectangle): void;
+
+            export function composite_multiple_fs(source: string, data: Array<RectangleFileIO>): void;
+
+            export function composite_multiple_fs_asynchronous(source: string, data: Array<RectangleFileIO>): void;
         }
 
         /**
@@ -1335,6 +1357,55 @@ declare namespace Sen {
                      */
 
                     export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup): void;
+
+                    /**
+                     * Image Resource Group
+                     */
+
+                    export interface ResourceContainsImage {
+                        slot: bigint;
+                        id: string;
+                        path: Array<string> | string;
+                        type: "Image";
+                    }
+
+                    /**
+                     * Atlas container
+                     */
+
+                    export interface ResourceContainsAtlas extends ResourceContainsImage {
+                        atlas: boolean;
+                        width: bigint;
+                        height: bigint;
+                    }
+
+                    /**
+                     * Sprite container
+                     */
+
+                    export interface ResourceContainsSprite extends ResourceContainsImage {
+                        parent: string;
+                        ax: bigint;
+                        ay: bigint;
+                        aw: bigint;
+                        ah: bigint;
+                        x?: bigint;
+                        y?: bigint;
+                        cols?: bigint;
+                        rows?: bigint;
+                    }
+
+                    /**
+                     * SubGroup that contains Image file
+                     */
+
+                    export interface ResourceSubgroup {
+                        id: string;
+                        type: "simple";
+                        parent: string;
+                        res: string;
+                        resources: Array<ResourceContainsImage>;
+                    }
                 }
 
                 /**

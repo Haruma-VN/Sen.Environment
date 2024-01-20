@@ -13,7 +13,19 @@
 		M_JS_EXCEPTION_THROW(context, exception.message(), exception.source); \
 	}
 
+#define M_JS_UNDEFINED_BEHAVIOR(context, jsval, property)\
+	if (JS_IsException(jsval)){\
+		M_JS_EXCEPTION_THROW(context, fmt::format("{} \"{}\" {}", Localization::get("js.cannot_read_property"), property, Localization::get("js.of_current_object")), std::string{std::string{std::source_location::current().file_name()} + std::string{":"} + std::to_string(std::source_location::current().line())});\
+	}
+
+
 namespace Sen::Kernel::Interface::Script {
+
+	/**
+	 * To make sure Language is ambigious
+	*/
+
+	namespace Localization = Sen::Kernel::Language;
 
 	/**
 	 * ----------------------------------------
@@ -567,8 +579,8 @@ namespace Sen::Kernel::Interface::Script {
 				auto v = std::vector<std::string>{};
 				for(auto i : Range<int>(argc))
 				{
-					auto source = JS::Converter::get_string(context, argv[i]);
-					v.push_back(std::string{source});
+					auto source = JS::Converter::get_c_string(context, argv[i]);
+					v.emplace_back(source.get());
 				}
 				return JS::Converter::to_string(context, Sen::Kernel::Path::Script::join(v));
 			});
@@ -1287,6 +1299,173 @@ namespace Sen::Kernel::Interface::Script {
 				auto destination = JS::Converter::get_string(context, argv[1]);
 				auto percentage = JS::Converter::get_float64(context, argv[2]);
 				Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
+				return JS::Converter::get_undefined();
+			});
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript rotate image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto composite_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto destination = JS::Converter::get_c_string(context, argv[1]);
+				auto rectangle_width = JS_GetPropertyStr(context, argv[2], "width");
+				auto rectangle_height = JS_GetPropertyStr(context, argv[2], "height");
+				auto rectangle_x = JS_GetPropertyStr(context, argv[2], "x");
+				auto rectangle_y = JS_GetPropertyStr(context, argv[2], "y");
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
+				Sen::Kernel::Definition::ImageIO::composite_png(
+					source.get(), 
+					destination.get(), 
+					Sen::Kernel::Definition::Rectangle<int>(
+						JS::Converter::get_int32(context, rectangle_x), 
+						JS::Converter::get_int32(context, rectangle_y), 
+						JS::Converter::get_int32(context, rectangle_width), 
+						JS::Converter::get_int32(context, rectangle_height)
+					)
+				);
+				JS_FreeValue(context, rectangle_width);
+				JS_FreeValue(context, rectangle_height);
+				JS_FreeValue(context, rectangle_x);
+				JS_FreeValue(context, rectangle_y);
+				return JS::Converter::get_undefined();
+			});
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript rotate image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto composite_multiple_fs(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto data = std::vector<Sen::Kernel::Definition::RectangleFileIO<int>>{};
+				if (JS_IsArray(context, argv[1])) {
+					auto length = uint32_t{};
+					JS_ToUint32(context, &length, JS_GetPropertyStr(context, argv[1], "length"));
+					for (auto i : Range<uint32_t>(length)) {
+						auto current_object = JS_GetPropertyUint32(context, argv[1], i);
+						auto rectangle_width = JS_GetPropertyStr(context, current_object, "width");
+						auto rectangle_height = JS_GetPropertyStr(context, current_object, "height");
+						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
+						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
+						auto destination = JS_GetPropertyStr(context, current_object, "destination");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination");
+						data.emplace_back(
+							Sen::Kernel::Definition::RectangleFileIO<int>(
+								JS::Converter::get_int32(context, rectangle_x),
+								JS::Converter::get_int32(context, rectangle_y),
+								JS::Converter::get_int32(context, rectangle_width),
+								JS::Converter::get_int32(context, rectangle_height),
+								JS::Converter::get_c_string(context, destination).get()
+							)
+						);
+						JS_FreeValue(context, rectangle_width);
+						JS_FreeValue(context, rectangle_height);
+						JS_FreeValue(context, rectangle_x);
+						JS_FreeValue(context, rectangle_y);
+						JS_FreeValue(context, destination);
+						JS_FreeValue(context, current_object);
+					}
+				} else {
+					throw Exception("Cannot read property \"length\" of undefined");
+				}
+				Sen::Kernel::Definition::ImageIO::composite_pngs(source.get(), data);
+				return JS::Converter::get_undefined();
+			});
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript rotate image
+		 * @param argv[0]: source file
+		 * @param argv[1]: destination file
+		 * @param argv[2]: percentage
+		 * @return: UNDEFINED
+		 * ----------------------------------------
+		*/
+
+		inline static auto composite_multiple_fs_asynchronous(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto data = std::vector<Sen::Kernel::Definition::RectangleFileIO<int>>{};
+				if (JS_IsArray(context, argv[1])) {
+					auto length = uint32_t{};
+					JS_ToUint32(context, &length, JS_GetPropertyStr(context, argv[1], "length"));
+					for (auto i : Range<uint32_t>(length)) {
+						auto current_object = JS_GetPropertyUint32(context, argv[1], i);
+						auto rectangle_width = JS_GetPropertyStr(context, current_object, "width");
+						auto rectangle_height = JS_GetPropertyStr(context, current_object, "height");
+						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
+						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
+						auto destination = JS_GetPropertyStr(context, current_object, "destination");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination");
+						data.emplace_back(
+							Sen::Kernel::Definition::RectangleFileIO<int>(
+								JS::Converter::get_int32(context, rectangle_x),
+								JS::Converter::get_int32(context, rectangle_y),
+								JS::Converter::get_int32(context, rectangle_width),
+								JS::Converter::get_int32(context, rectangle_height),
+								JS::Converter::get_c_string(context, destination).get()
+							)
+						);
+						JS_FreeValue(context, rectangle_width);
+						JS_FreeValue(context, rectangle_height);
+						JS_FreeValue(context, rectangle_x);
+						JS_FreeValue(context, rectangle_y);
+						JS_FreeValue(context, destination);
+						JS_FreeValue(context, current_object);
+					}
+				} else {
+					throw Exception("Cannot read property \"length\" of undefined");
+				}
+				Sen::Kernel::Definition::ImageIO::composite_pngs_asynchronous(source.get(), data);
 				return JS::Converter::get_undefined();
 			});
 		}
@@ -3272,7 +3451,7 @@ namespace Sen::Kernel::Interface::Script {
 					return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value));
 				}
 				case JS_TAG_INT:{
-					return nlohmann::ordered_json((double) JS_VALUE_GET_INT(value));
+					return nlohmann::ordered_json(static_cast<double>(JS_VALUE_GET_INT(value)));
 				}
 				case JS_TAG_FLOAT64:{
 					return nlohmann::ordered_json(JS_VALUE_GET_FLOAT64(value));
