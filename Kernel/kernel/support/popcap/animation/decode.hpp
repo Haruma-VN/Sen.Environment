@@ -80,7 +80,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 return sprite;
             }
             else {
-                json.sprite.insert({sprite_name, sprite});
+                json.sprite.insert(std::pair{sprite_name, sprite});
             }   
             return sprite;
             
@@ -187,7 +187,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             if ((value & 2048) != 0)
             {
-                append_info.time_scale = sen.readInt32() / 65536;
+                append_info.time_scale = sen.readInt32() / 65536.0;
             }
             return append_info;
         }
@@ -206,45 +206,45 @@ namespace Sen::Kernel::Support::PopCap::Animation
             if ((flag & MoveFlags::matrix) != 0)
             {
                 
-                auto t1 = sen.readInt32() / 65536;
-                auto t3 = sen.readInt32() / 65536;
-                auto t2 = sen.readInt32() / 65536;
-                auto t4 = sen.readInt32() / 65536;
+                auto t1 = sen.readInt32() / 65536.0;
+                auto t3 = sen.readInt32() / 65536.0;
+                auto t2 = sen.readInt32() / 65536.0;
+                auto t4 = sen.readInt32() / 65536.0;
                 transform.emplace_back(t1);
-                transform.emplace_back(t3);
                 transform.emplace_back(t2);
+                transform.emplace_back(t3);
                 transform.emplace_back(t4);
             }
             else if ((flag & MoveFlags::rotate) != 0)
             {
-                transform.emplace_back(sen.readInt16() / 1000);
+                transform.emplace_back(sen.readInt16() / 1000.0);
             }
             if ((flag & MoveFlags::long_coords) != 0)
             {
-                auto y = sen.readInt32() / 20;
-                auto x = sen.readInt32() / 20;
+                auto y = sen.readInt32() / 20.0;
+                auto x = sen.readInt32() / 20.0;
                 transform.emplace_back(y);
                 transform.emplace_back(x);
             }
             else
             {
-                auto y = sen.readInt16() / 20;
-                auto x = sen.readInt16() / 20;
+                auto y = sen.readInt16() / 20.0;
+                auto x = sen.readInt16() / 20.0;
                 transform.emplace_back(y);
                 transform.emplace_back(x);
             }
             change_info.transform = transform;
             if ((flag & MoveFlags::src_react) != 0) {
-                change_info.source_rectangle[0] = sen.readInt16() / 20;
-                change_info.source_rectangle[1] = sen.readInt16() / 20;
-                change_info.source_rectangle[2] = sen.readInt16() / 20;
-                change_info.source_rectangle[3] = sen.readInt16() / 20;
+                change_info.source_rectangle.emplace_back(sen.readInt16() / 20.0);
+                change_info.source_rectangle.emplace_back(sen.readInt16() / 20.0);
+                change_info.source_rectangle.emplace_back(sen.readInt16() / 20.0);
+                change_info.source_rectangle.emplace_back(sen.readInt16() / 20.0);
             }
             if ((flag & MoveFlags::color) != 0) {
-                change_info.color[0] = sen.readUint8() / 255;
-                change_info.color[1] = sen.readUint8() / 255;
-                change_info.color[2] = sen.readUint8() / 255;
-                change_info.color[3] = sen.readUint8() / 255;
+                change_info.color.emplace_back(sen.readUint8() / 255.0);
+                change_info.color.emplace_back(sen.readUint8() / 255.0);
+                change_info.color.emplace_back(sen.readUint8() / 255.0);
+                change_info.color.emplace_back(sen.readUint8() / 255.0);
             }
             if ((flag & MoveFlags::sprite_frame_number) != 0) {
                 change_info.sprite_frame_number = sen.readUint16();
@@ -265,29 +265,29 @@ namespace Sen::Kernel::Support::PopCap::Animation
             {
                 image.size = AnimationSize{sen.readUint16(), sen.readUint16()};
             }
-            image.name = std::string_view{name_list[0]};
+            image.name = std::string{name_list[0]};
             if (version == 1)
             {
-                auto matrix = sen.readInt16() / 1000;
+                auto matrix = sen.readInt16() / 1000.0;
                 image.transform = std::vector<double>{
                     std::cos(matrix),
                     -std::sin(matrix),
                     std::sin(matrix),
                     std::cos(matrix),
-                    (double)(sen.readInt16() / 20),
-                    (double)(sen.readInt16() / 20)};
+                    (double)(sen.readInt16() / 20.0),
+                    (double)(sen.readInt16() / 20.0)};
             }
             else
             {
                 image.transform = std::vector<double>{
-                    (double)(sen.readInt32() / 1310720),
-                    (double)(sen.readInt32() / 1310720),
-                    (double)(sen.readInt32() / 1310720),
-                    (double)(sen.readInt32() / 1310720),
-                    (double)(sen.readInt16() / 20),
-                    (double)(sen.readInt16() / 20)};
+                    (double)(sen.readInt32() / 1310720.0),
+                    (double)(sen.readInt32() / 1310720.0),
+                    (double)(sen.readInt32() / 1310720.0),
+                    (double)(sen.readInt32() / 1310720.0),
+                    (double)(sen.readInt16() / 20.0),
+                    (double)(sen.readInt16() / 20.0)};
             }
-            json.image.insert({std::string_view{name_list[1]}, image});
+            json.image.insert(std::pair{name_list[1], image});
             return;
         }
 

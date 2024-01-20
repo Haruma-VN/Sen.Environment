@@ -241,6 +241,7 @@ namespace Sen.Script {
             `~/Executor/Methods/data.base64.decode.js`,
             `~/Executor/Methods/popcap.rton.decode.js`,
             `~/Executor/Methods/popcap.rton.encode.js`,
+            `~/Executor/Methods/popcap.animation.decode.js`,
         ];
     }
 }
