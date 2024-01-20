@@ -5,8 +5,6 @@
 namespace Sen::Kernel::Support::PopCap::Animation
 {
 
-    
-
 #pragma region AnimationSize
     struct AnimationSize
     {
@@ -27,6 +25,18 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
             ) = default;
     };
+
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationSize & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"width", anim.width},
+            {"height", anim.height}
+        };
+        return;
+    };
+
 #pragma endregion
 
 #pragma region AnimationPosition
@@ -48,6 +58,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
         ~AnimationPosition(
 
             ) = default;
+    };
+
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationPosition & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"x", anim.x},
+            {"x", anim.y}
+        };
+        return;
     };
 
 #pragma endregion
@@ -111,6 +132,18 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::vector<double> transform;
     };
 
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationImage & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"name", anim.name},
+            {"size", anim.size},
+            {"transform", anim.transform}
+        };
+        return;
+    };
+
 #pragma endregion
 
 
@@ -135,18 +168,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
             ) = default;
     };
-#pragma endregion
 
-
-#pragma region AnimationSprite
-
-    struct AnimationSprite
-    {
-    public:
-        std::string_view description;
-        AnimationWorkArea work_area;
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationWorkArea & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"index", anim.index},
+            {"duration", anim.duration}
+        };
+        return;
     };
-
 #pragma endregion
 
 
@@ -172,6 +204,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
             ) = default;
     };
 
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationCommand & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"command", anim.command},
+            {"parameter", anim.parameter}
+        };
+        return;
+    };
+
 #pragma endregion
 
 
@@ -190,6 +233,22 @@ namespace Sen::Kernel::Support::PopCap::Animation
         int time_scale = 1;
     };
 
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationAppend & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"name", anim.name},
+            {"index", anim.index},
+            {"resource", anim.resource},
+            {"sprite", anim.sprite},
+            {"additive", anim.additive},
+            {"preload_frame", anim.preload_frame},
+            {"time_scale", anim.time_scale}
+        };
+        return;
+    };
+
 #pragma endregion
 
 
@@ -206,6 +265,20 @@ namespace Sen::Kernel::Support::PopCap::Animation
         int sprite_frame_number;
     };
 
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationMove & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"index", anim.index},
+            {"transform", anim.transform},
+            {"color", anim.color},
+            {"source_rectangle", anim.source_rectangle},
+            {"sprite_frame_number", anim.sprite_frame_number}
+        };
+        return;
+    };
+
 #pragma endregion
 
 
@@ -220,6 +293,45 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::vector<int> remove;
         std::vector<AnimationAppend> append;
         std::vector<AnimationMove> change;
+    };
+
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationFrame & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"label", anim.label},
+            {"stop", anim.stop},
+            {"command", anim.command},
+            {"remove", anim.remove},
+            {"append", anim.append},
+            {"change", anim.change}
+        };
+        return;
+    };
+
+#pragma endregion
+
+#pragma region AnimationSprite
+
+    struct AnimationSprite
+    {
+    public:
+        std::string_view description;
+        AnimationWorkArea work_area;
+        std::vector<AnimationFrame> frame;
+    };
+
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const AnimationSprite & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"description", anim.description},
+            {"work_area", anim.work_area},
+            {"frame", anim.frame}
+        };
+        return;
     };
 
 #pragma endregion
@@ -251,6 +363,23 @@ namespace Sen::Kernel::Support::PopCap::Animation
         ~SexyAnimation(
 
             ) = default;
+    };
+    
+
+    inline static auto to_json(
+        nlohmann::ordered_json & json,
+        const SexyAnimation & anim
+    ) -> void {
+        json = nlohmann::ordered_json{
+            {"version", anim.version},
+            {"frame_rate", anim.frame_rate},
+            {"position", anim.position},
+            {"size", anim.size},
+            {"image", anim.image},
+            {"sprite", anim.sprite},
+            {"main_sprite", anim.main_sprite}
+        };
+        return;
     };
 
 #pragma endregion

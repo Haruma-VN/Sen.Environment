@@ -11,9 +11,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
     protected:
         DataStreamView sen;
-
-        std::map<std::string_view, AnimationSprite> mutable sprite_map;
-
+        SexyAnimation mutable json{};
         int mutable version;
 
         inline auto animation_decode() const -> SexyAnimation
@@ -28,20 +26,21 @@ namespace Sen::Kernel::Support::PopCap::Animation
             {
                 throw Exception("invaild_version");
             }
-            auto json = SexyAnimation{version, sen.readUint8()};
+            json.version = version;
+            json.frame_rate = sen.readUint8();
             json.position = AnimationPosition{(sen.readUint16() / 20), (sen.readUint16() / 20)};
             json.size = AnimationSize{(sen.readUint16() / 20), (sen.readUint16() / 20)};
             auto image_count = sen.readUint16();
             for (auto i : Range(image_count))
             {
-                read_image(json);
+                read_image();
             }
+            debug(json.image.size());
             auto sprite_count = sen.readUint16();
             for (auto i : Range(sprite_count))
             {
                 read_sprite(i);
             }
-            json.sprite = sprite_map;
             if (version <= 3|| sen.readBoolean()) {
                 json.main_sprite = read_sprite(-1);
             }
@@ -74,13 +73,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
             std::vector<AnimationFrame> frame{};
             for (auto i : Range(frame_count))
             {
-                frame.push_back(read_frame_info());
+                frame.emplace_back(read_frame_info());
             }
+            sprite.frame = frame;
             if (index == -1) {
                 return sprite;
             }
             else {
-                sprite_map.insert({sprite_name, sprite});
+                json.sprite.insert({sprite_name, sprite});
             }   
             return sprite;
             
@@ -100,7 +100,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
                 for (auto i : Range(count))
                 {
-                    frame_info.remove.push_back(read_remove());
+                    frame_info.remove.emplace_back(read_remove());
                 }
             }
             if ((flag & FrameFlags::append) != 0)
@@ -112,7 +112,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
                 for (auto i : Range(count))
                 {
-                    frame_info.append.push_back(read_append());
+                    frame_info.append.emplace_back(read_append());
                 }
             }
             if ((flag & FrameFlags::change) != 0)
@@ -124,7 +124,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
                 for (auto i : Range(count))
                 {
-                    frame_info.change.push_back(read_move());
+                    frame_info.change.emplace_back(read_move());
                 }
             }
             if ((flag & FrameFlags::label) != 0) {
@@ -136,7 +136,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             if ((flag & FrameFlags::command) != 0) {
                 count = sen.readUint8();
                 for (auto i : Range(count)) {
-                    frame_info.command.push_back(read_command());
+                    frame_info.command.emplace_back(read_command());
                 }
             }
             return frame_info;
@@ -202,29 +202,38 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 index = sen.readUint32();
             }
             change_info.index = index;
+            std::vector<double> transform{};
             if ((flag & MoveFlags::matrix) != 0)
             {
-                change_info.transform = std::vector<double>{0, 0, 0, 0, 0, 0};
-                change_info.transform[0] = sen.readInt32() / 65536;
-                change_info.transform[2] = sen.readInt32() / 65536;
-                change_info.transform[1] = sen.readInt32() / 65536;
-                change_info.transform[3] = sen.readInt32() / 65536;
+                
+                auto t1 = sen.readInt32() / 65536;
+                auto t3 = sen.readInt32() / 65536;
+                auto t2 = sen.readInt32() / 65536;
+                auto t4 = sen.readInt32() / 65536;
+                transform.emplace_back(t1);
+                transform.emplace_back(t3);
+                transform.emplace_back(t2);
+                transform.emplace_back(t4);
             }
             else if ((flag & MoveFlags::rotate) != 0)
             {
-                change_info.transform = std::vector<double>{0, 0, 0};
-                change_info.transform[0] = sen.readInt16() / 1000;
+                transform.emplace_back(sen.readInt16() / 1000);
             }
             if ((flag & MoveFlags::long_coords) != 0)
             {
-                change_info.transform[change_info.transform.size() - 2] = sen.readInt32() / 20;
-                change_info.transform[change_info.transform.size() - 1] = sen.readInt32() / 20;
+                auto y = sen.readInt32() / 20;
+                auto x = sen.readInt32() / 20;
+                transform.emplace_back(y);
+                transform.emplace_back(x);
             }
             else
             {
-                change_info.transform[change_info.transform.size() - 2] = sen.readInt16() / 20;
-                change_info.transform[change_info.transform.size() - 1] = sen.readInt16() / 20;
+                auto y = sen.readInt16() / 20;
+                auto x = sen.readInt16() / 20;
+                transform.emplace_back(y);
+                transform.emplace_back(x);
             }
+            change_info.transform = transform;
             if ((flag & MoveFlags::src_react) != 0) {
                 change_info.source_rectangle[0] = sen.readInt16() / 20;
                 change_info.source_rectangle[1] = sen.readInt16() / 20;
@@ -243,7 +252,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return change_info;
         }
 
-        inline auto read_image(SexyAnimation &json) const -> void
+        inline auto read_image() const -> void
         {
             auto image_name = String{sen.readStringByUint16()};
             auto name_list = image_name.split("|");
@@ -306,7 +315,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             auto c = std::unique_ptr<Decode>(new Decode{source});
             auto json = c->animation_decode();
-            // Write_json;
+            FileSystem::write_json(destination, json);
             return;
         }
     };
