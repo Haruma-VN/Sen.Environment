@@ -53,7 +53,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                     if (subgroup.cols && subgroup.cols !== 1n) {
                         wrapper.default.cols = subgroup.cols;
                     }
-                    if (subgroup.rows && subgroup.rows != 1n) {
+                    if (subgroup.rows && subgroup.rows !== 1n) {
                         wrapper.default.rows = subgroup.rows;
                     }
                     json.groups[subgroup.id] = wrapper;

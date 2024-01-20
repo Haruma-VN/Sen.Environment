@@ -3448,7 +3448,7 @@ namespace Sen::Kernel::Interface::Script {
 					return json;
 				}
 				case JS_TAG_BOOL:{
-					return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value));
+					return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value) == 0 ? false : true);
 				}
 				case JS_TAG_INT:{
 					return nlohmann::ordered_json(static_cast<double>(JS_VALUE_GET_INT(value)));

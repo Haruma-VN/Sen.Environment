@@ -739,19 +739,26 @@ namespace Sen::Kernel::Definition {
 				return;
 			}
 
+			/**
+			 * Should be used to split images if id are unique
+			 * source: source file
+			 * data: list of rectangle file
+			 * return: the composite 
+			*/
+
 			inline static auto composite_pngs_asynchronous(
 				std::string_view source,
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
 			{
 				auto image = ImageIO::read_png(source);
-				std::vector<std::future<void>> futures;
+				auto process = std::vector<std::future<void>>{};
 				for (auto &c : data) {
-					futures.push_back(std::async(std::launch::async, [&]{
+					process.push_back(std::async(std::launch::async, [&]{
 						ImageIO::write_png(c.destination, Image<int>::composite(image, c));
 					}));
 				}
-				for(auto &f : futures) {
+				for(auto &f : process) {
 					f.get();
 				}
 				return;

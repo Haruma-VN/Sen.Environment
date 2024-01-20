@@ -200,7 +200,7 @@ namespace Sen.Script {
             Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(
                 ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
                 "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-                "path",
+                "id",
                 "array",
             );
             const after = Date.now();
