@@ -75,6 +75,18 @@ namespace Sen::Kernel::Interface {
 		return destination;
 	}
 
+	inline static auto destruct_string_list(
+		CStringList* that
+	) -> std::vector<std::string>
+	{
+		auto destination = std::vector<std::string>{};
+		for (auto i : Range(that->size))
+		{
+			destination.emplace_back(std::string{ that->value[i].value, that->value[i].size });
+		}
+		return destination;
+	}
+
 	struct Shell {
 		private:
 

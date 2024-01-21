@@ -74,6 +74,13 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			}
 
+			inline auto get_context(
+
+			) -> JSContext*
+			{
+				return thiz.ctx;
+			}
+
 			/**
 			 * JS Exception
 			*/
@@ -1023,6 +1030,43 @@ namespace Sen::Kernel::Definition::JavaScript
 					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
 				}
 				JS_SetPropertyStr(ctx, obj2, property_name.data(), JS_NewUint32(ctx, value));
+				JS_FreeValue(ctx, global_obj);
+				return;
+			}
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value to an object from C
+			 * @param value: the C string value
+			 * @param obj1_name: JS object name
+			 * @param obj2_name: JS object name
+			 * @param property_name: JS property name
+			 * --------------------------------------
+			*/
+
+			inline auto add_constant(
+				const std::vector<std::string> & value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view property_name
+			) -> void 
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, obj1_name.data());
+				if (JS_IsUndefined(obj1)) {
+					obj1 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, global_obj, obj1_name.data(), obj1);
+				}
+				auto obj2 = JS_GetPropertyStr(ctx, obj1, obj2_name.data());
+				if (JS_IsUndefined(obj2)) {
+					obj2 = JS_NewObject(ctx);
+					JS_SetPropertyStr(ctx, obj1, obj2_name.data(), obj2);
+				}
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(value.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewString(ctx, value[i].c_str()));
+				}
+				JS_SetPropertyStr(ctx, obj2, property_name.data(), js_array);
 				JS_FreeValue(ctx, global_obj);
 				return;
 			}

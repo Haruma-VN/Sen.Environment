@@ -69,6 +69,8 @@ namespace Sen::Shell {
 #define KERNEL_DEFAULT "kernel.so"
 #endif
 
+char* copy = new char[1];
+
 typedef int (*execute)
 (CStringView* script, CStringList* argument, ShellCallback m_callback);
 

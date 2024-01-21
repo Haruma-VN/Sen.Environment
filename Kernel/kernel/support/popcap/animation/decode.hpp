@@ -35,7 +35,6 @@ namespace Sen::Kernel::Support::PopCap::Animation
             {
                 read_image();
             }
-            debug(json.image.size());
             auto sprite_count = sen.readUint16();
             for (auto i : Range(sprite_count))
             {

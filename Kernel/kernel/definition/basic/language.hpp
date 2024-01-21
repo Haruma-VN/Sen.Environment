@@ -33,16 +33,13 @@ namespace Sen::Kernel::Language
 		std::string_view source
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(source.data(), "r"), close_file);
-		if (!file) {
+		auto file = std::ifstream(source.data());
+		if (!file.is_open()) {
 			throw Exception(fmt::format("Could not read language file: {}", source));
 		}
-		fseek(file.get(), 0, SEEK_END);
-		auto size = ftell(file.get());
-		fseek(file.get(), 0, SEEK_SET);
-		auto buffer = std::vector<char>(size);
-		fread(buffer.data(), 1, size, file.get());
-		language = nlohmann::json::parse(buffer.begin(), buffer.end()).get<std::map<std::string, std::string>>();
+		auto buffer = std::stringstream{};
+		buffer << file.rdbuf();
+		language = nlohmann::json::parse(buffer.str());
 		return;
 	}
 

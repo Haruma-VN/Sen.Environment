@@ -3,14 +3,11 @@
 
 inline auto static get_line(
 
-) -> CStringView
+) -> std::string
 {
     auto str = std::string{};
     std::getline(std::cin, str);
-    return CStringView{
-        .size = str.size(),
-        .value = str.c_str()
-    };
+    return str;
 }
 
 inline auto static print(
@@ -104,14 +101,26 @@ inline static auto callback(
         return EMPTY_STRING_VIEW;
     }
     if (result[0] == "input") {
-        return get_line();
+        delete[] copy;
+        copy = nullptr;
+        auto c = get_line();
+        copy = new char[c.size() + 1];
+        std::strcpy(copy, c.c_str());
+        return CStringView{
+            .size = c.size(),
+            .value = copy
+        };
     }
     if (result[0] == "is_gui") {
         return CStringView{ .size = 1, .value = "0" };
     }
     if (result[0] == "version") {
+        delete[] copy;
+        copy = nullptr;
         auto version = std::to_string(Sen::Shell::version);
-        return CStringView{ .size = version.size(), .value = "1" };
+        copy = new char[version.size() + 1];
+        std::strcpy(copy, version.c_str());
+        return CStringView{ .size = version.size(), .value = copy };
     }
     return EMPTY_STRING_VIEW;
 }
@@ -174,6 +183,7 @@ MAIN_FUNCTION
        (argument_list.get())->value[i].size = strlen(argc[i]);
     }
     auto result = execute_method(script_pointer.get(), argument_list.get(), callback);
+    delete[] copy;
     delete[] argument_list->value;
     #if WIN32
         FreeLibrary(hinstLib);

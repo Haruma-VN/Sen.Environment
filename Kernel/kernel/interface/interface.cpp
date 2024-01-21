@@ -19,8 +19,9 @@ int execute(
 {
     try{
         auto script_path = Interface::make_standard_string(script);
+        auto arguments = Interface::destruct_string_list(argument);
         Interface::Shell::callback = m_callback;
-        auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script_path, m_callback));
+        auto callback = std::unique_ptr<Interface::Callback>(new Interface::Callback(script_path, m_callback, std::move(arguments)));
         callback->execute();
     }
     catch(...)

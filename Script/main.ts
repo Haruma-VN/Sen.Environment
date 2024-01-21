@@ -196,15 +196,20 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
-            const before = Date.now();
-            Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(
-                ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-                "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-                "id",
-                "array",
+            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
+                "popcap.atlas.split_by_resource_group",
+                {
+                    source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
+                    destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+                },
+                Executor.Forward.DIRECT,
             );
-            const after = Date.now();
-            Console.send(`Time spent: ${(after - before) / 1000}s`);
+            // Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(
+            //     ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
+            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+            //     "id",
+            //     "array",
+            // );
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
@@ -238,6 +243,7 @@ namespace Sen.Script {
          */
 
         export const script_list: Array<string> = [
+            `~/Third/maxrects-packer/maxrects-packer.js`,
             `~/Setting/Setting.js`,
             `~/utility/Definition.js`,
             `~/utility/Clock.js`,
@@ -252,6 +258,7 @@ namespace Sen.Script {
             `~/Executor/Methods/popcap.rton.decode.js`,
             `~/Executor/Methods/popcap.rton.encode.js`,
             `~/Executor/Methods/popcap.animation.decode.js`,
+            `~/Executor/Methods/popcap.atlas.split_by_resource_group.js`,
         ];
     }
 }

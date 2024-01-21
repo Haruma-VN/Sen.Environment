@@ -22,12 +22,15 @@ namespace Sen::Kernel::Interface {
 
 			ShellCallback callback;
 
+			std::vector<std::string> arguments;
+
 		public:
 
 			explicit Callback(
 				std::string_view argument,
-				ShellCallback callback
-			) : argument(argument), callback(callback)
+				ShellCallback callback,
+				const std::vector<std::string> & arguments
+			) : argument(argument), callback(callback), arguments(std::move(arguments))
 			{
 
 			}
@@ -58,6 +61,7 @@ namespace Sen::Kernel::Interface {
 					javascript->add_constant(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen", "Shell", "version");
 					javascript->add_constant(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen", "Shell", "is_gui");
 					javascript->add_proxy(Script::callback, "Sen", "Shell", "callback");
+					javascript->add_constant(thiz.arguments, "Sen", "Kernel", "arguments");
 				}
 				// json
 				{
@@ -382,6 +386,15 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::split_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "split_fs");
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::merge_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "merge_fs");
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "convert_fs");
+				}
+				// dimension
+				{
+					// instance of dimension
+					javascript->add_proxy(Script::Dimension::instance, "Sen", "Kernel", "Dimension", "instance");
+					// open the image
+					javascript->add_proxy(Script::Dimension::open, "Sen", "Kernel", "Image", "open");
+					// write the image
+					javascript->add_proxy(Script::Dimension::write, "Sen", "Kernel", "Image", "write");
 				}
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate("Sen.Script.main()", "<script>");

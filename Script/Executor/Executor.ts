@@ -18,7 +18,7 @@ namespace Sen.Script.Executor {
         id: string;
         configuration_file: string;
         direct_forward: (argument: Argument) => void;
-        batch_forward: (argument: BatchArgument) => void;
+        batch_forward?: (argument: BatchArgument) => void;
         async_forward?: (argument: AsyncArgument) => void;
         is_enabled: boolean;
         configuration: Configuration;
@@ -95,6 +95,76 @@ namespace Sen.Script.Executor {
 
     /**
      * ----------------------------------------------------------
+     * JavaScript Executor Implement
+     * @param argument - Argument to query
+     * @param key - Key
+     * @param defined_value - If not, this val will assign to it
+     * @returns
+     * ----------------------------------------------------------
+     */
+
+    export function argument_load<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+        argument: Argument,
+        key: string,
+        configuration: Configuration,
+        rule: Array<bigint> | Array<[bigint, string]>,
+    ): void {
+        if ((configuration as any)[key] !== "?") {
+            return configurate_or_input(argument, key, rule as Array<[bigint, string]>);
+        }
+        if ((argument as any & Argument)[key] === undefined && (configuration as any)[key] !== "?") {
+            (argument as any & Argument)[key] = (configuration as any)[key];
+        }
+        return;
+    }
+
+    export function input_integer(rule: Array<bigint>): bigint {
+        let input: string = undefined!;
+        while (true) {
+            input = Sen.Kernel.Console.readline();
+            if (/^\d+$/.test(input) && (rule as Array<bigint>).includes(BigInt(input))) {
+                break;
+            }
+            Console.error(Sen.Kernel.Language.get("js.invalid_input_value"));
+        }
+        return BigInt(input);
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * JavaScript Executor Implement
+     * @param argument - Argument to query
+     * @param key - Key
+     * @param defined_value - If not, this val will assign to it
+     * @returns
+     * ----------------------------------------------------------
+     */
+
+    export function configurate_or_input<Argument extends Sen.Script.Executor.Base, T>(argument: Argument, key: string, rule: Array<bigint> | Array<[bigint, string]>): void {
+        if ((argument as any & Argument)[key] === undefined) {
+            if (typeof rule[0] === "object") {
+                const new_rule: Array<bigint> = [];
+                rule.forEach((e: [bigint, string] & any) => {
+                    Console.send(`${e[0]}. ${e[1]}`);
+                    new_rule.push(e[0]);
+                });
+                (argument as any)[key] = (rule as Array<[bigint, string]>)[Number(input_integer(new_rule) - 1n)][1];
+                return;
+            }
+            if (typeof rule[0] === "string") {
+                (argument as any)[key] = Sen.Kernel.Console.readline();
+                return;
+            }
+            if (typeof rule[0] === "bigint") {
+                (argument as any)[key] = input_integer(rule as Array<bigint>);
+                return;
+            }
+        }
+        return;
+    }
+
+    /**
+     * ----------------------------------------------------------
      * JavaScript Implementation of Runner
      * @param id - Here, we call the id. If the id is assigned
      * as a method, the method will be called instantly
@@ -108,7 +178,7 @@ namespace Sen.Script.Executor {
     export function run_as_module<Argument extends Sen.Script.Executor.Base>(id: string, argument: Argument, forward_type: Sen.Script.Executor.Forward): void {
         const worker: Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration> | undefined = methods.get(id);
         if (worker === undefined) {
-            throw new Error(`Method ${id} not found`);
+            throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get("js.method_not_found"), id));
         }
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
         Sen.Script.Console.display(`${Sen.Kernel.Language.get(`method_loaded`)}`, Sen.Kernel.Language.get(id), Sen.Script.Definition.Console.Color.GREEN);
@@ -121,6 +191,9 @@ namespace Sen.Script.Executor {
                 break;
             }
             case Sen.Script.Executor.Forward.BATCH: {
+                if (worker.batch_forward === undefined) {
+                    throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_batch_implementation`), id));
+                }
                 worker.batch_forward(argument);
                 break;
             }
@@ -129,7 +202,7 @@ namespace Sen.Script.Executor {
                 break;
             }
             default: {
-                throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_async_implementation`), forward_type));
+                throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`js.method_does_not_execute`)));
             }
         }
         Sen.Script.Executor.clock.stop_safe();

@@ -39,6 +39,8 @@ declare namespace Sen {
 
         declare const version: number;
 
+        declare const arguments: Array<string>;
+
         declare namespace Language {
             export function load_language(source: string): void;
 
@@ -181,6 +183,12 @@ declare namespace Sen {
 
             export function transparent_fs(destination: string, width: number, height: number): void;
 
+            /**
+             * --------------------------------------------------
+             * JavaScript Rectangle Struct Image Method
+             * --------------------------------------------------
+             */
+
             export interface Rectangle {
                 x: number;
                 y: number;
@@ -188,15 +196,65 @@ declare namespace Sen {
                 height: number;
             }
 
+            /**
+             * --------------------------------------------------
+             * JavaScript Rectangle has IOBase
+             * --------------------------------------------------
+             */
+
             export interface RectangleFileIO extends Rectangle {
                 destination: string;
             }
+            /**
+             * --------------------------------------------------
+             * JavaScript Composite Image Method
+             * @param source - source file
+             * @param destination - destination file
+             * @param rectangle - rectangle
+             * --------------------------------------------------
+             */
 
             export function composite_fs(source: string, destination: string, rectangle: Rectangle): void;
 
+            /**
+             * --------------------------------------------------
+             * JavaScript Composite Images Method
+             * @param source - source file
+             * @param data - rectangle
+             * --------------------------------------------------
+             */
+
             export function composite_multiple_fs(source: string, data: Array<RectangleFileIO>): void;
 
+            /**
+             * --------------------------------------------------
+             * JavaScript Composite Images Method ASYNC
+             * @param source - source file
+             * @param data - rectangle
+             * --------------------------------------------------
+             */
+
             export function composite_multiple_fs_asynchronous(source: string, data: Array<RectangleFileIO>): void;
+            /**
+             * --------------------------------------------------
+             * JavaScript Open Image Method
+             * @param source - source file
+             * @returns - Struct
+             * --------------------------------------------------
+             */
+
+            export function open(source: string): Sen.Kernel.Dimension.Image;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Write Image Method
+             * @param destination - destination file
+             * @param image - image struct
+             * @returns - after write image
+             * --------------------------------------------------
+             */
+
+            export function write(source: string, image: Sen.Kernel.Dimension.Image): void;
         }
 
         /**
@@ -1476,6 +1534,56 @@ declare namespace Sen {
                      */
                     export function encode_fs(source: string, destination: string): void;
                 }
+            }
+        }
+
+        /**
+         * Dimension Support
+         */
+
+        declare namespace Dimension {
+            /**
+             * Dimension struct
+             */
+
+            export interface Structure {
+                /**
+                 * Width of the image
+                 */
+                width: bigint;
+                /**
+                 * Height of the image
+                 */
+                height: bigint;
+                /**
+                 * Calculate the area
+                 */
+                area(): bigint;
+                /**
+                 * Calculate the circumference
+                 */
+                circumference(): bigint;
+            }
+
+            /**
+             * Get the instance of the Structure
+             * @param width - width provider
+             * @param height - height provider
+             */
+
+            export function instance(width: bigint, height: bigint): Sen.Kernel.Dimension.Structure;
+
+            /**
+             * Dimension struct
+             */
+
+            export interface Image extends Structure {
+                bit_depth: bigint;
+                color_type: bigint;
+                interlace_type: bigint;
+                channels: bigint;
+                rowbytes: bigint;
+                data: ArrayBuffer;
             }
         }
     }

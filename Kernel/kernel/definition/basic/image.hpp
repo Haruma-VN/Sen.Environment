@@ -51,18 +51,18 @@ namespace Sen::Kernel::Definition {
 
 			// get circumference
 
-			auto circumference(
+			inline auto circumference(
 
-			) -> T
+			) const noexcept -> T
 			{
-				return thiz.width * 2 + thiz.height * 2;
+				return (thiz.width + thiz.height) * 2;
 			}
 			
 			// get area
 
-			auto area(
+			inline auto area(
 
-			) -> T
+			) const noexcept -> T
 			{
 				return thiz.width * thiz.height;
 			}
@@ -74,7 +74,7 @@ namespace Sen::Kernel::Definition {
 
 	template <typename T> requires Integral<T>
 
-	struct Rectangle : Dimension<T> {
+	struct Rectangle : public Dimension<T> {
 
 		public:
 
@@ -135,28 +135,6 @@ namespace Sen::Kernel::Definition {
 			) : x(that.x), y(that.y), Dimension<T>(that.width, that.height)
 			{
 
-			}
-
-			/**
-			 * get area
-			*/
-
-			inline auto area(
-
-			) const -> T
-			{
-				return thiz.width * thiz.height;
-			}
-
-			/**
-			 * get circumference
-			*/
-
-			inline auto circumference(
-
-			) const -> T
-			{
-				return thiz.width * 2 + thiz.height * 2;
 			}
 	};
 
