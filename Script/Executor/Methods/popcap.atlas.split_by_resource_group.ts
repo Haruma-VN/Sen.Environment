@@ -51,14 +51,26 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
                 argument.source.forEach((e: string) => Sen.Script.Console.obtained(e));
                 Sen.Script.Executor.defined_or_default(argument, `destination`, `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(argument, `method`, this.configuration, [
-                    [1n, "id"],
-                    [2n, "path"],
-                ]);
-                Sen.Script.Executor.argument_load(argument, `style`, this.configuration, [
-                    [1n, "string"],
-                    [2n, "array"],
-                ]);
+                Sen.Script.Executor.argument_load(
+                    argument,
+                    `method`,
+                    this.configuration,
+                    [
+                        [1n, "id", Sen.Kernel.Language.get("popcap.atlas.split.method.id")],
+                        [2n, "path", Sen.Kernel.Language.get("popcap.atlas.split.method.path")],
+                    ],
+                    Sen.Kernel.Language.get("popcap.atlas.split.method"),
+                );
+                Sen.Script.Executor.argument_load(
+                    argument,
+                    `style`,
+                    this.configuration,
+                    [
+                        [1n, "string", Sen.Kernel.Language.get("popcap.atlas.split.style.string")],
+                        [2n, "array", Sen.Kernel.Language.get("popcap.atlas.split.style.array")],
+                    ],
+                    Sen.Kernel.Language.get("popcap.atlas.split.style"),
+                );
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(argument.source, argument.destination!, argument.method!, argument.style!);
                 Sen.Script.Executor.clock.stop_safe();

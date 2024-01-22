@@ -67,7 +67,7 @@ namespace Sen.Script {
          */
 
         export function argument(str: any): void {
-            display(Sen.Kernel.Language.get(`execution_argument`), str, Definition.Console.Color.CYAN);
+            send(`${Sen.Kernel.Language.get(`execution_argument`)}: ${str}`, Definition.Console.Color.CYAN);
             return;
         }
 
@@ -201,15 +201,11 @@ namespace Sen.Script {
                 {
                     source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
                     destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+                    method: "id",
+                    style: "array",
                 },
                 Executor.Forward.DIRECT,
             );
-            // Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(
-            //     ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-            //     "id",
-            //     "array",
-            // );
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;

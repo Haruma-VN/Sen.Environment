@@ -565,7 +565,8 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
-				auto result = Shell::callback(construct_string_list(std::vector{std::string{"input"}}));
+				Shell::callback(construct_string_list(std::vector<std::string>{std::string{"wait"}}));
+				auto result = Shell::callback(construct_string_list(std::vector<std::string>{std::string{"input"}}));
 				return JS::Converter::to_string(context, std::string{result.value, result.size});
 			});
 		}

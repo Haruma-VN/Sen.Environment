@@ -107,12 +107,19 @@ namespace Sen.Script.Executor {
         argument: Argument,
         key: string,
         configuration: Configuration,
-        rule: Array<bigint> | Array<[bigint, string]>,
+        rule: Array<bigint> | Array<[bigint, string, string]>,
+        title: string,
     ): void {
-        if ((configuration as any)[key] !== "?") {
-            return configurate_or_input(argument, key, rule as Array<[bigint, string]>);
+        Sen.Script.Console.argument(title);
+        if ((argument as any & Argument)[key] !== undefined) {
+            Sen.Kernel.Console.print(`    ${(argument as any & Argument)[key]}`);
+            return;
         }
-        if ((argument as any & Argument)[key] === undefined && (configuration as any)[key] !== "?") {
+        if ((configuration as any)[key] === "?") {
+            return configurate_or_input(argument, key, rule as Array<[bigint, string, string]>);
+        }
+        if ((configuration as any)[key] !== "?") {
+            Sen.Kernel.Console.print(`    ${(configuration as any)[key]}`);
             (argument as any & Argument)[key] = (configuration as any)[key];
         }
         return;
@@ -140,15 +147,15 @@ namespace Sen.Script.Executor {
      * ----------------------------------------------------------
      */
 
-    export function configurate_or_input<Argument extends Sen.Script.Executor.Base, T>(argument: Argument, key: string, rule: Array<bigint> | Array<[bigint, string]>): void {
+    export function configurate_or_input<Argument extends Sen.Script.Executor.Base, T>(argument: Argument, key: string, rule: Array<bigint> | Array<[bigint, string, string]>): void {
         if ((argument as any & Argument)[key] === undefined) {
             if (typeof rule[0] === "object") {
                 const new_rule: Array<bigint> = [];
                 rule.forEach((e: [bigint, string] & any) => {
-                    Console.send(`${e[0]}. ${e[1]}`);
+                    Sen.Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
                     new_rule.push(e[0]);
                 });
-                (argument as any)[key] = (rule as Array<[bigint, string]>)[Number(input_integer(new_rule) - 1n)][1];
+                (argument as any)[key] = (rule as Array<[bigint, string, string]>)[Number(input_integer(new_rule) - 1n)][1];
                 return;
             }
             if (typeof rule[0] === "string") {

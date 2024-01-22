@@ -114,6 +114,23 @@ inline static auto callback(
     if (result[0] == "is_gui") {
         return CStringView{ .size = 1, .value = "0" };
     }
+    if (result[0] == "wait") {
+        #if WINDOWS
+                auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::CYAN);
+                std::cout << "● ";
+        #else
+                std::cout << "\033[36m● \033[0m";
+        #endif
+        return EMPTY_STRING_VIEW;
+    }
+    if (result[0] == "clear") {
+        #if WINDOWS
+                auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
+        #endif
+        return EMPTY_STRING_VIEW;
+    }
     if (result[0] == "version") {
         delete[] copy;
         copy = nullptr;

@@ -59,5 +59,11 @@
     "js.method_not_found": "Method {} not found",
     "js.method_does_not_execute": "Method does not have the typical method to execute",
     "popcap.atlas.split_by_resource_group": "PopCap Atlas: Split by Resource-Group",
-    "js.invalid_input_value": "Invalid input value, should choose one of the displayed option"
+    "js.invalid_input_value": "Invalid input value, should choose one of the displayed option",
+    "popcap.atlas.split.method": "Split method, the filename will depends on the argument you choose",
+    "popcap.atlas.split.method.path": "The last element name in \"path\" property, mostly use for Animation",
+    "popcap.atlas.split.method.id": "The alias of the sprite, this is unique and safety",
+    "popcap.atlas.split.style": "Resource-Group style, for path",
+    "popcap.atlas.split.style.array": "For PvZ 2 version 10.3 and below",
+    "popcap.atlas.split.style.string": "For PvZ 2 version 10.4 and above"
 }
