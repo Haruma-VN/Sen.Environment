@@ -270,7 +270,7 @@ declare namespace Sen {
              * --------------------------------------------------
              */
 
-            export function sleep(time: number): void;
+            export function sleep(time: bigint): void;
 
             /**
              * --------------------------------------------------

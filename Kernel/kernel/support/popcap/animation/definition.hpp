@@ -9,8 +9,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationSize
     {
     public:
-        int width;
-        int height;
+        int width = -1;
+        int height = -1;
         explicit AnimationSize(
 
             ) = default;
@@ -177,7 +177,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         int index;
-        int duration;
+        int duration = 1;
         explicit AnimationWorkArea(
 
             ) = default;
@@ -343,8 +343,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
         json.at("index").get_to(anim.index);
         json.at("transform").get_to(anim.transform);
-        json.at("color").get_to(anim.color);
-        json.at("source_rectangle").get_to(anim.source_rectangle);
+        if (json.at("color") != nullptr)
+        {
+            json.at("color").get_to(anim.color);
+        }
+        if (json.at("source_rectangle") != nullptr)
+        {
+            json.at("source_rectangle").get_to(anim.source_rectangle);
+        }
         json.at("sprite_frame_number").get_to(anim.sprite_frame_number);
         return;
     }

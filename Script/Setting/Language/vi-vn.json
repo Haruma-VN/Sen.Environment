@@ -64,5 +64,8 @@
     "popcap.atlas.split.method.id": "Bí danh của sprite, đây là duy nhất và an toàn",
     "popcap.atlas.split.style": "Kiểu nhóm tài nguyên, cho đường dẫn",
     "popcap.atlas.split.style.array": "Đối với PvZ 2 phiên bản 10.3 trở xuống",
-    "popcap.atlas.split.style.string": "Đối với PvZ 2 phiên bản 10.4 trở lên"
+    "popcap.atlas.split.style.string": "Đối với PvZ 2 phiên bản 10.4 trở lên",
+    "js.process.done": "JS đã được thực thi, kết quả trả về",
+    "popcap.animation.encode": "PopCap Animation: JSON sang PAM",
+    "popcap.animation.decode": "PopCap Animation: PAM sang JSON"
 }

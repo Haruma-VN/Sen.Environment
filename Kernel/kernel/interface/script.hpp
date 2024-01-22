@@ -128,7 +128,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto time = JS::Converter::get_int64(context, argv[0]);
+				auto time = JS::Converter::get_bigint64(context, argv[0]);
 				Sen::Kernel::Definition::Timer::sleep(time);
 				return JS::Converter::get_undefined();
 			});
@@ -541,7 +541,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				default:
 				{
-					Shell::callback(construct_string_list(std::vector{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}));
+					Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}));
 					break;
 				}
 				}
@@ -1567,9 +1567,8 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto str = std::string{source};
-					auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto result = Kernel::Definition::Encryption::MD5::hash(Kernel::FileSystem::read_binary<unsigned char>(source.get()));
 					return JS::Converter::to_string(context, result);
 				});
 			}
@@ -1621,8 +1620,8 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source);
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source.get());
 					return JS::Converter::to_string(context, result);
 				});
 			}
@@ -3230,9 +3229,9 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						// encode method
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Animation::Encode::encode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					});
 				}
@@ -3581,6 +3580,8 @@ namespace Sen::Kernel::Interface::Script {
 				return JS_NewBigInt64(context, area);
 			});
 		}
+
+		/// Create an instance of Dimension object
 		
 		inline static auto instance(
 			JSContext *context, 
@@ -3591,15 +3592,15 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto dimension_obj = JSValue{};
+				auto image_obj = JSValue{};
 				auto area_func = JS_NewCFunction(context, area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
-				dimension_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, dimension_obj, "width", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])));
-				JS_SetPropertyStr(context, dimension_obj, "height", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])));
-				JS_DefinePropertyValueStr(context, dimension_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, dimension_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				return dimension_obj;
+				image_obj = JS_NewObject(context);
+				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])));
+				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])));
+				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				return image_obj;
 			});
 		}
 
@@ -3613,21 +3614,21 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto image = Sen::Kernel::Definition::ImageIO::read_png(JS::Converter::get_c_string(context, argv[0]).get());
-				auto dimension_obj = JSValue{};
+				auto image_obj = JSValue{};
 				auto area_func = JS_NewCFunction(context, area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
-				dimension_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, dimension_obj, "width", JS_NewBigInt64(context, image.width));
-				JS_SetPropertyStr(context, dimension_obj, "height", JS_NewBigInt64(context, image.height));
-				JS_SetPropertyStr(context, dimension_obj, "bit_depth", JS_NewBigInt64(context, image.bit_depth));
-				JS_SetPropertyStr(context, dimension_obj, "color_type", JS_NewBigInt64(context, image.color_type));
-				JS_SetPropertyStr(context, dimension_obj, "interlace_type", JS_NewBigInt64(context, image.interlace_type));
-				JS_SetPropertyStr(context, dimension_obj, "channels", JS_NewBigInt64(context, image.channels));
-				JS_SetPropertyStr(context, dimension_obj, "rowbytes", JS_NewBigInt64(context, image.rowbytes));
-				JS_SetPropertyStr(context, dimension_obj, "data", JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()));
-				JS_DefinePropertyValueStr(context, dimension_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, dimension_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				return dimension_obj;
+				image_obj = JS_NewObject(context);
+				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, image.width));
+				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, image.height));
+				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, image.bit_depth));
+				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, image.color_type));
+				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, image.interlace_type));
+				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, image.channels));
+				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, image.rowbytes));
+				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()));
+				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				return image_obj;
 			});
 		}
 

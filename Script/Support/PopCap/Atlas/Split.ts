@@ -88,7 +88,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
             const style_use_string: boolean = style === "string";
             Sen.Kernel.FileSystem.create_directory(sprite_destination);
             const image_wrapper: Map<string, Array<Sen.Kernel.Image.RectangleFileIO>> = new Map<string, Array<Sen.Kernel.Image.RectangleFileIO>>();
-            images.forEach((e) => image_wrapper.set(e, []));
+            images.forEach((e: string) => image_wrapper.set(e, []));
             for (const current_resource of resource.resources) {
                 if (is_sprite_container(current_resource)) {
                     for (const png of images) {

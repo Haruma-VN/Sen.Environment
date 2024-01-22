@@ -196,13 +196,10 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
-            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
-                "popcap.atlas.split_by_resource_group",
+            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument>(
+                "popcap.animation.encode",
                 {
-                    source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-                    destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-                    method: "id",
-                    style: "array",
+                    source: "D:/test/test.json",
                 },
                 Executor.Forward.DIRECT,
             );
@@ -248,12 +245,14 @@ namespace Sen.Script {
             `~/Support/PopCap/Atlas/Structure.js`,
             `~/Support/PopCap/Atlas/Split.js`,
             `~/Executor/Executor.js`,
+            `~/Executor/Methods/js.evaluate.js`,
             `~/Executor/Methods/data.md5.hash.js`,
             `~/Executor/Methods/data.base64.encode.js`,
             `~/Executor/Methods/data.base64.decode.js`,
             `~/Executor/Methods/popcap.rton.decode.js`,
             `~/Executor/Methods/popcap.rton.encode.js`,
             `~/Executor/Methods/popcap.animation.decode.js`,
+            `~/Executor/Methods/popcap.animation.encode.js`,
             `~/Executor/Methods/popcap.atlas.split_by_resource_group.js`,
         ];
     }

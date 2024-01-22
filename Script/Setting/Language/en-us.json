@@ -65,5 +65,8 @@
     "popcap.atlas.split.method.id": "The alias of the sprite, this is unique and safety",
     "popcap.atlas.split.style": "Resource-Group style, for path",
     "popcap.atlas.split.style.array": "For PvZ 2 version 10.3 and below",
-    "popcap.atlas.split.style.string": "For PvZ 2 version 10.4 and above"
+    "popcap.atlas.split.style.string": "For PvZ 2 version 10.4 and above",
+    "js.process.done": "JS has been executed, result after execute",
+    "popcap.animation.encode": "PopCap Animation: JSON to PAM",
+    "popcap.animation.decode": "PopCap Animation: PAM to JSON"
 }
