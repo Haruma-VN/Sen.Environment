@@ -68,5 +68,8 @@
     "popcap.atlas.split.style.string": "For PvZ 2 version 10.4 and above",
     "js.process.done": "JS has been executed, result after execute",
     "popcap.animation.encode": "PopCap Animation: JSON to PAM",
-    "popcap.animation.decode": "PopCap Animation: PAM to JSON"
+    "popcap.animation.decode": "PopCap Animation: PAM to JSON",
+    "popcap.animation.invalid_magic": "Invalid PAM magic",
+    "popcap.animation.invalid_version": "Invalid PAM version, expected from version 1 to 6 but received",
+    "popcap.animation.duplicate_image": "Sequence contains duplicate name, duplicated name"
 }

@@ -199,7 +199,8 @@ namespace Sen.Script {
             Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument>(
                 "popcap.animation.encode",
                 {
-                    source: "D:/test/test.json",
+                    source: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
+                    destination: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json.pam",
                 },
                 Executor.Forward.DIRECT,
             );

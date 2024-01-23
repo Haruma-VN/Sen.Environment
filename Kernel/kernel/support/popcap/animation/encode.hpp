@@ -22,7 +22,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
             if (index == Definition::version.end())
             {
-                throw Exception("invaild_version");
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version));
             }
             sen.writeUint32(version);
             sen.writeUint8(frame_rate);
@@ -40,7 +40,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             auto image = json.image;
             sen.writeUint16(image.size());
-            for (auto [key, value] : image)
+            for (auto & [key, value] : image)
             {
                 auto image_name = fmt::format("{}|{}", value.name, key);
                 sen.writeStringByUint16(image_name);
@@ -48,7 +48,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             auto sprite = json.sprite;
             sen.writeUint16(sprite.size());
-            for (auto [key, value] : sprite) {
+            for (auto & [key, value] : sprite) {
                 if (version >= 4) {
                     sen.writeStringByUint16(key);
                     write_sprite(value);
@@ -65,7 +65,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return sen;
         }
 
-        inline auto write_sprite(AnimationSprite sprite) const -> void {
+        inline auto write_sprite(const AnimationSprite & sprite) const -> void {
             if (version >= 4) {
                 if (version >= 6) {
                     sen.writeStringByUint16(sprite.description);
@@ -87,7 +87,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        inline auto write_frame_info(AnimationFrame frame) const -> void {
+        inline auto write_frame_info(const AnimationFrame & frame) const -> void {
             auto flag = 0;
             auto write_pos = sen.write_pos;
             sen.writeUint8(0xff);
@@ -176,7 +176,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        inline auto write_append(AnimationAppend append) const -> void {
+        inline auto write_append(const AnimationAppend & append) const -> void {
             auto write_pos = sen.write_pos;
             sen.writeUint16(0);
             auto flag = 0;
@@ -218,7 +218,9 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        inline auto write_move(AnimationMove move) const -> void {
+        inline auto write_move(
+            const AnimationMove & move
+        ) const -> void {
             auto write_pos = sen.write_pos;
             sen.writeUint16(0);
             auto flag = 0;
@@ -282,14 +284,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        inline auto write_command(AnimationCommand command) const -> void {
+        inline auto write_command(const AnimationCommand & command) const -> void {
             sen.writeStringByUint16(command.command);
             sen.writeStringByUint16(command.parameter);
             return;
         }
 
 
-        inline auto write_image(AnimationImage image) const -> void
+        inline auto write_image(const AnimationImage & image) const -> void
         {
             if (version >= 4)
             {
@@ -382,7 +384,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
     public:
         explicit Encode(
-            SexyAnimation json
+            const SexyAnimation & json
         ) : json(json)
         {
         }

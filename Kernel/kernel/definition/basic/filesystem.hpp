@@ -60,19 +60,16 @@ namespace Sen::Kernel::FileSystem
 	// return: if the json is valid, the json data will be parsed as object
 
 	inline static auto read_json(
-		std::string_view filePath
+		std::string_view source
 	) -> nlohmann::ordered_json const 
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filePath.data(), "r"), close_file);
-		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filePath));
-		}
-		fseek(file.get(), 0, SEEK_END);
-		auto size = ftell(file.get());
-		fseek(file.get(), 0, SEEK_SET);
-		auto buffer = std::vector<char>(size);
-		fread(buffer.data(), 1, size, file.get());
-		return nlohmann::ordered_json::parse(buffer.begin(), buffer.end());
+		auto file = std::ifstream(source.data());
+        if (!file.is_open()) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,source));
+        }
+        auto buffer = std::stringstream{};
+        buffer << file.rdbuf();
+		return  nlohmann::json::parse(buffer.str());
 	}
 
 	// Provide file path to write
