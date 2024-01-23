@@ -309,7 +309,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return;
                 }
                 default:{
-                    throw Exception("Invalid bytecode");
+                    throw Exception(fmt::format("Invalid bytecode: {}", bytecode));
                 }
             }
         }
@@ -382,7 +382,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         }
 
-        explicit constexpr Decode(
+        explicit Decode(
             DataStreamView & it
         ) : sen(it)
         {
@@ -401,7 +401,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const auto & magic = sen.readString(magic_count);
                 if (magic != thiz.magic)
                 {
-                    throw Exception("Invalid RTON head");
+                    throw Exception("Invalid RTON magic, should starts with RTON");
                 }
             }
             {
@@ -413,6 +413,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return json_writer.ToString();
         }
 
+        // -----------------------------------------
+
         inline static auto decode_fs(
             std::string_view source,
             std::string_view destination
@@ -423,6 +425,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return;
         }
 
+        // -----------------------------------------
+
         inline static auto decrypt_fs(
             std::string_view source,
             std::string_view destination,
@@ -431,11 +435,17 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
-            auto source_iv = DataStreamView{iv};
+            auto source_iv = DataStreamView{};
+            source_iv.writeStringView(iv);
             fill_rijndael_block(source_buffer, source_iv);
-            FileSystem::write_binary<unsigned char>(destination, Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size()).data()), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC));
+            FileSystem::write_binary<unsigned char>(destination, 
+                Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), 
+                key, iv, source_buffer.size() - 2, Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)
+            );
             return;
         }
+
+        // -----------------------------------------
 
         inline static auto decrypt_and_decode_fs(
             std::string_view source,
@@ -445,13 +455,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
-            auto source_iv = DataStreamView{iv};
+            auto source_iv = DataStreamView{};
+            source_iv.writeStringView(iv);
             fill_rijndael_block(source_buffer, source_iv);
-            auto sen = DataStreamView{Sen::Kernel::Definition::Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(0, source_buffer.size()).data()), key, iv, source_buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
-            auto rton = Decode{sen};
-            FileSystem::write_file(destination, rton.decode_rton());
+            auto sen = DataStreamView{Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), key, iv, source_buffer.size() - 2, Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
+            auto rton = std::unique_ptr<Decode>(new Decode{ sen });
+            FileSystem::write_file(destination, rton->decode_rton());
             return;
         }
+
+        // ---------------------------------------------
 
         inline static auto decode_fs_as_multiple_threads(
             const std::vector<std::vector<std::string>> & paths

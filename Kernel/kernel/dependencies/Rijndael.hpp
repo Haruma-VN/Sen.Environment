@@ -20,6 +20,7 @@
 namespace Sen::Kernel::Dependencies::Rijndael 
 {
 
+
 	// class Rijndael 
 	using CRijndael = ::CRijndael;
 

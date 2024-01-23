@@ -24,7 +24,7 @@ add_library(
 	./definition/basic/list.hpp
 	./definition/basic/system.hpp
 	./definition/basic/collections.hpp
-	./definition/basic/utf8json.hpp
+	./definition/basic/json_writer.hpp
 
 	./definition/encryption/md5.hpp
 	./definition/encryption/Rijndael.hpp

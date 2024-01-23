@@ -410,5 +410,26 @@ namespace Sen::Kernel::Support::PopCap::RTON
             Encode::instance().encode_rton(json).out_file(destination);
             return;
         }
+
+        // ---------------------------------------------
+
+        inline static auto encode_fs_as_multiple_threads(
+            const std::vector<std::vector<std::string>> & paths
+        ) -> void 
+        {
+            auto threads = std::vector<std::thread>{};
+            auto file_mutexes = std::map<std::string, std::mutex>{};
+            for (const auto & data : paths) {
+                threads.emplace_back([=, &file_mutexes]() { 
+                auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);
+                auto lock_destination = std::lock_guard<std::mutex>(file_mutexes[data[1]]);
+                    Encode::encode_fs(data[0], data[1]); 
+                });
+            }
+            for (auto & thread : threads) {
+                thread.join();
+            }
+            return;
+        }
     };
 }

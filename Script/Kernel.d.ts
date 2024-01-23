@@ -1111,12 +1111,36 @@ declare namespace Sen {
                     /**
                      * --------------------------------------------------
                      * JavaScript RTON Decode method for file
-                     * @param source : source file
-                     * @param destination : destination file
-                     * @returns: decoded file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns - decoded file
                      * --------------------------------------------------
                      */
                     export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Decrypt method for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @param iv - iv
+                     * @returns - decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decrypt_fs(source: string, destination: string, key: string, iv: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Decrypt method for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @param iv - iv
+                     * @returns - decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decrypt_and_decode_fs(source: string, destination: string, key: string, iv: string): void;
                     /**
                      * --------------------------------------------------
                      * JavaScript RTON Decode method as async
@@ -1134,6 +1158,14 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function encode_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Encode method as async
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs_as_multiple_threads(...params: Array<[string, string]>): void;
                 }
 
                 /**

@@ -318,9 +318,18 @@ namespace Sen::Kernel::Interface {
 				}
 				// rton
 				{
+					// decode fs
 					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decode_fs");
+					// decode_fs_as_multiple_threads
 					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs_as_multiple_threads, "Sen", "Kernel", "Support", "PopCap", "RTON", "decode_fs_as_multiple_threads");
+					// decrypt fs
+					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decrypt_fs");
+					// decrypt_and_decode_fs
+					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_and_decode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decrypt_and_decode_fs");
+					// encode fs
 					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "encode_fs");
+					// encode_fs_as_multiple_threads
+					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs_as_multiple_threads, "Sen", "Kernel", "Support", "PopCap", "RTON", "encode_fs_as_multiple_threads");
 				}
 				// zlib
 				{

@@ -3014,6 +3014,64 @@ namespace Sen::Kernel::Interface::Script {
 						return JS::Converter::get_undefined();
 					});
 				}
+				
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Decrypt File
+				 * @param argv[0]: source 
+				 * @param argv[1]: destination file
+				 * @param argv[2]: key
+				 * @param argv[3]: iv
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decrypt_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto key = JS::Converter::get_c_string(context, argv[2]);
+						auto iv = JS::Converter::get_c_string(context, argv[3]);
+						Sen::Kernel::Support::PopCap::RTON::Decode::decrypt_fs(source.get(), destination.get(), key.get(), iv.get());
+						return JS::Converter::get_undefined();
+					});
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Decrypt & Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: key
+				 * @param argv[3]: iv
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decrypt_and_decode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto key = JS::Converter::get_c_string(context, argv[2]);
+						auto iv = JS::Converter::get_c_string(context, argv[3]);
+						Sen::Kernel::Support::PopCap::RTON::Decode::decrypt_and_decode_fs(source.get(), destination.get(), key.get(), iv.get());
+						return JS::Converter::get_undefined();
+						});
+				}
 
 				/**
 				 * ----------------------------------------
@@ -3038,6 +3096,33 @@ namespace Sen::Kernel::Interface::Script {
 							paths.emplace_back(data);
 						}
 						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs_as_multiple_threads(paths);
+						return JS::Converter::get_undefined();
+					});
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Encode File as Threads
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs_as_multiple_threads(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						auto paths = std::vector<std::vector<std::string>>{};
+						for (const auto &i : Range<int>(argc))
+						{
+							const auto &data = JS::Converter::get_vector<std::string>(context, argv[i]);
+							try_assert(data.size() == 2, fmt::format("argument expected {} but received {}", 2, data.size()));
+							paths.emplace_back(data);
+						}
+						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs_as_multiple_threads(paths);
 						return JS::Converter::get_undefined();
 					});
 				}

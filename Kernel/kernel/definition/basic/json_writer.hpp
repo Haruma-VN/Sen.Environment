@@ -147,23 +147,19 @@ namespace Sen::Kernel::Definition
                 // faster algorithm, but need hex convertion.
                 if (value.find(JsonConstants::BackSlash) != std::string::npos)
                 {
-                    std::regex regexPattern("\\\\");
-                    value = std::regex_replace(value, regexPattern, "\\\\");
+                    value = ctre::match< R"(\\\\)" >(value).to_string();
                 }
                 if (value.find(JsonConstants::LineFeed) != std::string::npos)
                 {
-                    std::regex regexPattern("\n");
-                    value = std::regex_replace(value, regexPattern, "\\n");
+                    value = ctre::match< R"(\n)" >(value).to_string();
                 }
                 if (value.find(JsonConstants::CarriageReturn) != std::string::npos)
                 {
-                    std::regex regexPattern("\r");
-                    value = std::regex_replace(value, regexPattern, "\\r");
+                    value = ctre::match< R"(\r)" >(value).to_string();
                 }
                 if (value.find(JsonConstants::Tab) != std::string::npos)
                 {
-                    std::regex regexPattern("\t");
-                    value = std::regex_replace(value, regexPattern, "\\t");
+                    value = ctre::match< R"(\t)" >(value).to_string();
                 }
                 /*
                 if (value.find(JsonConstants::FormFeed) != std::string::npos)
