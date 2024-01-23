@@ -146,6 +146,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::string name;
         AnimationSize size;
         std::vector<double> transform;
+
+        explicit AnimationImage(
+
+        ) = default;
+
+        ~AnimationImage(
+
+        ) = default;
     };
 
     inline static auto to_json(
@@ -407,6 +415,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::string description;
         AnimationWorkArea work_area;
         std::vector<AnimationFrame> frame;
+
+        explicit AnimationSprite(
+
+        ) = default;
+
+        ~AnimationSprite(
+
+        ) = default;
     };
 
     inline static auto to_json(

@@ -62,6 +62,7 @@ add_library(
 	./dependencies/zip.hpp
 	./dependencies/dirent.hpp
 	./dependencies/simdjson.hpp
+	./dependencies/compile-time-regular-expressions.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -179,6 +180,7 @@ target_link_libraries(
 	quickjs
 	zip
 	simdjson
+	compile-time-regular-expressions
 )
 
 

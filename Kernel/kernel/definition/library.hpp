@@ -54,3 +54,4 @@
 #include "kernel/dependencies/zip.hpp"
 #include "kernel/dependencies/dirent.hpp"
 #include "kernel/dependencies/simdjson.hpp"
+#include "kernel/dependencies/compile-time-regular-expressions.hpp"
