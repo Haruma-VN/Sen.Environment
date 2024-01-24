@@ -136,10 +136,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								subgroup["res"] = fmt::format("{}", sub_res);
 							}
 							subgroup["id"] = thiz.read_string();
-							subgroups.push_back(subgroup);
+							subgroups.emplace_back(subgroup);
 						}
 						group["subgroups"] = subgroups;
-						groups.push_back(group);
+						groups.emplace_back(group);
 					}
 					if(group_type == 0x02){
 						try_assert(subgroups_count == 0x00, "Property \"subgroup\" must have size 0 with simple");
@@ -238,10 +238,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									break;
 								}
 							}
-							resources.push_back(sub_resources);
+							resources.emplace_back(sub_resources);
 						}
         				group["resources"] = resources;
-						groups.push_back(group);
+						groups.emplace_back(group);
 					}
 				}
 				result["groups"] = groups;

@@ -140,15 +140,15 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							if(!content[parent]["subgroups"][subgroup]["type"].is_null()){
 								resource_for_subgroup["res"] = content[parent]["subgroups"][subgroup]["type"];
 							}
-							composite_object["subgroups"].push_back(resource_for_subgroup);
+							composite_object["subgroups"].emplace_back(resource_for_subgroup);
 						}
-						groups.push_back(composite_object);
+						groups.emplace_back(composite_object);
 					}
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
 						auto resource_content = FileSystem::read_json(resource_json_path);
 						try_assert(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"));
-						groups.push_back(resource_content);
+						groups.emplace_back(resource_content);
 					}
 				}
 				resources_json["groups"] = groups;

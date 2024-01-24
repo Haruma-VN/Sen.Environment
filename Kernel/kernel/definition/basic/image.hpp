@@ -464,22 +464,20 @@ namespace Sen::Kernel::Definition {
 				auto new_width = static_cast<int>(source.width * percentage);
 				auto new_height = static_cast<int>(source.height * percentage);
 				const auto area = (new_width * new_height * 4);
-				auto data = new uint8_t[area];
+				auto data = std::unique_ptr<uint8_t[]>(new uint8_t[area]);
 				avir::CImageResizer<>{8}.resizeImage(
 					source.data().data(), 
 					static_cast<int>(source.width), 
 					static_cast<int>(source.height), 
 					0, 
-					data, 
+					data.get(), 
 					static_cast<int>(new_width), 
 					static_cast<int>(new_height), 
 					4, 
 					0.0, 
 					nullptr
 				);
-				auto vec = std::vector<uint8_t>(data, data + area);
-				delete[] data;
-				data = nullptr;
+				auto vec = std::vector<uint8_t>(data.get(), data.get() + area);
 				return Image<int>(new_width, new_height, vec);
 			}
 	};

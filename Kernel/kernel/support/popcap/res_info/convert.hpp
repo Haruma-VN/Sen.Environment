@@ -137,10 +137,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					auto subgroup = nlohmann::ordered_json {
 						{"id", element}
 					};
-					if(!composite["subgroup"][element]["type"].is_null() and composite["subgroup"][element]["type"].get<std::string>() != Convert::emptyType){
-						subgroup["res"] = composite["subgroup"][element]["type"].get<std::string>();
+					if(!composite["subgroup"][element]["type"].is_null() and composite["subgroup"][element]["type"].get<std::string_view>() != Convert::emptyType){
+						subgroup["res"] = composite["subgroup"][element]["type"].get<std::string_view>();
 					}
-					result["subgroups"].push_back(subgroup);
+					result["subgroups"].emplace_back(subgroup);
 				}
 				return result;
 			}
@@ -188,7 +188,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					if(value.find("forceOriginalVectorSymbolSize") != value.end() and value["forceOriginalVectorSymbolSize"].get<bool>()){
 						resource["forceOriginalVectorSymbolSize"] = true;
 					}
-					result["resources"].push_back(resource);
+					result["resources"].emplace_back(resource);
 				}
 				return result;
 			}
@@ -228,7 +228,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					else{
 						resource["path"] = value["path"].get<std::vector<std::string>>();
 					}
-					result["resources"].push_back(resource);
+					result["resources"].emplace_back(resource);
 					for(auto & [sub, sub_value] : value["data"].items()){
 						auto sub_resource = nlohmann::ordered_json {
 							{"type", sub_value["type"].get<std::string>()},
@@ -258,7 +258,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						sub_resource["ay"] = sub_value["default"]["ay"].get<int>();
 						sub_resource["aw"] = sub_value["default"]["aw"].get<int>();
 						sub_resource["ah"] = sub_value["default"]["ah"].get<int>();
-						result["resources"].push_back(sub_resource);
+						result["resources"].emplace_back(sub_resource);
 					}
 				}
 				return result;
@@ -321,10 +321,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				};
 				for(auto & [composite_name, group] : res_info["groups"].items()){
 					if(group["is_composite"].get<bool>()){
-        				result["groups"].push_back(thiz.generate_composite(composite_name, group));
+        				result["groups"].emplace_back(thiz.generate_composite(composite_name, group));
 						for(auto & [subgroup_name, subgroup_value] : group["subgroup"].items()){
 							if (!subgroup_value["type"].is_null() and subgroup_value["type"].get<std::string>() != Convert::emptyType) {
-								result["groups"].push_back(
+								result["groups"].emplace_back(
 									thiz.generate_image(
 										SubInformation(subgroup_name, composite_name),
 										subgroup_value
@@ -332,7 +332,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 								);
 							}
 							else{
-								result["groups"].push_back(
+								result["groups"].emplace_back(
 									thiz.generate_common(
 										SubInformation(subgroup_name, composite_name),
 										subgroup_value
@@ -343,7 +343,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					}
 					else{
 						for(auto & [subgroup_name, subgroup_value] : group["subgroup"].items()){
-							result["groups"].push_back(
+							result["groups"].emplace_back(
 								thiz.generate_common(
 									SubInformation(subgroup_name, Convert::emptyString),
 									subgroup_value
@@ -358,10 +358,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 
 			inline static auto instance(
-
+				bool use_string_for_style
 			) -> Convert&
 			{
-				static auto INSTANCE = Convert{};
+				static auto INSTANCE = Convert{use_string_for_style};
 				return INSTANCE;
 			}
 
@@ -372,10 +372,11 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			*/
 
 			inline static auto convert(
-				const nlohmann::ordered_json & res_info
+				const nlohmann::ordered_json & res_info,
+				bool use_string_for_style
 			) -> nlohmann::ordered_json const
 			{
-				auto result = ResInfo::Convert::instance().convert_whole(res_info);
+				auto result = ResInfo::Convert::instance(use_string_for_style).convert_whole(res_info);
 				return result;
 			}
 
@@ -388,10 +389,11 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			inline static auto convert_fs(
 				std::string_view source,
-				std::string_view destination
+				std::string_view destination,
+				bool use_string_for_style
 			) -> void
 			{
-				FileSystem::write_json(destination, Convert::convert(FileSystem::read_json(source)));
+				FileSystem::write_json(destination, Convert::convert(FileSystem::read_json(source), use_string_for_style));
 				return;
 			}
 

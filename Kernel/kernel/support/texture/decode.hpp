@@ -61,13 +61,13 @@ namespace Sen::Kernel::Support::Texture {
 				data.reserve(color.size());
 				for (auto i : Range<size_t>(color.size(), 4)) {
 					// red
-					data.push_back(color[i + 1]);
+					data.emplace_back(color[i + 1]);
 					// green
-					data.push_back(color[i + 2]);
+					data.emplace_back(color[i + 2]);
 					// blue
-					data.push_back(color[i + 3]);
+					data.emplace_back(color[i + 3]);
 					// alpha
-					data.push_back(color[i]);
+					data.emplace_back(color[i]);
 				}
 				return data;
 			}
@@ -506,10 +506,10 @@ namespace Sen::Kernel::Support::Texture {
 				Javelin::PvrTcDecoder::DecodeRgba4Bpp(result.data(), Javelin::Point2<int>(width, height), sen.get().data());
 				auto data = std::vector<uint8_t>{};
 				for	(auto & c : result){
-					data.push_back(c.r);
-					data.push_back(c.g);
-					data.push_back(c.b);
-					data.push_back(c.a);
+					data.emplace_back(c.r);
+					data.emplace_back(c.g);
+					data.emplace_back(c.b);
+					data.emplace_back(c.a);
 				}
 				return Image<int>{width, height, data};
 

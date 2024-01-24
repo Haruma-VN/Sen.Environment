@@ -96,7 +96,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				auto atlas = std::vector<nlohmann::ordered_json>{};
 				for(auto & element : subgroup["resources"]){
 					if(element.find("atlas") != element.end() && element["atlas"].get<bool>()){
-						atlas.push_back(element);
+						atlas.emplace_back(element);
 					}
 				}
 				for(auto & parent : atlas) {
@@ -111,7 +111,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					auto children_in_current_parent = std::vector<nlohmann::ordered_json>{};
 					for(auto & element : subgroup["resources"]) {
 						if(element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
-							children_in_current_parent.push_back(element);
+							children_in_current_parent.emplace_back(element);
 						}
 					}
 					for(auto & element : children_in_current_parent) {
