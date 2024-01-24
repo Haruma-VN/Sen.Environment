@@ -69,7 +69,7 @@ namespace Sen::Kernel::FileSystem
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();
-		return  nlohmann::json::parse(buffer.str());
+		return nlohmann::ordered_json::parse(buffer.str());
 	}
 
 	// Provide file path to write

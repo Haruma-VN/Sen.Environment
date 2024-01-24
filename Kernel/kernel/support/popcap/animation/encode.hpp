@@ -204,7 +204,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 flag |= 8192;
                 sen.writeUint16(append.preload_frame);
             }
-            if (append.name != "" || append.name.empty()) {
+            if (append.name != "" and append.name.empty()) {
                 flag |= 4096;
                 sen.writeStringByUint16(append.name);
             }
@@ -237,17 +237,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
             auto transform_size = transform.size();
             if (transform_size == 6) {
                 num_flag = MoveFlags::matrix;
-                sen.writeInt32(transform[0] * 65536);
-                sen.writeInt32(transform[2] * 65536);
-                sen.writeInt32(transform[1] * 65536);
-                sen.writeInt32(transform[3] * 65536);
+                sen.writeInt32(std::round(transform[0] * 65536.0));
+                sen.writeInt32(std::round(transform[2] * 65536.0));
+                sen.writeInt32(std::round(transform[1] * 65536.0));
+                sen.writeInt32(std::round(transform[3] * 65536.0));
             } 
             else if (transform_size == 3) {
                 num_flag |= MoveFlags::rotate;
-                sen.writeInt16(transform[0] * 1000);
+                sen.writeInt16(std::round(transform[0] * 1000.0));
             }
-            auto y = transform[transform_size - static_cast<size_t>(2)] * 20;
-            auto x = transform[transform_size - static_cast<size_t>(1)] * 20;
+            auto y = std::round(transform[transform_size - static_cast<size_t>(2)] * 20.0);
+            auto x = std::round(transform[transform_size - static_cast<size_t>(1)] * 20.0);
             if (version >= 5) {
                 num_flag |= MoveFlags::long_coords;
                 sen.writeInt32(y);
@@ -285,8 +285,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
         }
 
         inline auto write_command(const AnimationCommand & command) const -> void {
-            sen.writeStringByUint16(command.command);
             sen.writeStringByUint16(command.parameter);
+            sen.writeStringByUint16(command.command);
             return;
         }
 
@@ -313,18 +313,18 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
                 else if (image.transform.size() >= 6)
                 {
-                    auto acos = std::acos(image.transform[0]);
+                    auto acos = std::round(std::acos(image.transform[0]));
                     if ((image.transform[1] * (version == 2 ? -1 : 1)) < 0)
                     {
                         acos = -acos;
                     }
                     sen.writeInt16(acos);
-                    sen.writeInt16(image.transform[4] * 20);
-                    sen.writeInt16(image.transform[5] * 20);
+                    sen.writeInt16(std::round(image.transform[4] * 20.0));
+                    sen.writeInt16(std::round(image.transform[5] * 20.0));
                 }
                 else if (image.transform.size() >= 4)
                 {
-                    auto acos = std::acos(image.transform[0]);
+                    auto acos = std::round(std::acos(image.transform[0]));
                     if ((image.transform[1] * (version == 2 ? -1 : 1)) < 0)
                     {
                         acos = -acos;
@@ -336,8 +336,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 else if (image.transform.size() >= 2)
                 {
                     sen.writeInt16(0);
-                    sen.writeInt16(image.transform[0] * 20);
-                    sen.writeInt16(image.transform[1] * 20);
+                    sen.writeInt16(std::round(image.transform[0] * 20.0));
+                    sen.writeInt16(std::round(image.transform[1] * 20.0));
                 }
             }
             else
@@ -353,19 +353,19 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
                 else if (image.transform.size() >= 6)
                 {
-                    sen.writeInt32(image.transform[0] * 1310720);
-                    sen.writeInt32(image.transform[2] * 1310720);
-                    sen.writeInt32(image.transform[1] * 1310720);
-                    sen.writeInt32(image.transform[3] * 1310720);
-                    sen.writeInt16(image.transform[4] * 20);
-                    sen.writeInt16(image.transform[5] * 20);
+                    sen.writeInt32(std::round(image.transform[0] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[2] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[1] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[3] * 1310720.0));
+                    sen.writeInt16(std::round(image.transform[4] * 20.0));
+                    sen.writeInt16(std::round(image.transform[5] * 20.0));
                 }
                 else if (image.transform.size() >= 4)
                 {
-                    sen.writeInt32(image.transform[0] * 1310720);
-                    sen.writeInt32(image.transform[2] * 1310720);
-                    sen.writeInt32(image.transform[1] * 1310720);
-                    sen.writeInt32(image.transform[3] * 1310720);
+                    sen.writeInt32(std::round(image.transform[0] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[2] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[1] * 1310720.0));
+                    sen.writeInt32(std::round(image.transform[3] * 1310720.0));
                     sen.writeInt16(0);
                     sen.writeInt16(0);
                 }
@@ -375,8 +375,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     sen.writeInt32(0);
                     sen.writeInt32(0);
                     sen.writeInt32(1310720);
-                    sen.writeInt16(image.transform[0] * 20);
-                    sen.writeInt16(image.transform[1] * 20);
+                    sen.writeInt16(std::round(image.transform[0] * 20.0));
+                    sen.writeInt16(std::round(image.transform[1] * 20.0));
                 }
             }
             return;

@@ -197,15 +197,14 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             let key = "65bd1b2305f46eb2806b935aab7630bb";
-            Sen.Kernel.Support.PopCap.RTON.decode_fs("D:/test/ipad3_10.8.1_main.rsb.bundle/resource/ARMORTYPES.RTON", "D:/test/ipad3_10.8.1_main.rsb.bundle/resource/ARMORTYPES.RTON");
-            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument>(
-            //     "popcap.rton.encode",
-            //     {
-            //         source: "D:/test/RESOURCES.json",
-            //         destination: "D:/test/RESOURCES.rtonx",
-            //     },
-            //     Executor.Forward.DIRECT,
-            // );
+            Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument>(
+                "popcap.animation.encode",
+                {
+                    source: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
+                    destination: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json.pam.json.pam",
+                },
+                Executor.Forward.DIRECT,
+            );
         } catch (e: unknown & any) {
             result = e.message;
             result += `\n`;
