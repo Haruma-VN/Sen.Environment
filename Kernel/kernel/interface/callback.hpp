@@ -63,6 +63,17 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::callback, "Sen", "Shell", "callback");
 					javascript->add_constant(thiz.arguments, "Sen", "Kernel", "arguments");
 				}
+				// xml
+				{
+					// deserialize
+					javascript->add_proxy(Script::XML::deserialize, "Sen", "Kernel", "XML", "deserialize");
+					// deserialize_fs
+					javascript->add_proxy(Script::XML::deserialize_fs, "Sen", "Kernel", "XML", "deserialize_fs");
+					// serialize
+					javascript->add_proxy(Script::XML::serialize, "Sen", "Kernel", "XML", "serialize");
+					// serialize_fs
+					javascript->add_proxy(Script::XML::serialize_fs, "Sen", "Kernel", "XML", "serialize_fs");
+				}
 				// json
 				{
 					// deserialize

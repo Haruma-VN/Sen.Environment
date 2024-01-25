@@ -3778,4 +3778,168 @@ namespace Sen::Kernel::Interface::Script {
 
 	}
 
+
+
+	namespace XML {
+
+		inline static auto xml2json(
+			const tinyxml2::XMLNode* node
+		) -> nlohmann::ordered_json
+		{
+			auto j = nlohmann::ordered_json{};
+			const tinyxml2::XMLElement* element = node->ToElement();
+			if (element) {
+				for (auto attr = element->FirstAttribute(); attr; attr = attr->Next()) {
+					j["@attributes"][attr->Name()] = attr->Value();
+				}
+			}
+			if (node->ToText()) {
+				j = node->Value();
+			}
+			else {
+				for (auto child = node->FirstChild(); child; child = child->NextSibling()) {
+					auto child_json = xml2json(child);
+					if (j.contains(child->Value())) {
+						if (j[child->Value()].is_array()) {
+							j[child->Value()].push_back(child_json);
+						}
+						else {
+							j[child->Value()] = { j[child->Value()], child_json };
+						}
+					}
+					else {
+						j[child->Value()] = child_json;
+					}
+				}
+			}
+			return j;
+		}
+
+		inline static auto json2xml(
+			const nlohmann::ordered_json& j, 
+			tinyxml2::XMLNode* node, 
+			tinyxml2::XMLDocument& doc
+		) -> void
+		{
+			if (j.is_object()) {
+				for (auto it = j.begin(); it != j.end(); ++it) {
+					if (it.key() == "@attributes") {
+						for (auto attr_it = it->begin(); attr_it != it->end(); ++attr_it) {
+							dynamic_cast<tinyxml2::XMLElement*>(node)->SetAttribute(attr_it.key().c_str(), attr_it.value().get<std::string>().c_str());
+						}
+					}
+					else {
+						auto child = doc.NewElement(it.key().c_str());
+						node->InsertEndChild(child);
+						json2xml(it.value(), child, doc);
+					}
+				}
+			}
+			else if (j.is_array()) {
+				for (auto it = j.begin(); it != j.end(); ++it) {
+					json2xml(*it, node, doc);
+				}
+			}
+			else {
+				node->InsertEndChild(doc.NewText(j.get<std::string>().c_str()));
+			}
+		}
+
+		inline static auto convert(
+			const nlohmann::ordered_json& j, 
+			tinyxml2::XMLDocument& doc
+		) -> void
+		{
+			auto & root_name = j.begin().key();
+			auto root = doc.NewElement(root_name.c_str());
+			doc.InsertEndChild(root);
+			json2xml(j.begin().value(), root, doc);
+			return;
+		}
+
+
+
+		inline static auto deserialize(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+				auto doc = tinyxml2::XMLDocument{};
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto eResult = doc.Parse(source.c_str(), source.size());
+				if (eResult != tinyxml2::XML_SUCCESS) {
+					throw Exception(fmt::format("XML cannot be parsed, data", source));
+				}
+				auto j = nlohmann::ordered_json{};
+				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());
+				return JSON::json_to_js_value(context, j);
+			});
+		}
+
+		inline static auto deserialize_fs(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+				auto doc = tinyxml2::XMLDocument{};
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto eResult = doc.LoadFile(source.get());
+				if (eResult != tinyxml2::XML_SUCCESS) {
+					throw Exception(fmt::format("XML cannot be parsed, data", source));
+				}
+				auto j = nlohmann::ordered_json{};
+				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());
+				return JSON::json_to_js_value(context, j);
+			});
+		}
+
+		inline static auto serialize(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+				auto doc = tinyxml2::XMLDocument{};
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto j = nlohmann::ordered_json::parse(source);
+				convert(j, doc);
+				auto printer = tinyxml2::XMLPrinter{};
+				doc.Print(&printer);
+				return JS::Converter::to_string(context, printer.CStr());
+			});
+		}
+
+		inline static auto serialize_fs(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
+				auto doc = tinyxml2::XMLDocument{};
+				auto source = JSON::js_object_to_json(context, argv[0]);
+				convert(source, doc);
+				auto printer = tinyxml2::XMLPrinter{};
+				doc.Print(&printer);
+				auto destination = JS::Converter::get_c_string(context, argv[1]);
+				Kernel::FileSystem::write_file(destination.get(), printer.CStr());
+				return JS::Converter::get_undefined();
+			});
+		}
+
+	}
+
 }
