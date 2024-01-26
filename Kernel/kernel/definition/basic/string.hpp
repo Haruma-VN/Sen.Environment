@@ -869,8 +869,8 @@ namespace Sen::Kernel {
 			// posix style test: a/b/c/d
 
 			inline static auto toPosixStyle(
-				string str
-			) -> string const
+				std::string str
+			) -> std::string const
 			{
 				for(auto &c : str)
 				{

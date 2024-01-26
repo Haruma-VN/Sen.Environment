@@ -16,6 +16,12 @@ namespace Sen::Kernel::Definition::JavaScript
 	concept SpaceX = std::is_same_v<Type, int32_t> || std::is_same_v<Type, uint32_t>
 	|| std::is_same_v<Type, int64_t> || std::is_same_v<Type, uint64_t> || std::is_same_v<Type, float> || std::is_same_v<Type, double> || std::is_same_v<Type, std::string> || std::is_same_v<Type, bool>;
 
+	// JS Primitive Type are boolean, string, number and bigint
+
+	template <typename Type>
+	concept PrimitiveJSValue = std::is_same_v<Type, bool> or std::is_same_v<Type, std::string_view> or
+		std::is_integral<Type>::value or std::is_floating_point<Type>::value;
+
 	/**
 	 * JS Runtime Native Handler
 	*/
@@ -76,6 +82,20 @@ namespace Sen::Kernel::Definition::JavaScript
 
 		public:
 
+			#define M_INSTANCE_OF_OBJECT(obj, parent, name) \
+			auto obj = JS_GetPropertyStr(ctx.get(), parent, name.data()); \
+			if (JS_IsUndefined(obj)) { \
+				obj = JS_NewObject(ctx.get()); \
+				JS_SetPropertyStr(ctx.get(), parent, name.data(), obj); \
+			}
+
+			#define M_GET_GLOBAL_OBJECT()\
+			auto global_obj = JS_GetGlobalObject(ctx.get());
+
+			#define M_FREE_GLOBAL_OBJECT()\
+			JS_FreeValue(ctx.get(), global_obj);
+
+
 			/**
 			 * JS Handler Constructor
 			*/
@@ -85,13 +105,6 @@ namespace Sen::Kernel::Definition::JavaScript
 			)
 			{
 
-			}
-
-			inline auto get_context(
-
-			) -> JSContext*
-			{
-				return thiz.ctx.get();
 			}
 
 			/**
@@ -223,9 +236,9 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				JS_SetPropertyStr(ctx.get(), global_obj, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -245,14 +258,14 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
 				if (JS_IsUndefined(myObject)) {
 					myObject = JS_NewObject(ctx.get());
 				}
 				JS_SetPropertyStr(ctx.get(), myObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
 				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -275,7 +288,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -287,7 +300,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), innerObject);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -312,7 +325,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -329,7 +342,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middleObject, obj3_name.data(), innerObject);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middleObject);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -355,7 +368,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -377,7 +390,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -405,7 +418,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -432,7 +445,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -463,7 +476,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) const -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -495,7 +508,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -527,7 +540,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -564,7 +577,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -599,7 +612,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view function_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
+				M_GET_GLOBAL_OBJECT();
 				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
@@ -641,7 +654,62 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
 				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
 				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
+				return;
+			}
+
+			#define M_WRAP_JSVALUE_AS_PRIMITIVE(obj, value_adapter, variable_name)\
+			if constexpr (std::is_same<T, bool>::value) {\
+				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBool(ctx.get(), value_adapter));\
+			}\
+			if constexpr (std::is_same<T, std::string_view>::value) {\
+				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewString(ctx.get(), value_adapter.data()));\
+			}\
+			if constexpr (std::is_integral<T>::value) {\
+				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBigUint64(ctx.get(), value_adapter));\
+			}\
+			if constexpr (std::is_floating_point<T>::value) {\
+				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewFloat64(ctx.get(), value_adapter));\
+			}
+
+			#define M_WRAP_JSVALUE_AS_ARRAY(object, variable_name)\
+			auto jsarray = JS_NewArray(ctx.get());\
+			for (auto index : Range<size_t>(value.size())) {\
+				auto item = value[index];\
+				auto val = JSValue{};\
+				if constexpr (std::is_same_v<T, bool>) {\
+					val = JS_NewBool(ctx.get(), item);\
+				}\
+				if constexpr (std::is_same_v<T, std::string_view>) {\
+					val = JS_NewString(ctx.get(), item.data());\
+				}\
+				if constexpr (std::is_integral<T>::value) {\
+					val = JS_NewBigUint64(ctx.get(), item);\
+				}\
+				if constexpr (std::is_floating_point<T>::value) {\
+					val = JS_NewFloat64(ctx.get(), item);\
+				}\
+				JS_SetPropertyUint32(ctx.get(), jsarray, index, val);\
+			}\
+			JS_SetPropertyStr(ctx.get(), object, variable_name.data(), jsarray);
+
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value from C
+			 * @param value: the C string value
+			 * @param var_name: JS variable name
+			 * --------------------------------------
+			*/
+			template <typename T> requires PrimitiveJSValue<T>
+			inline auto add_constant(
+				T value,
+				std::string_view var_name
+			) -> void
+			{
+				M_GET_GLOBAL_OBJECT();
+				M_WRAP_JSVALUE_AS_PRIMITIVE(global_obj, value, var_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -652,299 +720,60 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param var_name: JS variable name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				const std::vector<T> & value,
 				std::string_view var_name
+			) -> void
+			{
+				M_GET_GLOBAL_OBJECT();
+				M_WRAP_JSVALUE_AS_ARRAY(global_obj, var_name);
+				M_FREE_GLOBAL_OBJECT();
+				return;
+			}
+
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value to an object from C
+			 * @param value: the C string value
+			 * @param object_name: JS object name
+			 * @param property_name: JS property name
+			 * --------------------------------------
+			*/
+
+			template <typename T> requires PrimitiveJSValue<T>
+			inline auto add_constant(
+				T value,
+				std::string_view object_name,
+				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				JS_SetPropertyStr(ctx.get(), global_obj, var_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, object_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj1, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
 			/**
 			 * --------------------------------------
 			 * Add a constant JS value from C
-			 * @param value: the integer 32 value
+			 * @param value: the C string value
 			 * @param var_name: JS variable name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T>& value,
+				std::string_view object_name,
 				std::string_view var_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				JS_SetPropertyStr(ctx.get(), global_obj, var_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the unsigned integer 32 value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view var_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				JS_SetPropertyStr(ctx.get(), global_obj, var_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the integer 64 value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view var_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				JS_SetPropertyStr(ctx.get(), global_obj, var_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the unsigned integer 64 value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view var_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				JS_SetPropertyStr(ctx.get(), global_obj, var_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				std::string_view value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int32_t value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
-				if (JS_IsUndefined(myObject)) {
-					myObject = JS_NewObject(ctx.get());
-				}
-				JS_SetPropertyStr(ctx.get(), myObject, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(my_object, global_obj, object_name);
+				M_WRAP_JSVALUE_AS_ARRAY(my_object, var_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -957,27 +786,19 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj2, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -990,27 +811,19 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T>& value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj2, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1023,40 +836,6 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
 			inline auto add_constant(
 				const std::vector<std::string> & value,
 				std::string_view obj1_name,
@@ -1064,23 +843,15 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
 				auto js_array = JS_NewArray(ctx.get());
 				for (auto i : Range<size_t>(value.size())) {
 					JS_SetPropertyUint32(ctx.get(), js_array, i, JS_NewString(ctx.get(), value[i].c_str()));
 				}
 				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), js_array);
-				JS_FreeValue(ctx.get(), global_obj);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1098,158 +869,32 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			#pragma endregion
 
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
 			/**
 			 * --------------------------------------
 			 * Add a constant JS value to an object from C
 			 * @param value: the C string value
 			 * @param obj1_name: JS object name
 			 * @param obj2_name: JS object name
+			 * @param obj3_name: JS object name
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
 
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				uint64_t value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
+				std::string_view obj3_name,
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj3, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1264,312 +909,21 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * --------------------------------------
 			*/
 
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				const std::vector<T> & value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				JS_SetPropertyStr(ctx.get(), obj3, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj3, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1584,9 +938,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -1594,29 +948,13 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj4, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1631,321 +969,23 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T> & value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
 				std::string_view obj4_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-			
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				 JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				JS_SetPropertyStr(ctx.get(), obj4, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj4, value);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -1961,9 +1001,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -1972,34 +1012,14 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj5, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -2015,369 +1035,25 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T> & value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
 				std::string_view obj4_name,
 				std::string_view obj5_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				JS_SetPropertyStr(ctx.get(), obj5, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj5, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -2394,9 +1070,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -2406,39 +1082,15 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj6, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -2455,9 +1107,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T> & value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -2465,407 +1117,17 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view obj5_name,
 				std::string_view obj6_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				JS_SetPropertyStr(ctx.get(), obj6, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj6, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -2883,9 +1145,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				std::string_view value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -2896,44 +1158,16 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj7, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -2951,9 +1185,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				const std::vector<T> & value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -2962,46 +1196,62 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view obj6_name,
 				std::string_view obj7_name,
 				std::string_view property_name
-			) -> void 
+			) -> void
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
+				M_WRAP_JSVALUE_AS_ARRAY(obj7, property_name);
+				M_FREE_GLOBAL_OBJECT();
+				return;
+			}
+
+
+			/**
+			 * --------------------------------------
+			 * Add a constant JS value to an object from C
+			 * @param value: the C string value
+			 * @param obj1_name: JS object name
+			 * @param obj2_name: JS object name
+			 * @param obj3_name: JS object name
+			 * @param obj4_name: JS object name
+			 * @param obj5_name: JS object name
+			 * @param obj6_name: JS object name
+			 * @param obj7_name: JS object name
+			 * @param obj8_name: JS object name
+			 * @param property_name: JS property name
+			 * --------------------------------------
+			*/
+			template <typename T> requires PrimitiveJSValue<T>
+			inline auto add_constant(
+				T value,
+				std::string_view obj1_name,
+				std::string_view obj2_name,
+				std::string_view obj3_name,
+				std::string_view obj4_name,
+				std::string_view obj5_name,
+				std::string_view obj6_name,
+				std::string_view obj7_name,
+				std::string_view obj8_name,
+				std::string_view property_name
+			) -> void
+			{
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
+				M_INSTANCE_OF_OBJECT(obj8, obj7, obj8_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj8, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
@@ -3021,9 +1271,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * @param property_name: JS property name
 			 * --------------------------------------
 			*/
-
+			template <typename T> requires PrimitiveJSValue<T>
 			inline auto add_constant(
-				int32_t value,
+				T value,
 				std::string_view obj1_name,
 				std::string_view obj2_name,
 				std::string_view obj3_name,
@@ -3036,1641 +1286,20 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view property_name
 			) -> void 
 			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
+				M_GET_GLOBAL_OBJECT();
+				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
+				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
+				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
+				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
+				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
+				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
+				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
+				M_INSTANCE_OF_OBJECT(obj8, obj7, obj8_name);
+				M_INSTANCE_OF_OBJECT(obj9, obj8, obj9_name);
+				M_WRAP_JSVALUE_AS_PRIMITIVE(obj9, value, property_name);
+				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C String value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				std::string_view value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-			
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-			
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				std::string_view value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewString(ctx.get(), value.data()));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewInt32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				JS_SetPropertyStr(ctx.get(), obj7, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				float value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewFloat64(ctx.get(), static_cast<double>(value)));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				bool value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewBool(ctx.get(), value ? 1 : 0));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint32_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewUint32(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				int64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewInt64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				uint64_t value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewBigUint64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			inline auto add_constant(
-				double value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				auto global_obj = JS_GetGlobalObject(ctx.get());
-				auto obj1 = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
-				if (JS_IsUndefined(obj1)) {
-					obj1 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), obj1);
-				}
-				auto obj2 = JS_GetPropertyStr(ctx.get(), obj1, obj2_name.data());
-				if (JS_IsUndefined(obj2)) {
-					obj2 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj1, obj2_name.data(), obj2);
-				}
-				auto obj3 = JS_GetPropertyStr(ctx.get(), obj2, obj3_name.data());
-				if (JS_IsUndefined(obj3)) {
-					obj3 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj2, obj3_name.data(), obj3);
-				}
-				auto obj4 = JS_GetPropertyStr(ctx.get(), obj3, obj4_name.data());
-				if (JS_IsUndefined(obj4)) {
-					obj4 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj3, obj4_name.data(), obj4);
-				}
-				auto obj5 = JS_GetPropertyStr(ctx.get(), obj4, obj5_name.data());
-				if (JS_IsUndefined(obj5)) {
-					obj5 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj4, obj5_name.data(), obj5);
-				}
-				auto obj6 = JS_GetPropertyStr(ctx.get(), obj5, obj6_name.data());
-				if (JS_IsUndefined(obj6)) {
-					obj6 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj5, obj6_name.data(), obj6);
-				}
-				auto obj7 = JS_GetPropertyStr(ctx.get(), obj6, obj7_name.data());
-				if (JS_IsUndefined(obj7)) {
-					obj7 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj6, obj7_name.data(), obj7);
-				}
-				auto obj8 = JS_GetPropertyStr(ctx.get(), obj7, obj8_name.data());
-				if (JS_IsUndefined(obj8)) {
-					obj8 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj7, obj8_name.data(), obj8);
-				}
-				auto obj9 = JS_GetPropertyStr(ctx.get(), obj8, obj9_name.data());
-				if (JS_IsUndefined(obj9)) {
-					obj9 = JS_NewObject(ctx.get());
-					JS_SetPropertyStr(ctx.get(), obj8, obj9_name.data(), obj9);
-				}
-				JS_SetPropertyStr(ctx.get(), obj8, property_name.data(), JS_NewFloat64(ctx.get(), value));
-				JS_FreeValue(ctx.get(), global_obj);
-				return;
-			}
-
-
 
 			/**
 			 * Destructor

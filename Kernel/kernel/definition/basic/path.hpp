@@ -28,8 +28,8 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto toPosixStyle(
-		const string &mPath
-	) -> string const
+		const std::string & mPath
+	) -> std::string const
 	{
 		return String::toPosixStyle(mPath);
 	}

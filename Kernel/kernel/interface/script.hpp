@@ -3893,7 +3893,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_c_string(context, argv[0]);
 				auto eResult = doc.LoadFile(source.get());
 				if (eResult != tinyxml2::XML_SUCCESS) {
-					throw Exception(fmt::format("XML cannot be parsed, data", source));
+					throw Exception(fmt::format("XML cannot be loaded, data: {}", source.get()));
 				}
 				auto j = nlohmann::ordered_json{};
 				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());
@@ -3911,8 +3911,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
 				auto doc = tinyxml2::XMLDocument{};
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto j = nlohmann::ordered_json::parse(source);
+				auto j = JSON::js_object_to_json(context, argv[0]);
 				convert(j, doc);
 				auto printer = tinyxml2::XMLPrinter{};
 				doc.Print(&printer);

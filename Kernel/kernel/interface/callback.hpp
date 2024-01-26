@@ -57,11 +57,13 @@ namespace Sen::Kernel::Interface {
 				{
 					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}));
 					auto shell_version = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}));
-					javascript->add_constant(Kernel::version, "Sen", "Kernel", "version");
-					javascript->add_constant(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen", "Shell", "version");
-					javascript->add_constant(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen", "Shell", "is_gui");
+					javascript->add_constant<int>(Kernel::version, "Sen", "Kernel", "version");
+					javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen", "Shell", "version");
+					javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen", "Shell", "is_gui");
 					javascript->add_proxy(Script::callback, "Sen", "Shell", "callback");
 					javascript->add_constant(thiz.arguments, "Sen", "Kernel", "arguments");
+					// script path
+					javascript->add_constant<int>(std::vector<int>{1,2,3,4,5}, "Sen", "Kernel", "Array", "Test", "X", "Y", "Z");
 				}
 				// xml
 				{
@@ -88,14 +90,14 @@ namespace Sen::Kernel::Interface {
 				// home
 				{
 					// script path
-					javascript->add_constant(Path::toPosixStyle(script_path.data()), "Sen", "Kernel", "Home", "script");
+					javascript->add_constant<std::string_view>(String::toPosixStyle(script_path.data()), "Sen", "Kernel", "Home", "script");
 				}
 				// vcdiff
 				{
 					// encode fs
-					javascript->add_constant(Script::Diff::VCDiff::encode_fs, "Sen", "Kernel", "Diff", "VCDiff", "encode_fs");
+					javascript->add_proxy(Script::Diff::VCDiff::encode_fs, "Sen", "Kernel", "Diff", "VCDiff", "encode_fs");
 					// decode fs
-					javascript->add_constant(Script::Diff::VCDiff::decode_fs, "Sen", "Kernel", "Diff", "VCDiff", "decode_fs");
+					javascript->add_proxy(Script::Diff::VCDiff::decode_fs, "Sen", "Kernel", "Diff", "VCDiff", "decode_fs");
 				}
 				// file system
 				{

@@ -1,11 +1,15 @@
 namespace Sen.Script.Executor {
     // The base need to be an object that is declared later
 
-    export type Base = {};
+    export type Base = {
+        [x: string]: unknown;
+    };
 
     // Base Configuration need to be inherited
 
-    export interface Configuration {}
+    export interface Configuration {
+        [x: string]: unknown;
+    }
 
     // Method Executor should implement direct forward, batch forward and async forward
 

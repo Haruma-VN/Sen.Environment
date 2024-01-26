@@ -42,7 +42,9 @@ declare namespace Sen {
         declare const arguments: Array<string>;
 
         declare namespace XML {
-            export interface XMLDocument {}
+            export interface XMLDocument {
+                [x: string]: unknown;
+            }
             export function deserialize<T extends XMLDocument>(source: string): T;
             export function deserialize_fs<T extends XMLDocument>(source: string): T;
             export function serialize<T extends XMLDocument>(source: T): string;
