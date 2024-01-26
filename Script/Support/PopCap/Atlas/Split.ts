@@ -27,7 +27,19 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
         return `${Sen.Kernel.Path.join(destination, resource.id)}.png`;
     }
 
+    /**
+     * Support PvZ2 Resource-Group
+     */
+
     export namespace ResourceGroup {
+        /**
+         *
+         * @param resource - Resource to convert
+         * @param method - Method
+         * @param style - Style
+         * @returns atlas
+         */
+
         export function convert_resource_group(
             resource: Sen.Kernel.Support.PopCap.ResourceGroup.ResourceSubgroup,
             method: Sen.Script.Support.PopCap.Atlas.Structure.TypicalMethod,
@@ -48,7 +60,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                             x: (subgroup.x ??= 0n),
                             y: (subgroup.y ??= 0n),
                         },
-                        path: subgroup.path,
+                        path: subgroup.path as Array<string>,
                     };
                     if (subgroup.cols && subgroup.cols !== 1n) {
                         wrapper.default.cols = subgroup.cols;

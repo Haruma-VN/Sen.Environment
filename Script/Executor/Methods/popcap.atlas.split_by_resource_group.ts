@@ -40,8 +40,8 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Configuration
         >({
-            id: `popcap.atlas.split_by_resource_group`,
-            configuration_file: Home.query(`~/Executor/Configuration/popcap.atlas.split_by_resource_group.json`),
+            id: "popcap.atlas.split_by_resource_group",
+            configuration_file: Home.query("~/Executor/Configuration/popcap.atlas.split_by_resource_group.json"),
             configuration: undefined!,
             is_enabled: true,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument): void {
@@ -49,11 +49,11 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
                     throw new Error("source file must be json");
                 }
                 argument.source.forEach((e: string) => Sen.Script.Console.obtained(e));
-                Sen.Script.Executor.defined_or_default(argument, `destination`, `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);
+                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.argument_load(
                     argument,
-                    `method`,
+                    "method",
                     this.configuration,
                     [
                         [1n, "id", Sen.Kernel.Language.get("popcap.atlas.split.method.id")],

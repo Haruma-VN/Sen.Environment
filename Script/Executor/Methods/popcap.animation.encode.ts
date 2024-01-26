@@ -44,14 +44,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
             Sen.Script.Executor.Methods.PopCap.Animation.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Animation.Encode.Configuration
         >({
-            id: `popcap.animation.encode`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/popcap.animation.encode.json`),
+            id: "popcap.animation.encode",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.animation.encode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument, string>(
                     argument,
-                    `destination`,
+                    "destination",
                     `${Sen.Kernel.Path.except_extension(argument.source)}.pam`,
                 );
                 Sen.Script.Console.output(argument.destination!);
@@ -62,7 +62,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.Encode.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), files.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.Encode.AsyncArgument): void {
@@ -81,7 +81,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
                     // to do
                 }
                 Sen.Script.Executor.clock.stop_safe();
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), argument.parameter.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
             is_enabled: false,

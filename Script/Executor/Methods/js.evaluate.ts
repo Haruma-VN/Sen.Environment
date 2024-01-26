@@ -43,8 +43,8 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             Sen.Script.Executor.Methods.JS.Evaluate.AsyncArgument<string, string>,
             Sen.Script.Executor.Methods.JS.Evaluate.Configuration
         >({
-            id: `js.evaluate`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/js.evaluate.json`),
+            id: "js.evaluate",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/js.evaluate.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
@@ -56,12 +56,12 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             batch_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), files.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.AsyncArgument<string, string>): void {
                 // to do
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), argument.parameter.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
             is_enabled: false,

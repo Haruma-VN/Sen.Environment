@@ -44,12 +44,12 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
             Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>,
             Sen.Script.Executor.Methods.Data.Base64.Encode.Configuration
         >({
-            id: `data.base64.encode`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/data.base64.encode.json`),
+            id: "data.base64.encode",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/data.base64.encode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.Data.Base64.Encode.Argument, string>(argument, `destination`, Sen.Kernel.Path.resolve(`${argument.source}.bin`));
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.Data.Base64.Encode.Argument, string>(argument, "destination", Sen.Kernel.Path.resolve(`${argument.source}.bin`));
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Kernel.Encryption.Base64.encode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
@@ -58,12 +58,12 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
             batch_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((e: string) => this.direct_forward({ source: e }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), files.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>): void {
                 Sen.Kernel.Encryption.Base64.encode_fs_as_multiple_threads<string, string>(argument.parameter);
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), argument.parameter.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
             is_enabled: false,

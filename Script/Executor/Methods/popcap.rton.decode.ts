@@ -44,14 +44,14 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Decode {
             Sen.Script.Executor.Methods.PopCap.RTON.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RTON.Decode.Configuration
         >({
-            id: `popcap.rton.decode`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/popcap.rton.decode.json`),
+            id: "popcap.rton.decode",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rton.decode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Decode.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RTON.Decode.Argument, string>(
                     argument,
-                    `destination`,
+                    "destination",
                     `${Sen.Kernel.Path.except_extension(argument.source)}.json`,
                 );
                 Sen.Script.Console.output(argument.destination!);
@@ -62,7 +62,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Decode {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Decode.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), files.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Decode.AsyncArgument): void {
@@ -81,7 +81,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Decode {
                     Sen.Kernel.Support.PopCap.RTON.decode_fs_as_multiple_threads(...current_thread);
                 }
                 Sen.Script.Executor.clock.stop_safe();
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), argument.parameter.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
             is_enabled: false,

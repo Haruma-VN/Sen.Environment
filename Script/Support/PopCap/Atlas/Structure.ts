@@ -35,6 +35,6 @@ namespace Sen.Script.Support.PopCap.Atlas.Structure {
             cols?: bigint;
             rows?: bigint;
         };
-        path: string | string[];
+        path: string[];
     }
 }

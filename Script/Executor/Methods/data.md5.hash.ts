@@ -37,8 +37,8 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             Sen.Script.Executor.Methods.Data.MD5.Hash.AsyncArgument,
             Sen.Script.Executor.Methods.Data.MD5.Hash.Configuration
         >({
-            id: `data.md5.hash`,
-            configuration_file: Sen.Script.Home.query(`~/Executor/Configuration/data.md5.hash.json`),
+            id: "data.md5.hash",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/data.md5.hash.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.Data.MD5.Hash.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
@@ -49,7 +49,7 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             batch_forward(argument: Sen.Script.Executor.Methods.Data.MD5.Hash.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get(`batch.process.count`), files.length));
+                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward: undefined,
