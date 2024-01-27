@@ -39023,6 +39023,41 @@ static JSValue js_array_push(JSContext *ctx, JSValueConst this_val,
     return JS_EXCEPTION;
 }
 
+// Haruma :: Add
+
+static JSValue js_array_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    int64_t len, idx;
+    JSValue ret;
+
+    /* Get the length of the array */
+    JSValue len_val = JS_GetPropertyStr(ctx, this_val, "length");
+    if (JS_IsException(len_val)) return len_val;
+    if (JS_ToInt64(ctx, &len, len_val)) {
+        JS_FreeValue(ctx, len_val);
+        return JS_EXCEPTION;
+    }
+    JS_FreeValue(ctx, len_val);
+
+    /* Get the index */
+    if (JS_ToInt64(ctx, &idx, argv[0])) return JS_EXCEPTION;
+
+    /* Handle negative indices */
+    if (idx < 0) idx += len;
+
+    /* Out-of-bounds indices return undefined */
+    if (idx < 0 || idx >= len) return JS_UNDEFINED;
+
+    /* Get the element at the index */
+    ret = JS_GetPropertyUint32(ctx, this_val, idx);
+    return ret;
+}
+
+// Haruma :: Add
+
+static JSValue js_array_size(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    return JS_GetPropertyStr(ctx, this_val, "length");
+}
+
 static JSValue js_array_reverse(JSContext *ctx, JSValueConst this_val,
                                 int argc, JSValueConst *argv)
 {
@@ -39686,6 +39721,9 @@ static const JSCFunctionListEntry js_array_proto_funcs[] = {
     JS_ALIAS_DEF("[Symbol.iterator]", "values" ),
     JS_CFUNC_MAGIC_DEF("keys", 0, js_create_array_iterator, JS_ITERATOR_KIND_KEY ),
     JS_CFUNC_MAGIC_DEF("entries", 0, js_create_array_iterator, JS_ITERATOR_KIND_KEY_AND_VALUE ),
+    // Haruma : Add
+    JS_CFUNC_DEF("at", 1, js_array_at ),
+    JS_CFUNC_DEF("size", 1, js_array_size ),
 };
 
 static const JSCFunctionListEntry js_array_iterator_proto_funcs[] = {
@@ -40375,6 +40413,35 @@ static JSValue js_string_charAt(JSContext *ctx, JSValueConst this_val,
         ret = js_new_string_char(ctx, c);
     }
     JS_FreeValue(ctx, val);
+    return ret;
+}
+
+// Haruma :: Add
+static JSValue js_string_at(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    int64_t len, idx;
+
+    /* Get the string from 'this_val' */
+    const char *str = JS_ToCString(ctx, this_val);
+    if (!str) return JS_EXCEPTION;
+
+    /* Get the length of the string */
+    len = strlen(str);
+
+    /* Get the index */
+    if (JS_ToInt64(ctx, &idx, argv[0])) return JS_EXCEPTION;
+
+    /* Handle negative indices */
+    if (idx < 0) idx += len;
+
+    /* Out-of-bounds indices return undefined */
+    if (idx < 0 || idx >= len) return JS_UNDEFINED;
+
+    /* Get the character at the index */
+    char char_at_idx[2] = {str[idx], '\0'};
+
+    /* Convert the character to a JSValue */
+    JSValue ret = JS_NewString(ctx, char_at_idx);
+
     return ret;
 }
 
@@ -41674,6 +41741,8 @@ static const JSCFunctionListEntry js_string_proto_funcs[] = {
     JS_CFUNC_MAGIC_DEF("strike", 0, js_string_CreateHTML, magic_string_strike ),
     JS_CFUNC_MAGIC_DEF("sub", 0, js_string_CreateHTML, magic_string_sub ),
     JS_CFUNC_MAGIC_DEF("sup", 0, js_string_CreateHTML, magic_string_sup ),
+    // Haruma :: Add
+    JS_CFUNC_DEF("at", 1, js_string_at ),
 };
 
 static const JSCFunctionListEntry js_string_iterator_proto_funcs[] = {

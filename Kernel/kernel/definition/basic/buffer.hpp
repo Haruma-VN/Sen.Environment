@@ -26,12 +26,13 @@ namespace Sen::Kernel::Definition
 
             std::size_t mutable write_pos;
 
-            Stream() : read_pos(0), write_pos(0)
+            Stream() : read_pos(0), write_pos(0), length(0)
             {
             }
 
             Stream(
-                const std::vector<std::uint8_t> &data) : data(std::move(data)), read_pos(0), write_pos(data.size()), length(data.size())
+                const std::vector<std::uint8_t> &data
+            ) : data(std::move(data)), read_pos(0), write_pos(data.size()), length(data.size())
             {
                 return;
             }
@@ -93,7 +94,7 @@ namespace Sen::Kernel::Definition
 
             ) const -> uint64_t
             {
-                return thiz.data.size();
+                return thiz.data.capacity();
             }
 
             inline auto reserve(
@@ -154,9 +155,9 @@ namespace Sen::Kernel::Definition
 
             inline auto toString(
 
-                ) -> std::string
+            ) -> std::string
             {
-                std::stringstream ss;
+                auto ss = std::stringstream{};
                 auto bytes = std::unique_ptr<uint8_t>(thiz.data.data());
                 ss << bytes;
                 return ss.str();
@@ -625,7 +626,7 @@ namespace Sen::Kernel::Definition
                 std::size_t pos) const -> void
             {
                 thiz.write_pos = pos;
-                thiz.writeString(str);
+                thiz.writeStringView(str);
                 return;
             }
 
@@ -935,6 +936,15 @@ namespace Sen::Kernel::Definition
                 {
                     thiz.writeUint8(0x00);
                 }
+                return;
+            }
+
+            inline auto writeBoolean(
+                bool value,
+                size_t pos) const -> void
+            {
+                thiz.write_pos = pos;
+                thiz.writeBoolean(value);
                 return;
             }
 
@@ -1344,7 +1354,7 @@ namespace Sen::Kernel::Definition
                 bytes.reserve(to - from);
                 if (use_big_endian)
                 {
-                    for (auto i = to; i >= from; i++)
+                    for (auto i = from; i >= to; i++)
                     {
                         bytes.emplace_back(thiz.data.at(i));
                     }
@@ -1518,10 +1528,10 @@ namespace Sen::Kernel::Definition
                 {
                     throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()));
                 }
-                T value = 0;
+                auto value = T{ 0 };
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, size);
                 this->read_pos += size;
-                return;
+                return value;
             }
 
             inline auto close() const -> void

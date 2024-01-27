@@ -152,7 +152,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
             for (const collection of list) {
                 collection.forEach((e: Detail.MaxRectsAfterData<T>) => {
                     if ("oversized" in e && e.oversized) {
-                        throw new Error(Kernel.Language.get("contains_oversized_image"));
+                        throw new Error(Kernel.Language.get("popcap.atlas.contains_oversized_image"));
                     }
                 });
             }

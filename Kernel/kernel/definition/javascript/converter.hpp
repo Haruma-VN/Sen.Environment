@@ -249,6 +249,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				return JS_NewBigUint64(context, value);
 			}
 
+			
+			template <typename T> requires std::is_integral<T>::value
+			inline static auto to_bigint(
+				JSContext* context,
+				T value
+			) -> JSValue
+			{
+				return JS_NewBigInt64(context, static_cast<int64_t>(value));
+			}
+
 			/**
 			 * JS Number to C++ boolean
 			*/

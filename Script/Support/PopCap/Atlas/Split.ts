@@ -22,7 +22,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
 
     export function destination(destination: string, resource: Sen.Kernel.Support.PopCap.ResourceGroup.ResourceContainsSprite, is_path: boolean): string {
         if (is_path) {
-            return `${Sen.Kernel.Path.join(destination, resource.path[resource.path.length - 1])}.png`;
+            return `${Sen.Kernel.Path.join(destination, (resource.path as Array<string>).at(-1)!)}.png`;
         }
         return `${Sen.Kernel.Path.join(destination, resource.id)}.png`;
     }

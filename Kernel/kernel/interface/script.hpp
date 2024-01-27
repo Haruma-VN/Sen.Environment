@@ -3941,4 +3941,1859 @@ namespace Sen::Kernel::Interface::Script {
 
 	}
 
+	namespace Class {
+
+		#define JS_CPPGETSET_MAGIC_DEF(c_name, fgetter, fsetter, _magic) { \
+				.name = c_name, .prop_flags = JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CGETSET_MAGIC, .magic = _magic, .u = { .getset = { .get = { .getter_magic = fgetter }, .set = { .setter_magic = fsetter } } } }
+
+		#define JS_CPPFUNC_DEF(c_name, length, func1) { .name = c_name, .prop_flags = JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CFUNC, .magic = 0, .u = { .func = { length, JS_CFUNC_generic, { .generic = func1 } } } }
+
+		#define JS_INSTANCE_OF_OBJ(ctx, obj, parent, name) \
+					auto obj = JS_GetPropertyStr(ctx, parent, name.data()); \
+					if (JS_IsUndefined(obj)) { \
+						obj = JS_NewObject(ctx); \
+						JS_SetPropertyStr(ctx, parent, name.data(), obj); \
+					}
+
+		namespace DataStreamView {
+
+			using Data = Definition::Buffer::Stream<true>;
+
+			static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt, 
+				JSValue val
+			) -> void
+			{
+				auto s = (Data*)JS_GetOpaque(val, class_id);
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx, 
+				JSValueConst new_target, 
+				int argc, 
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					auto path = JS::Converter::get_c_string(ctx, argv[0]);
+					s = new Data{ path.get()};
+				}
+				else if(argc == 0) {
+					s = new Data{};
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto))
+					goto fail;
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj))
+					goto fail;
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			inline static auto this_class = JSClassDef {
+				.class_name = "DataStreamView",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx, 
+				JSValueConst this_val, 
+				int magic
+			) -> JSValue
+			{
+				auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+				if (!s) {
+					return JS_EXCEPTION;
+				}
+				if (magic == 0) {
+					return JS_NewBigInt64(ctx, s->read_pos);
+				}
+				else {
+					return JS_NewBigInt64(ctx, s->write_pos);
+				}
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+				auto v = std::int64_t{};
+				if (!s){
+					return JS_EXCEPTION;
+				}
+				if (JS_ToBigInt64(ctx, &v, val))
+					return JS_EXCEPTION;
+				if (magic == 0) {
+					s->read_pos = v;
+				}
+				else {
+					s->write_pos = v;
+				}
+				return JS_UNDEFINED;
+			}
+
+			inline static auto size(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx,{
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
+				});
+			}
+
+			inline static auto capacity(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
+				});
+			}
+
+			inline static auto fromString(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->fromString(JS::Converter::get_string(ctx, argv[0]));
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto reserve(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->reserve(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					return JS_UNDEFINED;
+				});
+			}
+
+			#pragma region convert
+
+			inline static auto to_arraybuffer(
+				JSContext* ctx, 
+				const std::vector<uint8_t>& vec
+			) -> JSValue
+			{
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
+				JS_FreeValue(ctx, array_buffer);
+				return array_buffer;
+			}
+
+			inline static auto to_uint8array(
+				JSContext* ctx, 
+				const std::vector<uint8_t>& vec
+			) -> JSValue
+			{
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto uint8array_ctor = JS_GetPropertyStr(ctx, global_obj, "Uint8Array");
+				JSValue args[] = { array_buffer };
+				auto uint8array = JS_CallConstructor(ctx, uint8array_ctor, 1, args);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, uint8array_ctor);
+				JS_FreeValue(ctx, array_buffer);
+				return uint8array;
+			}
+
+			#pragma endregion
+
+			inline static auto toUint8Array(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return to_uint8array(ctx, s->toBytes());
+				});
+			}
+
+			inline static auto toArrayBuffer(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return to_arraybuffer(ctx, s->toBytes());
+				});
+			}
+
+			inline static auto getArrayBuffer(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
+					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
+					return to_arraybuffer(ctx, s->get(from, to));
+				});
+			}
+
+			inline static auto getUint8Array(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
+					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
+					return to_uint8array(ctx, s->get(from, to));
+				});
+			}
+
+			inline static auto toString(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_string(ctx, s->toString());
+				});
+			}
+
+			inline static auto out_file(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->out_file(JS::Converter::get_c_string(ctx, argv[0]).get());
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint8(
+							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint8(
+							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint16(
+							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint16(
+							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint24(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint24(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint24(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint32(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint32(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint64(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint64(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeInt8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt8(
+							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt8(
+							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					});
+			}
+
+			inline static auto writeInt16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt16(
+							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt16(
+							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					});
+			}
+
+			inline static auto writeInt24(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt24(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt24(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					});
+			}
+
+			inline static auto writeInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					});
+			}
+
+			inline static auto writeInt64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			#pragma region convert
+
+			inline static auto from_arraybuffer(
+				JSContext* ctx, 
+				JSValue array_buffer
+			) -> std::vector<uint8_t>
+			{
+				auto byte_len = size_t{};
+				auto data = JS_GetArrayBuffer(ctx, &byte_len, array_buffer);
+				return std::vector<uint8_t>(data, data + byte_len);
+			}
+
+			inline static auto from_uint8array(
+				JSContext* ctx, 
+				JSValue uint8array
+			) -> std::vector<uint8_t>
+			{
+				auto array_buffer = JS_GetPropertyStr(ctx, uint8array, "buffer");
+				auto vec = from_arraybuffer(ctx, array_buffer);
+				JS_FreeValue(ctx, array_buffer);
+				return vec;
+			}
+
+			#pragma endregion
+
+			inline static auto writeArrayBuffer(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->writeBytes(from_arraybuffer(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeUint8Array(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeBytes(from_uint8array(ctx, argv[0]));
+					}
+					else {
+						s->writeBytes(from_uint8array(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeFloat(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeFloat(
+							static_cast<float>(JS::Converter::get_float32(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeFloat(
+							static_cast<float>(JS::Converter::get_float32(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeDouble(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeDouble(
+							static_cast<double>(JS::Converter::get_float64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeDouble(
+							static_cast<double>(JS::Converter::get_float64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeVarInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeVarInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeVarInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeVarInt64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeVarInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeVarInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeZigZag32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeZigZag32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeZigZag32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					});
+			}
+
+			inline static auto writeZigZag64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeZigZag64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeZigZag64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeString(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeString(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeString(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringFourByte(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringFourByte(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringFourByte(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeNull(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeNull(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeNull(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeBoolean(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeBoolean(
+							JS::Converter::get_bool(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeBoolean(
+							JS::Converter::get_bool(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByUint8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint8(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint8(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByUint16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint16(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint16(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByUint32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint32(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint32(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByInt8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt8(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt8(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByInt16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt16(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt16(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt32(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt32(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto writeStringByEmpty(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByEmpty(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByEmpty(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static auto readUint8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint8_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint8();
+					}
+					return JS::Converter::to_bigint<uint8_t>(ctx, v);
+				});
+			}
+
+			inline static auto readUint16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint16_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint16();
+					}
+					return JS::Converter::to_bigint<uint16_t>(ctx, v);
+				});
+			}
+
+			inline static auto readUint24(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint24();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readUint32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint32();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readUint64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint64();
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, v);
+				});
+			}
+
+			inline static auto readInt8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int8_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt8();
+					}
+					return JS::Converter::to_bigint<int8_t>(ctx, v);
+				});
+			}
+
+			inline static auto readInt16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int16_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt16();
+					}
+					return JS::Converter::to_bigint<int16_t>(ctx, v);
+				});
+			}
+
+			inline static auto readInt24(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt24();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readInt64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+				});
+			}
+
+			inline static auto readString(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readString(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readString(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByUint8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint8();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByUint16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint16();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByUint32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint32();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByInt8(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt8();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByInt16(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt16();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt32();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByVarInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByVarInt32();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readStringByEmpty(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByEmpty(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByEmpty();
+					}
+					return JS::Converter::to_string(ctx, v);
+				});
+			}
+
+			inline static auto readVarInt32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarInt32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readVarInt64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarInt64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+				});
+			}
+
+			inline static auto readVarUint32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarUint32();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readVarUint64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = uint64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarUint64();
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, v);
+				});
+			}
+
+			inline static auto readZigZag32(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readZigZag32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readZigZag32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+				});
+			}
+
+			inline static auto readZigZag64(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readZigZag64(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readZigZag64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+				});
+			}
+
+			inline static auto close(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->close();
+					return JS_UNDEFINED;
+				});
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("read_position", getter, setter, 0),
+				JS_CPPGETSET_MAGIC_DEF("write_position", getter, setter, 1),
+				JS_CPPFUNC_DEF("size", 0, size),
+				JS_CPPFUNC_DEF("fromString", 1, fromString),
+				JS_CPPFUNC_DEF("capacity", 0, capacity),
+				JS_CPPFUNC_DEF("reserve", 1, reserve),
+				JS_CPPFUNC_DEF("toArrayBuffer", 0, toArrayBuffer),
+				JS_CPPFUNC_DEF("toUint8Array", 0, toUint8Array),
+				JS_CPPFUNC_DEF("getArrayBuffer", 2, getArrayBuffer),
+				JS_CPPFUNC_DEF("getUint8Array", 2, getUint8Array),
+				JS_CPPFUNC_DEF("toString", 0, toString),
+				JS_CPPFUNC_DEF("out_file", 1, out_file),
+				JS_CPPFUNC_DEF("writeUint8", 2, writeUint8),
+				JS_CPPFUNC_DEF("writeUint16", 2, writeUint16),
+				JS_CPPFUNC_DEF("writeUint24", 2, writeUint24),
+				JS_CPPFUNC_DEF("writeUint32", 2, writeUint32),
+				JS_CPPFUNC_DEF("writeUint64", 2, writeUint64),
+				JS_CPPFUNC_DEF("writeInt8", 2, writeInt8),
+				JS_CPPFUNC_DEF("writeInt16", 2, writeInt16),
+				JS_CPPFUNC_DEF("writeInt24", 2, writeInt24),
+				JS_CPPFUNC_DEF("writeInt32", 2, writeInt32),
+				JS_CPPFUNC_DEF("writeInt64", 2, writeInt64),
+				JS_CPPFUNC_DEF("writeArrayBuffer", 2, writeArrayBuffer),
+				JS_CPPFUNC_DEF("writeUint8Array", 2, writeUint8Array),
+				JS_CPPFUNC_DEF("writeFloat", 2, writeFloat),
+				JS_CPPFUNC_DEF("writeDouble", 2, writeDouble),
+				JS_CPPFUNC_DEF("writeVarInt32", 2, writeVarInt32),
+				JS_CPPFUNC_DEF("writeVarInt64", 2, writeVarInt64),
+				JS_CPPFUNC_DEF("writeZigZag32", 2, writeZigZag32),
+				JS_CPPFUNC_DEF("writeZigZag64", 2, writeZigZag64),
+				JS_CPPFUNC_DEF("writeString", 2, writeString),
+				JS_CPPFUNC_DEF("writeStringFourByte", 2, writeStringFourByte),
+				JS_CPPFUNC_DEF("writeNull", 2, writeNull),
+				JS_CPPFUNC_DEF("writeBoolean", 2, writeBoolean),
+				JS_CPPFUNC_DEF("writeStringByUint8", 2, writeStringByUint8),
+				JS_CPPFUNC_DEF("writeStringByUint16", 2, writeStringByUint16),
+				JS_CPPFUNC_DEF("writeStringByUint32", 2, writeStringByUint32),
+				JS_CPPFUNC_DEF("writeStringByInt8", 2, writeStringByInt8),
+				JS_CPPFUNC_DEF("writeStringByInt16", 2, writeStringByInt16),
+				JS_CPPFUNC_DEF("writeStringByInt32", 2, writeStringByInt32),
+				JS_CPPFUNC_DEF("writeStringByEmpty", 2, writeStringByEmpty),
+				JS_CPPFUNC_DEF("readUint8", 1, readUint8),
+				JS_CPPFUNC_DEF("readUint16", 1, readUint16),
+				JS_CPPFUNC_DEF("readUint24", 1, readUint24),
+				JS_CPPFUNC_DEF("readUint32", 1, readUint32),
+				JS_CPPFUNC_DEF("readUint64", 1, readUint64),
+				JS_CPPFUNC_DEF("readInt8", 1, readInt8),
+				JS_CPPFUNC_DEF("readInt16", 1, readInt16),
+				JS_CPPFUNC_DEF("readInt24", 1, readInt24),
+				JS_CPPFUNC_DEF("readInt32", 1, readInt32),
+				JS_CPPFUNC_DEF("readInt64", 1, readInt64),
+				JS_CPPFUNC_DEF("readString", 2, readString),
+				JS_CPPFUNC_DEF("readStringByUint8", 1, readStringByUint8),
+				JS_CPPFUNC_DEF("readStringByUint16", 1, readStringByUint16),
+				JS_CPPFUNC_DEF("readStringByUint32", 1, readStringByUint32),
+				JS_CPPFUNC_DEF("readStringByInt8", 1, readStringByInt8),
+				JS_CPPFUNC_DEF("readStringByInt16", 1, readStringByInt16),
+				JS_CPPFUNC_DEF("readStringByInt32", 1, readStringByInt32),
+				JS_CPPFUNC_DEF("readStringByVarInt32", 1, readStringByVarInt32),
+				JS_CPPFUNC_DEF("readStringByEmpty", 1, readStringByEmpty),
+				JS_CPPFUNC_DEF("readVarInt32", 1, readVarInt32),
+				JS_CPPFUNC_DEF("readVarInt64", 1, readVarInt64),
+				JS_CPPFUNC_DEF("readVarUint32", 1, readVarUint32),
+				JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64),
+				JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32),
+				JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64),
+				JS_CPPFUNC_DEF("close", 0, close),
+			};
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void 
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, "DataStreamView", 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, "DataStreamView", point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+	}
+
 }

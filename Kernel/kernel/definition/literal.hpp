@@ -56,14 +56,21 @@ namespace Sen::Kernel {
     	return std::string{n, strlen(n)};
 	}
 
-	/**
-	 * String view literal
-	*/
-
-	inline constexpr auto operator "" _sv(
-		const char* n
-	) -> std::string_view
+	inline static auto constexpr operator "" _sv(
+		const char* str, std::size_t len
+	) noexcept -> std::string_view
 	{
-    	return std::string_view{n};
+		return { str, len };
+	}
+
+	inline static constexpr auto hash_sv(
+		std::string_view str
+	) -> unsigned int
+	{
+		auto hash = 5381_byte;
+		for (auto c : str) {
+			hash = (hash * 33) ^ c;
+		}
+		return hash;
 	}
 }

@@ -197,11 +197,13 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             let key = "65bd1b2305f46eb2806b935aab7630bb";
-            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument>(
-            //     "popcap.animation.encode",
+            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
+            //     "popcap.atlas.split_by_resource_group",
             //     {
-            //         source: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
-            //         destination: "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json.pam.json.pam",
+            //         source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
+            //         destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+            //         method: "id",
+            //         style: "array",
             //     },
             //     Executor.Forward.DIRECT,
             // );

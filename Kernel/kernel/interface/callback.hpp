@@ -418,6 +418,7 @@ namespace Sen::Kernel::Interface {
 					// write the image
 					javascript->add_proxy(Script::Dimension::write, "Sen", "Kernel", "Image", "write");
 				}
+				javascript->register_object(Script::Class::DataStreamView::register_class);
 				javascript->evaluate_fs(script_path);
 				javascript->evaluate("Sen.Script.main()", "<script>");
 				return;
