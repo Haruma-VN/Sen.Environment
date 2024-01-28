@@ -1717,6 +1717,10 @@ declare namespace Sen {
             public readInt32(position: bigint): bigint;
             public readInt64(): bigint;
             public readInt64(position: bigint): bigint;
+            public readFloat(): number;
+            public readFloat(position: bigint): number;
+            public readDouble(): bigint;
+            public readDouble(position: bigint): number;
             public readString(size: bigint): string;
             public readString(size: bigint, position: bigint): string;
             public readStringByUint8(): string;

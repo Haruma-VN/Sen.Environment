@@ -3957,6 +3957,7 @@ namespace Sen::Kernel::Interface::Script {
 
 		namespace DataStreamView {
 
+
 			using Data = Definition::Buffer::Stream<true>;
 
 			static JSClassID class_id;
@@ -5686,6 +5687,54 @@ namespace Sen::Kernel::Interface::Script {
 				});
 			}
 
+			inline static auto readFloat(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = float{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readFloat(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readFloat();
+					}
+					return JS::Converter::to_number(ctx, v);
+				});
+			}
+
+			inline static auto readDouble(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto v = double{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readDouble(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readDouble();
+					}
+					return JS::Converter::to_number(ctx, v);
+				});
+			}
+
 			inline static auto close(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5771,6 +5820,8 @@ namespace Sen::Kernel::Interface::Script {
 				JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64),
 				JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32),
 				JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64),
+				JS_CPPFUNC_DEF("readFloat", 1, readFloat),
+				JS_CPPFUNC_DEF("readDouble", 1, readDouble),
 				JS_CPPFUNC_DEF("close", 0, close),
 			};
 
