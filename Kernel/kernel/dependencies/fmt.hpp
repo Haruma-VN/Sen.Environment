@@ -21,6 +21,7 @@
 
 
 #include "dependencies/fmt/include/fmt/format.h"
+#include "dependencies/fmt/include/fmt/core.h"
 
 #if defined MSVC_COMPILER
 #pragma warning(pop)

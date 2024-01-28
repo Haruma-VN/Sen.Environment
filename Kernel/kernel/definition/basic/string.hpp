@@ -122,7 +122,7 @@ namespace Sen::Kernel {
 			) -> short 
 			{
 				if(index >= value.length()){
-					throw Exception(fmt::format("Does not have the index {} in the string {}", index, thiz.value));
+					throw Exception(fmt::format("Does not have the index {} in the string {}", index, thiz.value), std::source_location::current(), "charCodeAt");
 				}
 				return value[index];
 			}

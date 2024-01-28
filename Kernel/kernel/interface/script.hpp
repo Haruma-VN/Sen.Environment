@@ -2,20 +2,27 @@
 
 #include "kernel/interface/shell.hpp"
 
-#define M_JS_EXCEPTION_THROW(context, error, source)                       \
-	auto evaluate_context = fmt::format("throw new Error(`{}`)", error); \
+#define M_JS_EXCEPTION_THROW(context, error, source, function_name)                       \
+	auto evaluate_context = fmt::format("function {}()", function_name); \
+	evaluate_context += "{";\
+	evaluate_context += fmt::format("throw new Error(`{}`);", error);\
+	evaluate_context += "}";\
+	evaluate_context += fmt::format("\n{}();", function_name);\
 	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
 
-#define M_JS_PROXY_WRAPPER(context, code)                                         \
+#define M_JS_PROXY_WRAPPER(context, code, func_name)                                         \
 	try code catch (...)                                                             \
 	{                                                                                \
 		auto exception = parse_exception();                                          \
-		M_JS_EXCEPTION_THROW(context, exception.message(), exception.source); \
+		if(exception.function_name == ""){\
+			exception.function_name = func_name;\
+		}\
+		M_JS_EXCEPTION_THROW(context, exception.message(), exception.source, exception.function_name); \
 	}
 
-#define M_JS_UNDEFINED_BEHAVIOR(context, jsval, property)\
+#define M_JS_UNDEFINED_BEHAVIOR(context, jsval, property, function_name)\
 	if (JS_IsException(jsval)){\
-		M_JS_EXCEPTION_THROW(context, fmt::format("{} \"{}\" {}", Localization::get("js.cannot_read_property"), property, Localization::get("js.of_current_object")), std::string{std::string{std::source_location::current().file_name()} + std::string{":"} + std::to_string(std::source_location::current().line())});\
+		M_JS_EXCEPTION_THROW(context, fmt::format("{} \"{}\" {}", Localization::get("js.cannot_read_property"), property, Localization::get("js.of_current_object")), std::string{std::string{std::source_location::current().file_name()} + std::string{":"} + std::to_string(std::source_location::current().line())}, function_name);\
 	}
 
 
@@ -58,7 +65,7 @@ namespace Sen::Kernel::Interface::Script {
 			try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
 			auto result = Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])));
 			return JS::Converter::to_string(context, construct_standard_string(result));
-		});
+		}, "callback"_sv);
 	}
 
 	/**
@@ -82,7 +89,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
 				Sen::Kernel::Language::read_language(JS::Converter::get_c_string(context, argv[0]).get());
 				return JS::Converter::get_undefined();
-			});
+			}, "load_language"_sv);
 		}
 
 		/**
@@ -100,7 +107,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
 				auto result = Sen::Kernel::Language::get(JS::Converter::get_c_string(context, argv[0]).get());
 				return JS::Converter::to_string(context, result.data());
-			});
+			}, "get"_sv);
 		}
 
 	}
@@ -131,7 +138,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto time = JS::Converter::get_bigint64(context, argv[0]);
 				Sen::Kernel::Definition::Timer::sleep(time);
 				return JS::Converter::get_undefined();
-			});
+			}, "sleep"_sv);
 		}
 
 		/**
@@ -152,7 +159,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 0, fmt::format("argument expected {} but received {}", 0, argc));
 				auto current = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
 				return JS::Converter::to_number(context, current);
-			});
+			}, "now"_sv);
 		}
 
 	}
@@ -188,7 +195,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto flag = JS::Converter::get_int32(context, argv[3]);
 					Sen::Kernel::Definition::Diff::VCDiff::encode_fs(before_file, after_file, patch_file, static_cast<Sen::Kernel::Definition::Diff::VCDiff::Flag>(flag));
 					return JS::Converter::get_undefined();
-				});
+				}, "encode_fs"_sv);
 			}
 
 			/**
@@ -209,7 +216,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto after_file = JS::Converter::get_string(context, argv[2]);
 					Sen::Kernel::Definition::Diff::VCDiff::decode_fs(before_file, after_file, patch_file);
 					return JS::Converter::get_undefined();
-				});
+				}, "decode_fs"_sv);
 			}
 
 		}
@@ -323,7 +330,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto pipe = std::unique_ptr<FILE, FileDeleter>(popen("uname -m", "r"));
 					if (!pipe)
 					{
-						throw Exception("cannot open pipe");
+						throw Exception("cannot open pipe", std::source_location::current(), "architecture");
 					}
 					while (fgets(buffer.data(), 128, pipe.get()) != nullptr)
 					{
@@ -377,7 +384,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = JS::Converter::read_file_as_js_arraybuffer(context, source);
 				return result;
-			});
+			}, "open"_sv);
 		}
 
 		/**
@@ -402,7 +409,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto array_buffer = argv[1];
 				JS::Converter::write_file_as_arraybuffer(context, destination, array_buffer);
 				return JS::Converter::get_undefined();
-			});
+			}, "out"_sv);
 		}
 
 	}
@@ -433,7 +440,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				Sen::Kernel::Process::run(source);
 				return JS::Converter::get_undefined();
-			});
+			}, "run"_sv);
 		}
 
 		/**
@@ -456,7 +463,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Process::is_exists_in_path_environment(source);
 				return JS::Converter::to_bool(context, result);
-			});
+			}, "is_exists_in_path_environment"_sv);
 		}
 
 		/**
@@ -479,7 +486,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Process::execute(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "evaluate"_sv);
 		}
 
 	}
@@ -546,7 +553,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				}
 				return JS::Converter::get_undefined();
-			});
+			}, "print"_sv);
 		}
 
 		/**
@@ -568,7 +575,7 @@ namespace Sen::Kernel::Interface::Script {
 				Shell::callback(construct_string_list(std::vector<std::string>{std::string{"wait"}}));
 				auto result = Shell::callback(construct_string_list(std::vector<std::string>{std::string{"input"}}));
 				return JS::Converter::to_string(context, std::string{result.value, result.size});
-			});
+			}, "readline"_sv);
 		}
 	}
 
@@ -596,7 +603,7 @@ namespace Sen::Kernel::Interface::Script {
 					v.emplace_back(source.get());
 				}
 				return JS::Converter::to_string(context, Sen::Kernel::Path::Script::join(v));
-			});
+			}, "join"_sv);
 		}
 
 		/**
@@ -619,7 +626,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::basename(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "basename"_sv);
 		}
 
 		/**
@@ -640,7 +647,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				auto result = Sen::Kernel::Path::Script::delimiter();
 				return JS::Converter::to_string(context, result);
-			});
+			}, "delimiter"_sv);
 		}
 
 		/**
@@ -663,7 +670,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::dirname(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "dirname"_sv);
 		}
 
 		/**
@@ -689,7 +696,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source_2 = JS::Converter::get_string(context, base);
 				auto result = Sen::Kernel::Path::Script::format(Sen::Kernel::Path::Format{source_1, source_2});
 				return JS::Converter::to_string(context, result);
-			});
+			}, "format"_sv);
 		}
 
 		/**
@@ -712,7 +719,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::normalize(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "normalize"_sv);
 		}
 
 		/**
@@ -735,7 +742,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::base_without_extension(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "base_without_extension"_sv);
 		}
 
 		/**
@@ -758,7 +765,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::except_extension(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "except_extension"_sv);
 		}
 
 		/**
@@ -781,7 +788,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::resolve(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "resolve"_sv);
 		}
 
 		/**
@@ -804,7 +811,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::extname(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "extname"_sv);
 		}
 
 		/**
@@ -827,7 +834,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::Path::Script::is_absolute(source);
 				return JS::Converter::to_bool(context, result);
-			});
+			}, "is_absolute"_sv);
 		}
 
 		/**
@@ -852,7 +859,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto to = JS::Converter::get_string(context, argv[1]);
 				auto result = Sen::Kernel::Path::Script::relative(from, to);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "relative"_sv);
 		}
 
 	}
@@ -883,7 +890,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_file(source);
 				return JS::Converter::to_string(context, result);
-			});
+			}, "read_file"_sv);
 		}
 
 		/**
@@ -908,7 +915,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
 				auto utf8_string = std::string{converter.to_bytes(result)};
 				return JS::Converter::to_string(context, utf8_string);
-			});
+			}, "read_file_encode_with_utf16le"_sv);
 		}
 
 		/**
@@ -933,7 +940,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto data = JS::Converter::get_string(context, argv[1]);
 				Sen::Kernel::FileSystem::write_file(destination, data);
 				return JS::Converter::get_undefined();
-			});
+			}, "write_file"_sv);
 		}
 
 		/**
@@ -960,7 +967,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto result = std::wstring{converter.from_bytes(data)};
 				Sen::Kernel::FileSystem::write_file_by_utf16le(destination, result);
 				return JS::Converter::get_undefined();
-			});
+			}, "write_file_encode_with_utf16le"_sv);
 		}
 
 		/**
@@ -983,7 +990,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_directory(source);
 				return JS::Converter::to_array(context, result);
-			});
+			}, "read_current_directory"_sv);
 		}
 
 		/**
@@ -1006,7 +1013,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_directory_only_file(source);
 				return JS::Converter::to_array(context, result);
-			});
+			}, "read_directory_only_file"_sv);
 		}
 
 		/**
@@ -1029,7 +1036,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_directory_only_directory(source);
 				return JS::Converter::to_array(context, result);
-			});
+			}, "read_directory_only_directory"_sv);
 		}
 
 		/**
@@ -1052,7 +1059,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = Sen::Kernel::FileSystem::read_whole_directory(source);
 				return JS::Converter::to_array(context, result);
-			});
+			}, "read_directory"_sv);
 		}
 
 		/**
@@ -1075,7 +1082,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto destination = JS::Converter::get_string(context, argv[0]);
 				Sen::Kernel::FileSystem::createDirectory(destination);
 				return JS::Converter::get_undefined();
-			});
+			}, "create_directory"_sv);
 		}
 
 		/**
@@ -1098,7 +1105,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = std::filesystem::is_regular_file(source);
 				return JS::Converter::to_bool(context, result);
-			});
+			}, "is_file"_sv);
 		}
 
 		/**
@@ -1121,7 +1128,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto result = std::filesystem::is_directory(source);
 				return JS::Converter::to_bool(context, result);
-			});
+			}, "is_directory"_sv);
 		}
 
 		// Basic Operation for JS
@@ -1150,7 +1157,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
 					return JS::Converter::get_undefined(); 
-				});
+				}, "rename"_sv);
 			}
 
 			/**
@@ -1175,7 +1182,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					std::filesystem::copy(std::filesystem::path{source}, std::filesystem::path{destination});
 					return JS::Converter::get_undefined();
-				});
+				}, "copy"_sv);
 			}
 
 			/**
@@ -1198,7 +1205,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					std::filesystem::remove(std::filesystem::path{source});
 					return JS::Converter::get_undefined();
-				});
+				}, "remove"_sv);
 			}
 
 		}
@@ -1234,7 +1241,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto percentage = JS::Converter::get_float32(context, argv[2]);
 				Sen::Kernel::Definition::ImageIO::scale_png(source, destination, percentage);
 				return JS::Converter::get_undefined();
-			});
+			}, "scale_fs"_sv);
 		}
 
 		/**
@@ -1259,7 +1266,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto height = JS::Converter::get_int32(context, argv[2]);
 				Sen::Kernel::Definition::ImageIO::transparent_png(destination, width, height);
 				return JS::Converter::get_undefined();
-			});
+			}, "transparent_fs"_sv);
 		}
 
 		/**
@@ -1286,7 +1293,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto percentage = JS::Converter::get_float32(context, argv[2]);
 				Sen::Kernel::Definition::ImageIO::resize_png(source, destination, percentage);
 				return JS::Converter::get_undefined();
-			});
+			}, "resize_fs"_sv);
 		}
 
 		/**
@@ -1313,7 +1320,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto percentage = JS::Converter::get_float64(context, argv[2]);
 				Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
 				return JS::Converter::get_undefined();
-			});
+			}, "rotate_fs"_sv);
 		}
 
 		/**
@@ -1341,10 +1348,10 @@ namespace Sen::Kernel::Interface::Script {
 				auto rectangle_height = JS_GetPropertyStr(context, argv[2], "height");
 				auto rectangle_x = JS_GetPropertyStr(context, argv[2], "x");
 				auto rectangle_y = JS_GetPropertyStr(context, argv[2], "y");
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_fs"_sv);
 				Sen::Kernel::Definition::ImageIO::composite_png(
 					source.get(), 
 					destination.get(), 
@@ -1360,7 +1367,7 @@ namespace Sen::Kernel::Interface::Script {
 				JS_FreeValue(context, rectangle_x);
 				JS_FreeValue(context, rectangle_y);
 				return JS::Converter::get_undefined();
-			});
+			}, "composite_fs"_sv);
 		}
 
 		/**
@@ -1394,11 +1401,11 @@ namespace Sen::Kernel::Interface::Script {
 						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
 						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
 						auto destination = JS_GetPropertyStr(context, current_object, "destination");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
-						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "composite_multiple_fs"_sv);
 						data.emplace_back(
 							Sen::Kernel::Definition::RectangleFileIO<int>(
 								JS::Converter::get_int32(context, rectangle_x),
@@ -1420,7 +1427,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				Sen::Kernel::Definition::ImageIO::composite_pngs(source.get(), data);
 				return JS::Converter::get_undefined();
-			});
+			}, "composite_multiple_fs"_sv);
 		}
 
 		/**
@@ -1454,11 +1461,11 @@ namespace Sen::Kernel::Interface::Script {
 						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
 						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
 						auto destination = JS_GetPropertyStr(context, current_object, "destination");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y");
-						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination");
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "composite_multiple_fs_asynchronous"_sv);
 						data.emplace_back(
 							Sen::Kernel::Definition::RectangleFileIO<int>(
 								JS::Converter::get_int32(context, rectangle_x),
@@ -1480,7 +1487,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 				Sen::Kernel::Definition::ImageIO::composite_pngs_asynchronous(source.get(), data);
 				return JS::Converter::get_undefined();
-			});
+			}, "composite_multiple_fs_asynchronous"_sv);
 		}
 
 
@@ -1511,7 +1518,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto m_value = JS_Eval(context, source.c_str(), source.size(), "unknown", JS_EVAL_TYPE_GLOBAL);
 				return m_value;
-			});
+			}, "evaluate"_sv);
 		}
 
 		/**
@@ -1535,7 +1542,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto js_source = Sen::Kernel::FileSystem::read_file(source);
 				auto m_value = JS_Eval(context, js_source.c_str(), js_source.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
 				return m_value;
-			});
+			}, "evaluate_fs"_sv);
 		}
 	}
 
@@ -1570,7 +1577,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_c_string(context, argv[0]);
 					auto result = Kernel::Definition::Encryption::MD5::hash(Kernel::FileSystem::read_binary<unsigned char>(source.get()));
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash"_sv);
 			}
 
 			/**
@@ -1593,7 +1600,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::MD5::hash_fs(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash_fs"_sv);
 			}
 		}
 
@@ -1623,7 +1630,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_c_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Base64::encode(source.get());
 					return JS::Converter::to_string(context, result);
-				});
+				}, "encode"_sv);
 			}
 
 				/**
@@ -1650,7 +1657,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs_as_multiple_threads"_sv);
 				}
 
 				/**
@@ -1677,7 +1684,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						Sen::Kernel::Definition::Encryption::Base64::encode_fs_as_multiple_thread(paths);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs_as_multiple_threads"_sv);
 				}
 
 			/**
@@ -1700,7 +1707,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Base64::decode(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "decode"_sv);
 			}
 
 			/**
@@ -1724,7 +1731,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Encryption::Base64::encode_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "encode_fs"_sv);
 			}
 
 			/**
@@ -1748,7 +1755,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Encryption::Base64::decode_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "decode_fs"_sv);
 			}
 		}
 
@@ -1777,7 +1784,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash"_sv);
 			}
 
 			/**
@@ -1800,7 +1807,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash_fs(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash_fs"_sv);
 			}
 
 		}
@@ -1830,7 +1837,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash"_sv);
 			}
 
 			/**
@@ -1853,7 +1860,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA256::hash_fs(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash_fs"_sv);
 			}
 		}
 
@@ -1882,7 +1889,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash"_sv);
 			}
 
 			/**
@@ -1905,7 +1912,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA384::hash_fs(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash_fs"_sv);
 			}
 		}
 
@@ -1934,7 +1941,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash"_sv);
 			}
 
 			/**
@@ -1957,7 +1964,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::SHA512::hash_fs(source);
 					return JS::Converter::to_string(context, result);
-				});
+				}, "hash_fs"_sv);
 			}
 		}
 
@@ -1988,7 +1995,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto key = JS::Converter::get_string(context, argv[1]);
 					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key.c_str());
 					return JS::Converter::to_string(context, result);
-				});
+				}, "encrypt"_sv);
 			}
 
 			/**
@@ -2015,7 +2022,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto key = JS::Converter::get_string(context, argv[2]);
 					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source, destination, key.c_str());
 					return JS::Converter::get_undefined();
-				});
+				}, "encrypt_fs"_sv);
 			}
 
 		}
@@ -2060,7 +2067,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Definition::Compression::Zip::Compress::directory(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "directory"_sv);
 				}
 
 				/**
@@ -2094,7 +2101,7 @@ namespace Sen::Kernel::Interface::Script {
 							Sen::Kernel::Definition::Compression::Zip::Compress::file(source, destination);
 						}
 						return JS::Converter::get_undefined();
-					});
+					}, "file"_sv);
 				}
 
 			}
@@ -2127,7 +2134,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Definition::Compression::Zip::Uncompress::process(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "process"_sv);
 				}
 
 			}
@@ -2168,7 +2175,7 @@ namespace Sen::Kernel::Interface::Script {
 					}
 					Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
 					return JS::Converter::get_undefined();
-				});
+				}, "compress_fs"_sv);
 			}
 
 			/**
@@ -2193,7 +2200,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "uncompress_fs"_sv);
 			}
 			
 		}
@@ -2226,7 +2233,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Bzip2::compress_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "compress_fs"_sv);
 			}
 
 			/**
@@ -2251,7 +2258,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Bzip2::uncompress_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "uncompress_fs"_sv);
 			}
 			
 		}
@@ -2284,7 +2291,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Lzma::compress_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "compress_fs"_sv);
 			}
 
 			/**
@@ -2311,7 +2318,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto actual_size = JS::Converter::get_uint64(context, argv[2]);
 					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination, actual_size);
 					return JS::Converter::get_undefined();
-				});
+				}, "uncompress_fs"_sv);
 			}
 			
 		}
@@ -2343,7 +2350,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "compress_fs"_sv);
 			}
 
 			/**
@@ -2368,7 +2375,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Sen::Kernel::Definition::Compression::Zlib::uncompress_gzip_fs(source, destination);
 					return JS::Converter::get_undefined();
-				});
+				}, "uncompress_fs"_sv);
 			}
 		}
 	}
@@ -2412,7 +2419,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto format = JS::Converter::get_int32(context, argv[4]);
 						Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source, destination, width, height, static_cast<Sen::Kernel::Support::Texture::Format>(format));
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -2438,7 +2445,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto format = JS::Converter::get_int32(context, argv[2]);
 						Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 
 		}
@@ -2478,7 +2485,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
 						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
 						return JS::Converter::get_undefined();
-					});
+					}, "compress_fs"_sv);
 				}
 
 				/**
@@ -2504,7 +2511,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
 						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
 						return JS::Converter::get_undefined();
-					});
+					}, "uncompress_fs"_sv);
 				}
 				
 			}
@@ -2543,7 +2550,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
 						Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source, destination, key, iv, use_64_bit_variant);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -2571,7 +2578,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
 						Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source, destination, key, iv, use_64_bit_variant);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 
 			}
@@ -2605,7 +2612,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::split(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "split_fs"_sv);
 				}
 
 				/**
@@ -2630,7 +2637,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::ResourceGroup::BasicConversion::merge(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "merge_fs"_sv);
 				}
 
 				/**
@@ -2657,7 +2664,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto path_style = JS::Converter::get_int32(context, argv[2]);
 						Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(source, destination, static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(path_style));
 						return JS::Converter::get_undefined();
-					});
+					}, "convert_fs"_sv);
 				}
 
 
@@ -2691,7 +2698,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::split_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "split_fs"_sv);
 				}
 
 				/**
@@ -2716,7 +2723,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::ResInfo::BasicConversion::merge_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "merge_fs"_sv);
 				}
 
 				/**
@@ -2742,7 +2749,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto use_string_for_style = JS::Converter::get_bool(context, argv[2]);
 						Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source.get(), destination.get(), use_string_for_style);
 						return JS::Converter::get_undefined();
-					});
+					}, "convert_fs"_sv);
 				}
 
 
@@ -2776,7 +2783,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::RenderEffects::Decode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -2801,7 +2808,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::RenderEffects::Encode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 
 
@@ -2835,7 +2842,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::CFW2::Decode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -2860,7 +2867,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::CFW2::Encode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 
 
@@ -2895,7 +2902,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto key = JS::Converter::get_string(context, argv[2]);
 						Sen::Kernel::Support::PopCap::CryptData::Decrypt::process_fs(source, destination, key);
 						return JS::Converter::get_undefined();
-					});
+					}, "decrypt_fs"_sv);
 				}
 
 				/**
@@ -2922,7 +2929,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto key = JS::Converter::get_string(context, argv[2]);
 						Sen::Kernel::Support::PopCap::CryptData::Encrypt::process_fs(source, destination, key);
 						return JS::Converter::get_undefined();
-					});
+					}, "encrypt_fs"_sv);
 				}
 
 
@@ -2956,7 +2963,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Newton::Decode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -2981,7 +2988,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Newton::Encode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 
 			}
@@ -3013,7 +3020,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 				
 				/**
@@ -3042,7 +3049,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto iv = JS::Converter::get_c_string(context, argv[3]);
 						Sen::Kernel::Support::PopCap::RTON::Decode::decrypt_fs(source.get(), destination.get(), key.get(), iv.get());
 						return JS::Converter::get_undefined();
-					});
+					}, "decrypt_fs"_sv);
 				}
 
 				/**
@@ -3071,7 +3078,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto iv = JS::Converter::get_c_string(context, argv[3]);
 						Sen::Kernel::Support::PopCap::RTON::Decode::decrypt_and_decode_fs(source.get(), destination.get(), key.get(), iv.get());
 						return JS::Converter::get_undefined();
-						});
+					}, "decrypt_and_decode_fs"_sv);
 				}
 
 				/**
@@ -3098,7 +3105,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						Sen::Kernel::Support::PopCap::RTON::Decode::decode_fs_as_multiple_threads(paths);
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs_as_multiple_threads"_sv);
 				}
 
 				/**
@@ -3125,7 +3132,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs_as_multiple_threads(paths);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs_as_multiple_threads"_sv);
 				}
 
 				/**
@@ -3150,7 +3157,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 			}
 
@@ -3181,7 +3188,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "unpack_fs"_sv);
 				}
 
 				/**
@@ -3206,7 +3213,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "pack_fs"_sv);
 				}
 			}
 
@@ -3237,7 +3244,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "unpack_fs"_sv);
 				}
 
 				/**
@@ -3263,7 +3270,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "pack_fs"_sv);
 				}
 			}
 
@@ -3294,7 +3301,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Animation::Decode::decode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -3319,7 +3326,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Animation::Encode::encode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 			}
 		}
@@ -3357,7 +3364,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "decode_fs"_sv);
 				}
 
 				/**
@@ -3382,7 +3389,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method
 						return JS::Converter::get_undefined();
-					});
+					}, "encode_fs"_sv);
 				}
 			}
 		}
@@ -3463,7 +3470,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto json = nlohmann::ordered_json::parse(source);
 				auto js_obj = json_to_js_value(context, json);
 				return js_obj;
-			});
+			}, "deserialize"_sv);
 		}
 
 		/**
@@ -3487,7 +3494,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto json = nlohmann::ordered_json::parse(Sen::Kernel::FileSystem::read_file(source));
 				auto js_obj = json_to_js_value(context, json);
 				return js_obj;
-			});
+			}, "deserialize_fs"_sv);
 		}
 
 		/**
@@ -3588,7 +3595,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto source = json.dump(indent, '\t', ensure_ascii);
 				auto js_val = JS_NewString(context, source.c_str());
 				return js_val;
-			});
+			}, "serialize"_sv);
 		}
 
 		/**
@@ -3619,7 +3626,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto result = json.dump(indent, '\t', ensure_ascii);
 				Sen::Kernel::FileSystem::write_file(destination, result);
 				return JS::Converter::get_undefined();
-			});
+			}, "serialize_fs"_sv);
 		}
 	}
 
@@ -3635,15 +3642,15 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				auto width_val = JS_GetPropertyStr(context, this_val, "width");
 				auto height_val = JS_GetPropertyStr(context, this_val, "height");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "area"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "area"_sv);
 				auto width = JS::Converter::get_bigint64(context, width_val);
 				auto height = JS::Converter::get_bigint64(context, height_val);
 				auto area = width * height;
 				JS_FreeValue(context, width_val);
 				JS_FreeValue(context, height_val);
 				return JS_NewBigInt64(context, area);
-			});
+			}, "area"_sv);
 		}
 
 		inline static auto circumference(
@@ -3656,15 +3663,15 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				auto width_val = JS_GetPropertyStr(context, this_val, "width");
 				auto height_val = JS_GetPropertyStr(context, this_val, "height");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "circumference"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "circumference"_sv);
 				auto width = JS::Converter::get_bigint64(context, width_val);
 				auto height = JS::Converter::get_bigint64(context, height_val);
 				auto area = (width + height) * 2;
 				JS_FreeValue(context, width_val);
 				JS_FreeValue(context, height_val);
 				return JS_NewBigInt64(context, area);
-			});
+			}, "circumference"_sv);
 		}
 
 		/// Create an instance of Dimension object
@@ -3687,7 +3694,7 @@ namespace Sen::Kernel::Interface::Script {
 				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
 				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
 				return image_obj;
-			});
+			}, "instance"_sv);
 		}
 
 		inline static auto open(
@@ -3715,7 +3722,7 @@ namespace Sen::Kernel::Interface::Script {
 				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
 				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
 				return image_obj;
-			});
+			}, "open"_sv);
 		}
 
 		inline static auto write(
@@ -3773,7 +3780,7 @@ namespace Sen::Kernel::Interface::Script {
 				JS_FreeValue(context, rowbytes_val);
 				JS_FreeValue(context, data_val);
 				return JS::Converter::get_undefined();
-			});
+			}, "write"_sv);
 		}
 
 	}
@@ -3877,7 +3884,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto j = nlohmann::ordered_json{};
 				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());
 				return JSON::json_to_js_value(context, j);
-			});
+			}, "deserialize"_sv);
 		}
 
 		inline static auto deserialize_fs(
@@ -3898,7 +3905,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto j = nlohmann::ordered_json{};
 				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());
 				return JSON::json_to_js_value(context, j);
-			});
+			}, "deserialize_fs"_sv);
 		}
 
 		inline static auto serialize(
@@ -3916,7 +3923,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto printer = tinyxml2::XMLPrinter{};
 				doc.Print(&printer);
 				return JS::Converter::to_string(context, printer.CStr());
-			});
+			}, "serialize"_sv);
 		}
 
 		inline static auto serialize_fs(
@@ -3936,7 +3943,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto destination = JS::Converter::get_c_string(context, argv[1]);
 				Kernel::FileSystem::write_file(destination.get(), printer.CStr());
 				return JS::Converter::get_undefined();
-			});
+			}, "serialize_fs"_sv);
 		}
 
 	}
@@ -3957,23 +3964,25 @@ namespace Sen::Kernel::Interface::Script {
 
 		namespace DataStreamView {
 
-
-			using Data = Definition::Buffer::Stream<true>;
+			template <bool T>
+			using Data = Definition::Buffer::Stream<T>;
 
 			static JSClassID class_id;
 
+			template <bool T>
 			inline static auto finalizer(
 				JSRuntime* rt, 
 				JSValue val
 			) -> void
 			{
-				auto s = (Data*)JS_GetOpaque(val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque(val, class_id);
 				if (s) {
 					delete s;
 				}
 				return;
 			}
 
+			template <bool T>
 			inline static auto constructor(
 				JSContext* ctx, 
 				JSValueConst new_target, 
@@ -3981,15 +3990,15 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst* argv
 			) -> JSValue
 			{
-				auto s = static_cast<Data*>(nullptr);
+				auto s = static_cast<Data<T>*>(nullptr);
 				auto obj = JS_UNDEFINED;
 				auto proto = JSValue{};
 				if (argc == 1) {
 					auto path = JS::Converter::get_c_string(ctx, argv[0]);
-					s = new Data{ path.get()};
+					s = new Data<T>{ path.get()};
 				}
 				else if(argc == 0) {
-					s = new Data{};
+					s = new Data<T>{};
 				}
 				else {
 					return JS_EXCEPTION;
@@ -4009,18 +4018,20 @@ namespace Sen::Kernel::Interface::Script {
 				return JS_EXCEPTION;
 			}
 
+			template <bool T>
 			inline static auto this_class = JSClassDef {
 				.class_name = "DataStreamView",
-				.finalizer = finalizer,
+				.finalizer = finalizer<T>,
 			};
 
+			template <bool T>
 			inline static auto getter(
 				JSContext* ctx, 
 				JSValueConst this_val, 
 				int magic
 			) -> JSValue
 			{
-				auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 				if (!s) {
 					return JS_EXCEPTION;
 				}
@@ -4032,6 +4043,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 
+			template <bool T>
 			inline static auto setter(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4039,7 +4051,7 @@ namespace Sen::Kernel::Interface::Script {
 				int magic
 			) -> JSValue
 			{
-				auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 				auto v = std::int64_t{};
 				if (!s){
 					return JS_EXCEPTION;
@@ -4055,6 +4067,7 @@ namespace Sen::Kernel::Interface::Script {
 				return JS_UNDEFINED;
 			}
 
+			template <bool T>
 			inline static auto size(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4064,14 +4077,15 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx,{
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
-				});
+				}, "size"_sv);
 			}
 
+			template <bool T>
 			inline static auto capacity(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4081,14 +4095,15 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
-				});
+				}, "capacity"_sv);
 			}
 
+			template <bool T>
 			inline static auto fromString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4098,15 +4113,16 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					s->fromString(JS::Converter::get_string(ctx, argv[0]));
 					return JS_UNDEFINED;
-				});
+				}, "fromString"_sv);
 			}
 
+			template <bool T>
 			inline static auto reserve(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4116,13 +4132,13 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					s->reserve(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					return JS_UNDEFINED;
-				});
+				}, "reserve"_sv);
 			}
 
 			#pragma region convert
@@ -4155,6 +4171,7 @@ namespace Sen::Kernel::Interface::Script {
 
 			#pragma endregion
 
+			template <bool T>
 			inline static auto toUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4164,14 +4181,15 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					return to_uint8array(ctx, s->toBytes());
-				});
+				}, "toUint8Array"_sv);
 			}
 
+			template <bool T>
 			inline static auto toArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4181,14 +4199,15 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					return to_arraybuffer(ctx, s->toBytes());
-				});
+				}, "toArrayBuffer"_sv);
 			}
 
+			template <bool T>
 			inline static auto getArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4198,16 +4217,17 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
 					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
 					return to_arraybuffer(ctx, s->get(from, to));
-				});
+				}, "getArrayBuffer"_sv);
 			}
 
+			template <bool T>
 			inline static auto getUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4217,16 +4237,17 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
 					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
 					return to_uint8array(ctx, s->get(from, to));
-				});
+				}, "getUint8Array"_sv);
 			}
 
+			template <bool T>
 			inline static auto toString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4236,14 +4257,15 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					return JS::Converter::to_string(ctx, s->toString());
-				});
+				}, "toString"_sv);
 			}
 
+			template <bool T>
 			inline static auto out_file(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4253,15 +4275,16 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					s->out_file(JS::Converter::get_c_string(ctx, argv[0]).get());
 					return JS_UNDEFINED;
-				});
+				}, "out_file"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4271,7 +4294,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4287,9 +4310,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint8"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4299,7 +4323,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4315,9 +4339,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint16"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4327,7 +4352,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4343,9 +4368,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint24"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4355,7 +4381,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4371,9 +4397,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4383,7 +4410,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4399,9 +4426,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint64"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4411,7 +4439,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4427,9 +4455,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-					});
+				}, "writeInt8"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4439,7 +4468,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4455,9 +4484,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-					});
+				}, "writeInt16"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeInt24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4467,7 +4497,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4483,9 +4513,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-					});
+				}, "writeInt24"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4495,7 +4526,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4511,9 +4542,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-					});
+				}, "writeInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4523,7 +4555,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4539,7 +4571,7 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeInt64"_sv);
 			}
 
 			#pragma region convert
@@ -4567,6 +4599,7 @@ namespace Sen::Kernel::Interface::Script {
 
 			#pragma endregion
 
+			template <bool T>
 			inline static auto writeArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4576,15 +4609,16 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					s->writeBytes(from_arraybuffer(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
 					return JS_UNDEFINED;
-				});
+				}, "writeArrayBuffer"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4594,7 +4628,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4605,9 +4639,10 @@ namespace Sen::Kernel::Interface::Script {
 						s->writeBytes(from_uint8array(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeUint8Array"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeFloat(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4617,7 +4652,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4633,9 +4668,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeFloat"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeDouble(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4645,7 +4681,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4661,9 +4697,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeDouble"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4673,7 +4710,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4689,9 +4726,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeVarInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeVarInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4701,7 +4739,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4717,9 +4755,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeVarInt64"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeZigZag32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4729,7 +4768,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4745,9 +4784,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-					});
+				}, "writeZigZag32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeZigZag64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4757,7 +4797,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4773,9 +4813,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeZigZag64"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4785,7 +4826,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4801,9 +4842,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeString"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringFourByte(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4813,7 +4855,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4829,9 +4871,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringFourByte"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeNull(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4841,7 +4884,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4857,9 +4900,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeNull"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeBoolean(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4869,7 +4913,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4885,9 +4929,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeBoolean"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4897,7 +4942,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4913,9 +4958,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByUint8"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4925,7 +4971,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4941,9 +4987,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByUint16"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4953,7 +5000,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4969,9 +5016,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByUint32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4981,7 +5029,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4997,9 +5045,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByInt8"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5009,7 +5058,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5025,9 +5074,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByInt16"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5037,7 +5087,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5053,9 +5103,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto writeStringByEmpty(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5065,7 +5116,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5081,9 +5132,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS_UNDEFINED;
-				});
+				}, "writeStringByEmpty"_sv);
 			}
 
+			template <bool T>
 			inline static auto readUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5093,7 +5145,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint8_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5105,9 +5157,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readUint8();
 					}
 					return JS::Converter::to_bigint<uint8_t>(ctx, v);
-				});
+				}, "readUint8"_sv);
 			}
 
+			template <bool T>
 			inline static auto readUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5117,7 +5170,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint16_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5129,9 +5182,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readUint16();
 					}
 					return JS::Converter::to_bigint<uint16_t>(ctx, v);
-				});
+				}, "readUint16"_sv);
 			}
 
+			template <bool T>
 			inline static auto readUint24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5141,7 +5195,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5153,9 +5207,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readUint24();
 					}
 					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				});
+				}, "readUint24"_sv);
 			}
 
+			template <bool T>
 			inline static auto readUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5165,7 +5220,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5177,9 +5232,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readUint32();
 					}
 					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				});
+				}, "readUint32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5189,7 +5245,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5201,9 +5257,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readUint64();
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, v);
-				});
+				}, "readUint64"_sv);
 			}
 
+			template <bool T>
 			inline static auto readInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5213,7 +5270,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int8_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5225,9 +5282,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readInt8();
 					}
 					return JS::Converter::to_bigint<int8_t>(ctx, v);
-				});
+				}, "readInt8"_sv);
 			}
 
+			template <bool T>
 			inline static auto readInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5237,7 +5295,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int16_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5249,9 +5307,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readInt16();
 					}
 					return JS::Converter::to_bigint<int16_t>(ctx, v);
-				});
+				}, "readInt16"_sv);
 			}
 
+			template <bool T>
 			inline static auto readInt24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5261,7 +5320,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5273,9 +5332,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readInt24();
 					}
 					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				});
+				}, "readInt24"_sv);
 			}
 
+			template <bool T>
 			inline static auto readInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5285,7 +5345,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5297,9 +5357,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readInt32();
 					}
 					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				});
+				}, "readInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5309,7 +5370,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5321,9 +5382,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readInt64();
 					}
 					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				});
+				}, "readInt64"_sv);
 			}
-
+			
+			template <bool T>
 			inline static auto readString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5333,7 +5395,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5348,9 +5410,10 @@ namespace Sen::Kernel::Interface::Script {
 						);
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readString"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5360,7 +5423,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5372,9 +5435,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByUint8();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByUint8"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5384,7 +5448,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5396,9 +5460,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByUint16();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByUint16"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5408,7 +5473,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5420,9 +5485,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByUint32();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByUint32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5432,7 +5498,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5444,9 +5510,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByInt8();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByInt8"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5456,7 +5523,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5468,9 +5535,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByInt16();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByInt16"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5480,7 +5548,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5492,9 +5560,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByInt32();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5504,7 +5573,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5516,9 +5585,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByVarInt32();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByVarInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readStringByEmpty(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5528,7 +5598,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5540,9 +5610,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readStringByEmpty();
 					}
 					return JS::Converter::to_string(ctx, v);
-				});
+				}, "readStringByEmpty"_sv);
 			}
 
+			template <bool T>
 			inline static auto readVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5552,7 +5623,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5564,9 +5635,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readVarInt32();
 					}
 					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				});
+				}, "readVarInt32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readVarInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5576,7 +5648,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5588,9 +5660,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readVarInt64();
 					}
 					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				});
+				}, "readVarInt64"_sv);
 			}
 
+			template <bool T>
 			inline static auto readVarUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5600,7 +5673,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5612,9 +5685,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readVarUint32();
 					}
 					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				});
+				}, "readVarUint32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readVarUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5624,7 +5698,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = uint64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5636,9 +5710,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readVarUint64();
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, v);
-				});
+				}, "readVarUint64"_sv);
 			}
 
+			template <bool T>
 			inline static auto readZigZag32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5648,7 +5723,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5660,9 +5735,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readZigZag32();
 					}
 					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				});
+				}, "readZigZag32"_sv);
 			}
 
+			template <bool T>
 			inline static auto readZigZag64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5672,7 +5748,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5684,9 +5760,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readZigZag64();
 					}
 					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				});
+				}, "readZigZag64"_sv);
 			}
 
+			template <bool T>
 			inline static auto readFloat(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5696,7 +5773,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = float{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5708,9 +5785,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readFloat();
 					}
 					return JS::Converter::to_number(ctx, v);
-				});
+				}, "readFloat"_sv);
 			}
 
+			template <bool T>
 			inline static auto readDouble(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5720,7 +5798,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					auto v = double{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5732,9 +5810,10 @@ namespace Sen::Kernel::Interface::Script {
 						v = s->readDouble();
 					}
 					return JS::Converter::to_number(ctx, v);
-				});
+				}, "readDouble"_sv);
 			}
 
+			template <bool T>
 			inline static auto close(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5744,100 +5823,108 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
 					s->close();
 					return JS_UNDEFINED;
-				});
+				}, "close"_sv);
 			}
 
+			template <bool T>
 			inline static const JSCFunctionListEntry proto_functions[] = {
-				JS_CPPGETSET_MAGIC_DEF("read_position", getter, setter, 0),
-				JS_CPPGETSET_MAGIC_DEF("write_position", getter, setter, 1),
-				JS_CPPFUNC_DEF("size", 0, size),
-				JS_CPPFUNC_DEF("fromString", 1, fromString),
-				JS_CPPFUNC_DEF("capacity", 0, capacity),
-				JS_CPPFUNC_DEF("reserve", 1, reserve),
-				JS_CPPFUNC_DEF("toArrayBuffer", 0, toArrayBuffer),
-				JS_CPPFUNC_DEF("toUint8Array", 0, toUint8Array),
-				JS_CPPFUNC_DEF("getArrayBuffer", 2, getArrayBuffer),
-				JS_CPPFUNC_DEF("getUint8Array", 2, getUint8Array),
-				JS_CPPFUNC_DEF("toString", 0, toString),
-				JS_CPPFUNC_DEF("out_file", 1, out_file),
-				JS_CPPFUNC_DEF("writeUint8", 2, writeUint8),
-				JS_CPPFUNC_DEF("writeUint16", 2, writeUint16),
-				JS_CPPFUNC_DEF("writeUint24", 2, writeUint24),
-				JS_CPPFUNC_DEF("writeUint32", 2, writeUint32),
-				JS_CPPFUNC_DEF("writeUint64", 2, writeUint64),
-				JS_CPPFUNC_DEF("writeInt8", 2, writeInt8),
-				JS_CPPFUNC_DEF("writeInt16", 2, writeInt16),
-				JS_CPPFUNC_DEF("writeInt24", 2, writeInt24),
-				JS_CPPFUNC_DEF("writeInt32", 2, writeInt32),
-				JS_CPPFUNC_DEF("writeInt64", 2, writeInt64),
-				JS_CPPFUNC_DEF("writeArrayBuffer", 2, writeArrayBuffer),
-				JS_CPPFUNC_DEF("writeUint8Array", 2, writeUint8Array),
-				JS_CPPFUNC_DEF("writeFloat", 2, writeFloat),
-				JS_CPPFUNC_DEF("writeDouble", 2, writeDouble),
-				JS_CPPFUNC_DEF("writeVarInt32", 2, writeVarInt32),
-				JS_CPPFUNC_DEF("writeVarInt64", 2, writeVarInt64),
-				JS_CPPFUNC_DEF("writeZigZag32", 2, writeZigZag32),
-				JS_CPPFUNC_DEF("writeZigZag64", 2, writeZigZag64),
-				JS_CPPFUNC_DEF("writeString", 2, writeString),
-				JS_CPPFUNC_DEF("writeStringFourByte", 2, writeStringFourByte),
-				JS_CPPFUNC_DEF("writeNull", 2, writeNull),
-				JS_CPPFUNC_DEF("writeBoolean", 2, writeBoolean),
-				JS_CPPFUNC_DEF("writeStringByUint8", 2, writeStringByUint8),
-				JS_CPPFUNC_DEF("writeStringByUint16", 2, writeStringByUint16),
-				JS_CPPFUNC_DEF("writeStringByUint32", 2, writeStringByUint32),
-				JS_CPPFUNC_DEF("writeStringByInt8", 2, writeStringByInt8),
-				JS_CPPFUNC_DEF("writeStringByInt16", 2, writeStringByInt16),
-				JS_CPPFUNC_DEF("writeStringByInt32", 2, writeStringByInt32),
-				JS_CPPFUNC_DEF("writeStringByEmpty", 2, writeStringByEmpty),
-				JS_CPPFUNC_DEF("readUint8", 1, readUint8),
-				JS_CPPFUNC_DEF("readUint16", 1, readUint16),
-				JS_CPPFUNC_DEF("readUint24", 1, readUint24),
-				JS_CPPFUNC_DEF("readUint32", 1, readUint32),
-				JS_CPPFUNC_DEF("readUint64", 1, readUint64),
-				JS_CPPFUNC_DEF("readInt8", 1, readInt8),
-				JS_CPPFUNC_DEF("readInt16", 1, readInt16),
-				JS_CPPFUNC_DEF("readInt24", 1, readInt24),
-				JS_CPPFUNC_DEF("readInt32", 1, readInt32),
-				JS_CPPFUNC_DEF("readInt64", 1, readInt64),
-				JS_CPPFUNC_DEF("readString", 2, readString),
-				JS_CPPFUNC_DEF("readStringByUint8", 1, readStringByUint8),
-				JS_CPPFUNC_DEF("readStringByUint16", 1, readStringByUint16),
-				JS_CPPFUNC_DEF("readStringByUint32", 1, readStringByUint32),
-				JS_CPPFUNC_DEF("readStringByInt8", 1, readStringByInt8),
-				JS_CPPFUNC_DEF("readStringByInt16", 1, readStringByInt16),
-				JS_CPPFUNC_DEF("readStringByInt32", 1, readStringByInt32),
-				JS_CPPFUNC_DEF("readStringByVarInt32", 1, readStringByVarInt32),
-				JS_CPPFUNC_DEF("readStringByEmpty", 1, readStringByEmpty),
-				JS_CPPFUNC_DEF("readVarInt32", 1, readVarInt32),
-				JS_CPPFUNC_DEF("readVarInt64", 1, readVarInt64),
-				JS_CPPFUNC_DEF("readVarUint32", 1, readVarUint32),
-				JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64),
-				JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32),
-				JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64),
-				JS_CPPFUNC_DEF("readFloat", 1, readFloat),
-				JS_CPPFUNC_DEF("readDouble", 1, readDouble),
-				JS_CPPFUNC_DEF("close", 0, close),
+				JS_CPPGETSET_MAGIC_DEF("read_position", getter<T>, setter<T>, 0),
+				JS_CPPGETSET_MAGIC_DEF("write_position", getter<T>, setter<T>, 1),
+				JS_CPPFUNC_DEF("size", 0, size<T>),
+				JS_CPPFUNC_DEF("fromString", 1, fromString<T>),
+				JS_CPPFUNC_DEF("capacity", 0, capacity<T>),
+				JS_CPPFUNC_DEF("reserve", 1, reserve<T>),
+				JS_CPPFUNC_DEF("toArrayBuffer", 0, toArrayBuffer<T>),
+				JS_CPPFUNC_DEF("toUint8Array", 0, toUint8Array<T>),
+				JS_CPPFUNC_DEF("getArrayBuffer", 2, getArrayBuffer<T>),
+				JS_CPPFUNC_DEF("getUint8Array", 2, getUint8Array<T>),
+				JS_CPPFUNC_DEF("toString", 0, toString<T>),
+				JS_CPPFUNC_DEF("out_file", 1, out_file<T>),
+				JS_CPPFUNC_DEF("writeUint8", 2, writeUint8<T>),
+				JS_CPPFUNC_DEF("writeUint16", 2, writeUint16<T>),
+				JS_CPPFUNC_DEF("writeUint24", 2, writeUint24<T>),
+				JS_CPPFUNC_DEF("writeUint32", 2, writeUint32<T>),
+				JS_CPPFUNC_DEF("writeUint64", 2, writeUint64<T>),
+				JS_CPPFUNC_DEF("writeInt8", 2, writeInt8<T>),
+				JS_CPPFUNC_DEF("writeInt16", 2, writeInt16<T>),
+				JS_CPPFUNC_DEF("writeInt24", 2, writeInt24<T>),
+				JS_CPPFUNC_DEF("writeInt32", 2, writeInt32<T>),
+				JS_CPPFUNC_DEF("writeInt64", 2, writeInt64<T>),
+				JS_CPPFUNC_DEF("writeArrayBuffer", 2, writeArrayBuffer<T>),
+				JS_CPPFUNC_DEF("writeUint8Array", 2, writeUint8Array<T>),
+				JS_CPPFUNC_DEF("writeFloat", 2, writeFloat<T>),
+				JS_CPPFUNC_DEF("writeDouble", 2, writeDouble<T>),
+				JS_CPPFUNC_DEF("writeVarInt32", 2, writeVarInt32<T>),
+				JS_CPPFUNC_DEF("writeVarInt64", 2, writeVarInt64<T>),
+				JS_CPPFUNC_DEF("writeZigZag32", 2, writeZigZag32<T>),
+				JS_CPPFUNC_DEF("writeZigZag64", 2, writeZigZag64<T>),
+				JS_CPPFUNC_DEF("writeString", 2, writeString<T>),
+				JS_CPPFUNC_DEF("writeStringFourByte", 2, writeStringFourByte<T>),
+				JS_CPPFUNC_DEF("writeNull", 2, writeNull<T>),
+				JS_CPPFUNC_DEF("writeBoolean", 2, writeBoolean<T>),
+				JS_CPPFUNC_DEF("writeStringByUint8", 2, writeStringByUint8<T>),
+				JS_CPPFUNC_DEF("writeStringByUint16", 2, writeStringByUint16<T>),
+				JS_CPPFUNC_DEF("writeStringByUint32", 2, writeStringByUint32<T>),
+				JS_CPPFUNC_DEF("writeStringByInt8", 2, writeStringByInt8<T>),
+				JS_CPPFUNC_DEF("writeStringByInt16", 2, writeStringByInt16<T>),
+				JS_CPPFUNC_DEF("writeStringByInt32", 2, writeStringByInt32<T>),
+				JS_CPPFUNC_DEF("writeStringByEmpty", 2, writeStringByEmpty<T>),
+				JS_CPPFUNC_DEF("readUint8", 1, readUint8<T>),
+				JS_CPPFUNC_DEF("readUint16", 1, readUint16<T>),
+				JS_CPPFUNC_DEF("readUint24", 1, readUint24<T>),
+				JS_CPPFUNC_DEF("readUint32", 1, readUint32<T>),
+				JS_CPPFUNC_DEF("readUint64", 1, readUint64<T>),
+				JS_CPPFUNC_DEF("readInt8", 1, readInt8<T>),
+				JS_CPPFUNC_DEF("readInt16", 1, readInt16<T>),
+				JS_CPPFUNC_DEF("readInt24", 1, readInt24<T>),
+				JS_CPPFUNC_DEF("readInt32", 1, readInt32<T>),
+				JS_CPPFUNC_DEF("readInt64", 1, readInt64<T>),
+				JS_CPPFUNC_DEF("readString", 2, readString<T>),
+				JS_CPPFUNC_DEF("readStringByUint8", 1, readStringByUint8<T>),
+				JS_CPPFUNC_DEF("readStringByUint16", 1, readStringByUint16<T>),
+				JS_CPPFUNC_DEF("readStringByUint32", 1, readStringByUint32<T>),
+				JS_CPPFUNC_DEF("readStringByInt8", 1, readStringByInt8<T>),
+				JS_CPPFUNC_DEF("readStringByInt16", 1, readStringByInt16<T>),
+				JS_CPPFUNC_DEF("readStringByInt32", 1, readStringByInt32<T>),
+				JS_CPPFUNC_DEF("readStringByVarInt32", 1, readStringByVarInt32<T>),
+				JS_CPPFUNC_DEF("readStringByEmpty", 1, readStringByEmpty<T>),
+				JS_CPPFUNC_DEF("readVarInt32", 1, readVarInt32<T>),
+				JS_CPPFUNC_DEF("readVarInt64", 1, readVarInt64<T>),
+				JS_CPPFUNC_DEF("readVarUint32", 1, readVarUint32<T>),
+				JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64<T>),
+				JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32<T>),
+				JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64<T>),
+				JS_CPPFUNC_DEF("readFloat", 1, readFloat<T>),
+				JS_CPPFUNC_DEF("readDouble", 1, readDouble<T>),
+				JS_CPPFUNC_DEF("close", 0, close<T>),
 			};
 
-			inline static auto register_class(
-				JSContext* ctx
-			) -> void 
+			
+			template <bool use_big_endian>
+			inline static auto register_class(JSContext* ctx) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
-				auto point_ctor = JS_NewCFunction2(ctx, constructor, "DataStreamView", 2, JS_CFUNC_constructor, 0);
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class<use_big_endian>);
+				auto class_name = std::string_view{};
+				if constexpr (use_big_endian) {
+					class_name = "DataStreamViewUseBigEndian"_sv;
+				}
+				else {
+					class_name = "DataStreamView"_sv;
+				}
+				auto point_ctor = JS_NewCFunction2(ctx, constructor<use_big_endian>, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
-				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions<use_big_endian>, countof(proto_functions<use_big_endian>));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, "DataStreamView", point_ctor);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);

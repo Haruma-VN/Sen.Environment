@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen.get_read_pos() - 1));
+						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen.get_read_pos() - 1), std::source_location::current(), "read_boolean");
 					}
 				}
 				return value;
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							break;
 						}
 						default:{
-							throw Exception(fmt::format("{} {}. {}: group[\"type\"] == 1 || group[\"type\"] == 2, {} {}", Language::get("popcap.newton.invalid_group_type"), i, Language::get("conditional"), Language::get("but_received"), group_type));
+							throw Exception(fmt::format("{} {}. {}: group[\"type\"] == 1 || group[\"type\"] == 2, {} {}", Language::get("popcap.newton.invalid_group_type"), i, Language::get("conditional"), Language::get("but_received"), group_type), std::source_location::current(), "process");
 						}
 					}
 					auto res = thiz.read_integer();
@@ -120,14 +120,14 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					auto subgroups_count = thiz.read_integer();
 					auto resources_count = thiz.read_integer();
 					auto version = thiz.read_enumeration();
-					try_assert(version == 0x01, fmt::format("Unknown version {} at index {}", version, i));
+					assert_conditional(version == 0x01, fmt::format("Unknown version {} at index {}", version, i), "process");
       				auto group_has_parent = thiz.read_boolean();
 					group["id"] = thiz.read_string();
 					if (group_has_parent) {
 						group["parent"] = thiz.read_string();
 					}
 					if (group_type == 0x01) {
-						try_assert(resources_count == 0x00, "Property \"resources\" must have size 0 with composite");
+						assert_conditional(resources_count == 0x00, "Property \"resources\" must have size 0 with composite", "process");
 						auto subgroups = nlohmann::ordered_json::array_t{};
 						for (auto subgroups_index : Range<int>(subgroups_count)) {
 							auto subgroup = nlohmann::ordered_json{};
@@ -142,7 +142,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						groups.emplace_back(group);
 					}
 					if(group_type == 0x02){
-						try_assert(subgroups_count == 0x00, "Property \"subgroup\" must have size 0 with simple");
+						assert_conditional(subgroups_count == 0x00, "Property \"subgroup\" must have size 0 with simple", "process");
 						auto resources = nlohmann::ordered_json::array_t{};
 						for (auto resources_index : Range<int>(resources_count)){
           					auto sub_resources = nlohmann::ordered_json{};
@@ -177,7 +177,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									break;
 								}
 								default:{
-									throw Exception(fmt::format("{} {}, {}", Language::get("popcap.newton.invalid_resource_type"), group["id"].get<std::string>(), Language::get("popcap.newton.expected_from_to"), resource_type));
+									throw Exception(fmt::format("{} {}, {}", Language::get("popcap.newton.invalid_resource_type"), group["id"].get<std::string>(), Language::get("popcap.newton.expected_from_to"), resource_type), std::source_location::current(), "process");
 								}
 							}
 							auto slot = thiz.read_integer();

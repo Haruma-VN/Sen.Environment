@@ -60,7 +60,7 @@ namespace Sen::Kernel {
 				auto result = std::string{};
 				std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.data(), "r"), _pclose);
 				if (!pipe) {
-					throw Exception("_popen() failed!");
+					throw Exception("_popen() failed!", std::source_location::current(), "execute");
 				}
 				while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
 					result += buffer.data();
@@ -71,7 +71,7 @@ namespace Sen::Kernel {
 				auto result = std::string{};
 				std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.data(), "r"), pclose);
 				if (!pipe) {
-					throw Exception("open process failed");
+					throw Exception("open process failed", std::source_location::current(), "execute");
 				}
 				while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
 					result += buffer.data();

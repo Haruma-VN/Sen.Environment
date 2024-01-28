@@ -305,8 +305,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const nlohmann::ordered_json & res_info
 			) -> nlohmann::ordered_json override final
 			{
-				try_assert(res_info.find("expand_path") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "expand_path"));
-				try_assert(res_info.find("groups") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "groups"));
+				assert_conditional(res_info.find("expand_path") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "expand_path"), "convert_whole");
+				assert_conditional(res_info.find("groups") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "groups"), "convert_whole");
 				if(res_info["expand_path"].get<std::string>() == "string"){
 					thiz.use_string_for_style = true;
 				}

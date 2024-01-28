@@ -73,7 +73,7 @@ namespace Sen::Kernel::Definition::Compression {
 					bzerror = BZ2_bzCompress(&strm, BZ_FINISH);
 					if (bzerror < 0) {
 						BZ2_bzCompressEnd(&strm);
-						throw Exception(fmt::format("{}", Language::get("bzip2.compress.failed")));
+						throw Exception(fmt::format("{}", Language::get("bzip2.compress.failed")), std::source_location::current(), "compress");
 					}
 					result.insert(result.end(), outbuffer, outbuffer + sizeof(outbuffer) - strm.avail_out);
 				} while (bzerror != BZ_STREAM_END);
@@ -106,7 +106,7 @@ namespace Sen::Kernel::Definition::Compression {
 					bzerror = BZ2_bzDecompress(&strm);
 					if (bzerror < 0) {
 						BZ2_bzDecompressEnd(&strm);
-						throw Exception(fmt::format("{}", Language::get("bzip2.uncompress.failed")));
+						throw Exception(fmt::format("{}", Language::get("bzip2.uncompress.failed")), std::source_location::current(), "uncompress");
 					}
 					result.insert(result.end(), outbuffer, outbuffer + sizeof(outbuffer) - strm.avail_out);
 				} while (bzerror != BZ_STREAM_END);

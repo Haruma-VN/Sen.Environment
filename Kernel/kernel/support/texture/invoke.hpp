@@ -135,7 +135,7 @@ namespace Sen::Kernel::Support::Texture {
 						break;
 					}
 					default:{
-						throw Exception("Format is not supported");
+						throw Exception("Format is not supported", std::source_location::current(), "decode_fs");
 					}
 				}
 				return;
@@ -235,7 +235,7 @@ namespace Sen::Kernel::Support::Texture {
 						break;
 					}
 					default:{
-						throw Exception("Format is not supported");
+						throw Exception("Format is not supported", std::source_location::current(), "encode_fs");
 					}
 				}
 				FileSystem::write_binary<unsigned char>(destination, result);

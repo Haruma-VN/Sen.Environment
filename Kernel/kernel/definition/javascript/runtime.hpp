@@ -217,7 +217,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			{
 				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_TYPE_GLOBAL);
 				if(JS_IsException(eval_result)){
-					throw Exception(thiz.exception(eval_result));
+					throw Exception(thiz.exception(eval_result), std::source_location::current(), "evaluate");
 				}
 				return eval_result;
 			}

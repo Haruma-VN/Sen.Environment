@@ -1757,6 +1757,8 @@ declare namespace Sen {
             public readZigZag64(position: bigint): bigint;
             public close(): void;
         }
+
+        declare class DataStreamViewUseBigEndian extends DataStreamView {}
     }
 
     /**

@@ -28,7 +28,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "r"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_file");
 		}
 		std::fseek(file.get(), 0, SEEK_END);
 		auto length = std::ftell(file.get());
@@ -50,7 +50,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "write_file");
 		}
 		fwrite(content.data(), 1, content.size(), file.get());
 		return;
@@ -65,7 +65,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::ifstream(source.data());
         if (!file.is_open()) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,source));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,source), std::source_location::current(), "read_json");
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();
@@ -83,7 +83,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, '\t');
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -105,7 +105,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(indent, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -125,7 +125,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, indent_char);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -149,7 +149,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
 		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(indent, indent_char, ensureAscii);
 		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -164,7 +164,7 @@ namespace Sen::Kernel::FileSystem
 	) -> std::wstring const
 	{
 		auto wif = std::wifstream(filepath.data(), std::ios::binary);
-		try_assert(!wif.fail(), fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+		assert_conditional(!wif.fail(), fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), "read_file_by_utf16le");
 		wif.imbue(std::locale(wif.getloc(), new std::codecvt_utf8<wchar_t, 0x10ffff>));
 		auto wss = std::wstringstream{};
 		wss << wif.rdbuf();
@@ -246,7 +246,7 @@ namespace Sen::Kernel::FileSystem
 		auto file = std::ifstream(filepath.data(), std::ios::binary);
 		if(!file)
 		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
 		}
 		file.seekg(0, std::ios::end);
 		auto size = static_cast<std::streamsize>(file.tellg());
@@ -254,7 +254,7 @@ namespace Sen::Kernel::FileSystem
 		auto data = std::vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath));
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath), std::source_location::current(), "read_binary");
 		}
 		file.close();
 		return data;	
@@ -348,7 +348,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto out = std::ofstream(outFile.data(), std::ios::binary);
 		if(!out.is_open()){
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error") ,outFile));
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error") ,outFile), std::source_location::current(), "write_binary");
 		}
 		out.write(reinterpret_cast<const char *>(data.data()), data.size());
 		out.close();
@@ -367,7 +367,7 @@ namespace Sen::Kernel::FileSystem
 		auto xml = std::unique_ptr<tinyxml2::XMLDocument>(new tinyxml2::XMLDocument{});
 		auto data = FileSystem::read_file(filePath);
 		auto eResult = xml->Parse(data.data(), data.size());
-		try_assert(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath));
+		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath), "read_xml");
 		return xml;
 	}
 

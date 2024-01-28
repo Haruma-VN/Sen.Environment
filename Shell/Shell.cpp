@@ -81,9 +81,9 @@ inline static auto callback(
 ) -> CStringView
 {
     auto result = StringList::to_vector(list);
-    try_assert(result.size() >= 1, "argument must be greater than 1");
+    assert_conditional(result.size() >= 1, "argument must be greater than 1");
     if (result[0] == "display") {
-        try_assert(result.size() >= 2, "argument must be greater than 2");
+        assert_conditional(result.size() >= 2, "argument must be greater than 2");
         switch (result.size()) {
             case 2: {
                 print(result[1]);

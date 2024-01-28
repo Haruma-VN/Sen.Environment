@@ -74,7 +74,7 @@ char* copy = new char[1];
 typedef int (*execute)
 (CStringView* script, CStringList* argument, ShellCallback m_callback);
 
-#define try_assert(condition, message) \
+#define assert_conditional(condition, message) \
 	if(!(condition)) {\
 		throw std::runtime_error(message); \
 	}

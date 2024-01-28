@@ -18,13 +18,13 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             if (sen.readUint32() != Definition::magic)
             {
-                throw Exception(fmt::format("{}", Language::get("popcap.animation.invalid_magic")));
+                throw Exception(fmt::format("{}", Language::get("popcap.animation.invalid_magic")), std::source_location::current(), "animation_decode");
             }
             version = sen.readUint32();
             auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
             if (index == Definition::version.end())
             {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version));
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "animation_decode");
             }
             json.version = version;
             json.frame_rate = sen.readUint8();
@@ -257,7 +257,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             auto name_list = image_name.split("|");
             if (json.image.contains(name_list[1]))
             {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.duplicate_image"), name_list[1]));
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.duplicate_image"), name_list[1]), std::source_location::current(), "read_image");
             }
             auto image = AnimationImage{};
             if (version >= 4)

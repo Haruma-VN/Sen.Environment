@@ -131,7 +131,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             }
             default:
             {
-                throw Exception("invalid value");
+                throw Exception("invalid value", std::source_location::current(), "write_value");
             }
             }
             return;

@@ -35,7 +35,7 @@ namespace Sen::Kernel::Language
 	{
 		auto file = std::ifstream(source.data());
 		if (!file.is_open()) {
-			throw Exception(fmt::format("Could not read language file: {}", source));
+			throw Exception(fmt::format("Could not read language file: {}", source), std::source_location::current(), "read_language");
 		}
 		auto buffer = std::stringstream{};
 		buffer << file.rdbuf();

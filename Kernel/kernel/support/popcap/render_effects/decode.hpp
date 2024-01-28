@@ -98,33 +98,33 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			) -> RenderEffects
 			{
 				auto info = std::unique_ptr<BasicDefinition>(new BasicDefinition());
-				try_assert(decoder.readString(4) == BasicDefinition::magic, "mismatch magic");
-				try_assert(decoder.readUint32() == BasicDefinition::version, "mismatch version");
+				assert_conditional(decoder.readString(4) == BasicDefinition::magic, "mismatch magic", "decode");
+				assert_conditional(decoder.readUint32() == BasicDefinition::version, "mismatch version", "decode");
 				{
 					info->block1_size = decoder.readUint32();
 					info->block1_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block1SectionSize, "invalid block1");
+					assert_conditional(decoder.readUint32() == info->Block1SectionSize, "invalid block1", "decode");
 					info->block2_size = decoder.readUint32();
 					info->block2_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block2SectionSize, "invalid block2");
+					assert_conditional(decoder.readUint32() == info->Block2SectionSize, "invalid block2", "decode");
 					info->block3_size = decoder.readUint32();
 					info->block3_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block3SectionSize, "invalid block3");
+					assert_conditional(decoder.readUint32() == info->Block3SectionSize, "invalid block3", "decode");
 					info->block4_size = decoder.readUint32();
 					info->block4_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block4SectionSize, "invalid block4");
+					assert_conditional(decoder.readUint32() == info->Block4SectionSize, "invalid block4", "decode");
 					info->block5_size = decoder.readUint32();
 					info->block5_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block5SectionSize, "invalid block5");
+					assert_conditional(decoder.readUint32() == info->Block5SectionSize, "invalid block5", "decode");
 					info->block6_size = decoder.readUint32();
 					info->block6_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block6SectionSize, "invalid block6");
+					assert_conditional(decoder.readUint32() == info->Block6SectionSize, "invalid block6", "decode");
 					info->block7_size = decoder.readUint32();
 					info->block7_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block7SectionSize, "invalid block7");
+					assert_conditional(decoder.readUint32() == info->Block7SectionSize, "invalid block7", "decode");
 					info->block8_size = decoder.readUint32();
 					info->block8_section_offset = decoder.readUint32();
-					try_assert(decoder.readUint32() == info->Block8SectionSize, "invalid block8");
+					assert_conditional(decoder.readUint32() == info->Block8SectionSize, "invalid block8", "decode");
 					info->string_section_offset = decoder.readUint32();
 				}
 				auto block1 = std::vector<Block1>{};

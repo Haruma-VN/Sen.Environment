@@ -98,20 +98,20 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             json_writer.WriteStartArray();
             if (thiz.sen.readUint8() != array_byte_start){
-                throw Exception("Invalid array start");
+                throw Exception("Invalid array start", std::source_location::current(), "read_array");
             }
             for (const auto & i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
                 thiz.read_bytecode(thiz.sen.readUint8());
             }
             if (thiz.sen.readUint8() != array_byte_end){
-                throw Exception("Invalid array end");
+                throw Exception("Invalid array end", std::source_location::current(), "read_array");
             }
             json_writer.WriteEndArray();
             return;
         }
 
-        inline auto read_RTID(
+        inline auto read_rtid(
 
         ) const -> std::string const
         {
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw Exception("Invalid RTID");
+                    throw Exception("Invalid RTID", std::source_location::current(), "read_rtid");
                 }
             }
         }
@@ -268,7 +268,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return;
                 }
                 case 0x83:{
-                    json_writer.WriteValue(read_RTID());
+                    json_writer.WriteValue(read_rtid());
                     return;
                 }
                 case 0x84:{
@@ -309,7 +309,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return;
                 }
                 default:{
-                    throw Exception(fmt::format("Invalid bytecode: {}", bytecode));
+                    throw Exception(fmt::format("Invalid bytecode: {}", bytecode), std::source_location::current(), "read_bytecode");
                 }
             }
         }
@@ -335,7 +335,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 case rtid_bytecode:
                 {
-                    return read_RTID();
+                    return read_rtid();
                 }
                 case rtid_0_s_bytecode:
                 {
@@ -368,7 +368,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw Exception("Invalid bytecode property");
+                    throw Exception("Invalid bytecode property", std::source_location::current(), "read_bytecode_property");
                 }
             }
     }
@@ -401,7 +401,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const auto & magic = sen.readString(magic_count);
                 if (magic != thiz.magic)
                 {
-                    throw Exception("Invalid RTON magic, should starts with RTON");
+                    throw Exception("Invalid RTON magic, should starts with RTON", std::source_location::current(), "decode_rton");
                 }
             }
             {

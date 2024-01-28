@@ -22,7 +22,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
             if (index == Definition::version.end())
             {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version));
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "animation_encode");
             }
             sen.writeUint32(version);
             sen.writeUint8(frame_rate);

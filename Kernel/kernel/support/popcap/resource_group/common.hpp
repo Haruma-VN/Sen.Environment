@@ -70,7 +70,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> void
 			{
 				auto resource = FileSystem::read_json(infile);
-				try_assert(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"));
+				assert_conditional(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"), "split");
 				FileSystem::createDirectory(fmt::format("{}/{}", output, "subgroup"));
 				auto content = json{};
 				for(auto & c : resource["groups"])
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
 						auto resource_content = FileSystem::read_json(resource_json_path);
-						try_assert(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"));
+						assert_conditional(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"), "merge");
 						groups.emplace_back(resource_content);
 					}
 				}

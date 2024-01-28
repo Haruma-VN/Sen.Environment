@@ -38,13 +38,14 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                std::string_view filepath
+                std::string_view source
             ) : read_pos(0), write_pos(0)
             {
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "rb"), close_file);
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(source.data(), "rb"), close_file);
                 if (!file)
                 {
-                    throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath));
+                    throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") , source),
+                        std::source_location::current(), "Stream");
                 }
                 fseek(file.get(), 0, SEEK_END);
                 auto size = ftell(file.get());
@@ -126,7 +127,8 @@ namespace Sen::Kernel::Definition
             {
                 if (from < 0 || to > thiz.data.size())
                 {
-                    throw Exception(fmt::format("{} {} {} {}", Language::get("buffer.invalid.size"), from, Language::get("to"), to));
+                    throw Exception(fmt::format("{} {} {} {}", Language::get("buffer.invalid.size"), from, Language::get("to"), to),
+                        std::source_location::current(), "get");
                 }
                 return std::vector<unsigned char>(thiz.data.begin() + from, thiz.data.begin() + to);
             }
@@ -200,7 +202,8 @@ namespace Sen::Kernel::Definition
                 }
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(path.data(), "wb"), close_file);
                 if (!file) {
-                    throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path));
+                    throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path), std::source_location::current(), 
+                        "out_file");
                 }
                 fwrite(thiz.data.data(), 1, thiz.length, file.get());
                 return;
@@ -1406,7 +1409,8 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 35)
                     {
-                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2));
+                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2), 
+                            std::source_location::current(), "readVarInt32");
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1430,7 +1434,8 @@ namespace Sen::Kernel::Definition
                 {
                     if (num_2 == 70)
                     {
-                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2));
+                        throw Exception(fmt::format("{} {}", Language::get("invalid_varint_number"), num_2), 
+                            std::source_location::current(), "readVarInt64");
                     }
                     byte = thiz.readUint8();
                     num |= ((byte & 0x7F) << num_2);
@@ -1511,7 +1516,8 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + sizeof(T) > thiz.size())
                 {
-                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()));
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
+                        std::source_location::current(), "read");
                 }
                 auto value = T{0};
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, sizeof(T));
@@ -1526,7 +1532,8 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + size > thiz.size())
                 {
-                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()));
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
+                        std::source_location::current(), "read_has");
                 }
                 auto value = T{ 0 };
                 std::memcpy(&value, thiz.data.data() + thiz.read_pos, size);

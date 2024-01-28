@@ -46,7 +46,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 			{
 				auto result = DataStreamView{};
 				auto code = std::vector<uint8_t>{key.begin(), key.end()};
-				try_assert((view.readString(BasicDefinition::magic.size()) == std::string{BasicDefinition::magic.begin(), BasicDefinition::magic.end()}), "Mismatch Crypt-Data magic");
+				assert_conditional((view.readString(BasicDefinition::magic.size()) == std::string{BasicDefinition::magic.begin(), BasicDefinition::magic.end()}), "Mismatch Crypt-Data magic", "process");
             	auto size = view.readUint64();
 				if (view.size() > 0x112){
 					auto index = 0;

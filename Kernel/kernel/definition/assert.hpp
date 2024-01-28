@@ -11,7 +11,12 @@ namespace Sen::Kernel {
 
 	#define try_assert(conditional, message) \
 	if (!(conditional)) { \
-		throw Exception(message); \
+		throw Exception(message, std::source_location::current()); \
+	}
+
+	#define assert_conditional(conditional, message, function_name)\
+	if (!(conditional)) { \
+		throw Exception(message, std::source_location::current(), function_name); \
 	}
 
 	/**
@@ -36,6 +41,7 @@ namespace Sen::Kernel {
 	std::string arg;
 
 	public:
+		std::string function_name;
 		std::string source;
 		Exception() = default;
 		Exception(const Exception &that) = default;
@@ -48,7 +54,7 @@ namespace Sen::Kernel {
 			return this->arg;
 		}
 
-		Exception(const std::string &arg, const std::source_location &loc = std::source_location::current()) : std::runtime_error(arg), source(std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line())), arg(arg)
+		Exception(const std::string &arg, const std::source_location &loc = std::source_location::current(), const std::string & function_name = "") : std::runtime_error(arg), source(std::string{loc.file_name()} + std::string{":"} + std::to_string(loc.line())), arg(arg), function_name(function_name)
 		{
 			{
 					auto current_stack = source;

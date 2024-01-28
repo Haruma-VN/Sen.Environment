@@ -202,7 +202,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						return element;
 					}
 				}
-				throw Exception(fmt::format("Cannot find id {} in resource group", id));
+				throw Exception(fmt::format("Cannot find id {} in resource group", id), std::source_location::current(), "first_where");
 			}
 
 		
@@ -214,11 +214,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			 * return: res info
 			*/
 
-			auto convert_whole(
+			inline auto convert_whole(
 				const nlohmann::ordered_json & resource_group
 			) -> nlohmann::ordered_json
 			{
-				try_assert(resource_group.find("groups") != resource_group.end(), fmt::format("\"{}\" cannot be null in resource group", "groups"));
+				assert_conditional(resource_group.find("groups") != resource_group.end(), fmt::format("\"{}\" cannot be null in resource group", "groups"), "convert_whole");
 				auto result = nlohmann::ordered_json {
 					{"expand_path", thiz.use_string_for_style ? Common::String : Common::Array}
 				};

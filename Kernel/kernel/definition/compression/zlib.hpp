@@ -208,7 +208,7 @@ namespace Sen::Kernel::Definition::Compression {
 				zlib_init.avail_in = 0;
 				zlib_init.next_in = Z_NULL;
 				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
-					throw Exception(fmt::format("{}", Language::get("gzip.init_stream.failed")));
+					throw Exception(fmt::format("{}", Language::get("gzip.init_stream.failed")), std::source_location::current(), "uncompress_gzip");
 				}
 				zlib_init.avail_in = static_cast<uInt>(data.size());
 				zlib_init.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data.data()));
@@ -226,7 +226,7 @@ namespace Sen::Kernel::Definition::Compression {
 					}
 					if(ret != Z_OK){
 						inflateEnd(&zlib_init);
-						throw Exception(fmt::format("{}", Language::get("gzip.uncompress.failed"))); 
+						throw Exception(fmt::format("{}", Language::get("gzip.uncompress.failed")), std::source_location::current(), "uncompress_gzip"); 
 					}
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
@@ -266,7 +266,7 @@ namespace Sen::Kernel::Definition::Compression {
 				auto data = FileSystem::read_binary<unsigned char>(fileIn);
 				auto uncompressedData = Zlib::uncompress(data);
 				if(uncompressedData.empty()){
-					throw Exception(fmt::format("{}: {}", Language::get("gzip.uncompress.file_is_not_compressed"), fileIn));
+					throw Exception(fmt::format("{}: {}", Language::get("gzip.uncompress.file_is_not_compressed"), fileIn), std::source_location::current(), "uncompress_fs");
 				}
 				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
 				return;
