@@ -70,5 +70,6 @@
     "popcap.animation.decode": "PopCap Animation: PAM sang JSON",
     "popcap.animation.invalid_magic": "PAM Magic không hợp lệ",
     "popcap.animation.invalid_version": "Phiên bản PAM không hợp lệ, yêu cầu phiên bản 1 đến 6 nhưng nhận được",
-    "popcap.animation.duplicate_image": "Trình tự chứa tên trùng lặp, tên trùng lặp"
+    "popcap.animation.duplicate_image": "Trình tự chứa tên trùng lặp, tên trùng lặp",
+    "at": "tại"
 }

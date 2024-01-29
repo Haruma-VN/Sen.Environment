@@ -346,12 +346,11 @@ namespace Sen::Kernel::FileSystem
 		const std::vector<T> & data
 	) -> void
 	{
-		auto out = std::ofstream(outFile.data(), std::ios::binary);
-		if(!out.is_open()){
+		auto out = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(outFile.data(), "wb"), Language::close_file);
+		if(!out){
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error") ,outFile), std::source_location::current(), "write_binary");
 		}
-		out.write(reinterpret_cast<const char *>(data.data()), data.size());
-		out.close();
+		fwrite(reinterpret_cast<const char *>(data.data()), sizeof(T), data.size(), out.get());
 		return;
 	}
 

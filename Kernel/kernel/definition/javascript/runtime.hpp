@@ -215,7 +215,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view source_file
 			) -> JSValue
 			{
-				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_TYPE_GLOBAL);
+				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
 				if(JS_IsException(eval_result)){
 					throw Exception(thiz.exception(eval_result), std::source_location::current(), "evaluate");
 				}

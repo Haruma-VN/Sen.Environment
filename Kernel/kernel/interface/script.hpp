@@ -5,10 +5,12 @@
 #define M_JS_EXCEPTION_THROW(context, error, source, function_name)                       \
 	auto evaluate_context = fmt::format("function {}()", function_name); \
 	evaluate_context += "{";\
-	evaluate_context += fmt::format("throw new Error(`{}`);", error);\
+	evaluate_context += fmt::format("let e = Error(`{}`);", error);\
+	evaluate_context += fmt::format("e.source = `{}`;", source);\
+	evaluate_context += fmt::format("throw e;");\
 	evaluate_context += "}";\
 	evaluate_context += fmt::format("\n{}();", function_name);\
-	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_TYPE_GLOBAL);
+	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
 
 #define M_JS_PROXY_WRAPPER(context, code, func_name)                                         \
 	try code catch (...)                                                             \
@@ -3964,25 +3966,31 @@ namespace Sen::Kernel::Interface::Script {
 
 		namespace DataStreamView {
 
-			template <bool T>
+			inline static auto constexpr BooleanConstraint = true;
+
+			template <auto T> requires BooleanConstraint
 			using Data = Definition::Buffer::Stream<T>;
 
-			static JSClassID class_id;
+			template <auto use_big_endian> requires BooleanConstraint
+			struct ClassID {
+				inline static JSClassID class_id = 0;
+			};
 
-			template <bool T>
+
+			template <auto T> requires BooleanConstraint
 			inline static auto finalizer(
 				JSRuntime* rt, 
 				JSValue val
 			) -> void
 			{
-				auto s = (Data<T>*)JS_GetOpaque(val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque(val, ClassID<T>::class_id);
 				if (s) {
 					delete s;
 				}
 				return;
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto constructor(
 				JSContext* ctx, 
 				JSValueConst new_target, 
@@ -4006,7 +4014,7 @@ namespace Sen::Kernel::Interface::Script {
 				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
 				if (JS_IsException(proto))
 					goto fail;
-				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				obj = JS_NewObjectProtoClass(ctx, proto, ClassID<T>::class_id);
 				JS_FreeValue(ctx, proto);
 				if (JS_IsException(obj))
 					goto fail;
@@ -4018,20 +4026,20 @@ namespace Sen::Kernel::Interface::Script {
 				return JS_EXCEPTION;
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto this_class = JSClassDef {
 				.class_name = "DataStreamView",
 				.finalizer = finalizer<T>,
 			};
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto getter(
 				JSContext* ctx, 
 				JSValueConst this_val, 
 				int magic
 			) -> JSValue
 			{
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 				if (!s) {
 					return JS_EXCEPTION;
 				}
@@ -4043,7 +4051,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto setter(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4051,7 +4059,7 @@ namespace Sen::Kernel::Interface::Script {
 				int magic
 			) -> JSValue
 			{
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 				auto v = std::int64_t{};
 				if (!s){
 					return JS_EXCEPTION;
@@ -4067,7 +4075,7 @@ namespace Sen::Kernel::Interface::Script {
 				return JS_UNDEFINED;
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto size(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4077,7 +4085,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx,{
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4085,7 +4093,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "size"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto capacity(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4095,7 +4103,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4103,7 +4111,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "capacity"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto fromString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4113,7 +4121,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4122,7 +4130,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "fromString"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto reserve(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4132,7 +4140,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4171,7 +4179,7 @@ namespace Sen::Kernel::Interface::Script {
 
 			#pragma endregion
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto toUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4181,7 +4189,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4189,7 +4197,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "toUint8Array"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto toArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4199,7 +4207,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4207,7 +4215,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "toArrayBuffer"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto getArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4217,7 +4225,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4227,7 +4235,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "getArrayBuffer"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto getUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4237,7 +4245,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("argument expected 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4247,7 +4255,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "getUint8Array"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto toString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4257,7 +4265,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4265,7 +4273,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "toString"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto out_file(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4275,7 +4283,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("argument expected 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4284,7 +4292,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "out_file"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4294,7 +4302,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4313,7 +4321,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4323,7 +4331,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4342,7 +4350,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4352,7 +4360,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4371,7 +4379,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint24"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4381,7 +4389,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4400,7 +4408,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4410,7 +4418,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4429,7 +4437,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4439,7 +4447,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4458,7 +4466,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeInt8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4468,7 +4476,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4487,7 +4495,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeInt16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeInt24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4497,7 +4505,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4516,7 +4524,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeInt24"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4526,7 +4534,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4545,7 +4553,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4555,7 +4563,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4599,7 +4607,7 @@ namespace Sen::Kernel::Interface::Script {
 
 			#pragma endregion
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeArrayBuffer(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4609,7 +4617,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4618,7 +4626,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeArrayBuffer"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint8Array(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4628,7 +4636,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4642,7 +4650,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeUint8Array"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeFloat(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4652,7 +4660,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4671,7 +4679,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeFloat"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeDouble(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4681,7 +4689,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4700,7 +4708,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeDouble"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4710,7 +4718,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4729,7 +4737,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeVarInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeVarInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4739,7 +4747,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4758,7 +4766,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeVarInt64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeZigZag32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4768,7 +4776,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4787,7 +4795,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeZigZag32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeZigZag64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4797,7 +4805,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4816,7 +4824,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeZigZag64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4826,7 +4834,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4845,7 +4853,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeString"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringFourByte(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4855,7 +4863,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4874,7 +4882,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringFourByte"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeNull(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4884,7 +4892,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4903,7 +4911,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeNull"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeBoolean(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4913,7 +4921,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4932,7 +4940,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeBoolean"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4942,7 +4950,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4961,7 +4969,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByUint8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -4971,7 +4979,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -4990,7 +4998,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByUint16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5000,7 +5008,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5019,7 +5027,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByUint32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5029,7 +5037,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5048,7 +5056,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByInt8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5058,7 +5066,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5077,7 +5085,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByInt16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5087,7 +5095,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5106,7 +5114,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto writeStringByEmpty(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5116,7 +5124,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5135,7 +5143,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "writeStringByEmpty"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5145,7 +5153,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint8_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5160,7 +5168,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readUint8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5170,7 +5178,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint16_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5185,7 +5193,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readUint16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readUint24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5195,7 +5203,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5210,7 +5218,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readUint24"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5220,7 +5228,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5235,7 +5243,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readUint32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5245,7 +5253,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5260,7 +5268,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readUint64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5270,7 +5278,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int8_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5285,7 +5293,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readInt8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5295,7 +5303,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int16_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5310,7 +5318,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readInt16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readInt24(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5320,7 +5328,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5335,7 +5343,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readInt24"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5345,7 +5353,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5360,7 +5368,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5370,7 +5378,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5385,7 +5393,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readInt64"_sv);
 			}
 			
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readString(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5395,7 +5403,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5413,7 +5421,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readString"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5423,7 +5431,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5438,7 +5446,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByUint8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByUint16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5448,7 +5456,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5463,7 +5471,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByUint16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5473,7 +5481,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5488,7 +5496,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByUint32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByInt8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5498,7 +5506,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5513,7 +5521,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByInt8"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByInt16(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5523,7 +5531,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5538,7 +5546,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByInt16"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5548,7 +5556,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5563,7 +5571,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5573,7 +5581,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5588,7 +5596,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByVarInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readStringByEmpty(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5598,7 +5606,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = std::string{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5613,7 +5621,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readStringByEmpty"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readVarInt32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5623,7 +5631,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5638,7 +5646,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readVarInt32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readVarInt64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5648,7 +5656,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5663,7 +5671,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readVarInt64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readVarUint32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5673,7 +5681,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5688,7 +5696,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readVarUint32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readVarUint64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5698,7 +5706,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = uint64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5713,7 +5721,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readVarUint64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readZigZag32(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5723,7 +5731,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int32_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5738,7 +5746,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readZigZag32"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readZigZag64(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5748,7 +5756,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = int64_t{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5763,7 +5771,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readZigZag64"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readFloat(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5773,7 +5781,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = float{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5788,7 +5796,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readFloat"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto readDouble(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5798,7 +5806,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					auto v = double{};
 					if (!s) {
 						return JS_EXCEPTION;
@@ -5813,7 +5821,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "readDouble"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static auto close(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -5823,7 +5831,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, class_id);
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::class_id);
 					if (!s) {
 						return JS_EXCEPTION;
 					}
@@ -5832,7 +5840,7 @@ namespace Sen::Kernel::Interface::Script {
 				}, "close"_sv);
 			}
 
-			template <bool T>
+			template <auto T> requires BooleanConstraint
 			inline static const JSCFunctionListEntry proto_functions[] = {
 				JS_CPPGETSET_MAGIC_DEF("read_position", getter<T>, setter<T>, 0),
 				JS_CPPGETSET_MAGIC_DEF("write_position", getter<T>, setter<T>, 1),
@@ -5906,10 +5914,10 @@ namespace Sen::Kernel::Interface::Script {
 			};
 
 			
-			template <bool use_big_endian>
+			template <auto use_big_endian> requires BooleanConstraint
 			inline static auto register_class(JSContext* ctx) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class<use_big_endian>);
+				ClassID<use_big_endian>::class_id = JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::class_id, &this_class<use_big_endian>);
 				auto class_name = std::string_view{};
 				if constexpr (use_big_endian) {
 					class_name = "DataStreamViewUseBigEndian"_sv;

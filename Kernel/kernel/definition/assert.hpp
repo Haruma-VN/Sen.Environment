@@ -80,14 +80,17 @@ namespace Sen::Kernel {
 		try {
 			std::rethrow_exception(std::current_exception());
 		}
-		catch(const Exception &ex){
-			return ex;
+		catch(Exception &ex){
+			return Exception{ ex };
+		}
+		catch (std::system_error& ex) {
+			return static_cast<Exception>(ex.what());
 		}
 		catch(const std::exception &ex){
 			return static_cast<Exception>(ex.what());
 		}
 		catch(...){
-			return static_cast<Exception>("Undefined Exception caught");
+			return static_cast<Exception>("Undefined exception caught");
 		}
 		return Exception{"Undefined exception"};
 	}

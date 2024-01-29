@@ -421,7 +421,7 @@ namespace Sen::Kernel::Interface {
 				// DataStreamViewUseBigEndian
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
 				javascript->evaluate_fs(script_path);
-				javascript->evaluate("Sen.Script.main()", std::source_location::current().function_name());
+				javascript->evaluate("Sen.Script.main()", std::source_location::current().file_name());
 				return;
 			}
 	};

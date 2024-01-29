@@ -157,6 +157,19 @@ namespace Sen.Script {
         }
     }
 
+    export namespace Exception {
+        export function make_stack(stack: string): string {
+            return stack
+                .replace(/(\s)at(\s)/g, ` ${Kernel.Language.get("at")} `)
+                .replace(/\(native\)/gm, Kernel.Language.get("(Kernel/kernel/interface/script.hpp:?)"))
+                .replace(/(?<=\()(.*)(?=(Kernel|Script))/gm, "")
+                .replaceAll("\\", "/")
+                .split("\n")
+                .filter((e: string) => !/(\s)<eval>(\s)/g.test(e))
+                .join("\n");
+        }
+    }
+
     /**
      * --------------------------------------------------
      * Script version
@@ -197,6 +210,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             let key = "65bd1b2305f46eb2806b935aab7630bb";
+            let view = new Kernel.DataStreamView();
             // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
             //     "popcap.atlas.split_by_resource_group",
             //     {
@@ -209,8 +223,8 @@ namespace Sen.Script {
             // );
         } catch (e: unknown & any) {
             result = e.message;
-            result += `\n`;
-            result += e.stack;
+            result += "\n";
+            result += Exception.make_stack(e.stack);
             result = result.replace(/\n$/, ``);
         }
         return result;

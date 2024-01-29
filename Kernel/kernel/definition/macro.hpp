@@ -46,6 +46,18 @@ return INSTANCE;\
 
 #define M_INSTANCE_OF_CLASS(class_name) M_INSTANCE_OF_STRUCT(class_name)
 
+#define HAS_ARGS(...) BOOL(FIRST(__VA_ARGS__))
+#define BOOL(x) BOOL_ ## x
+#define BOOL_0 0
+#define BOOL_1 1
+#define FIRST(a, ...) a
+#define IF_ELSE(condition) _IF_ELSE(BOOL(condition))
+#define _IF_ELSE(condition) _IF_ ## condition
+#define _IF_1(...) __VA_ARGS__ _IF_1_ELSE
+#define _IF_0(...)             _IF_0_ELSE
+#define _IF_1_ELSE(...)
+#define _IF_0_ELSE(...) __VA_ARGS__
+
 namespace Sen::Kernel {
 	
 }

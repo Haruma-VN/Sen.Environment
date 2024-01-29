@@ -71,5 +71,6 @@
     "popcap.animation.decode": "PopCap Animation: PAM to JSON",
     "popcap.animation.invalid_magic": "Invalid PAM magic",
     "popcap.animation.invalid_version": "Invalid PAM version, expected from version 1 to 6 but received",
-    "popcap.animation.duplicate_image": "Sequence contains duplicate name, duplicated name"
+    "popcap.animation.duplicate_image": "Sequence contains duplicate name, duplicated name",
+    "at": "at"
 }
