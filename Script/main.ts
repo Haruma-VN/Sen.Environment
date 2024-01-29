@@ -157,11 +157,23 @@ namespace Sen.Script {
         }
     }
 
+    /**
+     * JS exception
+     */
+
     export namespace Exception {
+        /**
+         * --------------------------------------------------
+         * JS make stack, it can catch c++ code too
+         * @param stack - current stack
+         * @returns newly stack
+         * --------------------------------------------------
+         */
+
         export function make_stack(stack: string): string {
             return stack
                 .replace(/(\s)at(\s)/g, ` ${Kernel.Language.get("at")} `)
-                .replace(/\(native\)/gm, Kernel.Language.get("(Kernel/kernel/interface/script.hpp:?)"))
+                .replace(/\(native\)/gm, "(Kernel/kernel/interface/script.hpp:?)")
                 .replace(/(?<=\()(.*)(?=(Kernel|Script))/gm, "")
                 .replaceAll("\\", "/")
                 .split("\n")
@@ -210,7 +222,24 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             let key = "65bd1b2305f46eb2806b935aab7630bb";
-            let view = new Kernel.DataStreamView();
+            let before = Date.now();
+            Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process(
+                "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+                {
+                    height: 4096,
+                    width: 4096,
+                    padding: 1,
+                },
+                {
+                    allowRotation: false,
+                    pot: false,
+                    smart: true,
+                    square: false,
+                },
+                "D:/test/test",
+            );
+            let after = Date.now();
+            Console.send(`Time spent: ${(after - before) / 1000}s`);
             // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
             //     "popcap.atlas.split_by_resource_group",
             //     {
@@ -225,7 +254,7 @@ namespace Sen.Script {
             result = e.message;
             result += "\n";
             result += Exception.make_stack(e.stack);
-            result = result.replace(/\n$/, ``);
+            result = result.replace(/\n$/, "");
         }
         return result;
     }
@@ -254,26 +283,26 @@ namespace Sen.Script {
          */
 
         export const script_list: Array<string> = [
-            `~/Third/maxrects-packer/maxrects-packer.js`,
-            `~/Setting/Setting.js`,
-            `~/utility/Definition.js`,
-            `~/utility/Clock.js`,
-            `~/Support/Texture/Format.js`,
-            `~/Support/PopCap/ResourceGroup/Convert.js`,
-            `~/Support/PopCap/Atlas/Structure.js`,
-            `~/Support/PopCap/Atlas/Split.js`,
-            `~/Support/PopCap/Atlas/Pack.js`,
-            `~/Executor/Executor.js`,
-            `~/Executor/Methods/js.evaluate.js`,
-            `~/Executor/Methods/data.md5.hash.js`,
-            `~/Executor/Methods/data.base64.encode.js`,
-            `~/Executor/Methods/data.base64.decode.js`,
-            `~/Executor/Methods/popcap.rton.decode.js`,
-            `~/Executor/Methods/popcap.rton.encode.js`,
-            `~/Executor/Methods/popcap.newton.decode.js`,
-            `~/Executor/Methods/popcap.animation.decode.js`,
-            `~/Executor/Methods/popcap.animation.encode.js`,
-            `~/Executor/Methods/popcap.atlas.split_by_resource_group.js`,
+            "~/Third/maxrects-packer/maxrects-packer.js",
+            "~/Setting/Setting.js",
+            "~/utility/Definition.js",
+            "~/utility/Clock.js",
+            "~/Support/Texture/Format.js",
+            "~/Support/PopCap/ResourceGroup/Convert.js",
+            "~/Support/PopCap/Atlas/Structure.js",
+            "~/Support/PopCap/Atlas/Split.js",
+            "~/Support/PopCap/Atlas/Pack.js",
+            "~/Executor/Executor.js",
+            "~/Executor/Methods/js.evaluate.js",
+            "~/Executor/Methods/data.md5.hash.js",
+            "~/Executor/Methods/data.base64.encode.js",
+            "~/Executor/Methods/data.base64.decode.js",
+            "~/Executor/Methods/popcap.rton.decode.js",
+            "~/Executor/Methods/popcap.rton.encode.js",
+            "~/Executor/Methods/popcap.newton.decode.js",
+            "~/Executor/Methods/popcap.animation.decode.js",
+            "~/Executor/Methods/popcap.animation.encode.js",
+            "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
         ];
     }
 }

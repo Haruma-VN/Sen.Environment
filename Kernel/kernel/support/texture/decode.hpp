@@ -116,7 +116,7 @@ namespace Sen::Kernel::Support::Texture {
 				int height
 			) -> Image<int>
 			{
-				return Image<int>(width, height, color);
+				return Image<int>(0, 0, width, height, color);
 			}
 
 			/**
@@ -165,7 +165,7 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = static_cast<unsigned char>((alpha << 4) | alpha);
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -197,7 +197,7 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = PixelColor::NON_ALPHA;
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -229,7 +229,7 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = static_cast<unsigned char>(-(temp_pixel & 0x1));
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -268,7 +268,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -306,7 +306,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -344,7 +344,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -390,7 +390,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -463,7 +463,7 @@ namespace Sen::Kernel::Support::Texture {
 						data[index + 3] = index_table[readBits(bit_depth, bitPostion, buffer, sen)];
 					}
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			/**
@@ -511,7 +511,7 @@ namespace Sen::Kernel::Support::Texture {
 					data.emplace_back(c.b);
 					data.emplace_back(c.a);
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 
 				// auto sen = DataStreamView{color};
 				// auto area = pixel_area_rgba(width, height);
@@ -560,7 +560,7 @@ namespace Sen::Kernel::Support::Texture {
 				}
 
 				// todo
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto a_8(
@@ -578,7 +578,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = Decode::NON_ALPHA;
 					data[i + 3] = sen.readUint8();
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto argb_1555(
@@ -600,7 +600,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = ((blue << 3) | (blue >> 2));
 					data[i + 3] = static_cast<unsigned char>(-(pixel_color >> 15));
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto argb_4444(
@@ -623,7 +623,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = (blue << 4) | blue;
 					data[i + 3] = (alpha << 4) | alpha;
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto l_8(
@@ -642,7 +642,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = color;
 					data[i + 3] = Decode::NON_ALPHA;
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto la_44(
@@ -664,7 +664,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = color;
 					data[i + 3] = (alpha | (alpha << 4));
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 
 			inline static auto la_88(
@@ -684,7 +684,7 @@ namespace Sen::Kernel::Support::Texture {
 					data[i + 2] = color;
 					data[i + 3] = (pixel_color & 0xFF);
 				}
-				return Image<int>{width, height, data};
+				return Image<int>{0, 0, width, height, data};
 			}
 	};
 }

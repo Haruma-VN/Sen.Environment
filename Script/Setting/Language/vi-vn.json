@@ -44,7 +44,7 @@
     "js.converter.failed_convert_number_to_double": "Không thể chuyển JS Number thành double",
     "js.converter.failed_convert_number_to_float": "Không thể chuyển đổi JS Number thành float",
     "js.converter.failed_convert_number_to_long_long": "Không thể chuyển đổi JS Number thành long long",
-    "js.converter.failed_convert_bigint_to_long_long": "Failed to convert JS Bigint to long long",
+    "js.converter.failed_convert_bigint_to_long_long": "Không thể chuyển đổi JS Bigint sang long long",
     "js.converter.failed_convert_number_to_unsigned_int": "Không thể chuyển đổi JS Number thành unsigned int",
     "js.converter.failed_convert_number_to_unsigned_long_long": "Không thể chuyển đổi JS Number thành unsigned long long",
     "js.converter.failed_to_get_js_array_buffer": "Không thể lấy được JS ArrayBuffer",

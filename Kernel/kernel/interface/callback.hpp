@@ -203,6 +203,8 @@ namespace Sen::Kernel::Interface {
 				{
 					// scale_fs
 					javascript->add_proxy(Script::Image::scale_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "scale_fs"_sv);
+					// join_png
+					javascript->add_proxy(Script::Image::join_png, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join_png"_sv);
 					// transparent_fs
 					javascript->add_proxy(Script::Image::transparent_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "transparent_fs"_sv);
 					// resize_fs
@@ -305,107 +307,113 @@ namespace Sen::Kernel::Interface {
 				// base64
 				{
 					// encode base64
-					javascript->add_proxy(Script::Encryption::Base64::encode, "Sen", "Kernel", "Encryption", "Base64", "encode");
+					javascript->add_proxy(Script::Encryption::Base64::encode, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "encode"_sv);
 					// decode base64
-					javascript->add_proxy(Script::Encryption::Base64::decode, "Sen", "Kernel", "Encryption", "Base64", "decode");
+					javascript->add_proxy(Script::Encryption::Base64::decode, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "decode"_sv);
 					// encode base64 for file
-					javascript->add_proxy(Script::Encryption::Base64::encode_fs, "Sen", "Kernel", "Encryption", "Base64", "encode_fs");
+					javascript->add_proxy(Script::Encryption::Base64::encode_fs, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "encode_fs"_sv);
 					// decode base64 for file
-					javascript->add_proxy(Script::Encryption::Base64::decode_fs, "Sen", "Kernel", "Encryption", "Base64", "decode_fs");
+					javascript->add_proxy(Script::Encryption::Base64::decode_fs, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "decode_fs"_sv);
 					// encode base64 for file as thread
-					javascript->add_proxy(Script::Encryption::Base64::encode_fs_as_multiple_threads, "Sen", "Kernel", "Encryption", "Base64", "encode_fs_as_multiple_thread");
+					javascript->add_proxy(Script::Encryption::Base64::encode_fs_as_multiple_threads, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "encode_fs_as_multiple_thread"_sv);
 					// decode base64 for file as thread
-					javascript->add_proxy(Script::Encryption::Base64::decode_fs_as_multiple_threads, "Sen", "Kernel", "Encryption", "Base64", "decode_fs_as_multiple_threads");
+					javascript->add_proxy(Script::Encryption::Base64::decode_fs_as_multiple_threads, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Base64"_sv, "decode_fs_as_multiple_threads"_sv);
 				}
 				// texture
 				{
-					javascript->add_proxy(Script::Support::Texture::decode_fs, "Sen", "Kernel", "Support", "Texture","decode_fs");
-					javascript->add_proxy(Script::Support::Texture::encode_fs, "Sen", "Kernel", "Support", "Texture", "encode_fs");
+					// decode fs
+					javascript->add_proxy(Script::Support::Texture::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Texture"_sv,"decode_fs"_sv);
+					// encode fs
+					javascript->add_proxy(Script::Support::Texture::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Texture"_sv, "encode_fs"_sv);
 				}
 				// newton
 				{
-					javascript->add_proxy(Script::Support::PopCap::Newton::decode_fs, "Sen", "Kernel", "Support", "PopCap", "Newton", "decode_fs");
-					javascript->add_proxy(Script::Support::PopCap::Newton::encode_fs, "Sen", "Kernel", "Support", "PopCap", "Newton", "encode_fs");
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::Newton::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Newton"_sv, "decode_fs"_sv);
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::Newton::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Newton"_sv, "encode_fs"_sv);
 				}
 				// rton
 				{
 					// decode fs
-					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decode_fs");
+					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "decode_fs"_sv);
 					// decode_fs_as_multiple_threads
-					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs_as_multiple_threads, "Sen", "Kernel", "Support", "PopCap", "RTON", "decode_fs_as_multiple_threads");
+					javascript->add_proxy(Script::Support::PopCap::RTON::decode_fs_as_multiple_threads, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "decode_fs_as_multiple_threads"_sv);
 					// decrypt fs
-					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decrypt_fs");
+					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "decrypt_fs"_sv);
 					// decrypt_and_decode_fs
-					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_and_decode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "decrypt_and_decode_fs");
+					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_and_decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "decrypt_and_decode_fs"_sv);
 					// encode fs
-					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, "Sen", "Kernel", "Support", "PopCap", "RTON", "encode_fs");
+					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "encode_fs"_sv);
 					// encode_fs_as_multiple_threads
-					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs_as_multiple_threads, "Sen", "Kernel", "Support", "PopCap", "RTON", "encode_fs_as_multiple_threads");
+					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs_as_multiple_threads, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "encode_fs_as_multiple_threads"_sv);
 				}
 				// zlib
 				{
-					javascript->add_proxy(Script::Support::PopCap::Zlib::uncompress_fs, "Sen", "Kernel", "Support", "PopCap", "Zlib", "uncompress_fs");
-					javascript->add_proxy(Script::Support::PopCap::Zlib::compress_fs, "Sen", "Kernel", "Support", "PopCap", "Zlib", "compress_fs");
+					// uncompress fs
+					javascript->add_proxy(Script::Support::PopCap::Zlib::uncompress_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "uncompress_fs"_sv);
+					// compress fs
+					javascript->add_proxy(Script::Support::PopCap::Zlib::compress_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "compress_fs"_sv);
 				}
 				// compiled text
 				{
-					javascript->add_proxy(Script::Support::PopCap::CompiledText::decode_fs, "Sen", "Kernel", "Support", "PopCap", "CompiledText", "decode_fs");
-					javascript->add_proxy(Script::Support::PopCap::CompiledText::encode_fs, "Sen", "Kernel", "Support", "PopCap", "CompiledText", "encode_fs");
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::CompiledText::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CompiledText"_sv, "decode_fs"_sv);
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::CompiledText::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CompiledText"_sv, "encode_fs"_sv);
 				}
 				// render-effects
 				{
 					// decode fs
-					javascript->add_proxy(Script::Support::PopCap::RenderEffects::decode_fs, "Sen", "Kernel", "Support", "PopCap", "RenderEffects", "decode_fs");
+					javascript->add_proxy(Script::Support::PopCap::RenderEffects::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RenderEffects"_sv, "decode_fs"_sv);
 					// encode fs
-					javascript->add_proxy(Script::Support::PopCap::RenderEffects::encode_fs, "Sen", "Kernel", "Support", "PopCap", "RenderEffects", "encode_fs");
+					javascript->add_proxy(Script::Support::PopCap::RenderEffects::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RenderEffects"_sv, "encode_fs"_sv);
 				}
 				// crypt-data
 				{
 					// decrypt fs
-					javascript->add_proxy(Script::Support::PopCap::CryptData::decrypt_fs, "Sen", "Kernel", "Support", "PopCap", "CryptData", "decrypt_fs");
+					javascript->add_proxy(Script::Support::PopCap::CryptData::decrypt_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CryptData"_sv, "decrypt_fs"_sv);
 					// encrypt fs
-					javascript->add_proxy(Script::Support::PopCap::CryptData::encrypt_fs, "Sen", "Kernel", "Support", "PopCap", "CryptData", "encrypt_fs");
+					javascript->add_proxy(Script::Support::PopCap::CryptData::encrypt_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CryptData"_sv, "encrypt_fs"_sv);
 				}
 				// character-font-widget-2
 				{
 					// decode fs
-					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::decode_fs, "Sen", "Kernel", "Support", "PopCap", "CharacterFontWidget2", "decode_fs");
+					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CharacterFontWidget2"_sv, "decode_fs"_sv);
 					// encode fs
-					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::encode_fs, "Sen", "Kernel", "Support", "PopCap", "CharacterFontWidget2", "encode_fs");
+					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CharacterFontWidget2"_sv, "encode_fs"_sv);
 				}
 				// rsb
 				{
-					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, "Sen", "Kernel", "Support", "PopCap", 
-					"RSB", "unpack_fs");
-					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen", "Kernel", "Support", "PopCap", 
-					"RSB", "pack_fs");
+					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_fs"_sv);
 				}
 				// rsg
 				{
-					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_fs, "Sen", "Kernel", "Support", "PopCap", "RSG", "unpack_fs");
-					javascript->add_proxy(Script::Support::PopCap::RSG::pack_fs, "Sen", "Kernel", "Support", "PopCap", "RSG", "pack_fs");
+					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "unpack_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::RSG::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "pack_fs"_sv);
 				}
 				// pam
 				{
-					javascript->add_proxy(Script::Support::PopCap::Animation::decode_fs, "Sen", "Kernel", "Support", "PopCap", "Animation", "decode_fs");
-					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, "Sen", "Kernel", "Support", "PopCap", "Animation", "encode_fs");
+					javascript->add_proxy(Script::Support::PopCap::Animation::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "decode_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "encode_fs"_sv);
 				}
 				// bnk
 				{
-					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, "Sen", "Kernel", "Support", "WWise", "SoundBank", "decode_fs");
-					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, "Sen", "Kernel", "Support", "WWise", "SoundBank", "encode_fs");
+					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "decode_fs"_sv);
+					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "encode_fs"_sv);
 				}
 				// resource group
 				{
-					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::split_fs, "Sen", "Kernel", "Support", "PopCap", "ResourceGroup", "split_fs");
-					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::merge_fs, "Sen", "Kernel", "Support", "PopCap", "ResourceGroup", "merge_fs");
-					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::convert_fs, "Sen", "Kernel", "Support", "PopCap", "ResourceGroup", "convert_fs");
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::split_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "split_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::merge_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "merge_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "convert_fs"_sv);
 				}
 				// res info
 				{
-					javascript->add_proxy(Script::Support::PopCap::ResInfo::split_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "split_fs");
-					javascript->add_proxy(Script::Support::PopCap::ResInfo::merge_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "merge_fs");
-					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen", "Kernel", "Support", "PopCap", "ResInfo", "convert_fs");
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::split_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "split_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::merge_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "merge_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "convert_fs"_sv);
 				}
 				// dimension
 				{
@@ -420,8 +428,10 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
 				// DataStreamViewUseBigEndian
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
+				// execute the script
 				javascript->evaluate_fs(script_path);
-				javascript->evaluate("Sen.Script.main()", std::source_location::current().file_name());
+				// call main
+				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());
 				return;
 			}
 	};

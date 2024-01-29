@@ -10,12 +10,14 @@ namespace Sen::Kernel::Definition {
 
 	template <typename Type>
 	concept Integral = std::is_integral_v<Type>;
+
+	inline static auto constexpr IsCategoryOfInteger = true;
 	
 	/**
 	 * Dimension struct
 	*/
 
-	template <Integral T>
+	template <typename T> requires IsCategoryOfInteger and Integral<T>
 
 	struct Dimension {
 
@@ -72,7 +74,7 @@ namespace Sen::Kernel::Definition {
 	 * Rectangle Struct
 	*/
 
-	template <typename T> requires Integral<T>
+	template <typename T> requires IsCategoryOfInteger and Integral<T>
 
 	struct Rectangle : public Dimension<T> {
 
@@ -103,7 +105,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			constexpr Rectangle(
+			Rectangle(
 				T x, 
 				T y,
 				T width,
@@ -117,7 +119,7 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			constexpr Rectangle(
+			Rectangle(
 				const Dimension<T> &that,
 				T x, 
 				T y
@@ -130,8 +132,15 @@ namespace Sen::Kernel::Definition {
 			 * constructor
 			*/
 
-			constexpr Rectangle(
+			Rectangle(
 				const Rectangle &that
+			) : x(that.x), y(that.y), Dimension<T>(that.width, that.height)
+			{
+
+			}
+
+			Rectangle(
+				Rectangle&& that
 			) : x(that.x), y(that.y), Dimension<T>(that.width, that.height)
 			{
 
@@ -183,8 +192,8 @@ namespace Sen::Kernel::Definition {
 	 * Image struct
 	*/
 
-	template <typename T> requires Integral<T>
-	struct Image : Rectangle<T> {
+	template <typename T> requires IsCategoryOfInteger && Integral<T>
+	struct Image : public Rectangle<T> {
 
 		private:
 
@@ -195,7 +204,6 @@ namespace Sen::Kernel::Definition {
 		public:
 
 			// easy accessible data
-
 			T bit_depth;
 			T color_type;
 			T interlace_type;
@@ -254,7 +262,7 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline auto set_data(
-				const std::vector<unsigned char> &data
+				const std::vector<unsigned char> & data
 			) const -> void
 			{
 				thiz._data = std::move(data);
@@ -286,11 +294,13 @@ namespace Sen::Kernel::Definition {
 			 * default constructor
 			*/
 
-			explicit Image(
-				T width, 
-				T height, 
-				const std::vector<unsigned char> & data
-			) : Rectangle<T>(0, 0, width, height), _data(std::move(data)) 
+			Image(
+				T x,
+				T y,
+				T width,
+				T height,
+				const std::vector<unsigned char>& data
+			) : Rectangle<T>(x, y, width, height), _data(std::move(data))
 			{
 			}
 
@@ -337,14 +347,14 @@ namespace Sen::Kernel::Definition {
 			) -> Image<int> const
 			{
 				auto data = std::vector<unsigned char>{};
-				data.reserve(rectangle.area() * 4);
+				data.reserve(static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(rectangle.area()) * 4);
 				for (auto j : Range<int>(rectangle.y, rectangle.y + rectangle.height, 1)) {
 					for (auto i : Range<int>(rectangle.x, rectangle.x + rectangle.width, 1)) {
 						auto index = (j * image.width + i) * 4;
 						data.insert(data.end(), &image.data()[index], &image.data()[index + 4]);
 					}
 				}
-				return Image<int>(rectangle.width, rectangle.height, data);
+				return Image<int>(0, 0, rectangle.width, rectangle.height, data);
 			}
 
 			/**
@@ -353,10 +363,10 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto transparent(
-				Dimension<T> dimension
+				const Dimension<T> & dimension
 			) -> Image<T>
 			{
-				return Image<T>(dimension.width, dimension.height, std::vector<unsigned char>(dimension.area() * 4, 0x00));
+				return Image<T>(0, 0, dimension.width, dimension.height, std::vector<unsigned char>(dimension.area() * 4, 0x00));
 			}
 
 			/**
@@ -367,8 +377,8 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			inline static auto join(
-				const Image<T> &source,
-				const std::vector<Image<T>> &data
+				const Image<T>& source,
+				const std::vector<Image<T>>& data
 			) -> void
 			{
 				auto source_data = source.data();
@@ -379,7 +389,7 @@ namespace Sen::Kernel::Definition {
 					for (auto j : Range<T>(img.height)) {
 						for (auto i : Range<T>(img.width)) {
 							auto source_index = ((j + img.y) * source.width + (i + img.x)) * 4;
-							auto img_index = (j * img.width + i) * 4; 
+							auto img_index = (j * img.width + i) * 4;
 							source_data[source_index] = img.data()[img_index];
 							source_data[source_index + 1] = img.data()[img_index + 1];
 							source_data[source_index + 2] = img.data()[img_index + 2];
@@ -388,8 +398,8 @@ namespace Sen::Kernel::Definition {
 					}
 				}
 				source.set_data(source_data);
-				return;
 			}
+
 
 			/**
 			 * Resize image algorithm
@@ -415,7 +425,7 @@ namespace Sen::Kernel::Definition {
 						std::copy(&source.data()[old_index], &source.data()[old_index + 4], &resized_image_data[new_index]);
 					}
 				}
-				return Image<T>(new_width, new_height, resized_image_data);
+				return Image<T>(0, 0, new_width, new_height, resized_image_data);
 			}
 
 			/**
@@ -446,7 +456,7 @@ namespace Sen::Kernel::Definition {
 						}
 					}
 				}
-				return Image<T>(new_width, new_height, data);
+				return Image<T>(0, 0, new_width, new_height, data);
 			}
 
 			/**
@@ -478,7 +488,7 @@ namespace Sen::Kernel::Definition {
 					nullptr
 				);
 				auto vec = std::vector<uint8_t>(data.get(), data.get() + area);
-				return Image<int>(new_width, new_height, vec);
+				return Image<int>(0, 0, new_width, new_height, vec);
 			}
 	};
 
@@ -770,14 +780,14 @@ namespace Sen::Kernel::Definition {
 			inline static auto join_png(
 				std::string_view destination,
 				const Dimension<int> & dimension,
-				const std::vector<Image<int>> &data
+				const std::vector<Image<int>> & data
 			) -> void
 			{
-				// create new transparent source
 				auto source = Image<int>::transparent(dimension);
-				// join to source
+				/*std::for_each(data.begin(), data.end(), [](auto &e) {
+					std::printf("x: %d, y: %d\n", e.x, e.y);
+				});*/
 				Image<int>::join(source, data);
-				// write png
 				ImageIO::write_png(destination, source);
 				return;
 			}

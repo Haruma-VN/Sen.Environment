@@ -265,6 +265,8 @@ declare namespace Sen {
              */
 
             export function write(source: string, image: Sen.Kernel.Dimension.Image): void;
+
+            export function join_png(destination: string, dimension: Kernel.Dimension.Structure, data: Array<Kernel.Dimension.Image>): void;
         }
 
         /**
@@ -1620,12 +1622,14 @@ declare namespace Sen {
              */
 
             export interface Image extends Structure {
+                source_file?: string;
                 bit_depth: bigint;
                 color_type: bigint;
                 interlace_type: bigint;
                 channels: bigint;
                 rowbytes: bigint;
                 data: ArrayBuffer;
+                [Symbol.iterator]: () => Iterator<this>;
             }
         }
 
