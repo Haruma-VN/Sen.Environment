@@ -1213,6 +1213,161 @@ namespace Sen::Kernel::Interface::Script {
 		}
 	}
 
+	namespace Dimension {
+
+		inline static auto area(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				auto width_val = JS_GetPropertyStr(context, this_val, "width");
+				auto height_val = JS_GetPropertyStr(context, this_val, "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "area"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "area"_sv);
+				auto width = JS::Converter::get_bigint64(context, width_val);
+				auto height = JS::Converter::get_bigint64(context, height_val);
+				auto area = width * height;
+				JS_FreeValue(context, width_val);
+				JS_FreeValue(context, height_val);
+				return JS_NewBigInt64(context, area);
+				}, "area"_sv);
+		}
+
+		inline static auto circumference(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				auto width_val = JS_GetPropertyStr(context, this_val, "width");
+				auto height_val = JS_GetPropertyStr(context, this_val, "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "circumference"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "circumference"_sv);
+				auto width = JS::Converter::get_bigint64(context, width_val);
+				auto height = JS::Converter::get_bigint64(context, height_val);
+				auto area = (width + height) * 2;
+				JS_FreeValue(context, width_val);
+				JS_FreeValue(context, height_val);
+				return JS_NewBigInt64(context, area);
+				}, "circumference"_sv);
+		}
+
+		/// Create an instance of Dimension object
+
+		inline static auto instance(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto image_obj = JSValue{};
+				auto area_func = JS_NewCFunction(context, area, "area", 0);
+				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
+				image_obj = JS_NewObject(context);
+				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])));
+				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])));
+				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				return image_obj;
+				}, "instance"_sv);
+		}
+
+		inline static auto open(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				auto image = Sen::Kernel::Definition::ImageIO::read_png(JS::Converter::get_c_string(context, argv[0]).get());
+				auto image_obj = JSValue{};
+				auto area_func = JS_NewCFunction(context, area, "area", 0);
+				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
+				image_obj = JS_NewObject(context);
+				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, image.width));
+				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, image.height));
+				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, image.bit_depth));
+				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, image.color_type));
+				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, image.interlace_type));
+				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, image.channels));
+				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, image.rowbytes));
+				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()));
+				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				return image_obj;
+				}, "open"_sv);
+		}
+
+		inline static auto write(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto source_file = JS::Converter::get_c_string(context, argv[0]);
+				auto obj = argv[1];
+				auto width_val = JS_GetPropertyStr(context, obj, "width");
+				auto height_val = JS_GetPropertyStr(context, obj, "height");
+				auto bit_depth_val = JS_GetPropertyStr(context, obj, "bit_depth");
+				auto color_type_val = JS_GetPropertyStr(context, obj, "color_type");
+				auto interlace_type_val = JS_GetPropertyStr(context, obj, "interlace_type");
+				auto channels_val = JS_GetPropertyStr(context, obj, "channels");
+				auto rowbytes_val = JS_GetPropertyStr(context, obj, "rowbytes");
+				auto data_val = JS_GetPropertyStr(context, obj, "data");
+				auto width = int64_t{};
+				auto height = int64_t{};
+				auto bit_depth = int64_t{};
+				auto color_type = int64_t{};
+				auto interlace_type = int64_t{};
+				auto channels = int64_t{};
+				auto rowbytes = int64_t{};
+				auto data_len = size_t{};
+				JS_ToBigInt64(context, &width, width_val);
+				JS_ToBigInt64(context, &height, height_val);
+				JS_ToBigInt64(context, &bit_depth, bit_depth_val);
+				JS_ToBigInt64(context, &color_type, color_type_val);
+				JS_ToBigInt64(context, &interlace_type, interlace_type_val);
+				JS_ToBigInt64(context, &channels, channels_val);
+				JS_ToBigInt64(context, &rowbytes, rowbytes_val);
+				auto data = JS_GetArrayBuffer(context, &data_len, data_val);
+				auto image = Sen::Kernel::Definition::Image<int>(
+					static_cast<int>(width),
+					static_cast<int>(height),
+					static_cast<int>(bit_depth),
+					static_cast<int>(color_type),
+					static_cast<int>(interlace_type),
+					static_cast<int>(channels),
+					static_cast<int>(rowbytes),
+					std::move(std::vector<uint8_t>(data, data + data_len))
+				);
+				Sen::Kernel::Definition::ImageIO::write_png(source_file.get(), image);
+				JS_FreeValue(context, width_val);
+				JS_FreeValue(context, height_val);
+				JS_FreeValue(context, bit_depth_val);
+				JS_FreeValue(context, color_type_val);
+				JS_FreeValue(context, interlace_type_val);
+				JS_FreeValue(context, channels_val);
+				JS_FreeValue(context, rowbytes_val);
+				JS_FreeValue(context, data_val);
+				return JS::Converter::get_undefined();
+				}, "write"_sv);
+		}
+
+	}
+
 	/**
 	 * JavaScript Image Support
 	*/
@@ -1344,6 +1499,90 @@ namespace Sen::Kernel::Interface::Script {
 				JS_FreeValue(context, height);
 				return JS::Converter::get_undefined();
 			}, "join_png"_sv);
+		}
+
+		inline static auto join(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+			{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
+				auto width = JS_GetPropertyStr(context, argv[0], "width");
+				auto height = JS_GetPropertyStr(context, argv[0], "height");
+				M_JS_UNDEFINED_BEHAVIOR(context, width, "width", "join_png"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, height, "height", "join_png"_sv);
+				auto length_value = JS_GetPropertyStr(context, argv[1], "length");
+				auto length = JS::Converter::get_int32(context, length_value);
+				JS_FreeValue(context, length_value);
+				auto m_data = std::vector<Sen::Kernel::Definition::Image<int>>{};
+				auto x_y = std::vector<Coordinate>{};
+				for (auto i : Range<int>(length)) {
+					auto current_object = JS_GetPropertyUint32(context, argv[1], i);
+					auto m_width = JS_GetPropertyStr(context, current_object, "width");
+					auto m_height = JS_GetPropertyStr(context, current_object, "height");
+					auto m_x = JS_GetPropertyStr(context, current_object, "x");
+					auto m_y = JS_GetPropertyStr(context, current_object, "y");
+					auto data_val = JS_GetPropertyStr(context, current_object, "data");
+					M_JS_UNDEFINED_BEHAVIOR(context, m_width, "width", "join"_sv);
+					M_JS_UNDEFINED_BEHAVIOR(context, m_height, "height", "join"_sv);
+					M_JS_UNDEFINED_BEHAVIOR(context, m_x, "x", "join"_sv);
+					M_JS_UNDEFINED_BEHAVIOR(context, m_y, "y", "join"_sv);
+					M_JS_UNDEFINED_BEHAVIOR(context, data_val, "data", "join"_sv);
+					auto data_len = std::size_t{};
+					auto image_x = static_cast<int>(JS::Converter::get_bigint64(context, m_x));
+					auto image_y = static_cast<int>(JS::Converter::get_bigint64(context, m_y));
+					auto image_width = static_cast<int>(JS::Converter::get_bigint64(context, m_width));
+					auto image_height = static_cast<int>(JS::Converter::get_bigint64(context, m_height));
+					auto data = JS_GetArrayBuffer(context, &data_len, data_val);
+					x_y.emplace_back(Coordinate{.x = image_x, .y = image_y});
+					m_data.emplace_back(Sen::Kernel::Definition::Image<int>{
+						image_x,
+						image_y,
+						image_width,
+						image_height,
+						std::move(std::vector<uint8_t>(data, data + data_len))
+					});
+					JS_FreeValue(context, m_width);
+					JS_FreeValue(context, m_height);
+					JS_FreeValue(context, m_x);
+					JS_FreeValue(context, m_y);
+					JS_FreeValue(context, data_val);
+					JS_FreeValue(context, current_object);
+				}
+				for (auto i : Range<size_t>(x_y.size())) {
+					m_data[i].x = x_y[i].x;
+					m_data[i].y = x_y[i].y;
+				}
+				auto destination = Kernel::Definition::Image<int>::transparent(
+					Kernel::Definition::Dimension<int>(
+						static_cast<int>(JS::Converter::get_bigint64(context, width)), 
+						static_cast<int>(JS::Converter::get_bigint64(context, height))
+					)
+				);
+				Sen::Kernel::Definition::ImageIO::join(
+					destination,
+					m_data
+				);
+				auto image_obj = JS_NewObject(context);
+				auto area_func = JS_NewCFunction(context, Dimension::area, "area", 0);
+				auto circumference_func = JS_NewCFunction(context, Dimension::circumference, "circumference", 0);
+				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, destination.width));
+				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, destination.height));
+				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, destination.bit_depth));
+				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, destination.color_type));
+				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, destination.interlace_type));
+				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, destination.channels));
+				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, destination.rowbytes));
+				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, destination.data().data(), destination.data().size()));
+				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeValue(context, width);
+				JS_FreeValue(context, height);
+				return image_obj;
+			}, "join"_sv);
 		}
 
 		/**
@@ -3706,162 +3945,6 @@ namespace Sen::Kernel::Interface::Script {
 			}, "serialize_fs"_sv);
 		}
 	}
-
-	namespace Dimension {
-
-		inline static auto area(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				auto width_val = JS_GetPropertyStr(context, this_val, "width");
-				auto height_val = JS_GetPropertyStr(context, this_val, "height");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "area"_sv);
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "area"_sv);
-				auto width = JS::Converter::get_bigint64(context, width_val);
-				auto height = JS::Converter::get_bigint64(context, height_val);
-				auto area = width * height;
-				JS_FreeValue(context, width_val);
-				JS_FreeValue(context, height_val);
-				return JS_NewBigInt64(context, area);
-			}, "area"_sv);
-		}
-
-		inline static auto circumference(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				auto width_val = JS_GetPropertyStr(context, this_val, "width");
-				auto height_val = JS_GetPropertyStr(context, this_val, "height");
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "width", "circumference"_sv);
-				M_JS_UNDEFINED_BEHAVIOR(context, width_val, "height", "circumference"_sv);
-				auto width = JS::Converter::get_bigint64(context, width_val);
-				auto height = JS::Converter::get_bigint64(context, height_val);
-				auto area = (width + height) * 2;
-				JS_FreeValue(context, width_val);
-				JS_FreeValue(context, height_val);
-				return JS_NewBigInt64(context, area);
-			}, "circumference"_sv);
-		}
-
-		/// Create an instance of Dimension object
-		
-		inline static auto instance(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto image_obj = JSValue{};
-				auto area_func = JS_NewCFunction(context, area, "area", 0);
-				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
-				image_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				return image_obj;
-			}, "instance"_sv);
-		}
-
-		inline static auto open(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto image = Sen::Kernel::Definition::ImageIO::read_png(JS::Converter::get_c_string(context, argv[0]).get());
-				auto image_obj = JSValue{};
-				auto area_func = JS_NewCFunction(context, area, "area", 0);
-				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
-				image_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, image.width));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, image.height));
-				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, image.bit_depth));
-				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, image.color_type));
-				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, image.interlace_type));
-				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, image.channels));
-				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, image.rowbytes));
-				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				return image_obj;
-			}, "open"_sv);
-		}
-
-		inline static auto write(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto source_file = JS::Converter::get_c_string(context, argv[0]);
-				auto obj = argv[1];
-				auto width_val = JS_GetPropertyStr(context, obj, "width");
-				auto height_val = JS_GetPropertyStr(context, obj, "height");
-				auto bit_depth_val = JS_GetPropertyStr(context, obj, "bit_depth");
-				auto color_type_val = JS_GetPropertyStr(context, obj, "color_type");
-				auto interlace_type_val = JS_GetPropertyStr(context, obj, "interlace_type");
-				auto channels_val = JS_GetPropertyStr(context, obj, "channels");
-				auto rowbytes_val = JS_GetPropertyStr(context, obj, "rowbytes");
-				auto data_val = JS_GetPropertyStr(context, obj, "data");
-				auto width = int64_t{};
-				auto height = int64_t{};
-				auto bit_depth = int64_t{};
-				auto color_type = int64_t{};
-				auto interlace_type = int64_t{};
-				auto channels = int64_t{};
-				auto rowbytes = int64_t{};
-				auto data_len = size_t{};
-				JS_ToBigInt64(context, &width, width_val);
-				JS_ToBigInt64(context, &height, height_val);
-				JS_ToBigInt64(context, &bit_depth, bit_depth_val);
-				JS_ToBigInt64(context, &color_type, color_type_val);
-				JS_ToBigInt64(context, &interlace_type, interlace_type_val);
-				JS_ToBigInt64(context, &channels, channels_val);
-				JS_ToBigInt64(context, &rowbytes, rowbytes_val);
-				auto data = JS_GetArrayBuffer(context, &data_len, data_val);
-				auto image = Sen::Kernel::Definition::Image<int>(
-					static_cast<int>(width),
-					static_cast<int>(height),
-					static_cast<int>(bit_depth),
-					static_cast<int>(color_type),
-					static_cast<int>(interlace_type),
-					static_cast<int>(channels),
-					static_cast<int>(rowbytes),
-					std::move(std::vector<uint8_t>(data, data + data_len))
-				);
-				Sen::Kernel::Definition::ImageIO::write_png(source_file.get(), image);
-				JS_FreeValue(context, width_val);
-				JS_FreeValue(context, height_val);
-				JS_FreeValue(context, bit_depth_val);
-				JS_FreeValue(context, color_type_val);
-				JS_FreeValue(context, interlace_type_val);
-				JS_FreeValue(context, channels_val);
-				JS_FreeValue(context, rowbytes_val);
-				JS_FreeValue(context, data_val);
-				return JS::Converter::get_undefined();
-			}, "write"_sv);
-		}
-
-	}
-
 
 
 	namespace XML {

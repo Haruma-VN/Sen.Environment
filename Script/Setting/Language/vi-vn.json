@@ -71,5 +71,9 @@
     "popcap.animation.invalid_magic": "PAM Magic không hợp lệ",
     "popcap.animation.invalid_version": "Phiên bản PAM không hợp lệ, yêu cầu phiên bản 1 đến 6 nhưng nhận được",
     "popcap.animation.duplicate_image": "Trình tự chứa tên trùng lặp, tên trùng lặp",
-    "at": "tại"
+    "at": "tại",
+    "width": "Chiều rộng",
+    "height": "Chiều cao",
+    "popcap.atlas.pack.use_trim": "Chế độ trim được bật",
+    "popcap.atlas.pack_property_change": "Ảnh chứa không gian không sử dụng, mặc định cắt {} từ {} đến {}"
 }

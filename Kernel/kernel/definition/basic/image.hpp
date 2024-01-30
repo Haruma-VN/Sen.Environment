@@ -386,18 +386,20 @@ namespace Sen::Kernel::Definition {
 					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
 						throw Exception(fmt::format("{}", Language::get("image.does_not_fit_current_image")), std::source_location::current(), "join");
 					}
+					auto & image_data = img.data();
 					for (auto j : Range<T>(img.height)) {
 						for (auto i : Range<T>(img.width)) {
 							auto source_index = ((j + img.y) * source.width + (i + img.x)) * 4;
 							auto img_index = (j * img.width + i) * 4;
-							source_data[source_index] = img.data()[img_index];
-							source_data[source_index + 1] = img.data()[img_index + 1];
-							source_data[source_index + 2] = img.data()[img_index + 2];
-							source_data[source_index + 3] = img.data()[img_index + 3];
+							source_data[source_index] = image_data[img_index];
+							source_data[source_index + 1] = image_data[img_index + 1];
+							source_data[source_index + 2] = image_data[img_index + 2];
+							source_data[source_index + 3] = image_data[img_index + 3];
 						}
 					}
 				}
 				source.set_data(source_data);
+				return;
 			}
 
 
@@ -784,11 +786,25 @@ namespace Sen::Kernel::Definition {
 			) -> void
 			{
 				auto source = Image<int>::transparent(dimension);
-				/*std::for_each(data.begin(), data.end(), [](auto &e) {
-					std::printf("x: %d, y: %d\n", e.x, e.y);
-				});*/
 				Image<int>::join(source, data);
 				ImageIO::write_png(destination, source);
+				return;
+			}
+
+			/**
+			 * Should be used to join image
+			 * destination: the file output destination
+			 * dimension: output file dimension
+			 * data: the image data
+			 * return: the file output png
+			 */
+
+			inline static auto join(
+				Image<int> & destination,
+				const std::vector<Image<int>>& data
+			) -> void
+			{
+				Image<int>::join(destination, data);
 				return;
 			}
 

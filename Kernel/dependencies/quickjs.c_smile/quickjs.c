@@ -40489,8 +40489,6 @@ static const JSCFunctionListEntry js_array_proto_funcs[] = {
     JS_CFUNC_DEF("toSorted", 1, js_array_to_sorted ),
     JS_CFUNC_DEF("toSpliced", 1, js_array_to_spliced ),
     JS_CFUNC_DEF("with", 2, js_array_with ),
-    JS_CFUNC_MAGIC_DEF("findLast", 1, js_array_find, special_findLast ),
-    JS_CFUNC_MAGIC_DEF("findLastIndex", 1, js_array_find, special_findLastIndex ),
 };
 
 static const JSCFunctionListEntry js_array_iterator_proto_funcs[] = {

@@ -39,15 +39,63 @@ declare namespace Sen {
 
         declare const version: number;
 
+        /**
+         * Arguments passed to Kernel
+         */
+
         declare const arguments: Array<string>;
 
+        /**
+         * JS XML Support
+         */
+
         declare namespace XML {
+            /**
+             * All XML Document are designed to be Object after deserialize
+             */
+
             export interface XMLDocument {
                 [x: string]: unknown;
             }
+
+            /**
+             * --------------------------------------------------
+             * JavaScript XML Deserialize Support
+             * @param source - XML String to parse
+             * @returns - XML Document
+             * --------------------------------------------------
+             */
+
             export function deserialize<T extends XMLDocument>(source: string): T;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript XML Deserialize file Support
+             * @param source - source file
+             * @returns - XML Document
+             * --------------------------------------------------
+             */
+
             export function deserialize_fs<T extends XMLDocument>(source: string): T;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript XML Serialize Support
+             * @param source - source object
+             * @returns - XML String
+             * --------------------------------------------------
+             */
+
             export function serialize<T extends XMLDocument>(source: T): string;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript XML Serialize File System Support
+             * @param destination - destination file
+             * @param xml - XML object
+             * --------------------------------------------------
+             */
+
             export function serialize_fs<T extends XMLDocument>(destination: string, xml: T): void;
         }
 
@@ -266,7 +314,27 @@ declare namespace Sen {
 
             export function write(source: string, image: Sen.Kernel.Dimension.Image): void;
 
+            /**
+             * --------------------------------------------------
+             * JavaScript Join & Write Image Method
+             * @param destination - Destination to write
+             * @param dimension - Dimension
+             * @param data - Data to write
+             * --------------------------------------------------
+             */
+
             export function join_png(destination: string, dimension: Kernel.Dimension.Structure, data: Array<Kernel.Dimension.Image>): void;
+
+            /**
+             * --------------------------------------------------
+             * JavaScript Join Image Method
+             * @param dimension - Dimension
+             * @param data - Data to write
+             * @returns image data after join
+             * --------------------------------------------------
+             */
+
+            export function join(dimension: Kernel.Dimension.Structure, data: Array<Kernel.Dimension.Image>): Kernel.Dimension.Image;
         }
 
         /**
@@ -1633,141 +1701,1876 @@ declare namespace Sen {
             }
         }
 
+        /**
+         * Kernel DataView
+         */
+
         declare class DataStreamView {
+            /**
+             * Current write position
+             */
+
             public write_position: bigint;
+
+            /**
+             * Current read position
+             */
+
             public read_position: bigint;
+
+            /**
+             *
+             * @param source - Source file to process or make a new DataView writer
+             */
+
             public constructor(source?: string): void;
+
+            /**
+             * Get the size of current Stream
+             */
+
             public size(): bigint;
+
+            /**
+             *
+             * @param value - JS String value
+             */
+
             public fromString(value: string): void;
+
+            /**
+             * Stream capacity
+             */
+
             public capacity(): bigint;
+
+            /**
+             *
+             * @param value - Value to increase
+             */
+
             public reserve(value: bigint): void;
+
+            /**
+             * cast current DataView to JS Uint8Array
+             */
+
             public toUint8Array(): Uint8Array;
+
+            /**
+             * cast current DataView to JS ArrayBuffer
+             */
+
             public toArrayBuffer(): ArrayBuffer;
+
+            /**
+             * cast current DataView to JS Uint8Array
+             */
             public getUint8Array(from: bigint, to: bigint): Uint8Array;
+
+            /**
+             * cast current DataView to JS ArrayBuffer
+             */
+
             public getArrayBuffer(from: bigint, to: bigint): ArrayBuffer;
+
+            /**
+             * Convert current stream to string
+             */
+
             public toString(): string;
+
+            /**
+             *
+             * @param destination - output path
+             */
+
             public out_file(destination: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeUint8(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeUint8(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeUint16(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeUint16(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeUint32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeUint32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeUint64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeUint64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeInt8(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeInt8(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeInt16(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeInt16(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeInt32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeInt32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeInt64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeInt64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeArrayBuffer(value: ArrayBuffer): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeUint8Array(value: Uint8Array): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeArrayBuffer(value: ArrayBuffer, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeUint8Array(value: Uint8Array, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeFloat(value: number): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeFloat(value: number, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeDouble(value: number): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeDouble(value: number, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeVarInt32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeVarInt32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeVarInt64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeVarInt64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeZigZag32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeZigZag32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeZigZag64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeZigZag64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeString(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeString(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringFourByte(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringFourByte(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeNull(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeNull(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeBoolean(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeBoolean(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByUint8(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByUint8(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByUint16(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByUint16(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByUint32(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByUint32(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByInt8(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByInt8(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByInt16(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByInt16(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByInt32(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByInt32(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
             public writeStringByEmpty(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
             public writeStringByEmpty(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readUint8(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readUint8(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readUint16(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readUint16(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readUint24(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readUint24(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readUint32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readUint32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readUint64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readUint64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readInt8(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readInt8(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readInt16(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readInt16(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readInt24(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readInt24(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readInt32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readInt32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readInt64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readInt64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readFloat(): number;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readFloat(position: bigint): number;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readDouble(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readDouble(position: bigint): number;
+
+            /**
+             * DataStreamView reader
+             * @param size - Size to read
+             * @returns Value after read
+             */
+
             public readString(size: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @param size - Size to read
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readString(size: bigint, position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByUint8(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByUint8(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByUint16(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByUint16(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByUint24(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByUint24(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByUint32(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByUint32(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByUint64(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByUint64(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByInt8(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByInt8(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByInt16(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByInt16(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByInt24(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByInt24(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByInt32(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByInt32(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readStringByInt64(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readStringByInt64(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readVarInt32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readVarInt32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readVarInt64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readVarInt64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readVarUint32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readVarUint32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readVarUint64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readVarUint64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readZigZag32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readZigZag32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
             public readZigZag64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
             public readZigZag64(position: bigint): bigint;
+
+            /**
+             * DataStreamView close
+             * @returns Close current stream
+             */
+
             public close(): void;
         }
 
-        declare class DataStreamViewUseBigEndian extends DataStreamView {}
+        /**
+         * DataStreamView but use big endian
+         */
+
+        declare class DataStreamViewUseBigEndian {
+            /**
+             * Current write position
+             */
+
+            public write_position: bigint;
+
+            /**
+             * Current read position
+             */
+
+            public read_position: bigint;
+
+            /**
+             *
+             * @param source - Source file to process or make a new DataView writer
+             */
+
+            public constructor(source?: string): void;
+
+            /**
+             * Get the size of current Stream
+             */
+
+            public size(): bigint;
+
+            /**
+             *
+             * @param value - JS String value
+             */
+
+            public fromString(value: string): void;
+
+            /**
+             * Stream capacity
+             */
+
+            public capacity(): bigint;
+
+            /**
+             *
+             * @param value - Value to increase
+             */
+
+            public reserve(value: bigint): void;
+
+            /**
+             * cast current DataView to JS Uint8Array
+             */
+
+            public toUint8Array(): Uint8Array;
+
+            /**
+             * cast current DataView to JS ArrayBuffer
+             */
+
+            public toArrayBuffer(): ArrayBuffer;
+
+            /**
+             * cast current DataView to JS Uint8Array
+             */
+            public getUint8Array(from: bigint, to: bigint): Uint8Array;
+
+            /**
+             * cast current DataView to JS ArrayBuffer
+             */
+
+            public getArrayBuffer(from: bigint, to: bigint): ArrayBuffer;
+
+            /**
+             * Convert current stream to string
+             */
+
+            public toString(): string;
+
+            /**
+             *
+             * @param destination - output path
+             */
+
+            public out_file(destination: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeUint8(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeUint8(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeUint16(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeUint16(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeUint32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeUint32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeUint64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeUint64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeInt8(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeInt8(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeInt16(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeInt16(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeInt32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeInt32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeInt64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeInt64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeArrayBuffer(value: ArrayBuffer): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeUint8Array(value: Uint8Array): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeArrayBuffer(value: ArrayBuffer, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeUint8Array(value: Uint8Array, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeFloat(value: number): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeFloat(value: number, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeDouble(value: number): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeDouble(value: number, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeVarInt32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeVarInt32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeVarInt64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeVarInt64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeZigZag32(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeZigZag32(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeZigZag64(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeZigZag64(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeString(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeString(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringFourByte(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringFourByte(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeNull(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeNull(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeBoolean(value: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeBoolean(value: bigint, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByUint8(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByUint8(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByUint16(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByUint16(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByUint32(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByUint32(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByInt8(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByInt8(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByInt16(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByInt16(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByInt32(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByInt32(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             */
+
+            public writeStringByEmpty(value: string): void;
+
+            /**
+             * DataStreamView writer
+             * @param value - Value to write
+             * @param position - Position to write
+             */
+
+            public writeStringByEmpty(value: string, position: bigint): void;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readUint8(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readUint8(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readUint16(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readUint16(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readUint24(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readUint24(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readUint32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readUint32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readUint64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readUint64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readInt8(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readInt8(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readInt16(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readInt16(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readInt24(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readInt24(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readInt32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readInt32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readInt64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readInt64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readFloat(): number;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readFloat(position: bigint): number;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readDouble(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readDouble(position: bigint): number;
+
+            /**
+             * DataStreamView reader
+             * @param size - Size to read
+             * @returns Value after read
+             */
+
+            public readString(size: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @param size - Size to read
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readString(size: bigint, position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByUint8(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByUint8(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByUint16(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByUint16(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByUint24(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByUint24(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByUint32(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByUint32(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByUint64(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByUint64(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByInt8(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByInt8(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByInt16(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByInt16(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByInt24(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByInt24(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByInt32(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByInt32(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByInt64(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByInt64(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readVarInt32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readVarInt32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readVarInt64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readVarInt64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readVarUint32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readVarUint32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readVarUint64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readVarUint64(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readZigZag32(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readZigZag32(position: bigint): bigint;
+
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readZigZag64(): bigint;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readZigZag64(position: bigint): bigint;
+
+            /**
+             * DataStreamView close
+             * @returns Close current stream
+             */
+
+            public close(): void;
+        }
     }
-
-    /**
-     * Script namespace
-     */
-
-    declare namespace Script {}
 }

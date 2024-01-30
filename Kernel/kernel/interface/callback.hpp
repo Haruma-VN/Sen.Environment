@@ -205,6 +205,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Image::scale_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "scale_fs"_sv);
 					// join_png
 					javascript->add_proxy(Script::Image::join_png, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join_png"_sv);
+					// join
+					javascript->add_proxy(Script::Image::join, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join"_sv);
 					// transparent_fs
 					javascript->add_proxy(Script::Image::transparent_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "transparent_fs"_sv);
 					// resize_fs
