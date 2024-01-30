@@ -1,7 +1,3 @@
-<!--
-Copyright (C) Haruma-VN, <harumatsx@gmail.com>
--->
-
 # [![sen-logo](common/display.png)](https://github.com/Haruma-VN/Sen.Environment)
 
 # About
@@ -24,7 +20,7 @@ Copyright (C) Haruma-VN, <harumatsx@gmail.com>
 
 -   `Script` - Script control flows of the tool.
 
--   `WinShell` - Windows 11 graphic interface, exclusive for Windows Operating System.
+-   `WinShell` - Frontend for Windows. Having Windows 11 graphic interface, is exclusive for Windows Operating System.
 
 # Technology
 

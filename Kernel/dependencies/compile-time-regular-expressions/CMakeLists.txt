@@ -1,5 +1,7 @@
 project(
 	compile-time-regular-expressions
+  	VERSION 3.8.1
+	HOMEPAGE_URL https://github.com/hanickadot/compile-time-regular-expressions
 	LANGUAGES CXX
 )
 

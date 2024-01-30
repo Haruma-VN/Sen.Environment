@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.14)
 project(
   zip
   LANGUAGES C
-  VERSION "0.3.0"
+  HOMEPAGE_URL https://github.com/kuba--/zip
+  VERSION 0.3.0
 )
 
 add_definitions(-DZIP_ENABLE_SHARABLE_FILE_OPEN)
