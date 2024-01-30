@@ -40008,6 +40008,296 @@ fail:
     return JS_EXCEPTION;
 }
 
+// quickjs :: 2023
+
+/* Allocate a new fast array. Its 'length' property is set to zero. It
+   maximum size is 2^31-1 elements. For convenience, 'len' is a 64 bit
+   integer. WARNING: the content of the array is not initialized. */
+static JSValue js_allocate_fast_array(JSContext *ctx, int64_t len)
+{
+    JSValue arr;
+    JSObject *p;
+    
+    if (len > INT32_MAX)
+        return JS_ThrowRangeError(ctx, "invalid array length");
+    arr = JS_NewArray(ctx);
+    if (JS_IsException(arr))
+        return arr;
+    if (len > 0) {
+        p = JS_VALUE_GET_OBJ(arr);
+        if (expand_fast_array(ctx, p, len) < 0) {
+            JS_FreeValue(ctx, arr);
+            return JS_EXCEPTION;
+        }
+        p->u.array.count = len;
+    }
+    return arr;
+}
+
+// Note: a.toReversed() is a.slice().reverse() with the twist that a.slice()
+// leaves holes in sparse arrays intact whereas a.toReversed() replaces them
+// with undefined, thus in effect creating a dense array.
+// Does not use Array[@@species], always returns a base Array.
+static JSValue js_array_to_reversed(JSContext *ctx, JSValueConst this_val,
+                                   int argc, JSValueConst *argv)
+{
+    JSValue arr, obj, ret, *arrp, *pval;
+    JSObject *p;
+    int64_t i, len;
+    uint32_t count32;
+
+    ret = JS_EXCEPTION;
+    arr = JS_UNDEFINED;
+    obj = JS_ToObject(ctx, this_val);
+    if (js_get_length64(ctx, &len, obj))
+        goto exception;
+
+    arr = js_allocate_fast_array(ctx, len);
+    if (JS_IsException(arr))
+        goto exception;
+
+    if (len > 0) {
+        p = JS_VALUE_GET_OBJ(arr);
+
+        i = len - 1;
+        pval = p->u.array.u.values;
+        if (js_get_fast_array(ctx, obj, &arrp, &count32) && count32 == len) {
+            for (; i >= 0; i--, pval++)
+                *pval = JS_DupValue(ctx, arrp[i]);
+        } else {
+            // Query order is observable; test262 expects descending order.
+            for (; i >= 0; i--, pval++) {
+                if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval)) {
+                    // Exception; initialize remaining elements.
+                    for (; i >= 0; i--, pval++)
+                        *pval = JS_UNDEFINED;
+                    goto exception;
+                }
+            }
+        }
+
+        if (JS_SetProperty(ctx, arr, JS_ATOM_length, JS_NewInt64(ctx, len)) < 0)
+            goto exception;
+    }
+
+    ret = arr;
+    arr = JS_UNDEFINED;
+
+exception:
+    JS_FreeValue(ctx, arr);
+    JS_FreeValue(ctx, obj);
+    return ret;
+}
+
+static JSValue js_array_to_spliced(JSContext *ctx, JSValueConst this_val,
+                                  int argc, JSValueConst *argv)
+{
+    JSValue arr, obj, ret, *arrp, *pval, *last;
+    JSObject *p;
+    int64_t i, j, len, newlen, start, add, del;
+    uint32_t count32;
+
+    pval = NULL;
+    last = NULL;
+    ret = JS_EXCEPTION;
+    arr = JS_UNDEFINED;
+
+    obj = JS_ToObject(ctx, this_val);
+    if (js_get_length64(ctx, &len, obj))
+        goto exception;
+
+    start = 0;
+    if (argc > 0)
+        if (JS_ToInt64Clamp(ctx, &start, argv[0], 0, len, len))
+            goto exception;
+
+    del = 0;
+    if (argc > 0)
+        del = len - start;
+    if (argc > 1)
+        if (JS_ToInt64Clamp(ctx, &del, argv[1], 0, del, 0))
+            goto exception;
+
+    add = 0;
+    if (argc > 2)
+        add = argc - 2;
+
+    newlen = len + add - del;
+    if (newlen > MAX_SAFE_INTEGER) {
+        JS_ThrowTypeError(ctx, "invalid array length");
+        goto exception;
+    }
+
+    arr = js_allocate_fast_array(ctx, newlen);
+    if (JS_IsException(arr))
+        goto exception;
+
+    if (newlen <= 0)
+        goto done;
+
+    p = JS_VALUE_GET_OBJ(arr);
+    pval = &p->u.array.u.values[0];
+    last = &p->u.array.u.values[newlen];
+
+    if (js_get_fast_array(ctx, obj, &arrp, &count32) && count32 == len) {
+        for (i = 0; i < start; i++, pval++)
+            *pval = JS_DupValue(ctx, arrp[i]);
+        for (j = 0; j < add; j++, pval++)
+            *pval = JS_DupValue(ctx, argv[2 + j]);
+        for (i += del; i < len; i++, pval++)
+            *pval = JS_DupValue(ctx, arrp[i]);
+    } else {
+        for (i = 0; i < start; i++, pval++)
+            if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval))
+                goto exception;
+        for (j = 0; j < add; j++, pval++)
+            *pval = JS_DupValue(ctx, argv[2 + j]);
+        for (i += del; i < len; i++, pval++)
+            if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval))
+                goto exception;
+    }
+
+    assert(pval == last);
+
+    if (JS_SetProperty(ctx, arr, JS_ATOM_length, JS_NewInt64(ctx, newlen)) < 0)
+        goto exception;
+
+done:
+    ret = arr;
+    arr = JS_UNDEFINED;
+
+exception:
+    while (pval != last)
+        *pval++ = JS_UNDEFINED;
+
+    JS_FreeValue(ctx, arr);
+    JS_FreeValue(ctx, obj);
+    return ret;
+}
+
+static JSValue js_array_to_sorted(JSContext *ctx, JSValueConst this_val,
+                             int argc, JSValueConst *argv)
+{
+    JSValue arr, obj, ret, *arrp, *pval;
+    JSObject *p;
+    int64_t i, len;
+    uint32_t count32;
+    int ok;
+
+    ok = JS_IsUndefined(argv[0]) || JS_IsFunction(ctx, argv[0]);
+    if (!ok)
+        return JS_ThrowTypeError(ctx, "not a function");
+
+    ret = JS_EXCEPTION;
+    arr = JS_UNDEFINED;
+    obj = JS_ToObject(ctx, this_val);
+    if (js_get_length64(ctx, &len, obj))
+        goto exception;
+
+    arr = js_allocate_fast_array(ctx, len);
+    if (JS_IsException(arr))
+        goto exception;
+
+    if (len > 0) {
+        p = JS_VALUE_GET_OBJ(arr);
+        i = 0;
+        pval = p->u.array.u.values;
+        if (js_get_fast_array(ctx, obj, &arrp, &count32) && count32 == len) {
+            for (; i < len; i++, pval++)
+                *pval = JS_DupValue(ctx, arrp[i]);
+        } else {
+            for (; i < len; i++, pval++) {
+                if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval)) {
+                    for (; i < len; i++, pval++)
+                        *pval = JS_UNDEFINED;
+                    goto exception;
+                }
+            }
+        }
+
+        if (JS_SetProperty(ctx, arr, JS_ATOM_length, JS_NewInt64(ctx, len)) < 0)
+            goto exception;
+    }
+
+    ret = js_array_sort(ctx, arr, argc, argv);
+    if (JS_IsException(ret))
+        goto exception;
+    JS_FreeValue(ctx, ret);
+
+    ret = arr;
+    arr = JS_UNDEFINED;
+
+exception:
+    JS_FreeValue(ctx, arr);
+    JS_FreeValue(ctx, obj);
+    return ret;
+}
+
+static JSValue js_array_with(JSContext *ctx, JSValueConst this_val,
+                             int argc, JSValueConst *argv)
+{
+    JSValue arr, obj, ret, *arrp, *pval;
+    JSObject *p;
+    int64_t i, len, idx;
+    uint32_t count32;
+
+    ret = JS_EXCEPTION;
+    arr = JS_UNDEFINED;
+    obj = JS_ToObject(ctx, this_val);
+    if (js_get_length64(ctx, &len, obj))
+        goto exception;
+
+    if (JS_ToInt64Sat(ctx, &idx, argv[0]))
+        goto exception;
+
+    if (idx < 0)
+        idx = len + idx;
+
+    if (idx < 0 || idx >= len) {
+        JS_ThrowRangeError(ctx, "out of bound");
+        goto exception;
+    }
+
+    arr = js_allocate_fast_array(ctx, len);
+    if (JS_IsException(arr))
+        goto exception;
+
+    p = JS_VALUE_GET_OBJ(arr);
+    i = 0;
+    pval = p->u.array.u.values;
+    if (js_get_fast_array(ctx, obj, &arrp, &count32) && count32 == len) {
+        for (; i < idx; i++, pval++)
+            *pval = JS_DupValue(ctx, arrp[i]);
+        *pval = JS_DupValue(ctx, argv[1]);
+        for (i++, pval++; i < len; i++, pval++)
+            *pval = JS_DupValue(ctx, arrp[i]);
+    } else {
+        for (; i < idx; i++, pval++)
+            if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval))
+                goto fill_and_fail;
+        *pval = JS_DupValue(ctx, argv[1]);
+        for (i++, pval++; i < len; i++, pval++) {
+            if (-1 == JS_TryGetPropertyInt64(ctx, obj, i, pval)) {
+            fill_and_fail:
+                for (; i < len; i++, pval++)
+                    *pval = JS_UNDEFINED;
+                goto exception;
+            }
+        }
+    }
+
+    if (JS_SetProperty(ctx, arr, JS_ATOM_length, JS_NewInt64(ctx, len)) < 0)
+        goto exception;
+
+    ret = arr;
+    arr = JS_UNDEFINED;
+
+exception:
+    JS_FreeValue(ctx, arr);
+    JS_FreeValue(ctx, obj);
+    return ret;
+}
+
 typedef struct JSArrayIteratorData {
     JSValue obj;
     JSIteratorKindEnum kind;
@@ -40194,7 +40484,13 @@ static const JSCFunctionListEntry js_array_proto_funcs[] = {
     JS_CFUNC_MAGIC_DEF("entries", 0, js_create_array_iterator, JS_ITERATOR_KIND_KEY_AND_VALUE ),
     // Haruma :: Add
     JS_CFUNC_DEF("at", 1, js_array_at ),
-    JS_CFUNC_DEF("size", 1, js_array_size ),
+    JS_CFUNC_DEF("size", 0, js_array_size ),
+    JS_CFUNC_DEF("toReversed", 0, js_array_to_reversed ),
+    JS_CFUNC_DEF("toSorted", 1, js_array_to_sorted ),
+    JS_CFUNC_DEF("toSpliced", 1, js_array_to_spliced ),
+    JS_CFUNC_DEF("with", 2, js_array_with ),
+    JS_CFUNC_MAGIC_DEF("findLast", 1, js_array_find, special_findLast ),
+    JS_CFUNC_MAGIC_DEF("findLastIndex", 1, js_array_find, special_findLastIndex ),
 };
 
 static const JSCFunctionListEntry js_array_iterator_proto_funcs[] = {

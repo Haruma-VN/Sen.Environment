@@ -223,21 +223,26 @@ namespace Sen.Script {
             Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
             let key = "65bd1b2305f46eb2806b935aab7630bb";
             let before = Date.now();
-            Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process(
-                "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-                {
-                    height: 4096,
-                    width: 4096,
-                    padding: 1,
-                },
-                {
-                    allowRotation: false,
-                    pot: false,
-                    smart: true,
-                    square: false,
-                },
-                "D:/test/test",
-            );
+            const months = ["Jan", "Feb", "Mar", "Apr"];
+            const spliced = months.toSpliced(0, 1, "ds", "sd");
+            Array;
+            Console.send(months);
+            Console.send(spliced);
+            // Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process(
+            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+            //     {
+            //         height: 4096,
+            //         width: 4096,
+            //         padding: 1,
+            //     },
+            //     {
+            //         allowRotation: false,
+            //         pot: false,
+            //         smart: true,
+            //         square: false,
+            //     },
+            //     "D:/test/test",
+            // );
             let after = Date.now();
             Console.send(`Time spent: ${(after - before) / 1000}s`);
             // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
