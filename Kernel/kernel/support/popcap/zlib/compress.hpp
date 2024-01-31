@@ -74,7 +74,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 			 * return: the compressed source
 			*/
 
-			auto compress(
+			inline auto compress(
 				const std::vector<unsigned char> & source
 			) -> std::vector<unsigned char> override final
 			{

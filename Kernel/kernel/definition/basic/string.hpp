@@ -851,7 +851,7 @@ namespace Sen::Kernel {
 
 			inline constexpr static auto split(
 				std::string str,
-				const std::string &delimiter
+				std::string_view delimiter
 			) -> std::vector<string> const
 			{
 				auto result = std::vector<string>{};
@@ -906,7 +906,7 @@ namespace Sen::Kernel {
 
 			inline static auto join(
 				const std::vector<string> &data,
-				const std::string &delimiter
+			    std::string_view delimiter
 			) -> std::string const
 			{
 				auto result = std::string{};

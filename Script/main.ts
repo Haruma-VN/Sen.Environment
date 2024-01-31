@@ -220,23 +220,27 @@ namespace Sen.Script {
             Sen.Script.Module.load();
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
-            Sen.Script.Console.finished(Sen.Kernel.Language.get(`current_status`), Sen.Kernel.Language.get(`script_has_been_loaded`));
-            let key = "65bd1b2305f46eb2806b935aab7630bb";
-            Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(
-                "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-                {
-                    height: 4096,
-                    width: 4096,
-                    padding: 1,
-                },
-                {
-                    allowRotation: false,
-                    pot: false,
-                    smart: true,
-                    square: false,
-                },
-                "D:/test/test",
+            Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), Sen.Kernel.Language.get("script_has_been_loaded"));
+            Script.Support.PopCap.Animation.FromAnimation.process_fs(
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
+                1536n,
             );
+            // Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(
+            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
+            //     {
+            //         height: 4096,
+            //         width: 4096,
+            //         padding: 1,
+            //     },
+            //     {
+            //         allowRotation: false,
+            //         pot: false,
+            //         smart: true,
+            //         square: false,
+            //     },
+            //     "D:/test/test",
+            // );
             // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
             //     "popcap.atlas.split_by_resource_group",
             //     {
@@ -289,6 +293,10 @@ namespace Sen.Script {
             "~/Support/PopCap/Atlas/Structure.js",
             "~/Support/PopCap/Atlas/Split.js",
             "~/Support/PopCap/Atlas/Pack.js",
+            "~/Support/PopCap/Animation/Definition.js",
+            "~/Support/PopCap/Animation/Structure.js",
+            "~/Support/PopCap/Animation/FromAnimation.js",
+            "~/Support/PopCap/Animation/ToAnimation.js",
             "~/Executor/Executor.js",
             "~/Executor/Methods/js.evaluate.js",
             "~/Executor/Methods/data.md5.hash.js",

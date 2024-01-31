@@ -71,7 +71,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			{
 				auto resource = FileSystem::read_json(infile);
 				assert_conditional(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"), "split");
-				FileSystem::createDirectory(fmt::format("{}/{}", output, "subgroup"));
+				FileSystem::create_directory(fmt::format("{}/{}", output, "subgroup"));
 				auto content = json{};
 				for(auto & c : resource["groups"])
 				{

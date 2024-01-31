@@ -426,6 +426,11 @@ namespace Sen::Kernel::Interface {
 					// write the image
 					javascript->add_proxy(Script::Dimension::write, "Sen"_sv, "Kernel"_sv, "Image"_sv, "write"_sv);
 				}
+				// miscellaneous
+				{
+					// make_copy
+					javascript->add_proxy(Script::Miscellaneous::make_copy, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "make_copy"_sv);
+				}
 				// DataStreamView
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
 				// DataStreamViewUseBigEndian

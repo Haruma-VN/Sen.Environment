@@ -137,7 +137,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				auto res_info = FileSystem::read_json(source);
 				auto info = thiz.convert_info(res_info);
 				auto group_directory = Path::normalize(fmt::format("{}/{}", destination, "groups"));
-				FileSystem::createDirectory(group_directory);
+				FileSystem::create_directory(group_directory);
 				FileSystem::write_json(Path::normalize(fmt::format("{}/{}", destination, "info.json")), info);
 				auto keys = Object::keys(res_info["groups"]);
 				for(auto i : Range<size_t>(keys.size())){

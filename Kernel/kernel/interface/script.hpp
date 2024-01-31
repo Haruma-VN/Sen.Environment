@@ -1082,7 +1082,7 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
 				auto destination = JS::Converter::get_string(context, argv[0]);
-				Sen::Kernel::FileSystem::createDirectory(destination);
+				Sen::Kernel::FileSystem::create_directory(destination);
 				return JS::Converter::get_undefined();
 			}, "create_directory"_sv);
 		}
@@ -3709,6 +3709,71 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 		}
+	}
+
+	namespace Miscellaneous {
+
+		/**
+		 * QuickJS JSON Value deep clone
+		*/
+
+		inline static auto deep_clone(
+			JSContext* context,
+			JSValueConst value
+		) -> JSValue
+		{
+			switch (JS_VALUE_GET_TAG(value)) {
+				case JS_TAG_OBJECT: {
+					if (JS_IsArray(context, value)) {
+						auto js_array = JS_NewArray(context);
+						auto length = uint32_t{};
+						JS_ToUint32(context, &length, JS_GetPropertyStr(context, value, "length"));
+						for (auto i : Range<uint32_t>(length)) {
+							auto js_value = JS_GetPropertyUint32(context, value, i);
+							JS_DefinePropertyValueUint32(context, js_array, i, deep_clone(context, 
+								js_value), JS_PROP_C_W_E);
+						}
+						return js_array;
+					}
+					else if (JS_IsObject(value)) {
+						auto json = JS_NewObject(context);
+						auto* tab = static_cast<JSPropertyEnum*>(nullptr);
+						auto tab_size = uint32_t{};
+						if (JS_GetOwnPropertyNames(context, &tab, &tab_size, value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
+							for (auto i : Range<uint32_t>(tab_size)) {
+								auto key = JS_AtomToCString(context, tab[i].atom);
+								auto val = JS_GetProperty(context, value, tab[i].atom);
+								JS_DefinePropertyValueStr(context, json, key, deep_clone(context, val), JS_PROP_C_W_E);
+								JS_FreeAtom(context, tab[i].atom);
+								JS_FreeValue(context, val);
+							}
+							js_free(context, tab);
+						}
+						return json;
+					}
+					else {
+						throw Exception("Unknown type");
+					}
+				}
+				default: {
+					return value;
+				}
+			}
+		}
+
+		inline static auto make_copy(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
+				return deep_clone(context, argv[0]);
+			}, "make_copy"_sv);
+		}
+
 	}
 
 	/**

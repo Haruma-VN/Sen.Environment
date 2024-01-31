@@ -19,6 +19,7 @@
     "data.base64.decode": "Data: Base64 Decode",
     "method_are_succeeded": "All methods are executed successful!",
     "cannot_read_file": "Cannot read file, it might be missing, path",
+    "cannot_write_file": "Cannot write file, it might be used by another process, path",
     "popcap.rton.decode": "PopCap RTON: Decode",
     "popcap.rton.encode": "PopCap RTON: Encode",
     "batch.process.count": "Processed {} files finished",

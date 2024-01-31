@@ -38,24 +38,6 @@ namespace Sen::Kernel::FileSystem
 		return buffer;
 	}
 
-
-	// path: file path to open
-	// content: content to write
-	// return: the file has been written
-
-	inline static auto write_file(
-		std::string_view filepath, 
-		std::string_view content
-	) -> void 
-	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
-		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "write_file");
-		}
-		fwrite(content.data(), 1, content.size(), file.get());
-		return;
-	}
-
 	// Provide file path to read json
 	// return: if the json is valid, the json data will be parsed as object
 
@@ -195,14 +177,38 @@ namespace Sen::Kernel::FileSystem
 	// directoryPath: folder path
 	// return: create directory
 
-	inline static auto createDirectory(
-		const std::string &directoryPath
+	inline static auto create_directory(
+		std::string_view path
 	) -> void
 	{
-		if(fs::is_directory(directoryPath)){
+		if(fs::is_directory(path)){
 			return;
 		}
-		auto status = fs::create_directories(directoryPath);
+		auto status = fs::create_directories(path);
+		return;
+	}
+
+
+
+	// path: file path to open
+	// content: content to write
+	// return: the file has been written
+
+	inline static auto write_file(
+		std::string_view filepath,
+		std::string_view content
+	) -> void
+	{
+		auto temporary = Path::toPosixStyle(filepath.data());
+		auto data = String::split(temporary, "/"_sv);
+		data.erase(data.end() - 1, data.end());
+		auto c = String::join(data, "/"_sv);
+		create_directory(c);
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		if (!file) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_write_file"), filepath), std::source_location::current(), "write_file");
+		}
+		std::fwrite(content.data(), 1, content.size(), file.get());
 		return;
 	}
 
@@ -210,16 +216,16 @@ namespace Sen::Kernel::FileSystem
 	// content: content to write
 	// return: the file has been written
 
-	inline static auto outFile(
+	inline static auto out_file(
 		std::string_view filePath,
 		std::string_view content
 	) -> void
 	{
 		auto temporary = Path::normalize(filePath.data());
-		auto data = String::split(temporary, "/");
-		auto last = data.at(data.size() - 1);
+		auto data = String::split(temporary, "/"_sv);
+		auto& last = data.at(data.size() - 1);
 		data.pop_back();
-		createDirectory(String::join(data, "/"));
+		create_directory(String::join(data, "/"_sv));
 		write_file(filePath, content);
 		return;
 	}
@@ -228,12 +234,12 @@ namespace Sen::Kernel::FileSystem
 	// content: json object
 	// return: the file has been written to json
 
-	inline static auto outJson(
+	inline static auto out_json(
 		const std::string &filePath,
 		const nlohmann::ordered_json &content
 	) -> void
 	{
-		outFile(filePath, content.dump(1, '\t'));
+		out_file(filePath, content.dump(1, '\t'));
 		return;
 	}
 

@@ -3572,5 +3572,18 @@ declare namespace Sen {
 
             public close(): void;
         }
+
+        /**
+         * Miscellaneous method
+         */
+
+        declare namespace Miscellaneous {
+            /**
+             * JS Deep clone
+             * @param object - Any JS Value, but should be JS Object
+             */
+
+            export function make_copy<T extends any>(object: T): T;
+        }
     }
 }

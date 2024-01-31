@@ -97,6 +97,9 @@ add_library(
 	./support/texture/encode.hpp
 	./support/texture/decode.hpp
 	./support/texture/invoke.hpp
+	./support/wwise/sound_bank/definition.hpp
+	./support/wwise/sound_bank/encode.hpp
+	./support/wwise/sound_bank/decode.hpp
 	./support/utility.hpp
 
 	./interface/data.hpp

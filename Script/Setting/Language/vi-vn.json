@@ -18,6 +18,7 @@
     "data.base64.decode": "Dữ liệu: Giải mã Base64",
     "method_are_succeeded": "Tất cả phương thức được thực hiện thành công!",
     "cannot_read_file": "Không thể đọc tệp, có thể không được tìm thấy, đường dẫn",
+    "cannot_write_file": "Không thể viết tệp, nó có thể được dùng bởi một tiến trình khác, đường dẫn",
     "popcap.rton.decode": "PopCap RTON: Giải mã",
     "popcap.rton.encode": "PopCap RTON: Mã hoá",
     "batch.process.count": "Xử lý {} tệp tin hoàn tất",
