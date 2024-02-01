@@ -9,6 +9,13 @@ namespace Sen.Script.Support.PopCap.Animation {
         };
     }
 
+    export interface PureInstance {
+        "@text": {
+            value: string;
+            is_cdata: boolean;
+        };
+    }
+
     export interface Matrix {
         "@attributes": {
             a: string;
@@ -182,7 +189,12 @@ namespace Sen.Script.Support.PopCap.Animation {
         };
     }
 
-    export type Actionscript = Record<string, string> | Record<string, string>[];
+    export type Actionscript = {
+        "@text": {
+            value: string;
+            is_cdata: boolean;
+        };
+    };
 
     export interface ActionscriptProperty {
         script: Actionscript;
@@ -196,9 +208,12 @@ namespace Sen.Script.Support.PopCap.Animation {
             labelType?: string;
         };
         Actionscript?: ActionscriptProperty;
-        elements?: {
-            DOMSymbolInstance: DocumentDomSymbolInstance;
-        } | null;
+        elements?:
+            | {
+                  DOMSymbolInstance: DocumentDomSymbolInstance;
+              }
+            | null
+            | PureInstance;
     }
 
     export type DocumentDomFrameProperty = DocumentDomFrame | DocumentDomFrame[];

@@ -115,22 +115,18 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const main_frame: Structure.AnimationFrame[] = animation["main_sprite"]["frame"];
             let prev_end_index: bigint = 0n;
-            const command_script: Record<string, string>[] = [];
             let write_command: boolean = false;
             const command_dom_frames: DocumentDomFrame[] = [];
             for (let i = 0; i < main_frame.length; i++) {
+                let command_script: string = "";
                 if (main_frame[i]["stop"]) {
-                    command_script.push({
-                        "stop();": "stop();",
-                    });
+                    command_script += "stop();";
                     write_command = true;
                 }
                 for (let k = 0; k < main_frame[i]["command"].length; k++) {
                     const command_list: Structure.AnimationCommand = main_frame[i]["command"][k];
                     const command: string = `fscommand("${command_list["command"]}", "${command_list["parameter"]}")`;
-                    command_script.push({
-                        [command]: command,
-                    });
+                    command_script += command;
                     write_command = true;
                 }
                 if (write_command) {
@@ -139,6 +135,12 @@ namespace Sen.Script.Support.PopCap.Animation {
                             index: `${prev_end_index}`,
                             duration: `${BigInt(i) - prev_end_index}`,
                         },
+                        elements: {
+                            "@text": {
+                                is_cdata: false,
+                                value: "",
+                            },
+                        },
                     });
                     prev_end_index = BigInt(i);
                     command_dom_frames.push({
@@ -146,7 +148,18 @@ namespace Sen.Script.Support.PopCap.Animation {
                             index: `${prev_end_index}`,
                         },
                         Actionscript: {
-                            script: command_script,
+                            script: {
+                                "@text": {
+                                    is_cdata: true,
+                                    value: command_script,
+                                },
+                            },
+                        },
+                        elements: {
+                            "@text": {
+                                is_cdata: false,
+                                value: "",
+                            },
                         },
                     });
                     prev_end_index++;
@@ -263,7 +276,6 @@ namespace Sen.Script.Support.PopCap.Animation {
                                 frame_node_template["index"] = start_index;
                                 frame_node_template["duration"] -= start_index - index;
                             }
-                            Kernel.Console.print(`start_index: ${typeof start_index}, index: ${typeof index}, frame_node_template["index"]: ${typeof frame_node_template["index"]}`);
                             frame_node_template["index"] -= start_index;
                             action_frame_node.push(frame_node_template);
                         }

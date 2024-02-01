@@ -221,21 +221,6 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), Sen.Kernel.Language.get("script_has_been_loaded"));
-            let obj = {
-                a: 1,
-                b: 2,
-                c: 3,
-                d: {
-                    e: [1, 2, 3],
-                    f: [
-                        {
-                            a: 2n,
-                            b: 3n,
-                            d: 4n,
-                        },
-                    ],
-                },
-            };
             Script.Support.PopCap.Animation.FromAnimation.process_fs(
                 "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
                 "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",

@@ -3919,7 +3919,7 @@ namespace Sen::Kernel::Interface::Script {
 					return nullptr;
 				}
 				case JS_TAG_NULL:{
-					return nlohmann::ordered_json(nullptr);
+					return nullptr;
 				}
 				case JS_TAG_OBJECT: {
 					if (JS_IsArray(context, value)) {
@@ -4081,27 +4081,57 @@ namespace Sen::Kernel::Interface::Script {
 		) -> void
 		{
 			if (j.is_object()) {
-				for (auto it = j.begin(); it != j.end(); ++it) {
-					if (it.key() == "@attributes") {
-						for (auto attr_it = it->begin(); attr_it != it->end(); ++attr_it) {
-							dynamic_cast<tinyxml2::XMLElement*>(node)->SetAttribute(attr_it.key().c_str(), attr_it.value().get<std::string>().c_str());
+				for (auto& [key, value] : j.items()) {
+					if (key == "@attributes") {
+						for (auto& [attribute_key, attribute_value] : value.items()) {
+							dynamic_cast<tinyxml2::XMLElement*>(node)->SetAttribute(attribute_key.c_str(), attribute_value.get<std::string>().c_str());
+						}
+					}
+					else if (key == "@text") {
+						if(!value["is_cdata"].is_null() and value["is_cdata"]) {
+							auto cdata = doc.NewText(value["value"].get<std::string>().c_str());
+							cdata->SetCData(true);
+							node->InsertEndChild(cdata);
+						}
+						else {
+							dynamic_cast<tinyxml2::XMLElement*>(node)->SetText(value["value"].get<std::string>().c_str());
 						}
 					}
 					else {
-						auto child = doc.NewElement(it.key().c_str());
-						node->InsertEndChild(child);
-						json2xml(it.value(), child, doc);
+						if (value.is_object()) {
+							auto child = doc.NewElement(key.c_str());
+							node->InsertEndChild(child);
+							json2xml(value, child, doc);
+						}
+						else if (value.is_array()) {
+							for (auto& element : value) {
+								auto child = doc.NewElement(key.c_str());
+								node->InsertEndChild(child);
+								json2xml(element, child, doc);
+							}
+						}
+						else {
+							auto child = doc.NewElement(node->Value());
+							node->Parent()->InsertEndChild(child);
+						}
 					}
 				}
 			}
 			else if (j.is_array()) {
-				for (auto it = j.begin(); it != j.end(); ++it) {
-					json2xml(*it, node, doc);
+				for (auto& element : j) {
+					auto child = doc.NewElement(node->Value());
+					node->Parent()->InsertEndChild(child);
+					json2xml(element, child, doc);
 				}
 			}
-			else {
+			else if(j.is_string()) {
 				node->InsertEndChild(doc.NewText(j.get<std::string>().c_str()));
 			}
+			else {
+				auto child = doc.NewElement(node->Value());
+				node->Parent()->InsertEndChild(child);
+			}
+			return;
 		}
 
 		inline static auto convert(
