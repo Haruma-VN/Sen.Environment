@@ -50,7 +50,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return;
         }
 
-        export function sort_object(object: any): any {
+        export function sort_object<T extends Record<string, unknown>>(object: T): T {
             return Object.keys(object)
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
                 .reduce(function (result: any, key: any) {
@@ -81,7 +81,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             for (let sprite_name of animation_sprite_name_list) {
                 symbols_include_list.push({
                     "@attributes": {
-                        href: `image/${sprite_name}.xml`,
+                        href: `sprite/${sprite_name}.xml`,
                     },
                 });
             }
@@ -305,18 +305,14 @@ namespace Sen.Script.Support.PopCap.Animation {
                         elements: null,
                     };
                     if (check_base_frame(transform, base_color, resource)) {
-                        const symbol_instance_attributes: DOMSymbolInstanceAttributes = frame_node[k]["sprite"]
-                            ? {
-                                  libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
-                                  firstFrame: `${frame_node[k]["first_frame"]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              }
-                            : {
-                                  libraryItemName: `sprite/${animation_image_id_list[Number(resource)]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              };
+                        const symbol_instance_attributes: DOMSymbolInstanceAttributes = {
+                            libraryItemName: `sprite/${animation_image_id_list[Number(resource)]}`,
+                            symbolType: "graphic",
+                            loop: "loop",
+                        };
+                        if (frame_node[k]["sprite"]) {
+                            symbol_instance_attributes.firstFrame = `${frame_node[k]["first_frame"]}`;
+                        }
                         const dom_symbol_instance: DOMSymbolInstance = {
                             "@attributes": symbol_instance_attributes,
                             matrix: {
@@ -525,17 +521,22 @@ namespace Sen.Script.Support.PopCap.Animation {
             };
         }
 
-        export function variant_to_standard(transform: number[]) {
-            if (transform.length === 2) {
-                return [1.0, 0.0, 0.0, 1.0, transform[0], transform[1]];
-            } else if (transform.length === 6) {
-                return [...transform];
-            } else if (transform.length === 3) {
-                const cos: number = Math.cos(transform[0]);
-                const sin: number = Math.sin(transform[0]);
-                return [cos, sin, -sin, cos, transform[1], transform[2]];
-            } else {
-                throw new Error("invaild_transform");
+        export function variant_to_standard(transform: number[]): number[] {
+            switch (transform.length) {
+                case 2: {
+                    return [1.0, 0.0, 0.0, 1.0, transform[0], transform[1]];
+                }
+                case 3: {
+                    const cos: number = Math.cos(transform[0]);
+                    const sin: number = Math.sin(transform[0]);
+                    return [cos, sin, -sin, cos, transform[1], transform[2]];
+                }
+                case 6: {
+                    return [...transform];
+                }
+                default: {
+                    throw new Error(Kernel.Language.get("popcap.animation.from_animation.invalid_transform"));
+                }
             }
         }
 

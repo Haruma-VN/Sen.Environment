@@ -76,5 +76,6 @@
     "width": "Chiều rộng",
     "height": "Chiều cao",
     "popcap.atlas.pack.use_trim": "Chế độ trim được bật",
-    "popcap.atlas.pack_property_change": "Ảnh chứa không gian không sử dụng, mặc định cắt {} từ {} đến {}"
+    "popcap.atlas.pack_property_change": "Ảnh chứa không gian không sử dụng, mặc định cắt {} từ {} đến {}",
+    "popcap.animation.from_animation.invalid_transform": "Chuyển đổi không hợp lệ biến thể thành tiêu chuẩn"
 }

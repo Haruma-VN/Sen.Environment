@@ -77,5 +77,6 @@
     "width": "width",
     "height": "height",
     "popcap.atlas.pack.use_trim": "Trim mode has been enabled",
-    "popcap.atlas.pack_property_change": "The image contains unused area, default cut on {} from {} to {}"
+    "popcap.atlas.pack_property_change": "The image contains unused area, default cut on {} from {} to {}",
+    "popcap.animation.from_animation.invalid_transform": "Invalid transform variant to standard"
 }
