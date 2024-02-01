@@ -89,7 +89,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     // image_document
     export interface ImageDocument extends Kernel.XML.XMLDocument {
         DOMSymbolItem: {
-            "@Attributes": Attributes;
+            "@attributes": Attributes;
             timeline: {
                 DOMTimeline: DomTimeline;
             };
@@ -247,7 +247,7 @@ namespace Sen.Script.Support.PopCap.Animation {
 
     export interface Model {
         state: boolean | null;
-        resources: bigint;
+        resource: bigint;
         sprite: boolean;
         transform: number[];
         color: number[];
@@ -260,7 +260,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     export interface FrameNode {
         index: bigint;
         duration: bigint;
-        resources: bigint | null;
+        resource: bigint | null;
         sprite: boolean;
         first_frame?: bigint;
         transform: number[];

@@ -155,35 +155,6 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     }
 
-    struct STMGSwitchGroupData : public Basic
-    {
-        uint parameter;
-        uint parameter_category;
-        std::vector<std::string> point;
-    };
-
-    inline auto to_json(
-        nlohmann::ordered_json& nlohmann_json_j, 
-        const STMGSwitchGroupData& nlohmann_json_t
-    ) -> void
-    {
-        nlohmann_json_j["parameter"] = nlohmann_json_t.parameter; 
-        nlohmann_json_j["parameter_category"] = nlohmann_json_t.parameter_category; 
-        nlohmann_json_j["point"] = nlohmann_json_t.point;
-        return;
-    } 
-    
-    inline auto from_json(
-        const nlohmann::ordered_json& nlohmann_json_j, 
-        STMGSwitchGroupData& nlohmann_json_t
-    ) -> void
-    {
-        nlohmann_json_j.at("parameter").get_to(nlohmann_json_t.parameter); 
-        nlohmann_json_j.at("parameter_category").get_to(nlohmann_json_t.parameter_category); 
-        nlohmann_json_j.at("point").get_to(nlohmann_json_t.point);
-        return;
-    }
-
     struct STMGSwitchGroup : public Basic
     {
         uint id;

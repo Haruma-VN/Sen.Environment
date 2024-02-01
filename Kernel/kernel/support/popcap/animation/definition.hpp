@@ -457,8 +457,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
         int frame_rate;
         AnimationPosition position;
         AnimationSize size;
-        std::unordered_map<std::string, AnimationImage> image;
-        std::unordered_map<std::string, AnimationSprite> sprite;
+        nlohmann::ordered_json image;
+        nlohmann::ordered_json sprite;
         AnimationSprite main_sprite;
 
         explicit SexyAnimation(

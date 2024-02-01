@@ -53,7 +53,7 @@ namespace Sen.Script.Support.PopCap.Animation.Structure {
     export interface AnimationAppend {
         index: bigint;
         name: string;
-        resources: bigint;
+        resource: bigint;
         sprite: boolean;
         additive: boolean;
         preload_frame: bigint;

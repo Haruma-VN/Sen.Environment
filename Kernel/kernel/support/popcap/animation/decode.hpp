@@ -79,7 +79,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 return sprite;
             }
             else {
-                json.sprite.insert(std::pair{sprite_name, sprite});
+                json.sprite[sprite_name] = sprite;
             }   
             return sprite;
             
@@ -286,7 +286,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     static_cast<double>(sen.readInt16() / 20.0),
                     static_cast<double>(sen.readInt16() / 20.0)};
             }
-            json.image.insert(std::pair{name_list[1], image});
+            json.image[name_list[1]] = image;
             return;
         }
 

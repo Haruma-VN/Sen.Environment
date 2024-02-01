@@ -40,15 +40,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             auto image = json.image;
             sen.writeUint16(image.size());
-            for (auto & [key, value] : image)
+            for (auto & [key, value] : image.items())
             {
-                auto image_name = fmt::format("{}|{}", value.name, key);
+                auto image_name = fmt::format("{}|{}", value['name'], key);
                 sen.writeStringByUint16(image_name);
                 write_image(value);
             }
             auto sprite = json.sprite;
             sen.writeUint16(sprite.size());
-            for (auto & [key, value] : sprite) {
+            for (auto & [key, value] : sprite.items()) {
                 if (version >= 4) {
                     sen.writeStringByUint16(key);
                     write_sprite(value);

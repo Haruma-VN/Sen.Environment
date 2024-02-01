@@ -3723,15 +3723,22 @@ namespace Sen::Kernel::Interface::Script {
 		) -> JSValue
 		{
 			switch (JS_VALUE_GET_TAG(value)) {
+				case JS_TAG_UNDEFINED: {
+					return JS_UNDEFINED;
+				}
+				case JS_TAG_NULL: {
+					return JS_NULL;
+				}
 				case JS_TAG_OBJECT: {
 					if (JS_IsArray(context, value)) {
 						auto js_array = JS_NewArray(context);
 						auto length = uint32_t{};
-						JS_ToUint32(context, &length, JS_GetPropertyStr(context, value, "length"));
+						auto c_length = JS_GetPropertyStr(context, value, "length");
+						JS_ToUint32(context, &length, c_length);
+						JS_FreeValue(context, c_length);
 						for (auto i : Range<uint32_t>(length)) {
 							auto js_value = JS_GetPropertyUint32(context, value, i);
-							JS_DefinePropertyValueUint32(context, js_array, i, deep_clone(context, 
-								js_value), JS_PROP_C_W_E);
+							JS_SetPropertyUint32(context, js_array, i, deep_clone(context, js_value));
 						}
 						return js_array;
 					}
@@ -3743,7 +3750,7 @@ namespace Sen::Kernel::Interface::Script {
 							for (auto i : Range<uint32_t>(tab_size)) {
 								auto key = JS_AtomToCString(context, tab[i].atom);
 								auto val = JS_GetProperty(context, value, tab[i].atom);
-								JS_DefinePropertyValueStr(context, json, key, deep_clone(context, val), JS_PROP_C_W_E);
+								JS_SetPropertyStr(context, json, key, deep_clone(context, val));
 								JS_FreeAtom(context, tab[i].atom);
 								JS_FreeValue(context, val);
 							}
@@ -3754,6 +3761,26 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						throw Exception("Unknown type");
 					}
+				}
+				case JS_TAG_STRING: {
+					auto c_str = JS_ToCString(context, value);
+					auto destination = JS_NewString(context, c_str);
+					JS_FreeCString(context, c_str);
+					return destination;
+				}
+				case JS_TAG_BOOL: {
+					return JS_NewBool(context, JS_VALUE_GET_BOOL(value) != 0);
+				}
+				case JS_TAG_BIG_INT: {
+					auto val = int64_t{};
+					JS_ToBigInt64(context, &val, value);
+					return JS_NewBigInt64(context, val);
+				}
+				case JS_TAG_FLOAT64: {
+					return JS_NewFloat64(context, JS::Converter::get_float64(context, value));
+				}
+				case JS_TAG_INT: {
+					return JS_NewFloat64(context, JS_VALUE_GET_INT(value));
 				}
 				default: {
 					return value;
