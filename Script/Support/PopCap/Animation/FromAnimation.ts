@@ -17,7 +17,7 @@ namespace Sen.Script.Support.PopCap.Animation {
         }
 
         export function process(animation: SexyAnimation, desitnation: string, resolution: BigInt): void {
-            const image_scale_ratio: number = Number(resolution) / 1200;
+            const image_scale_ratio: number = 1200 / Number(resolution);
             const extra_info: ExtraInfo = {};
             const animation_image_map: Record<string, Structure.AnimationImage> = animation["image"];
             const animation_image_id_list: string[] = Object.keys(animation_image_map);
@@ -30,7 +30,6 @@ namespace Sen.Script.Support.PopCap.Animation {
             const animation_sprite_map: Record<string, Structure.AnimationSprite> = animation["sprite"];
             const animation_sprite_name_list: string[] = Object.keys(animation_sprite_map);
             for (let sprite_name of animation_sprite_name_list) {
-                Kernel.Console.print(sprite_name);
                 const frame_list: FrameList = decode_frame_list(animation_sprite_map[sprite_name], animation_sprite_map, animation_sprite_name_list);
                 const sprite_document: string = write_sprite(frame_list["frame_node_list"], animation_sprite_name_list, animation_image_id_list, sprite_name, false);
                 Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "library", "sprite", `${sprite_name}.xml`), sprite_document);
@@ -251,9 +250,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 const action_node: Action = action_list[label];
                 const start_index: bigint = action_node["start_index"];
                 const action_duration: bigint = action_node["duration"];
-                action_node_list[label] = {
-                    "0": [],
-                };
+                action_node_list[label] = { "0": [] };
                 for (let i = 0; i < frame_keys.length; i++) {
                     if (!action_node["frame_index"].includes(BigInt(i))) continue;
                     const action_frame_node: FrameNode[] = [];
@@ -262,15 +259,19 @@ namespace Sen.Script.Support.PopCap.Animation {
                         const index: bigint = frame_node[k]["index"];
                         const duration: bigint = frame_node[k]["duration"];
                         if (index + duration <= start_index) continue;
-                        if (index > action_duration) break;
+                        if (index >= action_duration) break;
                         const frame_node_template = Kernel.Miscellaneous.make_copy<FrameNode>(frame_node[k]);
                         if (index + duration > action_duration) {
                             if (index < action_duration) {
-                                frame_node_template["index"] = start_index;
-                                frame_node_template["duration"] -= duration - action_duration - index + start_index;
-                            } else {
-                                frame_node_template["duration"] -= duration + index - action_duration;
+                                if (index < start_index) {
+                                    frame_node_template["index"] = start_index;
+                                    frame_node_template["duration"] -= duration - action_duration - index + start_index;
+                                } else {
+                                    frame_node_template["duration"] -= duration + index - action_duration;
+                                }
                             }
+                            frame_node_template["index"] -= start_index;
+                            action_frame_node.push(frame_node_template);
                         } else {
                             if (index < start_index) {
                                 frame_node_template["index"] = start_index;
@@ -302,16 +303,23 @@ namespace Sen.Script.Support.PopCap.Animation {
                             index: `${frame_node[k]["index"]}`,
                             duration: `${frame_node[k]["duration"]}`,
                         },
-                        elements: null,
+                        elements: { DOMSymbolInstance: null },
                     };
                     if (check_base_frame(transform, base_color, resource)) {
-                        const symbol_instance_attributes: DOMSymbolInstanceAttributes = {
-                            libraryItemName: `sprite/${animation_image_id_list[Number(resource)]}`,
-                            symbolType: "graphic",
-                            loop: "loop",
-                        };
+                        const symbol_instance_attributes: DOMSymbolInstanceAttributes = frame_node[k]["sprite"]
+                            ? {
+                                  libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
+                                  firstFrame: `${frame_node[k]["first_frame"]}`,
+                                  symbolType: "graphic",
+                                  loop: "loop",
+                              }
+                            : {
+                                  libraryItemName: `image/${animation_image_id_list[Number(resource)]}`,
+                                  symbolType: "graphic",
+                                  loop: "loop",
+                              };
                         if (frame_node[k]["sprite"]) {
-                            symbol_instance_attributes.firstFrame = `${frame_node[k]["first_frame"]}`;
+                            symbol_instance_attributes["firstFrame"] = `${frame_node[k]["first_frame"]}`;
                         }
                         const dom_symbol_instance: DOMSymbolInstance = {
                             "@attributes": symbol_instance_attributes,
@@ -331,8 +339,8 @@ namespace Sen.Script.Support.PopCap.Animation {
                                 Color: {
                                     "@attributes": {
                                         redMultiplier: base_color[0].toFixed(6),
-                                        blueMultiplier: base_color[1].toFixed(6),
                                         greenMultiplier: base_color[2].toFixed(6),
+                                        blueMultiplier: base_color[1].toFixed(6),
                                         alphaMultiplier: base_color[3].toFixed(6),
                                     },
                                 },
@@ -379,10 +387,10 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function check_base_frame(transform: number[], color: number[], resource: bigint | null): boolean {
             for (let i = 0; i < transform.length; i++) {
-                if (transform[i] !== 0) return true;
+                if (transform[i] !== initial_transform[i]) return true;
             }
             for (let i = 0; i < color.length; i++) {
-                if (color[i] !== 0) return true;
+                if (color[i] !== initial_color[i]) return true;
             }
             if (resource !== null) return true;
             return false;
@@ -463,7 +471,13 @@ namespace Sen.Script.Support.PopCap.Animation {
                     layers["state"] = true;
                     const static_transform: number[] = variant_to_standard(frame_change["transform"]);
                     layers["transform"] = static_transform;
-                    if (frame_change["color"] !== null && frame_change["color"][0] !== 0 && frame_change["color"][1] !== 0 && frame_change["color"][2] !== 0 && frame_change["color"][3] !== 0) {
+                    if (
+                        frame_change["color"] !== null &&
+                        frame_change["color"][0] !== initial_color[0] &&
+                        frame_change["color"][1] !== initial_color[1] &&
+                        frame_change["color"][2] !== initial_color[2] &&
+                        frame_change["color"][3] !== initial_color[3]
+                    ) {
                         layers["color"] = frame_change["color"];
                     }
                 }
@@ -481,12 +495,12 @@ namespace Sen.Script.Support.PopCap.Animation {
                     const frame_node: FrameNode[] = frame_node_list[`${layers_index + 1n}`];
                     if (layers["state"] !== null) {
                         if (frame_node.length > 0) {
-                            frame_node[`${frame_node.length - 1}`]["duration"] = layers["frame_duration"]!;
+                            frame_node[`${frame_node.length - 1}`]["duration"] = layers["frame_duration"];
                         }
                     }
                     if (layers["state"] === true) {
                         let first_frame: bigint = layers["sprite"]
-                            ? (BigInt(i) - layers["frame_start"]!) % BigInt(animation_sprite_map[animation_sprite_name_list[Number(layers["resource"])]]["frame"].length)
+                            ? (BigInt(i) - layers["frame_start"]) % BigInt(animation_sprite_map[animation_sprite_name_list[Number(layers["resource"])]]["frame"].length)
                             : 0n;
                         frame_node.push({
                             index: BigInt(i),
@@ -503,7 +517,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                     if (layers["state"] === false) {
                         delete sprite_model[`${layers_index}`];
                     }
-                    layers["frame_duration"]!++;
+                    layers["frame_duration"]++;
                 }
                 use_frame = true;
             }
