@@ -4053,7 +4053,8 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 			if (node->ToText()) {
-				j = node->Value();
+				j["value"] = node->Value();
+				j["is_cdata"] = node->ToText()->CData();
 			}
 			else {
 				for (auto child = node->FirstChild(); child; child = child->NextSibling()) {
@@ -4067,7 +4068,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 					}
 					else {
-						j[child->Value()] = child_json;
+						j["@text"] = child_json;
 					}
 				}
 			}

@@ -61,7 +61,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             duration: string;
         };
         elements: {
-            DOMSymbolInstance: DOMSymbolInstance;
+            DOMSymbolInstance: DOMSymbolInstance | null;
         } | null;
     }
 

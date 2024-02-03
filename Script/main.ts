@@ -221,11 +221,20 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), Sen.Kernel.Language.get("script_has_been_loaded"));
-            Script.Support.PopCap.Animation.FromAnimation.process_fs(
-                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
-                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
-                1536n,
+            Console.send(
+                Kernel.JSON.serialize(
+                    Kernel.XML.deserialize(`
+                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
+            `),
+                    1,
+                    false,
+                ),
             );
+            // Support.PopCap.Animation.FromAnimation.process_fs(
+            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
+            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
+            //     1536n,
+            // );
             // Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(
             //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
             //     {
