@@ -3,6 +3,12 @@
 #include "kernel/definition/utility.hpp"
 
 namespace Sen::Kernel::Support::WWise::SoundBank {
+
+    #pragma region using
+
+        using Sen::Kernel::Definition::DataStreamView;
+
+    #pragma endregion
     
     struct Basic {
 
@@ -515,7 +521,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
     {
         BKHD bank_header;
         std::vector<INIT> initialization;
-        std::vector<STMG> game_synchronization;
+        STMG game_synchronization;
         std::vector<uint> embedded_media;
         std::vector<HIRC> hierarchy;
         ENVS environments;
