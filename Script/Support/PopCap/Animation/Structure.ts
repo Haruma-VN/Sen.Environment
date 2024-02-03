@@ -63,8 +63,8 @@ namespace Sen.Script.Support.PopCap.Animation.Structure {
     export interface AnimationMove {
         index: bigint;
         transform: number[];
-        color: number[];
-        source_rectangle: number[];
+        color: number[] | null;
+        source_rectangle: number[] | null;
         sprite_frame_number: bigint;
     }
 }

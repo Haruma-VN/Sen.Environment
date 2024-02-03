@@ -33,6 +33,10 @@ namespace Sen.Script.Support.PopCap.Animation {
             greenMultiplier: string;
             blueMultiplier: string;
             alphaMultiplier: string;
+            redOffset?: string;
+            greenOffset?: string;
+            blueOffset?: string;
+            alphaOffset?: string;
         };
     }
 
@@ -53,8 +57,6 @@ namespace Sen.Script.Support.PopCap.Animation {
         };
     }
 
-    export type SpriteDomFrameProperty = SpriteDomFrame | SpriteDomFrame[];
-
     export interface SpriteDomFrame {
         "@attributes": {
             index: string;
@@ -62,11 +64,11 @@ namespace Sen.Script.Support.PopCap.Animation {
         };
         elements: {
             DOMSymbolInstance: DOMSymbolInstance | null;
-        } | null;
+        };
     }
 
     export interface SpriteFrame {
-        DOMFrame: SpriteDomFrameProperty;
+        DOMFrame: SpriteDomFrame;
     }
 
     export type SpriteFrameProperty = SpriteFrame | SpriteFrame[];
@@ -78,10 +80,8 @@ namespace Sen.Script.Support.PopCap.Animation {
         frames: SpriteFrameProperty;
     }
 
-    export type DomLayerProperty = SpriteDomLayer | SpriteDomLayer[];
-
     export interface SpriteLayers {
-        DOMLayer: DomLayerProperty;
+        DOMLayer: SpriteDomLayer;
     }
 
     export type SpriteLayersProperty = SpriteLayers | SpriteLayers[];
@@ -261,6 +261,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     export type ExtraInfo = Record<string, Sen.Script.Support.PopCap.Animation.Structure.AnimationSize>;
 
     export interface Model {
+        index?: bigint,
         state: boolean | null;
         resource: bigint;
         sprite: boolean;
@@ -291,4 +292,9 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     export type ActionList = Record<string, Action>;
+
+    export interface Instance {
+        resource: bigint,
+        sprite: boolean
+    }
 }
