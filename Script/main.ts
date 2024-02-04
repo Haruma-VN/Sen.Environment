@@ -221,21 +221,10 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), Sen.Kernel.Language.get("script_has_been_loaded"));
-            Console.send(
-                Kernel.JSON.serialize(
-                    Kernel.XML.deserialize(`
-                <Root>
-                <elements>
-                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
-                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
-                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
-                </elements>
-                </Root>
-            `),
-                    1,
-                    false,
-                ),
-            );
+            // Kernel.Support.WWise.SoundBank.decode_fs(
+            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
+            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
+            // );
 
             // Support.PopCap.Animation.FromAnimation.process_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",

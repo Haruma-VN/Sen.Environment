@@ -15,6 +15,11 @@ namespace globalThis {
          */
         at(num: number): T | undefined;
 
+        /**
+         * Check if current array is empty
+         */
+        empty(): boolean;
+
         toReversed(): Array<T>;
         toSorted(compareFn?: (a: T, b: T) => number): Array<T>;
         toSpliced(from: number, to: number, ...params: Array<T>): Array<T>;

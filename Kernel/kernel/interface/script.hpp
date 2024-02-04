@@ -4068,7 +4068,7 @@ namespace Sen::Kernel::Interface::Script {
 					}
 					else {
 						if (child_json.find("@text") != child_json.end()) {
-							if (strcmp(child_json["@text"]["value"].get<std::string>().c_str(),
+							if (std::strcmp(child_json["@text"]["value"].get<std::string>().c_str(),
 								child->Value()) == 0) {
 								j = child_json;
 							}

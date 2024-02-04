@@ -37421,6 +37421,34 @@ exception:
     return res;
 }
 
+// Haruma :: Add
+
+static JSValue js_object_hasOwn(JSContext *ctx, JSValueConst this_val,
+                                int argc, JSValueConst *argv)
+{
+    JSValue obj;
+    JSAtom atom;
+    JSObject *p;
+    BOOL ret;
+
+    obj = JS_ToObject(ctx, argv[0]);
+    if (JS_IsException(obj))
+        return obj;
+    atom = JS_ValueToAtom(ctx, argv[1]);
+    if (unlikely(atom == JS_ATOM_NULL)) {
+        JS_FreeValue(ctx, obj);
+        return JS_EXCEPTION;
+    }
+    p = JS_VALUE_GET_OBJ(obj);
+    ret = JS_GetOwnPropertyInternal(ctx, NULL, p, atom);
+    JS_FreeAtom(ctx, atom);
+    JS_FreeValue(ctx, obj);
+    if (ret < 0)
+        return JS_EXCEPTION;
+    else
+        return JS_NewBool(ctx, ret);
+}
+
 static const JSCFunctionListEntry js_object_funcs[] = {
     JS_CFUNC_DEF("create", 2, js_object_create ),
     JS_CFUNC_MAGIC_DEF("getPrototypeOf", 1, js_object_getPrototypeOf, 0 ),
@@ -37454,6 +37482,8 @@ static const JSCFunctionListEntry js_object_funcs[] = {
     //JS_CFUNC_DEF("__getObjectData", 1, js_object___getObjectData ),
     //JS_CFUNC_DEF("__setObjectData", 2, js_object___setObjectData ),
     JS_CFUNC_DEF("fromEntries", 1, js_object_fromEntries ),
+    // Haruma :: Add
+    JS_CFUNC_DEF("hasOwn", 2, js_object_hasOwn ),
 };
 
 static const JSCFunctionListEntry js_object_proto_funcs[] = {
@@ -39058,6 +39088,23 @@ static JSValue js_array_size(JSContext *ctx, JSValueConst this_val, int argc, JS
     return JS_GetPropertyStr(ctx, this_val, "length");
 }
 
+// Haruma :: Add
+
+static JSValue js_array_empty(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
+    int64_t len, idx;
+    JSValue ret;
+
+    /* Get the length of the array */
+    JSValue len_val = JS_GetPropertyStr(ctx, this_val, "length");
+    if (JS_IsException(len_val)) return len_val;
+    if (JS_ToInt64(ctx, &len, len_val)) {
+        JS_FreeValue(ctx, len_val);
+        return JS_EXCEPTION;
+    }
+    JS_FreeValue(ctx, len_val);
+    return JS_NewBool(ctx, len == 0);
+}
+
 static JSValue js_array_reverse(JSContext *ctx, JSValueConst this_val,
                                 int argc, JSValueConst *argv)
 {
@@ -40016,6 +40063,7 @@ static const JSCFunctionListEntry js_array_proto_funcs[] = {
     // Haruma : Add
     JS_CFUNC_DEF("at", 1, js_array_at ),
     JS_CFUNC_DEF("size", 0, js_array_size ),
+    JS_CFUNC_DEF("empty", 0, js_array_empty ),
     JS_CFUNC_DEF("toReversed", 0, js_array_to_reversed ),
     JS_CFUNC_DEF("toSorted", 1, js_array_to_sorted ),
     JS_CFUNC_DEF("toSpliced", 1, js_array_to_spliced ),

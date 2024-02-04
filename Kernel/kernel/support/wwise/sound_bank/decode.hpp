@@ -17,6 +17,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << ' ';
                 }
                 auto hexString = oss.str();
+                std::transform(hexString.cbegin(), hexString.cend(), hexString.begin(), [&](auto c) {
+                    return std::toupper(c);
+                });
                 return hexString.substr(0, hexString.length() - 1);
             }
 
@@ -41,6 +44,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     });
                 }
                 info.initialization = std::move(init_list);
+                info.has_initialization = true;
                 return;
             }
 
@@ -54,6 +58,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     .obstruction = decode_environment_item(info),
                     .occlusion = decode_environment_item(info),
                 };
+                info.has_environments = true;
                 return;
             }
 
@@ -146,6 +151,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     });
                 }
                 info.hierarchy = std::move(HIRCList);
+                info.has_hierarchy = true;
                 return;
             }
 
@@ -171,6 +177,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     .data = std::move(dataList),
                     .unknown_type = unknown_type,
                 };
+                info.has_reference = true;
                 return;
             }
 
@@ -183,6 +190,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 {
                     .platform = sen.readStringByEmpty(),
                 };
+                info.has_platform_setting = true;
                 return;
             }
 
@@ -216,6 +224,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     wem.out_file(Path::Script::join(std::vector<std::string>{ destination.data(), "embedded_audio", "{DIDX[i]}.wem" }));
                 }
                 info.embedded_media = std::move(DIDX);
+                info.has_embedded_media = true;
                 return;
             }
 
@@ -321,6 +330,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     .game_parameter = gameParameterList,
                     .unknown_type_2 = static_cast<unsigned int>(unknown_type_2),
                 };
+                info.has_game_synchronization = true;
                 return;
             }
 
