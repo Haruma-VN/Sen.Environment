@@ -4041,10 +4041,7 @@ namespace Sen::Kernel::Interface::Script {
 
 	namespace XML {
 
-		inline static auto xml2json(
-			const tinyxml2::XMLNode* node
-		) -> nlohmann::ordered_json
-		{
+		inline static auto xml2json(const tinyxml2::XMLNode* node) -> nlohmann::ordered_json {
 			auto j = nlohmann::ordered_json{};
 			auto element = node->ToElement();
 			if (element) {
@@ -4053,8 +4050,10 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 			if (node->ToText()) {
-				j["value"] = node->Value();
-				j["is_cdata"] = node->ToText()->CData();
+				j["@text"] = {
+					{"value", node->Value() },
+					{"is_cdata", node->ToText()->CData() },
+				};
 			}
 			else {
 				for (auto child = node->FirstChild(); child; child = child->NextSibling()) {
@@ -4068,7 +4067,18 @@ namespace Sen::Kernel::Interface::Script {
 						}
 					}
 					else {
-						j["@text"] = child_json;
+						if (child_json.find("@text") != child_json.end()) {
+							if (strcmp(child_json["@text"]["value"].get<std::string>().c_str(),
+								child->Value()) == 0) {
+								j = child_json;
+							}
+							else {
+								j[child->Value()] = child_json;
+							}
+						}
+						else {
+							j[child->Value()] = child_json;
+						}
 					}
 				}
 			}

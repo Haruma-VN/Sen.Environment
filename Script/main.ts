@@ -224,12 +224,19 @@ namespace Sen.Script {
             Console.send(
                 Kernel.JSON.serialize(
                     Kernel.XML.deserialize(`
+                <Root>
+                <elements>
                 <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
+                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
+                <element><![CDATA[fscommand("Play_Plant_PrimalSunflower_Points", "PlaySample")]]></element>
+                </elements>
+                </Root>
             `),
                     1,
                     false,
                 ),
             );
+
             // Support.PopCap.Animation.FromAnimation.process_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
