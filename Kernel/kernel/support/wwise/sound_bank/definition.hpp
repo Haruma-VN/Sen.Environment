@@ -18,6 +18,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         public:
         
     };
+
+    #pragma region BKHD
 	
     struct BKHD : public Basic {
 
@@ -52,6 +54,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     }
 
+    #pragma endregion
+
+    #pragma region init
+
     struct INIT : public Basic {
 
     public:
@@ -79,6 +85,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     };
 
+    #pragma endregion
+
+    #pragma region stmg
 
     struct STMGStageGroupData : public Basic
     {
@@ -213,6 +222,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     }
 
+    #pragma endregion
+
+    #pragma region hirc
+
     struct HIRC : public Basic
     {
         uint id;
@@ -241,6 +254,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         nlohmann_json_j.at("data").get_to(nlohmann_json_t.data);
         return;
     };
+
+    #pragma endregion
+
+    #pragma region environment
 
     struct ENVSVolume : public Basic
     {
@@ -375,6 +392,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     }
 
+    #pragma endregion
+
+    #pragma region stid
+
     struct STIDData : public Basic
     {
         uint id;
@@ -401,6 +422,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         return;
     }
 
+    #pragma endregion
+
+    #pragma region plat
+
     struct PLAT : public Basic
     {
         std::string platform;
@@ -423,6 +448,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         nlohmann_json_j.at("platform").get_to(nlohmann_json_t.platform);
         return;
     }
+
+    #pragma endregion
+
+    #pragma region definition
 
     struct WEMDATATemp : public Basic
     {
@@ -564,14 +593,58 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
         SoundBankInformation& nlohmann_json_t
     ) -> void
     {
-        nlohmann_json_j.at("bank_header").get_to(nlohmann_json_t.bank_header); 
-        nlohmann_json_j.at("initialization").get_to(nlohmann_json_t.initialization); 
-        nlohmann_json_j.at("game_synchronization").get_to(nlohmann_json_t.game_synchronization); 
-        nlohmann_json_j.at("embedded_media").get_to(nlohmann_json_t.embedded_media); 
-        nlohmann_json_j.at("hierarchy").get_to(nlohmann_json_t.hierarchy); 
-        nlohmann_json_j.at("environments").get_to(nlohmann_json_t.environments); 
-        nlohmann_json_j.at("reference").get_to(nlohmann_json_t.reference); 
-        nlohmann_json_j.at("platform_setting").get_to(nlohmann_json_t.platform_setting);
+        nlohmann_json_j.at("bank_header").get_to(nlohmann_json_t.bank_header);
+        if (nlohmann_json_j["initialization"].is_null()) {
+            nlohmann_json_t.has_initialization = false;
+        }
+        else {
+            nlohmann_json_t.has_initialization = true;
+            nlohmann_json_j.at("initialization").get_to(nlohmann_json_t.initialization);
+        }
+        if (nlohmann_json_j["game_synchronization"].is_null()) {
+            nlohmann_json_t.has_game_synchronization = false;
+        }
+        else {
+            nlohmann_json_t.has_game_synchronization = true;
+            nlohmann_json_j.at("game_synchronization").get_to(nlohmann_json_t.game_synchronization);
+        }
+        if (nlohmann_json_j["embedded_media"].is_null()) {
+            nlohmann_json_t.has_embedded_media = false;
+        }
+        else {
+            nlohmann_json_t.has_embedded_media = true;
+            nlohmann_json_j.at("embedded_media").get_to(nlohmann_json_t.embedded_media);
+        }
+        if (nlohmann_json_j["hierarchy"].is_null()) {
+            nlohmann_json_t.has_hierarchy = false;
+        }
+        else {
+            nlohmann_json_t.has_hierarchy = true;
+            nlohmann_json_j.at("hierarchy").get_to(nlohmann_json_t.hierarchy);
+        }
+        if (nlohmann_json_j["environments"].is_null()) {
+            nlohmann_json_t.has_environments = false;
+        }
+        else {
+            nlohmann_json_t.has_environments = true;
+            nlohmann_json_j.at("environments").get_to(nlohmann_json_t.environments);
+        }
+        if (nlohmann_json_j["reference"].is_null()) {
+            nlohmann_json_t.has_reference = false;
+        }
+        else {
+            nlohmann_json_t.has_reference = true;
+            nlohmann_json_j.at("reference").get_to(nlohmann_json_t.reference);
+        }
+        if (nlohmann_json_j["platform_setting"].is_null()) {
+            nlohmann_json_t.has_platform_setting = false;
+        }
+        else {
+            nlohmann_json_t.has_platform_setting = true;
+            nlohmann_json_j.at("platform_setting").get_to(nlohmann_json_t.platform_setting);
+        }
         return;
     }
+
+    #pragma endregion
 }

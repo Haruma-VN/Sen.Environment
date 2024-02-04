@@ -220,8 +220,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 auto WEMBank = DataStreamView(sen.readBytes(static_cast<std::uint64_t>(DATALength)));
                 for (auto i : Range<std::uint64_t>(DATAList.size()))
                 {
-                    auto wem = DataStreamView(WEMBank.readBytes(static_cast<std::uint64_t>(DATAList[i].offset), static_cast<std::uint64_t>(DATAList[i].length)));
-                    wem.out_file(Path::Script::join(std::vector<std::string>{ destination.data(), "embedded_audio", "{DIDX[i]}.wem" }));
+                    auto wem = DataStreamView(WEMBank.readBytes(static_cast<std::uint64_t>(DATAList[i].length), static_cast<std::uint64_t>(DATAList[i].offset)));
+                    wem.out_file(Path::Script::join(std::vector<std::string>{ destination.data(), "embedded_audio", fmt::format("{}.wem", DIDX[i]) }));
                 }
                 info.embedded_media = std::move(DIDX);
                 info.has_embedded_media = true;
@@ -380,6 +380,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 {
 
                 }
+
+                ~Decode(
+
+                ) = default;
 
                 inline auto process(
                     std::string_view destination

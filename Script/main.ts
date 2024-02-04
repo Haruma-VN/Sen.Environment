@@ -225,7 +225,10 @@ namespace Sen.Script {
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
             // );
-
+            Kernel.Support.WWise.SoundBank.encode_fs(
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
+                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA_1.BNK",
+            );
             // Support.PopCap.Animation.FromAnimation.process_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",

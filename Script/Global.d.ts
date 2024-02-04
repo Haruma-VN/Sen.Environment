@@ -25,4 +25,26 @@ namespace globalThis {
         toSpliced(from: number, to: number, ...params: Array<T>): Array<T>;
         with(index: number, value: number): Array<T>;
     }
+
+    interface ObjectConstructor {
+        hasOwn(obj: {}, propKey: PropertyKey): boolean;
+    }
+
+    interface StringConstructor {
+        /**
+         *
+         * @param num - Index to get
+         * @returns - If find, return the element otherwise return undefined
+         */
+        at(num: number): T | undefined;
+    }
+
+    interface String {
+        /**
+         *
+         * @param num - Index to get
+         * @returns - If find, return the element otherwise return undefined
+         */
+        at(num: number): string;
+    }
 }
