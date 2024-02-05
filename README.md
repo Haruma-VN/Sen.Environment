@@ -1,4 +1,4 @@
-# [![sen-logo](common/display.png)](https://github.com/Haruma-VN/Sen.Environment)
+# [![sen-logo](common/logo/display.png)](https://github.com/Haruma-VN/Sen.Environment)
 
 # About
 
