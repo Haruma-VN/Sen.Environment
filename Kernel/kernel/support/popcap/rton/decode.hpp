@@ -75,6 +75,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         std::vector<std::string> r0x92_list;
 
+        // -----------------------------------------
+
         inline auto read_object(
 
         ) -> void
@@ -92,24 +94,28 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return;
         }
 
+        // -----------------------------------------
+
         inline auto read_array(
 
         ) -> void
         {
             json_writer.WriteStartArray();
             if (thiz.sen.readUint8() != array_byte_start){
-                throw Exception("Invalid array start", std::source_location::current(), "read_array");
+                throw Exception(fmt::format("{} {:02x}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_rton_array_starts"), array_byte_start, Kernel::Language::get("offset"), thiz.sen.read_pos), std::source_location::current(), "read_array");
             }
             for (const auto & i : Range<int32_t>(thiz.sen.readVarInt32()))
             {
                 thiz.read_bytecode(thiz.sen.readUint8());
             }
             if (thiz.sen.readUint8() != array_byte_end){
-                throw Exception("Invalid array end", std::source_location::current(), "read_array");
+                throw Exception(fmt::format("{} {:02x}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_rton_array_end"), array_byte_end, Kernel::Language::get("offset"), thiz.sen.read_pos), std::source_location::current(), "read_array");
             }
             json_writer.WriteEndArray();
             return;
         }
+
+        // -----------------------------------------
 
         inline auto read_rtid(
 
@@ -147,10 +153,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw Exception("Invalid RTID", std::source_location::current(), "read_rtid");
+                    throw Exception(fmt::format("{}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_rtid"), Kernel::Language::get("offset"), thiz.sen.read_pos), std::source_location::current(), "read_rtid");
                 }
             }
         }
+
+        // -----------------------------------------
 
         inline auto read_binary(
 
@@ -162,6 +170,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             const auto num = thiz.sen.readVarInt32();
             return fmt::format("BINARY({}, {})", str, num);
         }
+
+        // -----------------------------------------
 
         inline auto read_bytecode(
             uint8_t bytecode
@@ -309,10 +319,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     return;
                 }
                 default:{
-                    throw Exception(fmt::format("Invalid bytecode: {}", bytecode), std::source_location::current(), "read_bytecode");
+                    throw Exception(fmt::format("{}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode"), Kernel::Language::get("offset"), bytecode), std::source_location::current(), "read_bytecode");
                 }
             }
         }
+
+        // -----------------------------------------
 
         inline auto read_bytecode_property(
             uint8_t bytecode
@@ -368,12 +380,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 default:
                 {
-                    throw Exception("Invalid bytecode property", std::source_location::current(), "read_bytecode_property");
+                    throw Exception(fmt::format("{}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode_property"), Kernel::Language::get("offset"), thiz.sen.read_pos), std::source_location::current(), "read_bytecode_property");
                 }
             }
     }
 
     public:
+
+        // -----------------------------------------
 
         explicit Decode(
             std::string_view source
@@ -382,6 +396,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         }
 
+        // -----------------------------------------
+
         explicit Decode(
             DataStreamView & it
         ) : sen(it)
@@ -389,9 +405,13 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         }
 
+        // -----------------------------------------
+
         ~Decode(
 
         ) = default;
+
+        // -----------------------------------------
 
         inline auto decode_rton(
 
@@ -401,7 +421,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 const auto & magic = sen.readString(magic_count);
                 if (magic != thiz.magic)
                 {
-                    throw Exception("Invalid RTON magic, should starts with RTON", std::source_location::current(), "decode_rton");
+                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rton.decode.invalid_rton_magic")), std::source_location::current(), "decode_rton");
                 }
             }
             {

@@ -179,7 +179,7 @@ namespace Sen.Script.Executor {
         return;
     }
 
-    export function test([type, method]: [MethodType, RegExp], source: string): boolean {
+    export function test([type, pattern]: [MethodType, RegExp], source: string): boolean {
         let is_valid: boolean = undefined!;
         switch (type) {
             case "file": {
@@ -191,8 +191,8 @@ namespace Sen.Script.Executor {
                 break;
             }
         }
-        Console.send(`Regex: ${method}: After test: ${method.test(source)}`);
-        return true;
+        is_valid &&= pattern.test(source);
+        return is_valid;
     }
 
     export function test_array([type, ...method]: [MethodType, ...Array<RegExp>], source: Array<string>): boolean {
@@ -272,14 +272,13 @@ namespace Sen.Script.Executor {
         try {
             run_as_module<Argument>(id, argument, forward);
         } catch (e: any) {
-            Console.error(e);
+            Console.error(Exception.make_exception(e));
         }
         return;
     }
 
     export function load_module<Argument extends Base>(argument: Argument): void {
         const modules: Map<bigint, string> = new Map<bigint, string>();
-        Console.send(argument.source);
         const query = (
             callback: (([type, method]: [MethodType, RegExp], source: string) => boolean) | (([type, method]: [MethodType, ...Array<RegExp>], source: Array<string>) => boolean),
             filter: [MethodType, RegExp | Array<RegExp>],
@@ -292,6 +291,9 @@ namespace Sen.Script.Executor {
             return;
         };
         methods.forEach((worker, method_name) => {
+            if (!worker.is_enabled) {
+                return;
+            }
             if (is_string(argument.source)) {
                 query(test, worker.filter as [MethodType, RegExp], argument.source, method_name);
             }

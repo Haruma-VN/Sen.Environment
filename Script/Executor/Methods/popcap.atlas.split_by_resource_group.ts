@@ -43,7 +43,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             id: "popcap.atlas.split_by_resource_group",
             configuration_file: Home.query("~/Executor/Configuration/popcap.atlas.split_by_resource_group.json"),
             configuration: undefined!,
-            is_enabled: true,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument): void {
                 if (!/\.json$/gi.test(argument.source[0])) {
                     throw new Error("source file must be json");
@@ -78,6 +77,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             },
             async_forward: undefined!,
             batch_forward: undefined!,
+            is_enabled: true,
             filter: ["files", /(.+).json$/gi, /(.+).png$/gi],
         });
         return;

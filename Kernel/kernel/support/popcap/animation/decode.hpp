@@ -201,7 +201,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 index = sen.readUint32();
             }
             change_info.index = index;
-            std::vector<double> transform{};
+            auto transform = std::vector<double>{};
             if ((flag & MoveFlags::matrix) != 0)
             {
                 

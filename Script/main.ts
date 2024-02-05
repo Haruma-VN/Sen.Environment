@@ -180,6 +180,14 @@ namespace Sen.Script {
                 .filter((e: string) => !/(\s)<eval>(\s)/g.test(e))
                 .join("\n");
         }
+
+        export function make_exception(e: Error): string {
+            let result: string = e.message;
+            result += "\n";
+            result += Exception.make_stack(e.stack!);
+            result = result.replace(/\n$/, "");
+            return result;
+        }
     }
 
     /**
@@ -216,53 +224,17 @@ namespace Sen.Script {
     export function launch(): string {
         let result: string = undefined!;
         try {
+            Kernel.arguments.splice(0, 3);
             Sen.Script.Home.setup();
             Sen.Script.Module.load();
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
-            Kernel.arguments.forEach((e) => {
-                Sen.Script.Executor.load_module({ source: e });
+            Kernel.arguments.forEach((source: string) => {
+                Sen.Script.Executor.load_module({ source });
             });
-            // Kernel.Support.WWise.SoundBank.decode_fs(
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
-            // );
-            // Support.PopCap.Animation.FromAnimation.process_fs(
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
-            //     1536n,
-            // );
-            // Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(
-            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-            //     {
-            //         height: 4096,
-            //         width: 4096,
-            //         padding: 1,
-            //     },
-            //     {
-            //         allowRotation: false,
-            //         pot: false,
-            //         smart: true,
-            //         square: false,
-            //     },
-            //     "D:/test/test",
-            // );
-            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
-            //     "popcap.atlas.split_by_resource_group",
-            //     {
-            //         source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-            //         destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-            //         method: "id",
-            //         style: "array",
-            //     },
-            //     Executor.Forward.DIRECT,
-            // );
         } catch (e: unknown & any) {
-            result = e.message;
-            result += "\n";
-            result += Exception.make_stack(e.stack);
-            result = result.replace(/\n$/, "");
+            result = Exception.make_exception(e);
         }
         return result;
     }
@@ -315,6 +287,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.newton.decode.js",
             "~/Executor/Methods/popcap.animation.decode.js",
             "~/Executor/Methods/popcap.animation.encode.js",
+            "~/Executor/Methods/wwise.soundbank.decode.js",
+            "~/Executor/Methods/wwise.soundbank.encode.js",
             "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
         ];
     }

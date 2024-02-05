@@ -213,7 +213,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 }
                 if (sen.readString(4) != "DATA")
                 {
-                    throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_wem_data_bank")));
+                    throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_wem_data_bank")), std::source_location::current(), "decode_didx");
                 }
                 auto DATALength = sen.readUint32();
                 auto WemDATAStartOffset = sen.read_pos;
@@ -364,10 +364,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                         decode_plat(info);
                         return;
                     case hash_sv("FXPR"_sv): {
-                        throw Exception(fmt::format("{}", Kernel::Language::get("unsupported_fxpr")));
+                        throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.unsupported_fxpr")), std::source_location::current(), "decode_type");
                     }
                     default: {
-                        throw Exception(fmt::format("{} | Offset: {}", Kernel::Language::get("wwise.decode.invalid_bnk"), sen.get_write_pos()));
+                        throw Exception(fmt::format("{} | {}: {:02x}", Kernel::Language::get("wwise.decode.invalid_bnk"), Kernel::Language::get("offset"), sen.get_write_pos()), std::source_location::current(), "decode_type");
                     }
                 }
             }
@@ -392,7 +392,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     auto BKHD_magic = sen.readString(4);
                     if (BKHD_magic != "BKHD")
                     {
-                        throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_bnk_magic")));
+                        throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_bnk_magic")), std::source_location::current(), "process");
                     }
                     auto BKHD_length = sen.readUint32();
                     auto version = sen.readUint32();
@@ -416,7 +416,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     }
                     if (sen.read_pos != senLength)
                     {
-                        throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_reader")));
+                        throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_reader")), std::source_location::current(), "process");
                     }
                     return info;
                 }

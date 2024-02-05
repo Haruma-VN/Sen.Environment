@@ -64,7 +64,7 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
-            is_enabled: false,
+            is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+).js$/gi],
         });

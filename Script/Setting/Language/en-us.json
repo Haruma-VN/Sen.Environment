@@ -81,5 +81,20 @@
     "popcap.animation.from_animation.invalid_transform": "Invalid transform variant to standard",
     "js.input_an_method_to_start": "Input a number to start process",
     "js.evaluate": "JS Evaluate",
-    "js.argument_ignored": "Argument has been ignore due to no method founded"
+    "js.argument_ignored": "Argument has been ignore due to no method founded",
+    "popcap.rton.decode.invalid_rton_magic": "Invalid RTON magic, should starts with \"RTON\"",
+    "popcap.rton.decode.invalid_rton_array_starts": "Invalid array start, should starts with",
+    "popcap.rton.decode.invalid_rton_array_end": "Invalid array end, should ends with",
+    "offset": "Offset",
+    "popcap.rton.decode.invalid_rtid": "Invalid RTID",
+    "popcap.rton.decode.invalid_bytecode": "Invalid bytecode",
+    "popcap.rton.decode.invalid_bytecode_property": "Invalid bytecode property",
+    "wwise.soundbank.decode.invalid_wem_data_bank": "Invalid WEM DataBank",
+    "wwise.soundbank.decode.unsupported_fxpr": "FXPR is unsupported",
+    "wwise.soundbank.decode.invalid_bnk_magic": "Invalid Soundbank magic",
+    "wwise.soundbank.decode.invalid_reader": "Invalid Reader",
+    "popcap.newton.decode": "PopCap Newton: Decode",
+    "popcap.newton.encode": "PopCap Newton: Encode",
+    "wwise.soundbank.decode": "WWise SoundBank: Decode",
+    "wwise.soundbank.encode": "WWise SoundBank: Encode"
 }
