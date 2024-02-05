@@ -1,5 +1,5 @@
 {
-    "script_has_been_loaded": "Scripts đã được nạp!",
+    "js.environment_has_been_loaded": "Môi trường đã được nạp. Mô-đun được nạp: {} Vỏ, {} Nhân, {} Kịch bản",
     "execution_time": "Thời gian xử lý",
     "runtime_error": "Lỗi thời gian chạy",
     "current_status": "Tình trạng hiện tại",
@@ -77,5 +77,8 @@
     "height": "Chiều cao",
     "popcap.atlas.pack.use_trim": "Chế độ trim được bật",
     "popcap.atlas.pack_property_change": "Ảnh chứa không gian không sử dụng, mặc định cắt {} từ {} đến {}",
-    "popcap.animation.from_animation.invalid_transform": "Chuyển đổi không hợp lệ biến thể thành tiêu chuẩn"
+    "popcap.animation.from_animation.invalid_transform": "Chuyển đổi không hợp lệ biến thể thành tiêu chuẩn",
+    "js.input_an_method_to_start": "Nhập một số để bắt đầu tiến trình",
+    "js.evaluate": "Thực thi JS",
+    "js.argument_ignored": "Đối số đã bị bỏ qua do không có hàm nào được tải"
 }

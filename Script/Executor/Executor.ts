@@ -3,6 +3,8 @@ namespace Sen.Script.Executor {
 
     export type Base = {
         [x: string]: unknown;
+    } & {
+        source: unknown;
     };
 
     // Base Configuration need to be inherited
@@ -10,6 +12,8 @@ namespace Sen.Script.Executor {
     export interface Configuration {
         [x: string]: unknown;
     }
+
+    export type MethodType = "file" | "directory" | "any" | "files";
 
     // Method Executor should implement direct forward, batch forward and async forward
 
@@ -26,6 +30,7 @@ namespace Sen.Script.Executor {
         async_forward?: (argument: AsyncArgument) => void;
         is_enabled: boolean;
         configuration: Configuration;
+        filter: [MethodType, RegExp] | [MethodType, ...Array<RegExp>];
     }
 
     /**
@@ -174,6 +179,37 @@ namespace Sen.Script.Executor {
         return;
     }
 
+    export function test([type, method]: [MethodType, RegExp], source: string): boolean {
+        let is_valid: boolean = undefined!;
+        switch (type) {
+            case "file": {
+                is_valid = Kernel.FileSystem.is_file(source);
+                break;
+            }
+            case "directory": {
+                is_valid = Kernel.FileSystem.is_directory(source);
+                break;
+            }
+        }
+        Console.send(`Regex: ${method}: After test: ${method.test(source)}`);
+        return true;
+    }
+
+    export function test_array([type, ...method]: [MethodType, ...Array<RegExp>], source: Array<string>): boolean {
+        let is_valid: boolean = true;
+        switch (type) {
+            case "file": {
+                is_valid = source.every((e) => Kernel.FileSystem.is_file(e));
+                break;
+            }
+            case "directory": {
+                is_valid = source.every((e) => Kernel.FileSystem.is_directory(e));
+                break;
+            }
+        }
+        return is_valid && method.every((e) => source.some((i) => e.test(i)));
+    }
+
     /**
      * ----------------------------------------------------------
      * JavaScript Implementation of Runner
@@ -189,21 +225,21 @@ namespace Sen.Script.Executor {
     export function run_as_module<Argument extends Sen.Script.Executor.Base>(id: string, argument: Argument, forward_type: Sen.Script.Executor.Forward): void {
         const worker: Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration> | undefined = methods.get(id);
         if (worker === undefined) {
-            throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get("js.method_not_found"), id));
+            throw new Error(Sen.Script.format(Sen.Kernel.Language.get("js.method_not_found"), id));
         }
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
-        Sen.Script.Console.display(`${Sen.Kernel.Language.get(`method_loaded`)}`, Sen.Kernel.Language.get(id), Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.display(`${Sen.Kernel.Language.get("method_loaded")}`, Sen.Kernel.Language.get(id), Sen.Script.Definition.Console.Color.GREEN);
         switch (forward_type) {
             case Sen.Script.Executor.Forward.ASYNC: {
                 if (worker.async_forward === undefined) {
-                    throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_async_implementation`), id));
+                    throw new Error(Sen.Script.format(Sen.Kernel.Language.get("method_does_not_support_async_implementation"), id));
                 }
                 worker.async_forward(argument);
                 break;
             }
             case Sen.Script.Executor.Forward.BATCH: {
                 if (worker.batch_forward === undefined) {
-                    throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`method_does_not_support_batch_implementation`), id));
+                    throw new Error(Sen.Script.format(Sen.Kernel.Language.get("method_does_not_support_batch_implementation"), id));
                 }
                 worker.batch_forward(argument);
                 break;
@@ -213,11 +249,76 @@ namespace Sen.Script.Executor {
                 break;
             }
             default: {
-                throw new Error(Sen.Script.Setting.format(Sen.Kernel.Language.get(`js.method_does_not_execute`)));
+                throw new Error(Sen.Script.format(Sen.Kernel.Language.get("js.method_does_not_execute")));
             }
         }
         Sen.Script.Executor.clock.stop_safe();
-        Sen.Script.Console.send(`${Sen.Kernel.Language.get(`execution_time`)}: ${Sen.Script.Executor.clock.duration.toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.send(`${Sen.Kernel.Language.get("execution_time")}: ${Sen.Script.Executor.clock.duration.toFixed(3)}s`, Sen.Script.Definition.Console.Color.GREEN);
+        return;
+    }
+
+    export function display_argument(argument: string | string[]): void {
+        if (is_string(argument)) {
+            Console.send(`${Sen.Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
+            Kernel.Console.print(`    ${argument}`);
+        } else {
+            Console.send(`${Sen.Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
+            argument.forEach((e) => Kernel.Console.print(`    ${e}`));
+        }
+        return;
+    }
+
+    export function execute<Argument extends Base>(argument: Argument, id: string, forward: Forward): void {
+        try {
+            run_as_module<Argument>(id, argument, forward);
+        } catch (e: any) {
+            Console.error(e);
+        }
+        return;
+    }
+
+    export function load_module<Argument extends Base>(argument: Argument): void {
+        const modules: Map<bigint, string> = new Map<bigint, string>();
+        Console.send(argument.source);
+        const query = (
+            callback: (([type, method]: [MethodType, RegExp], source: string) => boolean) | (([type, method]: [MethodType, ...Array<RegExp>], source: Array<string>) => boolean),
+            filter: [MethodType, RegExp | Array<RegExp>],
+            source: string | string[],
+            method_name: string,
+        ) => {
+            if (callback(filter as [MethodType, RegExp], source as string & string[])) {
+                modules.set(BigInt(modules.size) + 1n, method_name);
+            }
+            return;
+        };
+        methods.forEach((worker, method_name) => {
+            if (is_string(argument.source)) {
+                query(test, worker.filter as [MethodType, RegExp], argument.source, method_name);
+            }
+            if (is_array(argument.source)) {
+                query(test_array, worker.filter as [MethodType, RegExp], argument.source, method_name);
+            }
+        });
+        display_argument(argument.source as string | string[]);
+        Console.send(`${Sen.Kernel.Language.get("execution_argument")}: ${Kernel.Language.get("js.input_an_method_to_start")}`, Definition.Console.Color.CYAN);
+        modules.forEach((name: string, num: bigint) => {
+            Kernel.Console.print(`    ${num}. ${Kernel.Language.get(name)}`);
+        });
+        const view: Array<bigint> = Array.from(modules.keys());
+        switch (view.length) {
+            case 0: {
+                Console.error(Kernel.Language.get("js.argument_ignored"));
+                break;
+            }
+            case 1: {
+                execute<Argument>(argument, modules.get(view[0])!, Forward.DIRECT);
+                break;
+            }
+            default: {
+                const input_value: bigint = input_integer(view);
+                execute<Argument>(argument, modules.get(input_value)!, Forward.DIRECT);
+            }
+        }
         return;
     }
 }

@@ -70,7 +70,7 @@ Get-ChildItem $source -recurse -Filter "*.bin" | ForEach-Object {
 
 # Run tsc
 Write-Host "Transpiling TS to JS"
-& tsc
+& npx tsc
 
 # Finish
 

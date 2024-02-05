@@ -78,6 +78,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             },
             async_forward: undefined!,
             batch_forward: undefined!,
+            filter: ["files", /(.+).json$/gi, /(.+).png$/gi],
         });
         return;
     }

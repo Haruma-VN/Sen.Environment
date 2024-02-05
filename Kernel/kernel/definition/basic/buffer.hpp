@@ -95,7 +95,7 @@ namespace Sen::Kernel::Definition
 
             ) const -> uint64_t
             {
-                return thiz.data.capacity();
+                return thiz.data.size();
             }
 
             inline auto reserve(
@@ -109,14 +109,30 @@ namespace Sen::Kernel::Definition
 
             ) const -> std::vector<std::uint8_t>
             {
-                return thiz.get();
+                auto bytes = std::vector<std::uint8_t>{};
+                bytes.reserve(thiz.length);
+                if (use_big_endian)
+                {
+                    for (auto i = thiz.length - 1; i >= 0; i++)
+                    {
+                        bytes.emplace_back(thiz.data.at(i));
+                    }
+                }
+                else
+                {
+                    for (auto i = 0; i < thiz.length; i++)
+                    {
+                        bytes.emplace_back(thiz.data.at(i));
+                    }
+                }
+                return bytes;
             }
 
             inline auto get(
 
             ) const -> const std::vector<std::uint8_t> &
             {
-                return std::vector<unsigned char>(thiz.data.begin(), thiz.data.begin() + thiz.length);
+                return std::vector<std::uint8_t>(thiz.data.begin(), thiz.data.begin() + thiz.length);
             }
 
             inline auto get(
@@ -696,10 +712,15 @@ namespace Sen::Kernel::Definition
                     return;
                 }
                 auto new_pos = thiz.write_pos + size;
+                if (new_pos > thiz.length)
+                {
+                    thiz.length = new_pos;
+                }
                 if (new_pos > thiz.capacity())
                 {
                     thiz.reserve(new_pos + thiz.buffer_size);
                 }
+                thiz.write_pos = new_pos;
                 return;
             }
 
@@ -1364,7 +1385,7 @@ namespace Sen::Kernel::Definition
                 }
                 else
                 {
-                    for (auto i = from; i <= to; i++)
+                    for (auto i = from; i < to; i++)
                     {
                         bytes.emplace_back(thiz.data.at(i));
                     }

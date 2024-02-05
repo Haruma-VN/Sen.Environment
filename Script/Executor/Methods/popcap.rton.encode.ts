@@ -62,7 +62,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Encode {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Encode.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
+                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Encode.AsyncArgument): void {
@@ -78,14 +78,15 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Encode {
                         Sen.Script.Console.obtained(e[0]);
                         Sen.Script.Console.output(e[1]);
                     });
-                    // Sen.Kernel.Support.PopCap.RTON.Encode_fs_as_multiple_threads(...current_thread);
+                    // Sen.Kernel.Support.PopCap.RTON.encode_fs_as_multiple_threads(...current_thread);
                 }
                 Sen.Script.Executor.clock.stop_safe();
-                Sen.Script.Console.finished(Sen.Script.Setting.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
+                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
                 return;
             },
             is_enabled: false,
             configuration: undefined!,
+            filter: ["file", /(.+).json$/gi],
         });
         return;
     }

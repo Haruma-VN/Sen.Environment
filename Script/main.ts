@@ -173,7 +173,7 @@ namespace Sen.Script {
         export function make_stack(stack: string): string {
             return stack
                 .replace(/(\s)at(\s)/g, ` ${Kernel.Language.get("at")} `)
-                .replace(/\(native\)/gm, "(Kernel/kernel/interface/script.hpp:?)")
+                .replace(/\(native\)/gm, "(<native>:?)")
                 .replace(/(?<=\()(.*)(?=(Kernel|Script))/gm, "")
                 .replaceAll("\\", "/")
                 .split("\n")
@@ -220,15 +220,14 @@ namespace Sen.Script {
             Sen.Script.Module.load();
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
-            Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), Sen.Kernel.Language.get("script_has_been_loaded"));
+            Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
+            Kernel.arguments.forEach((e) => {
+                Sen.Script.Executor.load_module({ source: e });
+            });
             // Kernel.Support.WWise.SoundBank.decode_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
             // );
-            Kernel.Support.WWise.SoundBank.encode_fs(
-                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
-                "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA_1.BNK",
-            );
             // Support.PopCap.Animation.FromAnimation.process_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
@@ -293,6 +292,7 @@ namespace Sen.Script {
 
         export const script_list: Array<string> = [
             "~/Third/maxrects-packer/maxrects-packer.js",
+            "~/utility/Miscellaneous.js",
             "~/Setting/Setting.js",
             "~/utility/Definition.js",
             "~/utility/Clock.js",

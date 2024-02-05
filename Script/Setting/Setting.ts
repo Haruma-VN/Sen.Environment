@@ -21,22 +21,6 @@ namespace Sen.Script.Setting {
 
     /**
      * --------------------------------------------------
-     * JavaScript custom formatter
-     * @param str - string to format
-     * @param args - arguments
-     * @returns formatted string
-     * --------------------------------------------------
-     */
-
-    export function format(str: string, ...args: Array<any>): string {
-        for (const arg of args) {
-            str = str.replace("{}", arg.toString());
-        }
-        return str;
-    }
-
-    /**
-     * --------------------------------------------------
      * JavaScript current configuration file
      * @abstract: Configuration file
      * --------------------------------------------------

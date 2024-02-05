@@ -1,5 +1,5 @@
 {
-    "script_has_been_loaded": "Scripts has been loaded!",
+    "js.environment_has_been_loaded": "Environment has been loaded. Module loaded: {} Shell, {} Kernel, {} Script",
     "execution_time": "Execution Time",
     "runtime_error": "Runtime Error",
     "current_status": "Current status",
@@ -78,5 +78,8 @@
     "height": "height",
     "popcap.atlas.pack.use_trim": "Trim mode has been enabled",
     "popcap.atlas.pack_property_change": "The image contains unused area, default cut on {} from {} to {}",
-    "popcap.animation.from_animation.invalid_transform": "Invalid transform variant to standard"
+    "popcap.animation.from_animation.invalid_transform": "Invalid transform variant to standard",
+    "js.input_an_method_to_start": "Input a number to start process",
+    "js.evaluate": "JS Evaluate",
+    "js.argument_ignored": "Argument has been ignore due to no method founded"
 }

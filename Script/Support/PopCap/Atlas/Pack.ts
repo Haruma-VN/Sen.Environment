@@ -219,10 +219,10 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
             for (const i in list_view) {
                 const destination_size: Detail.MaxDimensionView<number> = definition.trim ? Detail.reducer_trim(list_view[i]) : Detail.square_trim(list_view[i]);
                 if (destination_size.width !== size.width) {
-                    Console.output(Setting.format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("width"), size.width, destination_size.width));
+                    Console.output(format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("width"), size.width, destination_size.width));
                 }
                 if (destination_size.height !== size.height) {
-                    Console.output(Setting.format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("height"), size.height, destination_size.height));
+                    Console.output(format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("height"), size.height, destination_size.height));
                 }
                 const parent_name: string = `${destination[0].id}_${(i as unknown as number) < 10 ? `0${i}` : `${i}`}`;
                 destination[0].resources.push({
