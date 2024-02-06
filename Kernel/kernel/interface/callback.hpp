@@ -347,6 +347,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::RTON::decrypt_and_decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "decrypt_and_decode_fs"_sv);
 					// encode fs
 					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "encode_fs"_sv);
+					// encrypt fs
+					javascript->add_proxy(Script::Support::PopCap::RTON::encrypt_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "encrypt_fs"_sv);
 					// encode_fs_as_multiple_threads
 					javascript->add_proxy(Script::Support::PopCap::RTON::encode_fs_as_multiple_threads, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RTON"_sv, "encode_fs_as_multiple_threads"_sv);
 				}

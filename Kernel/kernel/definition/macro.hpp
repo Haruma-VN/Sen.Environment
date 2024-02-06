@@ -58,6 +58,10 @@ return INSTANCE;\
 #define _IF_1_ELSE(...)
 #define _IF_0_ELSE(...) __VA_ARGS__
 
+#define fill_rijndael_block(raw, iv)                                            \
+    auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
+    raw.writeNull(padding);
+
 namespace Sen::Kernel {
 	
 }

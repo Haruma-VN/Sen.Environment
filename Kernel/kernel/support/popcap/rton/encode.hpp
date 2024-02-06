@@ -391,13 +391,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         ) = default;
 
-        inline static auto instance(
-
-        ) -> Encode&
-        {
-            static auto INSTANCE = Encode{};
-            return INSTANCE;
-        }
+        // ---------------------------------------------
 
         inline static auto encode_fs(
             std::string_view source,
@@ -407,7 +401,37 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto parser = ondemand::parser{};
             auto str = padded_string::load(source);
             auto json = static_cast<ondemand::document>(parser.iterate(str));
-            Encode::instance().encode_rton(json).out_file(destination);
+            auto encoder = Encode{};
+            auto sen = encoder.encode_rton(json);
+            sen.out_file(destination);
+            return;
+        }
+
+        // ---------------------------------------------
+
+        inline static auto encrypt_fs(
+            std::string_view source,
+            std::string_view destination,
+            std::string_view key,
+            std::string_view iv
+        ) -> void
+        {
+            auto source_buffer = DataStreamView{ source };
+            auto source_iv = DataStreamView{};
+            source_iv.writeStringView(iv);
+            fill_rijndael_block(source_buffer, source_iv);
+            auto encrypted_data = DataStreamView{};
+            encrypted_data.append(std::array<uint8_t, 2>{ 0x10, 0x00 });
+            encrypted_data.writeBytes(
+                Encryption::Rijndael::encrypt(
+                    reinterpret_cast<const char*>(source_buffer.get().data()),
+                    key,
+                    iv,
+                    source_buffer.size(),
+                    Encryption::RijndaelMode::CBC
+                )
+            );
+            encrypted_data.out_file(destination);
             return;
         }
 

@@ -230,6 +230,7 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
+            // Kernel.FileSystem.write_file("C:/Users/HarumaVN/Downloads/LAWNSTRINGS1.TXT", utf16);
             Kernel.arguments.forEach((source: string) => {
                 Sen.Script.Executor.load_module({ source });
             });
@@ -311,6 +312,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Animation/Structure.js",
             "~/Support/PopCap/Animation/FromAnimation.js",
             "~/Support/PopCap/Animation/ToAnimation.js",
+            "~/Support/PopCap/LawnStrings/Convert.js",
             "~/Executor/Executor.js",
             "~/Executor/Methods/js.evaluate.js",
             "~/Executor/Methods/data.md5.hash.js",

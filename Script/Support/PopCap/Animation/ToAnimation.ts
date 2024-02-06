@@ -13,8 +13,8 @@ namespace Sen.Script.Support.PopCap.Animation {
             const record_info: ExtraInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "record.json"));
             const animation_image_id_list: string[] = sort_list(
                 Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "image"))
-                    .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
-                    .map((e) => Kernel.Path.base_without_extension(e)),
+                    .filter((e: string) => /(.*)\.xml$/gi.test(e))
+                    .map((e: string) => Kernel.Path.base_without_extension(e)),
             );
             const animation_image_map: Record<string, Structure.AnimationImage> = {};
             for (let image_id of animation_image_id_list) {
@@ -23,8 +23,8 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const animation_sprite_name_list: string[] = sort_list(
                 Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "sprite"))
-                    .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
-                    .map((e) => Kernel.Path.base_without_extension(e)),
+                    .filter((e: string) => /(.*)\.xml$/gi.test(e))
+                    .map((e: string) => Kernel.Path.base_without_extension(e)),
             );
             const animation_sprite_map: Record<string, Structure.AnimationSprite> = {};
             for (let sprite_name of animation_sprite_name_list) {
@@ -40,8 +40,8 @@ namespace Sen.Script.Support.PopCap.Animation {
                 };
             }
             const animation_label_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "action"))
-                .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
-                .map((e) => Kernel.Path.base_without_extension(e));
+                .filter((e: string) => /(.*)\.xml$/gi.test(e))
+                .map((e: string) => Kernel.Path.base_without_extension(e));
             const animation_action_map: Record<string, FrameNode> = {};
             for (let action_label of animation_label_list) {
                 const action_document: SpriteDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "library", "action", `${action_label}.xml`));
@@ -78,20 +78,20 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, bigint>, last_frame: bigint): void {
             if (!dom_document["DOMDocument"].hasOwnProperty("folder")) {
-                throw new Error("document_has_no_folder");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_folder"));
             }
             if (!dom_document["DOMDocument"].hasOwnProperty("media")) {
-                throw new Error("document_has_no_media");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_media"));
             }
             if (!dom_document["DOMDocument"].hasOwnProperty("symbols")) {
-                throw new Error("document_has_no_symbols");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_symbols"));
             }
-            animation["frame_rate"] = BigInt(dom_document["DOMDocument"]["@attributes"]["frameRate"] ?? "30");
+            animation["frame_rate"] = BigInt(dom_document["DOMDocument"]["@attributes"]["frameRate"] ?? "24");
             animation["size"]["width"] = BigInt(dom_document["DOMDocument"]["@attributes"]["width"] ?? "390");
             animation["size"]["height"] = BigInt(dom_document["DOMDocument"]["@attributes"]["height"] ?? "390");
             const dom_timeline: DocumentDOMTimeline = dom_document["DOMDocument"]["timelines"]["DOMTimeline"];
             if (dom_timeline["@attributes"]["name"] !== "animation") {
-                throw new Error("invaild_dom_document_name");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_name_must_be_animation"));
             }
             const action_label_list: string[] = Object.keys(action_index_list);
             for (let label of action_label_list) {
@@ -100,7 +100,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const dom_command: DocumentDomLayer = dom_document["DOMDocument"]["timelines"]["DOMTimeline"]["layers"]["DOMLayer"][1];
             if (dom_command["@attributes"]["name"] !== "command") {
-                throw new Error("invaild_document_commamd");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_name_must_be_command"));
             }
             const dom_command_frames: DocumentDomFrameProperty = dom_command["frames"]["DOMFrame"];
             const dom_command_frames_list: DocumentDomFrame[] = [];
@@ -127,10 +127,10 @@ namespace Sen.Script.Support.PopCap.Animation {
                 }
                 const action_script: ActionscriptProperty = frame["Actionscript"];
                 if (!action_script.hasOwnProperty("script")) {
-                    throw new Error("invaild_dom_script");
+                    throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_dom_script"), frame["@attributes"].index));
                 }
                 if (!action_script["script"]["@text"]["is_cdata"]) {
-                    throw new Error("invaild_script_cdata");
+                    throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_script_cdata"), frame["@attributes"].index));
                 }
                 const script_data: string = action_script["script"]["@text"]["value"].trim();
                 const script_list: string[] = script_data.split(";");
@@ -139,9 +139,9 @@ namespace Sen.Script.Support.PopCap.Animation {
                     return;
                 }
                 for (let command of script_list) {
-                    const regex_result: RegExpMatchArray | null = command.trim().match(/fscommand\("(.*)", "(.*)"\)/);
+                    const regex_result: RegExpMatchArray | null = command.trim().match(/fscommand\("(.*)", "(.*)"\)/gm);
                     if (regex_result === null) {
-                        throw new Error("invaild_command");
+                        throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_command"), command));
                     }
                     animation["main_sprite"]["frame"][Number(frame_index)]["command"].push({
                         command: regex_result[1],
@@ -194,27 +194,27 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function get_action_index(dom_document: DOMDocument): Record<string, bigint> {
             if (!dom_document.hasOwnProperty("DOMDocument")) {
-                throw new Error("document_has_no_DOMDocument");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_DOMDocument"));
             }
             if (!dom_document["DOMDocument"].hasOwnProperty("timelines")) {
-                throw new Error("document_has_no_timelines");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_timelines"));
             }
             if (!dom_document["DOMDocument"]["timelines"].hasOwnProperty("DOMTimeline")) {
-                throw new Error("document_has_no_DOMTimeline");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_DOMTimeline"));
             }
             if (!dom_document["DOMDocument"]["timelines"]["DOMTimeline"].hasOwnProperty("layers")) {
-                throw new Error("document_has_no_layers");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_layers"));
             }
             if (!dom_document["DOMDocument"]["timelines"]["DOMTimeline"]["layers"].hasOwnProperty("DOMLayer")) {
-                throw new Error("document_has_no_DOMLayer");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_DOMLayer"));
             }
             const dom_layer: DocumentDomLayer[] = dom_document["DOMDocument"]["timelines"]["DOMTimeline"]["layers"]["DOMLayer"];
             if (dom_layer.length !== 2) {
-                throw new Error("invaild_document_DOMLayer_length");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.invalid_document_DOMLayer_length"));
             }
             const dom_flow: DocumentDomLayer = dom_layer[0];
             if (dom_flow["@attributes"]["name"] !== "flow") {
-                throw new Error("invaild_document_flow");
+                throw new Error(Kernel.Language.get("popcap.animation.from_flash.invalid_document_flow"));
             }
             const flow_dom_frames: DocumentDomFrameProperty = dom_flow["frames"]["DOMFrame"];
             const flow_domframes_list: DocumentDomFrame[] = [];
@@ -228,7 +228,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 const frame_index: bigint = BigInt(frame["@attributes"]["index"]);
                 if (frame["@attributes"]["name"] !== undefined) {
                     if (frame["@attributes"]["labelType"] !== "name") {
-                        throw new Error("invaild_action_label");
+                        throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_action_label"), frame["@attributes"].name));
                     }
                     action_index_list[frame["@attributes"]["name"]] = frame_index;
                 }
@@ -236,13 +236,15 @@ namespace Sen.Script.Support.PopCap.Animation {
             return action_index_list;
         }
 
+        // to do
+
         export function parse_sprite(sprite_document: SpriteDocument, sprite_name: string, is_action: boolean, animation_image_id_list: string[], animation_sprite_name_list: string[]): FrameNode {
             if (!sprite_document.hasOwnProperty("DOMSymbolItem")) {
                 throw new Error("sprite_has_no_DOMSymbolItem");
             }
             const dom_sprite_name: string = `${is_action ? "action" : "sprite"}/${sprite_name}`;
             if (sprite_document["DOMSymbolItem"]["@attributes"]["name"] !== dom_sprite_name) {
-                throw new Error("invaild_sprite_name");
+                throw new Error("invalid_sprite_name");
             }
             if (!sprite_document["DOMSymbolItem"].hasOwnProperty("timeline")) {
                 throw new Error("sprite_has_no_timeline");
@@ -252,7 +254,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const DOMtimeline: SpriteDomTimeline = sprite_document["DOMSymbolItem"]["timeline"]["DOMTimeline"];
             if (DOMtimeline["@attributes"]["name"] !== sprite_name) {
-                throw new Error("invaild_sprite_name");
+                throw new Error("invalid_sprite_name");
             }
             if (!DOMtimeline.hasOwnProperty("layers")) {
                 throw new Error("sprite_has_no_layers");
@@ -326,10 +328,10 @@ namespace Sen.Script.Support.PopCap.Animation {
                     const library_item_name: string = dom_symbol_instance["@attributes"]["libraryItemName"];
                     const name_match: RegExpMatchArray | null = library_item_name.match(/(image|sprite)/);
                     if (name_match === null) {
-                        throw new Error("invaild_name_match");
+                        throw new Error("invalid_name_match");
                     }
                     if (name_match[0] !== name_match[1]) {
-                        throw new Error("invaild_name_match");
+                        throw new Error("invalid_name_match");
                     }
                     const sprite_item_name: string = library_item_name.substring(name_match[0].length + 1);
                     const is_sprite: boolean = name_match[0] === "sprite";
@@ -343,7 +345,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                     } else if (dom_symbol_instance["matrix"].hasOwnProperty("Matrix")) {
                         transform = transform_calculator(parse_transform(dom_symbol_instance["matrix"]["Matrix"]));
                     } else {
-                        throw new Error("invaild_sprite_matrix");
+                        throw new Error("invalid_sprite_matrix");
                     }
                     let color: number[];
                     if (dom_symbol_instance["color"] === undefined || dom_symbol_instance["color"] === null || Object.keys(dom_symbol_instance["color"]).length === 0) {
@@ -351,7 +353,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                     } else if (dom_symbol_instance["color"].hasOwnProperty("Color")) {
                         color = parse_color(dom_symbol_instance["color"]["Color"]);
                     } else {
-                        throw new Error("invaild_sprite_color");
+                        throw new Error("invalid_sprite_color");
                     }
                     const target_frame: Structure.AnimationFrame = get_frame_at_index(frame_index);
 
@@ -458,7 +460,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 throw new Error("image_has_no_DOMSymbolItem");
             }
             if (image_document["DOMSymbolItem"]["@attributes"]["name"] !== `image/${image_id}`) {
-                throw new Error(`invaild_image_name: ${image_id}`);
+                throw new Error(`invalid_image_name: ${image_id}`);
             }
             if (!image_document["DOMSymbolItem"].hasOwnProperty("timeline")) {
                 throw new Error("image_has_no_timeline");
@@ -468,7 +470,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const DOMtimeline: DomTimeline = image_document["DOMSymbolItem"]["timeline"]["DOMTimeline"];
             if (DOMtimeline["@attributes"]["name"] !== image_id) {
-                throw new Error("invaild_image_id");
+                throw new Error("invalid_image_id");
             }
             if (!DOMtimeline.hasOwnProperty("layers")) {
                 throw new Error("image_has_no_layers");
@@ -495,7 +497,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 throw new Error("image_has_no_matrix");
             }
             if (!dom_bitmap_instance["matrix"].hasOwnProperty("Matrix")) {
-                throw new Error("invaild_image_matrix");
+                throw new Error("invalid_image_matrix");
             }
             const image_transform: number[] = parse_transform_for_image(dom_bitmap_instance["matrix"]["Matrix"]);
             const animation_image: Structure.AnimationImage = {

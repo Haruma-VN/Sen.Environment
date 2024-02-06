@@ -6,10 +6,6 @@ namespace Sen::Kernel::Support::PopCap::RTON
 {
     using namespace Definition;
 
-#define fill_rijndael_block(raw, iv)                                            \
-    auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
-    raw.writeNull(padding);
-
     class Decode
     {
     protected:

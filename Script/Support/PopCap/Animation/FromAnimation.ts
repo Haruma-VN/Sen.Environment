@@ -392,12 +392,18 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function check_base_frame(transform: number[], color: number[], resource: bigint | null): boolean {
             for (let i = 0; i < transform.length; ++i) {
-                if (transform[i] !== initial_transform[i]) return true;
+                if (transform[i] !== initial_transform[i]) {
+                    return true;
+                }
             }
             for (let i = 0; i < color.length; ++i) {
-                if (color[i] !== initial_color[i]) return true;
+                if (color[i] !== initial_color[i]) {
+                    return true;
+                }
             }
-            if (resource !== null) return true;
+            if (resource !== null) {
+                return true;
+            }
             return false;
         }
 

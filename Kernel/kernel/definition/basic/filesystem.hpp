@@ -141,16 +141,14 @@ namespace Sen::Kernel::FileSystem
 	// file path: the file uses utf16le encoding
 	// return: the utf16le string
 
-	inline static auto read_file_by_utf16le(
-		std::string_view filepath
-	) -> std::wstring const
+	inline static auto read_file_by_utf16(
+		std::string_view source
+	) -> std::wstring
 	{
-		auto wif = std::wifstream(filepath.data(), std::ios::binary);
-		assert_conditional(!wif.fail(), fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), "read_file_by_utf16le");
-		wif.imbue(std::locale(wif.getloc(), new std::codecvt_utf8<wchar_t, 0x10ffff>));
-		auto wss = std::wstringstream{};
-		wss << wif.rdbuf();
-		return wss.str();
+		auto wif = std::wifstream(std::wstring{ source.begin(), source.end()});
+		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
+		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
+		return content;
 	}
 
 	// filePath: the file path to write
@@ -158,12 +156,13 @@ namespace Sen::Kernel::FileSystem
 	// return: the data has been written
 
 	inline static auto write_file_by_utf16le(
-		std::string_view filePath,
+		std::string_view source,
 		const std::wstring & data
 	) -> void
 	{
-		auto utf16le_locale = static_cast<std::locale>(std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
-		auto file = std::wofstream(filePath.data());
+		auto utf16le_locale = std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff,
+			(std::codecvt_mode)(std::little_endian | std::generate_header)>);
+		auto file = std::wofstream(source.data(), std::ios::binary);
 		file.imbue(utf16le_locale);
 		file << data;
 		file.close();

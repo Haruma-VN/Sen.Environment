@@ -912,8 +912,8 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("argument expected {} but received {}", 1, argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_file_by_utf16le(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_file_by_utf16(source.get());
 				auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
 				auto utf8_string = std::string{converter.to_bytes(result)};
 				return JS::Converter::to_string(context, utf8_string);
@@ -963,11 +963,11 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
-				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto destination = JS::Converter::get_c_string(context, argv[0]);
 				auto data = JS::Converter::get_string(context, argv[1]);
 				auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
-				auto result = std::wstring{converter.from_bytes(data)};
-				Sen::Kernel::FileSystem::write_file_by_utf16le(destination, result);
+				auto result = std::wstring{ converter.from_bytes(data) };
+				Sen::Kernel::FileSystem::write_file_by_utf16le(destination.get(), result);
 				return JS::Converter::get_undefined();
 			}, "write_file_encode_with_utf16le"_sv);
 		}
@@ -3474,6 +3474,33 @@ namespace Sen::Kernel::Interface::Script {
 						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RTON Encrypt File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encrypted file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encrypt_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto key = JS::Converter::get_c_string(context, argv[2]);
+						auto iv = JS::Converter::get_c_string(context, argv[3]);
+						Sen::Kernel::Support::PopCap::RTON::Encode::encrypt_fs(source.get(), destination.get(), key.get(), iv.get());
+						return JS::Converter::get_undefined();
+						}, "encrypt_fs"_sv);
 				}
 			}
 
