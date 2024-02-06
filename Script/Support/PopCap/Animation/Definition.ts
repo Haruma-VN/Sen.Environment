@@ -62,9 +62,11 @@ namespace Sen.Script.Support.PopCap.Animation {
             index: string;
             duration: string;
         };
-        elements: {
-            DOMSymbolInstance: DOMSymbolInstance | null;
-        };
+        elements: ElementsDOMSymbolInstance | PureInstance | null;
+    }
+
+    export interface ElementsDOMSymbolInstance {
+        DOMSymbolInstance: DOMSymbolInstance;
     }
 
     export interface SpriteFrame {

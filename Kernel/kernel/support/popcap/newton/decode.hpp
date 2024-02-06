@@ -120,14 +120,14 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					auto subgroups_count = thiz.read_integer();
 					auto resources_count = thiz.read_integer();
 					auto version = thiz.read_enumeration();
-					assert_conditional(version == 0x01, fmt::format("Unknown version {} at index {}", version, i), "process");
+					assert_conditional(version == 0x01, fmt::format("{} {} {} {}", Kernel::Language::get("popcap.newton.decode.unknown_version"), version, Kernel::Language::get("popcap.newton.decode.at_index"), i), "process");
       				auto group_has_parent = thiz.read_boolean();
 					group["id"] = thiz.read_string();
 					if (group_has_parent) {
 						group["parent"] = thiz.read_string();
 					}
 					if (group_type == 0x01) {
-						assert_conditional(resources_count == 0x00, "Property \"resources\" must have size 0 with composite", "process");
+						assert_conditional(resources_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.resource_must_be_null_with_composite"), group["id"]), "process");
 						auto subgroups = nlohmann::ordered_json::array_t{};
 						for (auto subgroups_index : Range<int>(subgroups_count)) {
 							auto subgroup = nlohmann::ordered_json{};
@@ -142,7 +142,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						groups.emplace_back(group);
 					}
 					if(group_type == 0x02){
-						assert_conditional(subgroups_count == 0x00, "Property \"subgroup\" must have size 0 with simple", "process");
+						assert_conditional(subgroups_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.subgroup_must_be_null_with_simple"), group["id"]), "process");
 						auto resources = nlohmann::ordered_json::array_t{};
 						for (auto resources_index : Range<int>(resources_count)){
           					auto sub_resources = nlohmann::ordered_json{};
@@ -286,6 +286,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			~Decode(
 
 			) = default;
+
+			/**
+			 * Instance
+			*/
 
 			M_INSTANCE_OF_STRUCT(
 				Decode

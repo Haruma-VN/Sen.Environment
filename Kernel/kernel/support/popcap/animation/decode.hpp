@@ -14,38 +14,6 @@ namespace Sen::Kernel::Support::PopCap::Animation
         SexyAnimation mutable json{};
         int mutable version;
 
-        inline auto animation_decode() const -> SexyAnimation
-        {
-            if (sen.readUint32() != Definition::magic)
-            {
-                throw Exception(fmt::format("{}", Language::get("popcap.animation.invalid_magic")), std::source_location::current(), "animation_decode");
-            }
-            version = sen.readUint32();
-            auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
-            if (index == Definition::version.end())
-            {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "animation_decode");
-            }
-            json.version = version;
-            json.frame_rate = sen.readUint8();
-            json.position = AnimationPosition{(sen.readUint16() / 20), (sen.readUint16() / 20)};
-            json.size = AnimationSize{(sen.readUint16() / 20), (sen.readUint16() / 20)};
-            auto image_count = sen.readUint16();
-            for (auto i : Range(image_count))
-            {
-                read_image();
-            }
-            auto sprite_count = sen.readUint16();
-            for (auto i : Range(sprite_count))
-            {
-                read_sprite(i);
-            }
-            if (version <= 3|| sen.readBoolean()) {
-                json.main_sprite = read_sprite(-1);
-            }
-            return json;
-        }
-
         inline auto read_sprite(int index) const -> AnimationSprite
         {
             auto sprite_name = version >= 4 ? sen.readStringByUint16() : "*" + std::to_string(index);
@@ -295,6 +263,38 @@ namespace Sen::Kernel::Support::PopCap::Animation
             std::string_view source
         ) : sen(source)
         {
+        }
+
+        inline auto animation_decode() const -> SexyAnimation
+        {
+            if (sen.readUint32() != Definition::magic)
+            {
+                throw Exception(fmt::format("{}", Language::get("popcap.animation.invalid_magic")), std::source_location::current(), "animation_decode");
+            }
+            version = sen.readUint32();
+            auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
+            if (index == Definition::version.end())
+            {
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "animation_decode");
+            }
+            json.version = version;
+            json.frame_rate = sen.readUint8();
+            json.position = AnimationPosition{(sen.readUint16() / 20), (sen.readUint16() / 20)};
+            json.size = AnimationSize{(sen.readUint16() / 20), (sen.readUint16() / 20)};
+            auto image_count = sen.readUint16();
+            for (auto i : Range(image_count))
+            {
+                read_image();
+            }
+            auto sprite_count = sen.readUint16();
+            for (auto i : Range(sprite_count))
+            {
+                read_sprite(i);
+            }
+            if (version <= 3|| sen.readBoolean()) {
+                json.main_sprite = read_sprite(-1);
+            }
+            return json;
         }
 
         explicit Decode(

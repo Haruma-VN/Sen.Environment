@@ -31,6 +31,10 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 
 			) = default;
 
+			/**
+			 * Get instance
+			*/
+
 			M_INSTANCE_OF_STRUCT(
 				Decrypt
 			);
@@ -46,7 +50,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 			{
 				auto result = DataStreamView{};
 				auto code = std::vector<uint8_t>{key.begin(), key.end()};
-				assert_conditional((view.readString(BasicDefinition::magic.size()) == std::string{BasicDefinition::magic.begin(), BasicDefinition::magic.end()}), "Mismatch Crypt-Data magic", "process");
+				assert_conditional((view.readString(BasicDefinition::magic.size()) == std::string{BasicDefinition::magic.begin(), BasicDefinition::magic.end()}), fmt::format("{}", Kernel::Language::get("popcap.crypt_data.decrypt.mismatch_magic")), "process");
             	auto size = view.readUint64();
 				if (view.size() > 0x112){
 					auto index = 0;

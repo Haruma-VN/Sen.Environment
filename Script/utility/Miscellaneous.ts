@@ -84,4 +84,33 @@ namespace Sen.Script {
     export function is_array(value: unknown): value is Array<any> {
         return is_object(value) && Array.isArray(value);
     }
+
+    /**
+     *
+     * @param value - Any JS Value
+     * @returns
+     */
+
+    export function debug(value: unknown): void {
+        if (is_object(value)) {
+            Console.send(Kernel.JSON.serialize(value, 1, false));
+            return;
+        }
+        Console.send(value);
+        return;
+    }
+
+    /**
+     *
+     * @param condition - Conditional to assert
+     * @param message - Message if assert failed
+     * @returns
+     */
+
+    export function assert(condition: boolean, message?: string): void {
+        if (!condition) {
+            throw new Error(message);
+        }
+        return;
+    }
 }

@@ -124,7 +124,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 }
                 for (let k = 0; k < main_frame[i]["command"].length; ++k) {
                     const command_list: Structure.AnimationCommand = main_frame[i]["command"][k];
-                    const command: string = `fscommand("${command_list["command"]}", "${command_list["parameter"]}")`;
+                    const command: string = `fscommand("${command_list["parameter"]}", "${command_list["command"]}")`;
                     command_script += command;
                     write_command = true;
                 }
@@ -303,7 +303,12 @@ namespace Sen.Script.Support.PopCap.Animation {
                             index: `${frame_node[k]["index"]}`,
                             duration: `${frame_node[k]["duration"]}`,
                         },
-                        elements: { DOMSymbolInstance: null },
+                        elements: {
+                            "@text": {
+                                is_cdata: false,
+                                value: "",
+                            },
+                        },
                     };
                     if (check_base_frame(transform, base_color, resource)) {
                         const symbol_instance_attributes: DOMSymbolInstanceAttributes = frame_node[k]["sprite"]
@@ -339,8 +344,8 @@ namespace Sen.Script.Support.PopCap.Animation {
                                 Color: {
                                     "@attributes": {
                                         redMultiplier: base_color[0].toFixed(6),
-                                        greenMultiplier: base_color[2].toFixed(6),
-                                        blueMultiplier: base_color[1].toFixed(6),
+                                        greenMultiplier: base_color[1].toFixed(6),
+                                        blueMultiplier: base_color[2].toFixed(6),
                                         alphaMultiplier: base_color[3].toFixed(6),
                                     },
                                 },
@@ -382,7 +387,6 @@ namespace Sen.Script.Support.PopCap.Animation {
                     },
                 },
             };
-            Sen.Kernel.JSON.serialize_fs(`C:/Users/Shift/Desktop/compare/json/${name}.json`, sprite_document, 1, false);
             return Sen.Kernel.XML.serialize(sprite_document);
         }
 
@@ -474,10 +478,10 @@ namespace Sen.Script.Support.PopCap.Animation {
                     layers["transform"] = static_transform;
                     if (
                         frame_change["color"] !== null &&
-                        frame_change["color"][0] !== initial_color[0] &&
-                        frame_change["color"][1] !== initial_color[1] &&
-                        frame_change["color"][2] !== initial_color[2] &&
-                        frame_change["color"][3] !== initial_color[3]
+                        (frame_change["color"][0] !== initial_color[0] ||
+                            frame_change["color"][1] !== initial_color[1] ||
+                            frame_change["color"][2] !== initial_color[2] ||
+                            frame_change["color"][3] !== initial_color[3])
                     ) {
                         layers["color"] = frame_change["color"];
                     }

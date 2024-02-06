@@ -26,7 +26,10 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
      * Configuration file if needed
      */
 
-    export interface Configuration extends Sen.Script.Executor.Configuration {}
+    export interface Configuration extends Sen.Script.Executor.Configuration {
+        method: "?" | "path" | "id";
+        style: "?" | "string" | "array";
+    }
 
     /**
      * Configuration file if needed

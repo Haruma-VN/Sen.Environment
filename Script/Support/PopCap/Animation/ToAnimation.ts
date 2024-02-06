@@ -10,15 +10,21 @@ namespace Sen.Script.Support.PopCap.Animation {
         }
 
         export function process(source: string): SexyAnimation {
-            const extra_info: ExtraInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "extra.json"));
-            const animation_image_id_list: string[] = sort_list(Kernel.FileSystem.read_directory_only_directory(Kernel.Path.join(source, "library", "image")));
+            const record_info: ExtraInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "record.json"));
+            const animation_image_id_list: string[] = sort_list(
+                Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "image"))
+                    .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
+                    .map((e) => Kernel.Path.base_without_extension(e)),
+            );
             const animation_image_map: Record<string, Structure.AnimationImage> = {};
             for (let image_id of animation_image_id_list) {
                 const image_document: ImageDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "library", "image", `${image_id}.xml`));
-                animation_image_map[image_id] = parse_image(image_document, image_id, extra_info);
+                animation_image_map[image_id] = parse_image(image_document, image_id, record_info);
             }
             const animation_sprite_name_list: string[] = sort_list(
-                Kernel.FileSystem.read_directory_only_directory(Kernel.Path.join(source, "library", "sprite"))
+                Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "sprite"))
+                    .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
+                    .map((e) => Kernel.Path.base_without_extension(e)),
             );
             const animation_sprite_map: Record<string, Structure.AnimationSprite> = {};
             for (let sprite_name of animation_sprite_name_list) {
@@ -33,10 +39,12 @@ namespace Sen.Script.Support.PopCap.Animation {
                     frame: frame_node["frames"],
                 };
             }
-            const animation_label_list: string[] = Kernel.FileSystem.read_directory_only_directory(Kernel.Path.join(source, "library", "action"));
+            const animation_label_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "action"))
+                .filter((e) => Kernel.Path.extname(e).toLowerCase() === ".xml")
+                .map((e) => Kernel.Path.base_without_extension(e));
             const animation_action_map: Record<string, FrameNode> = {};
             for (let action_label of animation_label_list) {
-                const action_document: SpriteDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "library", "sprite", `${action_label}.xml`));
+                const action_document: SpriteDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "library", "action", `${action_label}.xml`));
                 animation_action_map[action_label] = parse_sprite(action_document, action_label, true, animation_image_id_list, animation_sprite_name_list);
             }
             const dom_document: DOMDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "DomDocument.xml"));
@@ -47,88 +55,101 @@ namespace Sen.Script.Support.PopCap.Animation {
                 frame_rate: 0n,
                 position: {
                     x: 0n,
-                    y: 0n
+                    y: 0n,
                 },
                 size: {
                     width: 0n,
-                    height: 0n
+                    height: 0n,
                 },
                 image: animation_image_map,
                 sprite: animation_sprite_map,
                 main_sprite: {
-                    description: '',
+                    description: "",
                     work_area: {
                         index: 0n,
                         duration: BigInt(main_frame.length),
                     },
-                    frame: main_frame
-                }
+                    frame: main_frame,
+                },
             };
             parse_dom_document(dom_document, animation, action_index_list, BigInt(main_frame.length - 1));
             return animation;
         }
 
-        export function parse_dom_document(
-            dom_document: DOMDocument,
-            animation: Structure.SexyAnimation,
-            action_index_list: Record<string, bigint>,
-            last_frame: bigint
-        ): void 
-        {
-            if (!dom_document['DOMDocument'].hasOwnProperty('folder')) {
+        export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, bigint>, last_frame: bigint): void {
+            if (!dom_document["DOMDocument"].hasOwnProperty("folder")) {
                 throw new Error("document_has_no_folder");
             }
-            if (!dom_document['DOMDocument'].hasOwnProperty('media')) {
+            if (!dom_document["DOMDocument"].hasOwnProperty("media")) {
                 throw new Error("document_has_no_media");
             }
-            if (!dom_document['DOMDocument'].hasOwnProperty('symbols')) {
+            if (!dom_document["DOMDocument"].hasOwnProperty("symbols")) {
                 throw new Error("document_has_no_symbols");
             }
-            animation['frame_rate'] = BigInt(dom_document['DOMDocument']['@attributes']['frameRate'] ?? '30');
-            animation['size']['width'] = BigInt(dom_document['DOMDocument']['@attributes']['width'] ?? '390');
-            animation['size']['height'] = BigInt(dom_document['DOMDocument']['@attributes']['height'] ?? '390');
-            const dom_timeline: DocumentDOMTimeline = dom_document['DOMDocument']['timelines']['DOMTimeline'];
-            if (dom_timeline['@attributes']['name'] !== 'animation') {
+            animation["frame_rate"] = BigInt(dom_document["DOMDocument"]["@attributes"]["frameRate"] ?? "30");
+            animation["size"]["width"] = BigInt(dom_document["DOMDocument"]["@attributes"]["width"] ?? "390");
+            animation["size"]["height"] = BigInt(dom_document["DOMDocument"]["@attributes"]["height"] ?? "390");
+            const dom_timeline: DocumentDOMTimeline = dom_document["DOMDocument"]["timelines"]["DOMTimeline"];
+            if (dom_timeline["@attributes"]["name"] !== "animation") {
                 throw new Error("invaild_dom_document_name");
             }
             const action_label_list: string[] = Object.keys(action_index_list);
             for (let label of action_label_list) {
                 const frame_index: bigint = action_index_list[label];
-                animation['main_sprite']['frame'][Number(frame_index)]['label'] = label;
+                animation["main_sprite"]["frame"][Number(frame_index)]["label"] = label;
             }
-            const dom_command: DocumentDomLayer = dom_document['DOMDocument']['timelines']['DOMTimeline']['layers']['DOMLayer'][1];
-            if (dom_command['@attributes']['name'] !== 'command') {
+            const dom_command: DocumentDomLayer = dom_document["DOMDocument"]["timelines"]["DOMTimeline"]["layers"]["DOMLayer"][1];
+            if (dom_command["@attributes"]["name"] !== "command") {
                 throw new Error("invaild_document_commamd");
             }
-            const dom_command_frames: DocumentDomFrameProperty = dom_command['frames']['DOMFrame'];
+            const dom_command_frames: DocumentDomFrameProperty = dom_command["frames"]["DOMFrame"];
             const dom_command_frames_list: DocumentDomFrame[] = [];
             if (Array.isArray(dom_command_frames)) {
                 dom_command_frames_list.push(...dom_command_frames);
-            }
-            else {
+            } else {
                 dom_command_frames_list.push(dom_command_frames);
             }
-            const all_frames: number = Number(dom_command_frames_list[dom_command_frames_list.length - 1]['@attributes']['index']);
-            for (let i = 0; i < all_frames; i++) {
-                animation['main_sprite']['frame'].push({
-                    label: '',
+            const all_frames: number = Number(dom_command_frames_list[dom_command_frames_list.length - 1]["@attributes"]["index"]);
+            for (let i = 0; i < all_frames - Number(last_frame); i++) {
+                animation["main_sprite"]["frame"].push({
+                    label: "",
                     stop: false,
                     command: [],
                     remove: [],
                     append: [],
-                    change: []
+                    change: [],
                 });
             }
             for (let frame of dom_command_frames_list) {
-                const frame_index: bigint = BigInt(frame['@attributes']['index']);
-                if (typeof frame['Actionscript'] === 'undefined') {
+                const frame_index: bigint = BigInt(frame["@attributes"]["index"]);
+                if (typeof frame["Actionscript"] === "undefined") {
                     return;
                 }
-                const action_script: ActionscriptProperty = frame['Actionscript'];
-                if (!action_script.hasOwnProperty('script')) {
+                const action_script: ActionscriptProperty = frame["Actionscript"];
+                if (!action_script.hasOwnProperty("script")) {
                     throw new Error("invaild_dom_script");
-                } 
+                }
+                if (!action_script["script"]["@text"]["is_cdata"]) {
+                    throw new Error("invaild_script_cdata");
+                }
+                const script_data: string = action_script["script"]["@text"]["value"].trim();
+                const script_list: string[] = script_data.split(";");
+                if (script_list.includes("stop()")) {
+                    animation["main_sprite"]["frame"][Number(frame_index)]["stop"] = true;
+                    return;
+                }
+                for (let command of script_list) {
+                    const regex_result: RegExpMatchArray | null = command.trim().match(/fscommand\("(.*)", "(.*)"\)/);
+                    if (regex_result === null) {
+                        throw new Error("invaild_command");
+                    }
+                    animation["main_sprite"]["frame"][Number(frame_index)]["command"].push({
+                        command: regex_result[1],
+                        parameter: regex_result[2],
+                    });
+                }
             }
+            return;
         }
 
         export function merge_action(animation_action_map: Record<string, FrameNode>, action_index_list: Record<string, bigint>): Structure.AnimationFrame[] {
@@ -149,15 +170,15 @@ namespace Sen.Script.Support.PopCap.Animation {
                     }
                     const frame_append: Structure.AnimationAppend[] = action_frames[k]["append"];
                     for (let h = 0; h < frame_append.length; h++) {
-                        frame_append[h]['index'] += start_index;
+                        frame_append[h]["index"] += start_index;
                     }
-                    const frame_change: Structure.AnimationMove[] = action_frames[k]['change'];
+                    const frame_change: Structure.AnimationMove[] = action_frames[k]["change"];
                     for (let h = 0; h < frame_change.length; h++) {
-                        frame_change[h]['index'] += start_index;
+                        frame_change[h]["index"] += start_index;
                     }
                 }
                 if (i > 0) {
-                    const frame_remove = action_frames[0]['remove'];
+                    const frame_remove = action_frames[0]["remove"];
                     for (let k = label_remove; k < start_index; k++) {
                         if (!frame_remove.includes(k) && !remove_list.includes(k)) {
                             frame_remove.push(k);
@@ -215,13 +236,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return action_index_list;
         }
 
-        export function parse_sprite(
-            sprite_document: SpriteDocument,
-            sprite_name: string,
-            is_action: boolean,
-            animation_image_id_list: string[],
-            animation_sprite_name_list: string[]
-        ): FrameNode {
+        export function parse_sprite(sprite_document: SpriteDocument, sprite_name: string, is_action: boolean, animation_image_id_list: string[], animation_sprite_name_list: string[]): FrameNode {
             if (!sprite_document.hasOwnProperty("DOMSymbolItem")) {
                 throw new Error("sprite_has_no_DOMSymbolItem");
             }
@@ -253,7 +268,32 @@ namespace Sen.Script.Support.PopCap.Animation {
             let layer_count = 0;
             let model: Model | null = null;
             const frames_result: Structure.AnimationFrame[] = [];
-            for (let layer of sprite_layers_list) {
+
+            function get_frame_at_index(index: bigint): Structure.AnimationFrame {
+                if (frames_result.length <= Number(index)) {
+                    frames_result.push(frames_result[Number(index) - frames_result.length + 1]);
+                }
+                if (typeof frames_result[Number(index)] === "undefined") {
+                    frames_result[Number(index)] = {
+                        label: "",
+                        stop: false,
+                        command: [],
+                        remove: [],
+                        append: [],
+                        change: [],
+                    };
+                }
+                return frames_result[Number(index)];
+            }
+
+            function close_current_model() {
+                if (model !== null) {
+                    const target_frame: Structure.AnimationFrame = get_frame_at_index(model["frame_start"] + model["frame_duration"]);
+                    target_frame["remove"].push(model["index"]!);
+                }
+                return;
+            }
+            sprite_layers_list.forEach((layer) => {
                 if (!layer.hasOwnProperty("DOMLayer")) {
                     throw new Error("sprite_has_no_DOMLayer");
                 }
@@ -267,7 +307,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 } else {
                     sprite_frames_list.push(sprite_frames);
                 }
-                for (let frame of sprite_frames_list) {
+                sprite_frames_list.forEach((frame) => {
                     if (!frame.hasOwnProperty("DOMFrame")) {
                         throw new Error("sprite_has_no_DOMFrame");
                     }
@@ -277,14 +317,12 @@ namespace Sen.Script.Support.PopCap.Animation {
                     if (!frame["DOMFrame"].hasOwnProperty("elements")) {
                         throw new Error("sprite_has_no_elements");
                     }
-                    if (!frame["DOMFrame"]["elements"].hasOwnProperty("DOMSymbolInstance")) {
-                        throw new Error("sprite_has_no_DOMSymbolInstance");
+                    const elements: any = frame["DOMFrame"]["elements"];
+                    if (elements === null) {
+                        close_current_model();
+                        return;
                     }
-                    const dom_symbol_instance: DOMSymbolInstance | null = frame["DOMFrame"]["elements"]["DOMSymbolInstance"];
-                    if (dom_symbol_instance === null) {
-                        if (close_current_model(frames_result, model)) model = null;
-                        break;
-                    }
+                    const dom_symbol_instance: DOMSymbolInstance = elements["DOMSymbolInstance"];
                     const library_item_name: string = dom_symbol_instance["@attributes"]["libraryItemName"];
                     const name_match: RegExpMatchArray | null = library_item_name.match(/(image|sprite)/);
                     if (name_match === null) {
@@ -296,17 +334,11 @@ namespace Sen.Script.Support.PopCap.Animation {
                     const sprite_item_name: string = library_item_name.substring(name_match[0].length + 1);
                     const is_sprite: boolean = name_match[0] === "sprite";
                     const current_instance: Instance = {
-                        resource: is_sprite
-                            ? BigInt(animation_sprite_name_list.indexOf(sprite_item_name))
-                            : BigInt(animation_image_id_list.indexOf(sprite_item_name)),
+                        resource: is_sprite ? BigInt(animation_sprite_name_list.indexOf(sprite_item_name)) : BigInt(animation_image_id_list.indexOf(sprite_item_name)),
                         sprite: is_sprite,
                     };
                     let transform: number[];
-                    if (
-                        dom_symbol_instance["matrix"] === undefined ||
-                        dom_symbol_instance["matrix"] === null ||
-                        Object.keys(dom_symbol_instance["matrix"]).length === 0
-                    ) {
+                    if (dom_symbol_instance["matrix"] === undefined || dom_symbol_instance["matrix"] === null || Object.keys(dom_symbol_instance["matrix"]).length === 0) {
                         transform = [0.0, 0.0];
                     } else if (dom_symbol_instance["matrix"].hasOwnProperty("Matrix")) {
                         transform = transform_calculator(parse_transform(dom_symbol_instance["matrix"]["Matrix"]));
@@ -314,22 +346,19 @@ namespace Sen.Script.Support.PopCap.Animation {
                         throw new Error("invaild_sprite_matrix");
                     }
                     let color: number[];
-                    if (
-                        dom_symbol_instance["color"] === undefined ||
-                        dom_symbol_instance["color"] === null ||
-                        Object.keys(dom_symbol_instance["color"]).length === 0
-                    ) {
+                    if (dom_symbol_instance["color"] === undefined || dom_symbol_instance["color"] === null || Object.keys(dom_symbol_instance["color"]).length === 0) {
                         color = [1.0, 1.0, 1.0, 1.0];
                     } else if (dom_symbol_instance["color"].hasOwnProperty("Color")) {
                         color = parse_color(dom_symbol_instance["color"]["Color"]);
                     } else {
                         throw new Error("invaild_sprite_color");
                     }
-                    const target_frame: Structure.AnimationFrame = get_frame_at_index(frames_result, frame_index);
+                    const target_frame: Structure.AnimationFrame = get_frame_at_index(frame_index);
+
                     if (model === null) {
                         model = {
                             state: false,
-                            index: BigInt(layer_count),
+                            index: 1n,
                             resource: current_instance["resource"],
                             sprite: current_instance["sprite"],
                             frame_start: frame_index,
@@ -347,19 +376,10 @@ namespace Sen.Script.Support.PopCap.Animation {
                             time_scale: 1n,
                         });
                         layer_count++;
-                    } else {
-                        if (current_instance["resource"] !== model["resource"] || current_instance["sprite"] !== model["sprite"]) {
-                            throw new Error("invaild_model");
-                        }
                     }
                     model["frame_start"] = frame_index;
                     model["frame_duration"] = frame_duration;
-                    const color_is_changed: boolean = !(
-                        model["color"][0] === color[0] &&
-                        model["color"][1] === color[1] &&
-                        model["color"][2] === color[2] &&
-                        model["color"][3] === color[3]
-                    );
+                    const color_is_changed: boolean = !(model["color"][0] === color[0] && model["color"][1] === color[1] && model["color"][2] === color[2] && model["color"][3] === color[3]);
                     if (color_is_changed) {
                         model["color"] = color;
                     }
@@ -370,11 +390,9 @@ namespace Sen.Script.Support.PopCap.Animation {
                         source_rectangle: null,
                         sprite_frame_number: 0n,
                     });
-                }
-                if (close_current_model(frames_result, model)) {
-                    model = null;
-                }
-            }
+                });
+                close_current_model();
+            });
             for (let i = 0; i < frames_result.length; i++) {
                 if (frames_result[i] === undefined) {
                     frames_result[i] = {
@@ -429,39 +447,13 @@ namespace Sen.Script.Support.PopCap.Animation {
             return num;
         }
 
-        export function get_frame_at_index(frames_result: Structure.AnimationFrame[], index: bigint): Structure.AnimationFrame {
-            if (frames_result.length <= Number(index)) {
-                frames_result.push(frames_result[Number(index) - frames_result.length + 1]);
-            }
-            if (typeof frames_result[Number(index)] === "undefined") {
-                frames_result[Number(index)] = {
-                    label: "",
-                    stop: false,
-                    command: [],
-                    remove: [],
-                    append: [],
-                    change: [],
-                };
-            }
-            return frames_result[Number(index)];
-        }
-
-        export function close_current_model(frames_result: Structure.AnimationFrame[], model: Model | null): boolean {
-            if (model !== null) {
-                const target_frame: Structure.AnimationFrame = get_frame_at_index(frames_result, model["frame_start"] + model["frame_duration"]);
-                target_frame["remove"].push(model["index"]!);
-                return true;
-            }
-            return false;
-        }
-
         export function sort_list(list: string[]): string[] {
             return list.sort((a: string, b: string) => {
                 return a.localeCompare(b, undefined, { numeric: true });
             });
         }
 
-        export function parse_image(image_document: ImageDocument, image_id: string, extra_info: ExtraInfo): Structure.AnimationImage {
+        export function parse_image(image_document: ImageDocument, image_id: string, record_info: ExtraInfo): Structure.AnimationImage {
             if (!image_document.hasOwnProperty("DOMSymbolItem")) {
                 throw new Error("image_has_no_DOMSymbolItem");
             }
@@ -508,20 +500,20 @@ namespace Sen.Script.Support.PopCap.Animation {
             const image_transform: number[] = parse_transform_for_image(dom_bitmap_instance["matrix"]["Matrix"]);
             const animation_image: Structure.AnimationImage = {
                 name: image_name,
-                size: extra_info[image_name],
+                size: record_info[image_name],
                 transform: image_transform,
             };
             return animation_image;
         }
 
         export function parse_transform_for_image(matrix: Matrix): number[] {
-            const resolution_list: BigInt[] = [1200n, 1536n, 768n, 384n, 640n];
+            const resolution_ratio_list: number[] = [0.78125, 1.5625, 1.875, 3.125, 1];
             let a_matrix: number = parseFloat(matrix["@attributes"]["a"] ?? "1");
-            if (resolution_list.includes(BigInt(a_matrix * 1200))) {
+            if (resolution_ratio_list.includes(a_matrix)) {
                 a_matrix = 1;
             }
             let d_matrix: number = parseFloat(matrix["@attributes"]["d"] ?? "1");
-            if (resolution_list.includes(BigInt(d_matrix * 1200))) {
+            if (resolution_ratio_list.includes(d_matrix)) {
                 d_matrix = 1;
             }
             return [
@@ -546,7 +538,6 @@ namespace Sen.Script.Support.PopCap.Animation {
         }
 
         export function process_fs(source: string, desitnation: string): void {
-            Kernel.JSON.serialize_fs("C:/Users/Shift/Desktop/123/PRIMAL_SUNFLOWER_2.PAM.XFL/1.json", Kernel.XML.deserialize_fs("C:/Users/Shift/Desktop/123/PRIMAL_SUNFLOWER.PAM.XFL/DOMDocument.xml"), 1, false);
             Kernel.JSON.serialize_fs<SexyAnimation>(desitnation, process(source), 1, false);
             return;
         }

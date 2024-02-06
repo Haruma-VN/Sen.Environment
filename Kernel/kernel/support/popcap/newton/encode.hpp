@@ -85,7 +85,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			) -> DataStreamView
 			{
 				auto sen = DataStreamView{};
-				assert_conditional(is_not_null_object(resource, "slot_count"), "slot_count cannot be null", "process");
+				assert_conditional(is_not_null_object(resource, "slot_count"), fmt::format("{}", Kernel::Language::get("popcap.newton.encode.slot_count_cannot_be_null")), "process");
 				sen.writeInt32(resource["slot_count"].get<int>());
 				sen.writeInt32(static_cast<int>(resource["groups"].size()));
 				for(auto & m_data : thiz.resource["groups"]){
@@ -96,7 +96,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						sen.writeUint8(0x02);
 					}
 					else{
-						throw Exception(fmt::format("unknown type {} at id {}", m_data["type"], m_data["id"]), std::source_location::current(), "process");
+						throw Exception(fmt::format("{} {} {} {}", Kernel::Language::get("popcap.newton.encode.unknown_type"), m_data["type"], Kernel::Language::get("popcap.newton.encode.at_group_id"), m_data["id"]), std::source_location::current(), "process");
 					}
 					auto subgroups_count = is_null_object(m_data, "subgroups") ? 0x00 : m_data["subgroups"].size();
       				auto resources_count = is_null_object(m_data, "resources") ? 0x00 : m_data["resources"].size();
@@ -117,7 +117,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						sen.writeString(m_data["parent"]);
 					}
 					if(m_data["type"] == "composite"){
-						assert_conditional(is_null_object(m_data, "resources"), "resources must be null in composite object", "process");
+						assert_conditional(is_null_object(m_data, "resources"), fmt::format("{}", Kernel::Language::get("popcap.newton.encode.resource_must_be_null_with_composite")), "process");
 						for(auto & current : m_data["subgroups"]){
 							if(is_not_null_object(current, "res")){
 								sen.writeInt32(std::stoi(current["res"].get<std::string>()));
@@ -130,7 +130,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						}
 					}
 					if(m_data["type"] == "simple"){
-						assert_conditional(is_null_object(m_data, "subgroups"), "subgroups must be null in simple object", "process");
+						assert_conditional(is_null_object(m_data, "subgroups"), fmt::format("{}", Kernel::Language::get("popcap.newton.encode.subgroup_must_be_null_with_simple")), "process");
 						for(auto & resource_x : m_data["resources"]){
 							auto m_type = resource_x["type"].get<std::string>();
 							if(m_type == "Image"){
@@ -155,7 +155,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								sen.writeUint8(0x07);
 							}
 							else {
-								throw Exception(fmt::format("Invalid type"), std::source_location::current(), "process");
+								throw Exception(fmt::format("{} {} {}", Kernel::Language::get("popcap.newton.encode.invalid_type"), Kernel::Language::get("popcap.newton.encode.at_group_id"), resource_x["id"]), std::source_location::current(), "process");
 							}
 							sen.writeInt32(resource_x["slot"]);
 							if (is_null_object(resource_x, "width")) {

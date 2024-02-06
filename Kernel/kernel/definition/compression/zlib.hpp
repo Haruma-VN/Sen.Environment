@@ -102,14 +102,16 @@ namespace Sen::Kernel::Definition::Compression {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
 					auto ret = inflate(&zlib_init, Z_NO_FLUSH);
-					assert(ret != Z_STREAM_ERROR);
+					assert_conditional(ret != Z_STREAM_ERROR, "Zlib uncompress failed", "uncompress");
 					switch(ret){
-						case Z_NEED_DICT:
+						case Z_NEED_DICT:{
 							ret = Z_DATA_ERROR;
+						}
 						case Z_DATA_ERROR:
-						case Z_MEM_ERROR:
+						case Z_MEM_ERROR:{
 							inflateEnd(&zlib_init);
 							return std::vector<unsigned char>();
+						}
 					}
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
@@ -131,16 +133,16 @@ namespace Sen::Kernel::Definition::Compression {
 			{
 				auto zlib_outdata = std::vector<unsigned char>(static_cast<size_t>(compressBound(static_cast<uLong>(data.size()))));
 				auto zlib_init = z_stream{
+					.next_in = const_cast<unsigned char*>(data.data()),
+					.avail_in = static_cast<uInt>(data.size()),
+					.next_out = const_cast<Bytef*>(zlib_outdata.data()),
+					.avail_out = static_cast<uInt>(zlib_outdata.size()),
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
-					.opaque = Z_NULL
+					.opaque = Z_NULL,
 				};
-				zlib_init.avail_in = static_cast<uInt>(data.size());
-				zlib_init.next_in = const_cast<unsigned char*>(data.data());
 				auto ret = deflateInit(&zlib_init, static_cast<int>(level));
-				assert(ret == Z_OK);
-				zlib_init.avail_out = static_cast<uInt>(zlib_outdata.size());
-				zlib_init.next_out = const_cast<Bytef*>(zlib_outdata.data());
+				assert_conditional(ret == Z_OK, "data is failed to compress", "compress_deflate");
 				while (zlib_init.avail_in != Zlib::Z_COMPRESS_END){
 					deflate(&zlib_init, Z_NO_FLUSH);
 				}
@@ -153,7 +155,7 @@ namespace Sen::Kernel::Definition::Compression {
 					}
 					deflate_res = deflate(&zlib_init, Z_FINISH);
 				}
-				assert(deflate_res == Z_STREAM_END);
+				assert_conditional(deflate_res == Z_STREAM_END, "data is failed to compress", "compress_deflate");
 				zlib_outdata.resize(zlib_outdata.size() - zlib_init.avail_out);
 				deflateEnd(&zlib_init);
 				return zlib_outdata;
@@ -184,7 +186,7 @@ namespace Sen::Kernel::Definition::Compression {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
 					auto ret = deflate(&zlib_init, Z_FINISH);
-					assert(ret != Z_STREAM_ERROR);
+					assert_conditional(ret != Z_STREAM_ERROR, "data is failed to compress", "compress_deflate");
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
 				} while (zlib_init.avail_out == Zlib::Z_COMPRESS_END);
 				deflateEnd(&zlib_init);
@@ -234,41 +236,41 @@ namespace Sen::Kernel::Definition::Compression {
 			}
 
 			/**
-			 * filePath: input file
-			 * fileOut: output file
+			 * source: input file
+			 * destination: output file
 			 * level: zlib level
 			 * return: compress file
 			*/
 
 			inline static auto compress_fs(
-				std::string_view filePath,
-				std::string_view fileOut,
+				std::string_view source,
+				std::string_view destination,
 				Level level
 			) -> void
 			{
-				auto data = FileSystem::read_binary<unsigned char>(filePath);
+				auto data = FileSystem::read_binary<unsigned char>(source);
 				auto compressedData = Zlib::compress_deflate(data, level);
-				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
+				FileSystem::write_binary<unsigned char>(destination, compressedData);
 				return;
 			}
 
 			/**
-			 * filePath: input file
-			 * fileOut: output file
+			 * source: input file
+			 * destination: output file
 			 * return: uncompress file
 			*/
 
 			inline static auto uncompress_fs(
-				std::string_view fileIn,
-				std::string_view fileOut
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto data = FileSystem::read_binary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(source);
 				auto uncompressedData = Zlib::uncompress(data);
 				if(uncompressedData.empty()){
-					throw Exception(fmt::format("{}: {}", Language::get("gzip.uncompress.file_is_not_compressed"), fileIn), std::source_location::current(), "uncompress_fs");
+					throw Exception(fmt::format("{}: {}", Language::get("gzip.uncompress.file_is_not_compressed"), source), std::source_location::current(), "uncompress_fs");
 				}
-				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
+				FileSystem::write_binary<unsigned char>(destination, uncompressedData);
 				return;
 			}
 
@@ -279,48 +281,48 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto compress_gzip_fs(
-				const string &fileIn,
-				const string &fileOut
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto data = FileSystem::read_binary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(source);
 				auto compressed_data = Zlib::compress_gzip(data, Zlib::Level::DEFAULT);
-				FileSystem::write_binary<unsigned char>(fileOut, compressed_data);
+				FileSystem::write_binary<unsigned char>(destination, compressed_data);
 				return;
 			}
 
 			/**
-			 * filePath: input file
-			 * fileOut: output file
+			 * source: input file
+			 * destination: output file
 			 * level: zlib level
 			 * return: compress file
 			*/
 
 			inline static auto compress_deflate_fs(
-				const string &filePath,
-				const string &fileOut
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto data = FileSystem::read_binary<unsigned char>(filePath);
+				auto data = FileSystem::read_binary<unsigned char>(source);
 				auto compressedData = Zlib::compress_deflate(data, Zlib::Level::DEFAULT);
-				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
+				FileSystem::write_binary<unsigned char>(destination, compressedData);
 				return;
 			}
 
 			/**
-			 * fileIn: file path
+			 * source: file path
 			 * file out: output path
 			 * return: uncompressed file
 			*/
 
 			inline static auto uncompress_gzip_fs(
-				const string & fileIn,
-				const string & fileOut
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto data = FileSystem::read_binary<unsigned char>(fileIn);
+				auto data = FileSystem::read_binary<unsigned char>(source);
 				auto compressed_data = Zlib::uncompress_gzip(data);
-				FileSystem::write_binary<unsigned char>(fileOut, compressed_data);
+				FileSystem::write_binary<unsigned char>(destination, compressed_data);
 				return;
 			}
 
