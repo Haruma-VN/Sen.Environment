@@ -78,6 +78,7 @@ add_library(
 	./support/popcap/render_effects/definition.hpp
 	./support/popcap/render_effects/decode.hpp
 	./support/popcap/render_effects/encode.hpp
+	./support/popcap/rsb/definition.hpp
 	./support/popcap/rsb/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp

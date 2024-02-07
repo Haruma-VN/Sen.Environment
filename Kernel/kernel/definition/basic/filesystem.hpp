@@ -297,9 +297,17 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<std::string>{};
-		for(auto &c : fs::directory_iterator(directory_path))
+		#if WINDOWS
+			for (auto& c : fs::directory_iterator(String::utf8_to_utf16(directory_path.data())))
+		#else
+			for (auto& c : fs::directory_iterator(directory_path))
+		#endif
 		{
-			result.emplace_back(Path::normalize(c.path().string()));
+			#if WINDOWS
+				result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+			#else
+				result.emplace_back(Path::normalize(c.path().generic_string()));
+			#endif
 		}
 		return result;
 	}
@@ -312,10 +320,18 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<string> const
 	{
 		auto result = std::vector<string>{};
-		for(auto &c : fs::directory_iterator(directory_path))
+		#if WINDOWS
+				for (auto& c : fs::directory_iterator(String::utf8_to_utf16(directory_path.data())))
+		#else
+				for (auto& c : fs::directory_iterator(directory_path))
+		#endif
 		{
 			if(c.is_regular_file()){
-				result.emplace_back(Path::normalize(c.path().string()));
+				#if WINDOWS
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+				#else
+					result.emplace_back(Path::normalize(c.path().generic_string()));
+				#endif
 			}
 		}
 		return result;
@@ -329,10 +345,18 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<std::string>{};
-		for(auto &c : fs::directory_iterator(directory_path))
+		#if WINDOWS
+				for (auto& c : fs::directory_iterator(String::utf8_to_utf16(directory_path.data())))
+		#else
+				for (auto& c : fs::directory_iterator(directory_path))
+		#endif
 		{
 			if(c.is_directory()){
-				result.emplace_back(Path::normalize(c.path().string()));
+				#if WINDOWS
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+				#else
+					result.emplace_back(Path::normalize(c.path().generic_string()));
+				#endif
 			}
 		}
 		return result;
@@ -347,16 +371,28 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<std::string> const
 	{
 		auto result = std::vector<string>{};
-		for(auto &c : fs::directory_iterator(directory_path))
+		#if WINDOWS
+				for (auto& c : fs::directory_iterator(String::utf8_to_utf16(directory_path.data())))
+		#else
+				for (auto& c : fs::directory_iterator(directory_path))
+		#endif
 		{
 			if(c.is_directory()){
-				for(auto & e : read_whole_directory(c.path().string()))
+				#if WINDOWS
+					for (auto& e : read_whole_directory(String::utf16_to_utf8(c.path().generic_wstring())))
+				#else
+					for (auto& e : read_whole_directory(c.path().generic_string()))
+				#endif
 				{
 					result.emplace_back(Path::normalize(e));
 				}
 			}
 			else{
-				result.emplace_back(Path::normalize(c.path().string()));
+				#if WINDOWS
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+				#else
+					result.emplace_back(Path::normalize(c.path().generic_string()));
+				#endif
 			}
 		}
 		return result;

@@ -18,6 +18,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             const animation_image_map: Record<string, Structure.AnimationImage> = {};
             for (let image_id of animation_image_id_list) {
                 const image_document: ImageDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "library", "image", `${image_id}.xml`));
+                debug(image_id);
                 animation_image_map[image_id] = parse_image(image_document, image_id, record_info);
             }
             const animation_sprite_name_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "sprite"))

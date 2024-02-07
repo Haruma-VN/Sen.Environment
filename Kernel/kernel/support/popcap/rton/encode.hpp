@@ -366,7 +366,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 auto v = 0;
                 try
                 {
-                    v = std::stoi(p_str.value.substr(index + 3, p_str.length() - 1));
+                    v = std::stoi(p_str.value.substr(static_cast<std::basic_string<char, std::char_traits<char>, 
+                        std::allocator<char>>::size_type>(index) + 3, p_str.length() - 1));
                 }
                 catch (int err)
                 {

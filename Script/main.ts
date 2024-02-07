@@ -230,15 +230,15 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
-            // Executor.execute<Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.BatchArgument>(
-            //     { source: undefined, directory: "D:/test/test/New Folder/test" },
-            //     "popcap.animation.to_flash",
-            //     Executor.Forward.BATCH,
-            // );
+            Executor.execute<Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.Argument>(
+                { source: "D:/test/test/main.rsb.bundle/ZombieSkycityZombossGroup_Common.packet/res/IMAGES/768/ZOMBIE2/ZOMBIE/ZOMBIE_SKYCITY_ZOMBOSS/ZOMBIE_SKYCITY_ZOMBOSS.xfl" },
+                "popcap.animation.from_flash",
+                Executor.Forward.DIRECT,
+            );
             // Kernel.FileSystem.write_file("C:/Users/HarumaVN/Downloads/LAWNSTRINGS1.TXT", utf16);
-            Kernel.arguments.forEach((source: string) => {
-                Sen.Script.Executor.load_module({ source });
-            });
+            // Kernel.arguments.forEach((source: string) => {
+            //     Sen.Script.Executor.load_module({ source });
+            // });
             // Kernel.Support.WWise.SoundBank.decode_fs(
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
             //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
