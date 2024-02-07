@@ -485,7 +485,11 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const std::string & source
 			) -> JSValue
 			{
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(source.c_str(), "rb"), Language::close_file);
+				#if WINDOWS
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"wb"), Language::close_file);
+				#else
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "wb"), Language::close_file);
+				#endif
 				auto file_size = long{};
 				if (!fp) {
 					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source), std::source_location::current(), "read_file_as_js_arraybuffer");

@@ -585,7 +585,11 @@ namespace Sen::Kernel::Definition {
 				std::string_view source
 			) -> Image<int> 
 			{
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(source.data(), "rb"), Language::close_file);
+				#if WINDOWS
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"rb"), Language::close_file);
+				#else
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "rb"), Language::close_file);
+				#endif
 				if(!fp){
 					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), source), std::source_location::current(), "read_png");
 				}
@@ -643,7 +647,11 @@ namespace Sen::Kernel::Definition {
 				const Image<int> &data
 			) -> void
 			{
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(filepath.data(), "wb"), Language::close_file);
+				#if WINDOWS
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"wb"), Language::close_file);
+				#else
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(filepath.data(), "wb"), Language::close_file);
+				#endif
 				if(!fp){
 					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), filepath), std::source_location::current(), "write_png");
 				}

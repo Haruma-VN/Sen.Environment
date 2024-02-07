@@ -16,7 +16,11 @@ namespace Sen::Kernel::FileSystem
 	*/
 	
 	inline static auto constexpr close_file =  [](auto f){ 
-		if (f) fclose(f); 
+		if (f) {
+			std::fclose(f);
+			f = nullptr;
+		}
+		return;
 	};
 
 	// give file path to open
@@ -165,10 +169,17 @@ namespace Sen::Kernel::FileSystem
 		std::string_view source
 	) -> std::wstring
 	{
-		auto wif = std::wifstream(std::wstring{ source.begin(), source.end()});
+	#if WINDOWS
+		auto wif = std::wifstream(std::wstring{ source.begin(), source.end() });
 		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
 		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
 		return content;
+	#else
+		auto wif = std::wifstream(std::wstring{ source.begin(), source.end() });
+		wif.imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
+		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
+		return content;
+	#endif
 	}
 
 	// filePath: the file path to write
