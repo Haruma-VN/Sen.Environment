@@ -38,15 +38,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 sen.writeUint16(-1);
                 sen.writeUint16(-1);
             }
-            auto image = json.image;
+            auto& image = json.image;
             sen.writeUint16(image.size());
             for (auto & [key, value] : image.items())
             {
-                auto image_name = fmt::format("{}|{}", value['name'], key);
+                auto image_name = fmt::format("{}|{}", value["name"], key);
                 sen.writeStringByUint16(image_name);
                 write_image(value);
             }
-            auto sprite = json.sprite;
+            auto& sprite = json.sprite;
             sen.writeUint16(sprite.size());
             for (auto & [key, value] : sprite.items()) {
                 if (version >= 4) {
@@ -81,7 +81,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             else {
                 sen.writeUint16(work_area.duration);
             }
-            for (auto frame : sprite.frame) {
+            for (auto& frame : sprite.frame) {
                 write_frame_info(frame);
             }
             return;
@@ -92,7 +92,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             auto write_pos = sen.write_pos;
             sen.writeUint8(0xff);
             auto count = 0;
-            auto remove = frame.remove;
+            auto& remove = frame.remove;
             if (remove.size() > 0) {
                 flag |= FrameFlags::remove;
                 count = remove.size();
@@ -107,7 +107,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     write_remove(remove[i]);
                 }
             }
-            auto append = frame.append;
+            auto& append = frame.append;
             if (append.size() > 0) {
                 flag |= FrameFlags::append;
                 count = append.size();
@@ -122,7 +122,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     write_append(append[i]);
                 }
             }
-            auto change = frame.change;
+            auto& change = frame.change;
             if (change.size() > 0) {
                 flag |= FrameFlags::change;
                 count = change.size();
@@ -144,7 +144,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             if (frame.stop) {
                 flag |= FrameFlags::stop;
             }
-            auto command = frame.command;
+            auto& command = frame.command;
             if (command.size() > 0) {
                 flag |= FrameFlags::command;
                 count = command.size();
@@ -233,7 +233,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 flag |= index;
             }
             auto num_flag = 0;
-            auto transform = move.transform;
+            auto& transform = move.transform;
             auto transform_size = transform.size();
             if (transform_size == 6) {
                 num_flag = MoveFlags::matrix;
@@ -257,7 +257,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 sen.writeInt16(y);
                 sen.writeInt16(x);
             }
-            auto source_rectangle = move.source_rectangle;
+            auto& source_rectangle = move.source_rectangle;
             if (!source_rectangle.empty() && source_rectangle.size() == 4) {
                 num_flag |= MoveFlags::src_react;
                 sen.writeInt16(source_rectangle[0] * 20);
@@ -265,7 +265,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 sen.writeInt16(source_rectangle[2] * 20);
                 sen.writeInt16(source_rectangle[3] * 20);
             }
-            auto color = move.color;
+            auto& color = move.color;
             if (!color.empty() && color.size() == 4) {
                 num_flag |= MoveFlags::color;
                 sen.writeUint8(color[0] * 255);
