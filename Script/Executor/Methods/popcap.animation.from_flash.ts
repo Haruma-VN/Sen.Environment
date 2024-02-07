@@ -60,7 +60,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.FromFlash.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
+                const files: Array<string> = Sen.Kernel.FileSystem.read_directory_only_directory(argument.directory).filter((path: string) => this.filter[1].test(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
