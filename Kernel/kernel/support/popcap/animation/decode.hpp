@@ -111,7 +111,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline auto read_remove() const -> int
         {
-            auto index = sen.readUint16();
+            auto index = static_cast<std::uint32_t>(sen.readUint16());
             if (index >= 2047)
             {
                 index = sen.readUint32();
@@ -138,7 +138,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             append_info.index = index;
             append_info.sprite = (value & 32768) != 0;
             append_info.additive = (value & 16384) != 0;
-            auto resource = sen.readUint8();
+            auto resource = static_cast<std::uint16_t>(sen.readUint8());
             if (version >= 6 and resource == 255)
             {
                 resource = sen.readUint16();

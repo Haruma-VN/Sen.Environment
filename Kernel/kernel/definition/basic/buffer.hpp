@@ -41,20 +41,24 @@ namespace Sen::Kernel::Definition
                 std::string_view source
             ) : read_pos(0), write_pos(0)
             {
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(source.data(), "rb"), close_file);
+                #if WINDOWS
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"rb"), close_file);
+                #else 
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "rb"), close_file);
+                #endif
                 if (!file)
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") , source),
                         std::source_location::current(), "Stream");
                 }
-                fseek(file.get(), 0, SEEK_END);
+                std::fseek(file.get(), 0, SEEK_END);
                 auto size = ftell(file.get());
-                fseek(file.get(), 0, SEEK_SET);
-                thiz.reserve((size_t)size + thiz.buffer_size);
-                fread(thiz.data.data(), 1, size, file.get());
+                std::fseek(file.get(), 0, SEEK_SET);
+                thiz.reserve(static_cast<std::uint64_t>(size + thiz.buffer_size));
+                std::fread(thiz.data.data(), 1, size, file.get());
                 thiz.length = size;
                 thiz.write_pos = size;
-
+                return;
             }
 
             Stream(
@@ -216,12 +220,16 @@ namespace Sen::Kernel::Definition
                         std::filesystem::create_directories(filePath.parent_path());
                     }
                 }
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(path.data(), "wb"), close_file);
+                #if WINDOWS
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(path.data()).c_str(), L"wb"), close_file);
+                #else
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(path.data(), "wb"), close_file);
+                #endif
                 if (!file) {
                     throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path), std::source_location::current(), 
                         "out_file");
                 }
-                fwrite(thiz.data.data(), 1, thiz.length, file.get());
+                std::fwrite(thiz.data.data(), 1, thiz.length, file.get());
                 return;
             }
 

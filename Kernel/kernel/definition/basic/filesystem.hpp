@@ -26,7 +26,11 @@ namespace Sen::Kernel::FileSystem
 		std::string_view filepath
 	) -> std::string 
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "r"), close_file);
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"r"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "r"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_file");
 		}
@@ -63,7 +67,11 @@ namespace Sen::Kernel::FileSystem
 		const nlohmann::ordered_json & content
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
@@ -85,7 +93,11 @@ namespace Sen::Kernel::FileSystem
 		char indent_char
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
@@ -105,7 +117,11 @@ namespace Sen::Kernel::FileSystem
 		char indent_char
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
@@ -129,7 +145,11 @@ namespace Sen::Kernel::FileSystem
 		bool ensureAscii
 	) -> void
 	{
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(fopen(filepath.data(), "w"), close_file);
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "write_json");
 		}
@@ -203,7 +223,11 @@ namespace Sen::Kernel::FileSystem
 		data.erase(data.end() - 1, data.end());
 		auto c = String::join(data, "/"_sv);
 		create_directory(c);
+		#if WINDOWS
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		#else
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
+		#endif
 		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_write_file"), filepath), std::source_location::current(), "write_file");
 		}
@@ -347,15 +371,19 @@ namespace Sen::Kernel::FileSystem
 
 	template <typename T> requires CharacterBufferView<T>
 	inline static auto write_binary(
-		std::string_view outFile,
+		std::string_view filepath,
 		const std::vector<T> & data
 	) -> void
 	{
-		auto out = std::unique_ptr<FILE, decltype(Language::close_file)>(fopen(outFile.data(), "wb"), Language::close_file);
-		if(!out){
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error") ,outFile), std::source_location::current(), "write_binary");
+		#if WINDOWS
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"wb"), close_file);
+		#else
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "wb"), close_file);
+		#endif
+		if(!file){
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_binary");
 		}
-		fwrite(reinterpret_cast<const char *>(data.data()), sizeof(T), data.size(), out.get());
+		std::fwrite(reinterpret_cast<const char *>(data.data()), sizeof(T), data.size(), file.get());
 		return;
 	}
 

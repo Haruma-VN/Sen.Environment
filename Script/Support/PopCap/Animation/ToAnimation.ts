@@ -302,6 +302,15 @@ namespace Sen.Script.Support.PopCap.Animation {
                 }
                 return;
             }
+
+            function get_resource(is_sprite: boolean, sprite_item_name: string): bigint {
+                const index: bigint = is_sprite ? BigInt(animation_sprite_name_list.indexOf(sprite_item_name)) : BigInt(animation_image_id_list.indexOf(sprite_item_name));
+                if (index === -1n) {
+                    throw new Error("cannot_find_sprite");
+                }
+                return index;
+            }
+
             sprite_layers_list.forEach((layer) => {
                 if (!layer.hasOwnProperty("DOMLayer")) {
                     throw new Error("sprite_has_no_DOMLayer");
@@ -343,7 +352,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                     const sprite_item_name: string = library_item_name.substring(name_match[0].length + 1);
                     const is_sprite: boolean = name_match[0] === "sprite";
                     const current_instance: Instance = {
-                        resource: is_sprite ? BigInt(animation_sprite_name_list.indexOf(sprite_item_name)) : BigInt(animation_image_id_list.indexOf(sprite_item_name)),
+                        resource: get_resource(is_sprite, sprite_item_name),
                         sprite: is_sprite,
                     };
                     let transform: number[];

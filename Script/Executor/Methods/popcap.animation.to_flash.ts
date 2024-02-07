@@ -15,6 +15,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
 
     export interface BatchArgument extends Sen.Script.Executor.Base {
         directory: string;
+        resolution?: bigint;
     }
 
     /**
@@ -76,8 +77,21 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
+                Sen.Script.Executor.argument_load(
+                    argument,
+                    "resolution",
+                    this.configuration,
+                    [
+                        [1n, "1536", Kernel.Language.get("popcap.animation.to_flash.resolution.1536n")],
+                        [2n, "768", Kernel.Language.get("popcap.animation.to_flash.resolution.768n")],
+                        [3n, "384", Kernel.Language.get("popcap.animation.to_flash.resolution.384n")],
+                        [4n, "1200", Kernel.Language.get("popcap.animation.to_flash.resolution.1200n")],
+                        [5n, "640", Kernel.Language.get("popcap.animation.to_flash.resolution.640n")],
+                    ],
+                    Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"),
+                );
+                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path) && this.filter[1].test(path));
+                files.forEach((source: string) => this.direct_forward({ source: source, resolution: BigInt(argument.resolution!) }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },

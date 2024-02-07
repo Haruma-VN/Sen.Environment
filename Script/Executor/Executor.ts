@@ -268,13 +268,15 @@ namespace Sen.Script.Executor {
         return;
     }
 
-    export function execute<Argument extends Base>(argument: Argument, id: string, forward: Forward): void {
+    export function execute<Argument extends Base>(argument: Argument, id: string, forward: Forward): string {
+        let result: string = undefined!;
         try {
             run_as_module<Argument>(id, argument, forward);
         } catch (e: any) {
-            Console.error(Exception.make_exception(e));
+            result = Exception.make_exception(e);
+            Console.error(result);
         }
-        return;
+        return result;
     }
 
     export function load_module<Argument extends Base>(argument: Argument): void {

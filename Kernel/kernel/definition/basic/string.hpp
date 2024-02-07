@@ -1033,6 +1033,14 @@ namespace Sen::Kernel {
 				return to_utf32(to_utf8(s));
 			}
 
+			inline static auto utf8_to_utf16(
+				const std::string& str
+			) -> std::wstring
+			{
+				auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+				return myconv.from_bytes(str);
+			}
+
 			/**
 			 * src: source
 			 * return: utf32 string

@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.20)
 # PVRTCCompressor Third, but adapted from TwinStar ToolKit for the fix
 
 project(
