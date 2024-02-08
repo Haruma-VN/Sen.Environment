@@ -98,7 +98,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
             async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+).json$/gi],
+            filter: ["file", /(.+)\.json$/gi],
         });
         return;
     }

@@ -86,7 +86,7 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+).bnk$/gi],
+            filter: ["file", /(.+)\.bnk$/gi],
         });
         return;
     }

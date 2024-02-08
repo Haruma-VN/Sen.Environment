@@ -86,7 +86,7 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /(.+).soundbank$/gi],
+            filter: ["directory", /(.+)\.soundbank$/gi],
         });
         return;
     }

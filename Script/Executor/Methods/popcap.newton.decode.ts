@@ -85,7 +85,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Newton.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+).newton$/gi],
+            filter: ["file", /(.+)\.newton$/gi],
         });
         return;
     }

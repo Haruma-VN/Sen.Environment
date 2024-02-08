@@ -86,7 +86,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+).json$/gi],
+            filter: ["file", /(.+)\.json$/gi],
         });
         return;
     }

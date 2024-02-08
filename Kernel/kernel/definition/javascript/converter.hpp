@@ -372,7 +372,28 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto m_list = std::vector<std::string>{};
 				for (auto i : Range<int>(length)) {
 					auto val = JS_GetPropertyUint32(context, that, i);
-					m_list.push_back(Converter::get_string(context, val));
+					m_list.emplace_back(Converter::get_string(context, val));
+				}
+				return m_list;
+			}
+
+			/**
+			 * Convert JS Array to C++ Vector of String View
+			*/
+
+			template <>
+			inline static auto get_vector(
+				JSContext* context,
+				const JSValue& that
+			) -> std::vector<std::string_view>
+			{
+				auto len_val = JS_GetPropertyStr(context, that, "length");
+				auto length = Converter::get_int32(context, len_val);
+				JS_FreeValue(context, len_val);
+				auto m_list = std::vector<std::string_view>{};
+				for (auto i : Range<int>(length)) {
+					auto val = JS_GetPropertyUint32(context, that, i);
+					m_list.emplace_back(Converter::get_c_string(context, val).get());
 				}
 				return m_list;
 			}
@@ -482,26 +503,26 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 
 			inline static auto read_file_as_js_arraybuffer(
 				JSContext *ctx, 
-				const std::string & source
+				std::string_view source
 			) -> JSValue
 			{
 				#if WINDOWS
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"wb"), Language::close_file);
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"rb"), Language::close_file);
 				#else
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "wb"), Language::close_file);
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "rb"), Language::close_file);
 				#endif
 				auto file_size = long{};
 				if (!fp) {
 					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source), std::source_location::current(), "read_file_as_js_arraybuffer");
 				}
-				fseek(fp.get(), 0, SEEK_END);
-				file_size = ftell(fp.get());
-				rewind(fp.get());
-				auto buffer = std::unique_ptr<char[], decltype(close_buffer)>((char*) malloc(file_size * sizeof(char)), close_buffer);
+				std::fseek(fp.get(), 0, SEEK_END);
+				file_size = std::ftell(fp.get());
+				std::rewind(fp.get());
+				auto buffer = std::unique_ptr<char[], decltype(close_buffer)>((char*) std::malloc(file_size * sizeof(char)), close_buffer);
 				if (buffer == NULL) {
 					throw Exception(fmt::format("C malloc allocating memory failed, source file: {}", source), std::source_location::current(), "read_file_as_js_arraybuffer");
 				}
-				auto result = fread(buffer.get(), 1, file_size, fp.get());
+				auto result = std::fread(buffer.get(), 1, file_size, fp.get());
 				if (result != file_size) {
 					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source), std::source_location::current(), "read_file_as_js_arraybuffer");
 				}
@@ -514,28 +535,31 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			*/
 
 			inline static auto write_file_as_arraybuffer(
-				JSContext *ctx, 
-				const std::string & destination,
-				const JSValue & that
+				JSContext* ctx,
+				std::string_view destination,
+				const JSValue& that
 			) -> void
 			{
 				auto size = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &size, that);
-				if(data == NULL){
+				if (data == NULL) {
 					throw Exception(fmt::format("{}", Language::get("js.converter.failed_to_get_js_array_buffer")), std::source_location::current(), "write_file_as_arraybuffer");
 				}
-				auto ofs = std::ofstream(destination, std::ios::binary | std::ios::out);
+				#if WINDOWS
+					auto ofs = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(destination.data()).c_str(), L"wb"), Language::close_file);
+				#else
+					auto ofs = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(destination.data(), "wb"), Language::close_file);
+				#endif
 				if (!ofs) {
 					throw Exception(fmt::format("{}", Language::get("open_write_failed"), destination), std::source_location::current(), "write_file_as_arraybuffer");
 				}
-				ofs.write(reinterpret_cast<const char*>(data), size);
-				if (!ofs) {
-					ofs.close();
+				auto result = std::fwrite(reinterpret_cast<const char*>(data), 1, size, ofs.get());
+				if (result != size) {
 					throw Exception(fmt::format("File cannot be written, path: {}", destination), std::source_location::current(), "write_file_as_arraybuffer");
 				}
-				ofs.close();
 				return;
 			}
+
 
 			/**
 			 * Convert JSValue to std::map

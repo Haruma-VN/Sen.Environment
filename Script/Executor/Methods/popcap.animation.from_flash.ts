@@ -68,7 +68,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
             async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /(.+).xfl$/gi],
+            filter: ["directory", /(.+)\.xfl$/gi],
         });
         return;
     }

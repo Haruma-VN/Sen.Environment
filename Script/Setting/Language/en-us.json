@@ -131,5 +131,14 @@
     "popcap.animation.from_flash.document_has_no_DOMLayer": "DOMDocument.xml has no tag \"DOMLayer\" inside \"layers\"",
     "popcap.animation.from_flash.invalid_document_DOMLayer_length": "DOMDocument.xml contains invalid DOMLayer, it should only have one for \"flow\" and one for \"command\"",
     "popcap.animation.from_flash.invalid_document_flow": "DOMDocument.xml contains invalid DOMLayer, the first element must have name = \"flow\"",
-    "popcap.animation.from_flash.invalid_action_label": "Action label is invalid in DOMDocument.xml, because the \"labelType\" value must be \"name\", caused from {}"
+    "popcap.animation.from_flash.invalid_action_label": "Action label is invalid in DOMDocument.xml, because the \"labelType\" value must be \"name\", caused from {}",
+    "kernel.argument_expected": "argument expected",
+    "kernel.argument_received": "received",
+    "kernel.expected_argument": "Expected argument at index number",
+    "is": "is",
+    "kernel.tuple.js_array": "Array",
+    "kernel.tuple.js_bigint": "BigInt",
+    "kernel.tuple.js_string": "string",
+    "kernel.tuple.js_boolean": "boolean",
+    "kernel.tuple.js_number": "number"
 }

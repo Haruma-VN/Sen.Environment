@@ -496,7 +496,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 for (let k = 0; k < model_keys.length; ++k) {
                     const layers_index: bigint = BigInt(model_keys[k]);
                     if (use_frame) {
-                        if (main_label != null) {
+                        if (main_label !== "") {
                             if (!action_list[main_label]["frame_index"].includes(layers_index + 1n)) {
                                 action_list[main_label]["frame_index"].push(layers_index + 1n);
                             }
