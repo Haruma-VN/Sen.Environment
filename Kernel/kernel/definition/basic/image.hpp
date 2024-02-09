@@ -222,7 +222,7 @@ namespace Sen::Kernel::Definition {
 				T interlace_type, 
 				T channels, 
 				T rowbytes, 
-				std::vector<unsigned char> data
+				const std::vector<unsigned char> & data
 			) : 
 			Rectangle<T>(0, 0, width, height), 
 			bit_depth(bit_depth),
@@ -244,6 +244,36 @@ namespace Sen::Kernel::Definition {
 			) : Image<T>(that.width, that.height, that.bit_depth, that.color_type, that.interlace_type, that.channels, that.rowbytes, that.data())
 			{
 
+			}
+
+			Image(
+				Image&& that
+			) noexcept
+				: Rectangle<T>(std::move(that)),
+				bit_depth(std::move(that.bit_depth)),
+				color_type(std::move(that.color_type)),
+				interlace_type(std::move(that.interlace_type)),
+				channels(std::move(that.channels)),
+				rowbytes(std::move(that.rowbytes)),
+				_data(std::move(that._data))
+			{
+
+			}
+
+			Image& operator=(
+				Image&& that
+			) noexcept
+			{
+				if (this != &that) {
+					Rectangle<T>::operator=(std::move(that));
+					bit_depth = std::move(that.bit_depth);
+					color_type = std::move(that.color_type);
+					interlace_type = std::move(that.interlace_type);
+					channels = std::move(that.channels);
+					rowbytes = std::move(that.rowbytes);
+					_data = std::move(that._data);
+				}
+				return *this;
 			}
 
 			/**
@@ -328,10 +358,7 @@ namespace Sen::Kernel::Definition {
 
 			) const -> Dimension<T>
 			{
-				auto dz = Dimension<T>{};
-				dz.width = thiz.width;
-				dz.height = thiz.height;
-				return dz;
+				return Dimension<T>(thiz.width, thiz.height);
 			}
 
 			/**
@@ -342,19 +369,19 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto composite(
-				const Image<int>& image, 
+				const Image<int>& image,
 				Rectangle<int> rectangle
-			) -> Image<int> const
+			) -> Image<int>
 			{
 				auto data = std::vector<unsigned char>{};
 				data.reserve(static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(rectangle.area()) * 4);
 				for (auto j : Range<int>(rectangle.y, rectangle.y + rectangle.height, 1)) {
 					for (auto i : Range<int>(rectangle.x, rectangle.x + rectangle.width, 1)) {
 						auto index = (j * image.width + i) * 4;
-						data.insert(data.end(), &image.data()[index], &image.data()[index + 4]);
+						data.insert(data.end(), &image.data()[index], &image.data()[static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(index) + 4]);
 					}
 				}
-				return Image<int>(0, 0, rectangle.width, rectangle.height, data);
+				return Image<int>(0, 0, rectangle.width, rectangle.height, std::move(data));
 			}
 
 			/**
@@ -363,7 +390,7 @@ namespace Sen::Kernel::Definition {
 			*/
 
 			inline static auto transparent(
-				const Dimension<T> & dimension
+				const Dimension<T>& dimension
 			) -> Image<T>
 			{
 				return Image<T>(0, 0, dimension.width, dimension.height, std::vector<unsigned char>(dimension.area() * 4, 0x00));
@@ -377,7 +404,7 @@ namespace Sen::Kernel::Definition {
 			 */
 
 			inline static auto join(
-				const Image<T>& source,
+				Image<T>& source,
 				const std::vector<Image<T>>& data
 			) -> void
 			{
@@ -386,7 +413,7 @@ namespace Sen::Kernel::Definition {
 					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
 						throw Exception(fmt::format("{}", Language::get("image.does_not_fit_current_image")), std::source_location::current(), "join");
 					}
-					auto & image_data = img.data();
+					auto& image_data = img.data();
 					for (auto j : Range<T>(img.height)) {
 						for (auto i : Range<T>(img.width)) {
 							auto source_index = ((j + img.y) * source.width + (i + img.x)) * 4;
@@ -398,7 +425,7 @@ namespace Sen::Kernel::Definition {
 						}
 					}
 				}
-				source.set_data(source_data);
+				source.set_data(std::move(source_data));
 				return;
 			}
 
@@ -413,10 +440,10 @@ namespace Sen::Kernel::Definition {
 			inline static auto resize(
 				const Image<T>& source,
 				float percent
-			) -> Image<T> const
+			) -> Image<T>
 			{
-				auto new_width = static_cast<int>(ceil(source.width * percent));
-				auto new_height = static_cast<int>(ceil(source.height * percent));
+				auto new_width = static_cast<int>(Math::ceil(source.width * percent));
+				auto new_height = static_cast<int>(Math::ceil(source.height * percent));
 				auto resized_image_data = std::vector<unsigned char>(new_width * new_height * 4);
 				for (auto j : Range<int>(new_height)) {
 					for (auto i : Range<int>(new_width)) {
@@ -427,7 +454,7 @@ namespace Sen::Kernel::Definition {
 						std::copy(&source.data()[old_index], &source.data()[old_index + 4], &resized_image_data[new_index]);
 					}
 				}
-				return Image<T>(0, 0, new_width, new_height, resized_image_data);
+				return Image<T>(0, 0, new_width, new_height, std::move(resized_image_data));
 			}
 
 			/**
@@ -458,7 +485,7 @@ namespace Sen::Kernel::Definition {
 						}
 					}
 				}
-				return Image<T>(0, 0, new_width, new_height, data);
+				return Image<T>(0, 0, new_width, new_height, std::move(data));
 			}
 
 			/**
@@ -476,7 +503,7 @@ namespace Sen::Kernel::Definition {
 				auto new_width = static_cast<int>(source.width * percentage);
 				auto new_height = static_cast<int>(source.height * percentage);
 				const auto area = (new_width * new_height * 4);
-				auto data = std::unique_ptr<uint8_t[]>(new uint8_t[area]);
+				auto data = std::make_unique<uint8_t[]>(area);
 				avir::CImageResizer<>{8}.resizeImage(
 					source.data().data(), 
 					static_cast<int>(source.width), 
@@ -490,7 +517,7 @@ namespace Sen::Kernel::Definition {
 					nullptr
 				);
 				auto vec = std::vector<uint8_t>(data.get(), data.get() + area);
-				return Image<int>(0, 0, new_width, new_height, vec);
+				return Image<int>(0, 0, new_width, new_height, std::move(vec));
 			}
 	};
 

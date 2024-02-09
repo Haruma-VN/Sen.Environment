@@ -17,6 +17,24 @@ namespace Sen::Kernel::Definition::Compression::Zip {
 
 			inline static auto constexpr CHUNK_SIZE = 1024;
 
+			/**
+			 * Lambda close zip
+			*/
+
+			inline static auto constexpr zip_deleter = [](auto zip) {  
+				zip_close(zip);
+				return;
+			};
+
+			/**
+			 * Lambda close directory
+			*/
+
+			inline static auto constexpr dir_deleter = [](auto dir) { 
+				closedir(dir);
+				return;
+			};
+
 		public:
 
 			/**
@@ -44,14 +62,12 @@ namespace Sen::Kernel::Definition::Compression::Zip {
 				const std::string & destination
 			) -> void
 			{
-				auto zip_deleter = [](auto zip) {  zip_close(zip); };
 				auto zip = std::unique_ptr<struct zip_t, decltype(zip_deleter)> (zip_open(destination.c_str(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w'), zip_deleter);
-				auto dir_deleter = [](auto dir) { closedir(dir); };
 				auto dir = std::unique_ptr<DIR, decltype(dir_deleter)>(opendir(source.c_str()), dir_deleter);
 				auto entry = static_cast<struct dirent*>(nullptr);
 				while ((entry = readdir(dir.get())) != NULL) {
 					if (entry->d_type == DT_REG) {
-						auto file_path = std::unique_ptr<char[]>(new char[CHUNK_SIZE]);
+						auto file_path = std::make_unique<char[]>(CHUNK_SIZE);
 						snprintf(file_path.get(), CHUNK_SIZE, "%s/%s", source.c_str(), entry->d_name);
 						zip_entry_open(zip.get(), entry->d_name);
 						zip_entry_fwrite(zip.get(), file_path.get());
@@ -71,7 +87,6 @@ namespace Sen::Kernel::Definition::Compression::Zip {
     			const std::string & root = ""
 			) -> void
 			{
-				auto zip_deleter = [](auto zip) {  zip_close(zip); };
 				auto zip = std::unique_ptr<struct zip_t, decltype(zip_deleter)>(zip_open(destination.c_str(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w'), zip_deleter);
 				auto root_is_not_empty = root != "";
 				for (auto & file : source) {

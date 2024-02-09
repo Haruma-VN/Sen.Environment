@@ -51,7 +51,7 @@ namespace Sen::Kernel::Interface {
 
 			) -> void
 			{
-				auto javascript = std::unique_ptr<JS::Runtime>(new JS::Runtime());
+				auto javascript = std::make_unique<JS::Runtime>();
 				auto script_path = thiz.argument;
 				// shell callback
 				{

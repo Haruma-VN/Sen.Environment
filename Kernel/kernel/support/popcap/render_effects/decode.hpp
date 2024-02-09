@@ -97,7 +97,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			) -> RenderEffects
 			{
-				auto info = std::unique_ptr<BasicDefinition>(new BasicDefinition());
+				auto info = std::make_unique<BasicDefinition>();
 				assert_conditional(decoder->readString(4) == BasicDefinition::magic, "mismatch magic", "decode");
 				assert_conditional(decoder->readUint32() == BasicDefinition::version, "mismatch version", "decode");
 				{

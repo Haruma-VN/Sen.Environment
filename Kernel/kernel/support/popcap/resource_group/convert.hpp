@@ -265,8 +265,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				PathStyle style
 			) -> void 
 			{
-				auto convert_c = std::unique_ptr<ResourceGroup::Convert>{new ResourceGroup::Convert{style}};
-				FileSystem::write_json(destination, convert_c->convert_whole(FileSystem::read_json(source)));
+				auto view = std::make_unique<ResourceGroup::Convert>(style);
+				FileSystem::write_json(destination, view->convert_whole(FileSystem::read_json(source)));
 				return;
 			}
 

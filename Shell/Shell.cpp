@@ -16,7 +16,7 @@ inline auto static print(
     const Sen::Shell::Interactive::Color color = Sen::Shell::Interactive::Color::DEFAULT
 ) -> void
 {
-    #if WIN32
+    #if WINDOWS
         auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, color);
         std::cout << title << std::endl;
@@ -46,7 +46,7 @@ inline auto static print(
             }
         }
     #endif
-    #if WIN32
+    #if WINDOWS
        SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
     #endif
    if (message != "") {
@@ -144,7 +144,7 @@ inline static auto callback(
 
 MAIN_FUNCTION
 {
-    #if WIN32
+    #if WINDOWS
         SetConsoleCP(CP_UTF8);
         SetConsoleOutputCP(CP_UTF8);
     #endif
@@ -152,16 +152,24 @@ MAIN_FUNCTION
     auto kernel = std::string{};
     auto script = std::string{};
     if (size >= 2) {
-        kernel = argc[1];
+        kernel = Sen::Shell::utf16_to_utf8(argc[1]);
     }
     else {
-        kernel = std::filesystem::absolute(KERNEL_DEFAULT).string();
+    #if WINDOWS
+            kernel = Sen::Shell::utf16_to_utf8(std::filesystem::absolute(KERNEL_DEFAULT).generic_wstring());
+    #else
+            kernel = std::filesystem::absolute(KERNEL_DEFAULT).generic_string();
+    #endif
     }
     if (size >= 3) {
-        script = argc[2];
+        script = Sen::Shell::utf16_to_utf8(argc[2]);
     }
     else {
-        script = std::filesystem::absolute("./Script/main.js").string();
+        #if WINDOWS
+                script = Sen::Shell::utf16_to_utf8(std::filesystem::absolute("./Script/main.js").generic_wstring());
+        #else
+                script = std::filesystem::absolute("./Script/main.js").generic_string();
+        #endif
     }
     #if WIN32
         auto hinstLib = LoadLibrary(TEXT(kernel.c_str()));
@@ -179,25 +187,25 @@ MAIN_FUNCTION
     #endif
     if (execute_method == NULL) {
         print("Method not found", "", Sen::Shell::Interactive::Color::RED);
-        #if WIN32
+        #if WINDOWS
                 FreeLibrary(hinstLib);
         #else
                 dlclose(hinstLib);
         #endif
         return 1;
     }
-    auto script_pointer = std::unique_ptr<CStringView>(new CStringView{
-        .size = script.size(),
-        .value = script.data(),
-    });
+    auto script_pointer = std::make_unique<CStringView>(script.size(), script.data());
     auto argument_size = static_cast<uint64_t>(size);
-    auto argument_list = std::unique_ptr<CStringList>(new CStringList{
-         .value = new CStringView[argument_size],
-         .size = argument_size,
-    });
-    for (auto i = 0; i < size; i++) {
-       (argument_list.get())->value[i].value = argc[i];
-       (argument_list.get())->value[i].size = strlen(argc[i]);
+    auto argument_list = std::make_unique<CStringList>(new CStringView[argument_size], argument_size);
+    for (auto i = 0; i < size; ++i) {
+        #if WINDOWS
+                auto argument_value = Sen::Shell::utf16_to_utf8(argc[i]);
+                (argument_list.get())->value[i].value = argument_value.c_str();
+                (argument_list.get())->value[i].size = argument_value.size();
+        #else
+                (argument_list.get())->value[i].value = argc[i];
+                (argument_list.get())->value[i].size = strlen(argc[i]);
+        #endif
     }
     auto result = execute_method(script_pointer.get(), argument_list.get(), callback);
     delete[] copy;

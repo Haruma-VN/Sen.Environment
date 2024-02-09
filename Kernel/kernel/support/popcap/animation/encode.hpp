@@ -400,7 +400,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             ) -> void
         {
             auto json = FileSystem::read_json(source);
-            auto c = std::unique_ptr<Encode>(new Encode{json});
+            auto c = std::make_unique<Encode>(json);
             c->animation_encode();
             c->sen->out_file(destination);
             return;

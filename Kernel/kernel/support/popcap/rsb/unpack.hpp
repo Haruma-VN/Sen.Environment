@@ -24,7 +24,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             FileSystem::create_directory(packet_folder);
             if (rsb_head_info.version == 3) {
                 if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
-                    throw Exception("invaild_version_resources_pos");
+                    throw Exception("invalid_version_resources_pos");
                 }
 
             }

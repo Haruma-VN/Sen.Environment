@@ -7,6 +7,7 @@
 #include <vector>
 #include <filesystem>
 #include "interactive/color.hpp"
+#include "String.hpp"
 
 #define WINDOWS _WIN32
 
@@ -26,7 +27,11 @@
 #include <dlfcn.h>
 #endif
 
+#if WINDOWS
+#define MAIN_FUNCTION inline auto wmain(int size, wchar_t** argc) -> int
+#else
 #define MAIN_FUNCTION int main(int size, char** argc)
+#endif
 struct StringView {
 	size_t size;
 	const char* value;

@@ -479,7 +479,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 fill_rijndael_block(source_buffer, source_iv);
             }
             auto sen = DataStreamView{Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), key, iv, source_buffer.size() - 2, Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};
-            auto rton = std::unique_ptr<Decode>(new Decode{ sen });
+            auto rton = std::make_unique<Decode>(sen);
             FileSystem::write_file(destination, rton->decode_rton());
             return;
         }

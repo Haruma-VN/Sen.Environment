@@ -22,8 +22,9 @@ endif()
 add_executable (
     ${PROJECT_NAME} 
     ./interactive/color.hpp
-    Shell.h
-    Shell.cpp 
+    ./String.hpp
+    ./Shell.h
+    ./Shell.cpp 
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

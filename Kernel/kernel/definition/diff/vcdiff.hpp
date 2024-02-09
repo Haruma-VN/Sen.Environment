@@ -61,7 +61,7 @@ namespace Sen::Kernel::Definition::Diff {
 			) -> std::vector<char>
 			{
 				auto encoding = std::string{};
-				auto encoder = std::unique_ptr<open_vcdiff::VCDiffEncoder>(new open_vcdiff::VCDiffEncoder(before, before_size));
+				auto encoder = std::make_unique<open_vcdiff::VCDiffEncoder>(before, before_size);
 				encoder->SetFormatFlags(static_cast<open_vcdiff::VCDiffFormatExtensionFlags>(flag));
 				if (!encoder->Encode(after, after_size, &encoding)) {
 					throw Exception(fmt::format("{}", Language::get("vcdiff.encode.failed")), std::source_location::current(), "encode");
@@ -87,7 +87,7 @@ namespace Sen::Kernel::Definition::Diff {
 			) -> std::vector<char>
 			{
 				auto decoded_data = std::string{};
-				auto decoder = std::unique_ptr<open_vcdiff::VCDiffStreamingDecoder>(new open_vcdiff::VCDiffStreamingDecoder());
+				auto decoder = std::make_unique<open_vcdiff::VCDiffStreamingDecoder>();
 				decoder->StartDecoding(before, before_size);
 				if (!decoder->DecodeChunk(patch, patch_size, &decoded_data)) {
 					throw Exception(fmt::format("{}", Language::get("vcdiff.decode.failed")), std::source_location::current(), "decode");

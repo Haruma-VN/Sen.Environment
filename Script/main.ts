@@ -268,8 +268,8 @@ namespace Sen.Script {
             //     "popcap.atlas.split_by_resource_group",
             //     {
             //         source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-            //         destination: "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-            //         method: "id",
+            //         destination: "D:/test/test/ZombieSkycityZombossGroup_1536.sprite",
+            //         method: "path",
             //         style: "array",
             //     },
             //     Executor.Forward.DIRECT,

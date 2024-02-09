@@ -363,7 +363,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamViewBigEndian{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
+				auto image_block = std::make_unique<uint8_t[]>(pixel_area_rgba(k_block_width, k_block_width));
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
 						auto block_part_1 = sen.readUint32();
@@ -409,7 +409,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamViewBigEndian{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto image_block = std::unique_ptr<uint8_t[]>(new uint8_t[pixel_area_rgba(k_block_width, k_block_width)]);
+				auto image_block = std::make_unique<uint8_t[]>(pixel_area_rgba(k_block_width, k_block_width));
 				for(auto block_y : Range<int>(height / k_block_width)){
 					for(auto block_x : Range<int>(width / k_block_width)){
 						auto block_part_1 = sen.readUint32();
@@ -436,7 +436,7 @@ namespace Sen::Kernel::Support::Texture {
 					}
 				}
 				auto num = sen.readUint8();
-				auto index_table = std::unique_ptr<uint8_t[]>(new uint8_t[num == 0 ? 2 : num]);
+				auto index_table = std::make_unique<uint8_t[]>(num == 0 ? 2 : num);
 				auto bit_depth = int{};
 				if(num == 0){
 					index_table[0] = 0x0;
@@ -546,7 +546,7 @@ namespace Sen::Kernel::Support::Texture {
 				auto sen = DataStreamView{color};
 				auto area = pixel_area_rgba(width, height);
 				auto data = std::vector<unsigned char>(area, 0x00);
-				auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
+				auto actual_data = std::make_unique<Javelin::ColorRgba<unsigned char>[]>(calculate_area(width, height));
 				Javelin::PvrTcDecoder::DecodeRgba4Bpp(&actual_data[0], Javelin::Point2<int>(width, height), sen.getBytes(0, sen.size()).data());
 				for (auto y : Range<int>(height)) {
 					for (auto x : Range<int>(width)) {

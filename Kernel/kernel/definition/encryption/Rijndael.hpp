@@ -41,7 +41,7 @@ namespace Sen::Kernel::Definition::Encryption
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
 				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
-				auto result = std::unique_ptr<char[]>(new char[plain_size]);
+				auto result = std::make_unique<char[]>(plain_size);
 				rijndael->Encrypt(plain, result.get(), plain_size, mode);
 				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + plain_size)};
 				return m_result;
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Definition::Encryption
 			{			
 				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
 				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
-				auto result = std::unique_ptr<char[]>(new char[cipher_len]);
+				auto result = std::make_unique<char[]>(cipher_len);
 				rijndael->Decrypt(cipher, result.get(), cipher_len, mode);
 				auto m_result = std::vector<unsigned char>{reinterpret_cast<unsigned char*>(result.get()), reinterpret_cast<unsigned char*>(result.get() + cipher_len)};
 				return m_result;

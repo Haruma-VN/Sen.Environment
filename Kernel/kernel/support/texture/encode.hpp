@@ -261,7 +261,7 @@ namespace Sen::Kernel::Support::Texture {
 			) -> std::vector<unsigned char>
 			{
 				auto size = image.area();
-				auto view = std::unique_ptr<unsigned int[]>(new unsigned int[size]);
+				auto view = std::make_unique<unsigned int[]>(size);
 				auto data = image.data();
 				auto index = 0;
 				for	(auto y : Range<int>(image.height)){
@@ -271,7 +271,7 @@ namespace Sen::Kernel::Support::Texture {
 					}
 				}
 				auto destination_size = size / 16;
-				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
+				auto destination = std::make_unique<unsigned long long[]>(destination_size);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
 				auto sen = DataStreamViewBigEndian{};
 				for (auto i : Range<int>(destination_size)) {
@@ -290,7 +290,7 @@ namespace Sen::Kernel::Support::Texture {
 			) -> std::vector<unsigned char>
 			{
 				auto size = image.area();
-				auto view = std::unique_ptr<unsigned int[]>(new unsigned int[size]);
+				auto view = std::make_unique<unsigned int[]>(size);
 				auto data = image.data();
 				auto index = 0;
 				for	(auto y : Range<int>(image.height)){
@@ -300,7 +300,7 @@ namespace Sen::Kernel::Support::Texture {
 					}
 				}
 				auto destination_size = size / 16;
-				auto destination = std::unique_ptr<unsigned long long[]>(new unsigned long long[destination_size]);
+				auto destination = std::make_unique<unsigned long long[]>(destination_size);
 				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
 				auto sen = DataStreamViewBigEndian{};
 				for (auto i : Range<int>(destination_size)) {
