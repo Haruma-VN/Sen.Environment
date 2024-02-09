@@ -52,7 +52,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Unpack {
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.Unpack.Argument, string>(
                     argument,
                     "destination",
-                    `${Sen.Kernel.Path.except_extension(argument.source)}.json`,
+                    `${Sen.Kernel.Path.except_extension(argument.source)}.bundle`,
                 );
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Kernel.Support.PopCap.RSB.unpack_fs(argument.source, argument.destination!);

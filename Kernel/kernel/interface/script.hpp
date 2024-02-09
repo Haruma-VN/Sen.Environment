@@ -3844,6 +3844,56 @@ namespace Sen::Kernel::Interface::Script {
 			}, "make_copy"_sv);
 		}
 
+		/*
+			UTF8 Support
+		*/
+
+		inline static auto cast_ArrayBuffer_to_JS_String(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue 
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto len = size_t{};
+				auto buf = JS_GetArrayBuffer(context, &len, argv[0]);
+				if (!buf) {
+					throw Exception(fmt::format("{}", Kernel::Language::get("kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer")));
+				}
+				auto str = JS_NewStringLen(context, reinterpret_cast<const char*>(buf), len);
+				return str;
+			}, "cast_ArrayBuffer_to_JS_String"_sv);
+		}
+
+		/*
+		UTF16 Support
+		*/
+
+		inline static auto cast_ArrayBuffer_to_JS_WideString(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto len = size_t{};
+				auto buf = JS_GetArrayBuffer(context, &len, argv[0]);
+				if (!buf) {
+					throw Exception(fmt::format("{}", Kernel::Language::get("kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer")));
+				}
+				auto utf16 = std::wstring(reinterpret_cast<wchar_t*>(buf), len / sizeof(wchar_t));
+				auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
+				auto utf8 = converter.to_bytes(utf16);
+				auto str = JS_NewStringLen(context, utf8.c_str(), utf8.size());
+				return str;
+			}, "cast_ArrayBuffer_to_JS_WideString"_sv);
+		}
+
+
 	}
 
 	/**

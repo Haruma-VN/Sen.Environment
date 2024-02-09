@@ -3584,6 +3584,22 @@ declare namespace Sen {
              */
 
             export function make_copy<T extends any>(object: T): T;
+
+            /**
+             * UTF16 Support
+             * @param value - ArrayBuffer
+             * @returns JS String
+             */
+
+            export function cast_ArrayBuffer_to_JS_WideString(value: ArrayBuffer): string;
+
+            /**
+             * UTF8 Support
+             * @param value - ArrayBuffer
+             * @returns JS String
+             */
+
+            export function cast_ArrayBuffer_to_JS_String(value: ArrayBuffer): string;
         }
     }
 }

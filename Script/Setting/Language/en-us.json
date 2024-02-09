@@ -140,5 +140,6 @@
     "kernel.tuple.js_bigint": "BigInt",
     "kernel.tuple.js_string": "string",
     "kernel.tuple.js_boolean": "boolean",
-    "kernel.tuple.js_number": "number"
+    "kernel.tuple.js_number": "number",
+    "kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer": "Failed to get JS ArrayBuffer"
 }

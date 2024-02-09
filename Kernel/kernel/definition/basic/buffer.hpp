@@ -38,6 +38,30 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
+                Stream&& that
+            ) : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
+            {
+
+            }
+
+            Stream& operator=(
+                Stream&& that
+            ) 
+            {
+                if (this != &that) {
+                    data = std::move(that.data);
+                    length = that.length;
+                    read_pos = that.read_pos;
+                    write_pos = that.write_pos;
+                    that.length = 0;
+                    that.read_pos = 0;
+                    that.write_pos = 0;
+                }
+                return thiz;
+            }
+
+
+            Stream(
                 std::string_view source
             ) : read_pos(0), write_pos(0)
             {

@@ -36,7 +36,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		 * Buffer handling
 		 */
 
-		DataStreamView sen;
+		std::unique_ptr<DataStreamView> sen;
 
 		/**
 		 * Key for compiled text
@@ -83,16 +83,16 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 			std::string_view key,
 			std::string_view iv,
 			bool use_64_bit_variant
-		) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+		) : sen(std::make_unique<DataStreamView>(source)), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 		{
 		}
 
 		explicit Decode(
-			const DataStreamView & it,
+			DataStreamView & it,
 			std::string_view key,
 			std::string_view iv,
 			bool use_64_bit_variant
-		) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+		) : sen(&it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 		{
 		}
 
@@ -108,7 +108,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		{
 			auto buffer = DataStreamView{};
 			auto decoded_base64 = DataStreamView{};
-			decoded_base64.fromString(Base64::decode(thiz.sen.toString()));
+			decoded_base64.fromString(Base64::decode(thiz.sen->toString()));
 			buffer.append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02, RijndaelMode::CBC)));
 			return buffer;
 		}

@@ -432,6 +432,10 @@ namespace Sen::Kernel::Interface {
 				{
 					// make_copy
 					javascript->add_proxy(Script::Miscellaneous::make_copy, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "make_copy"_sv);
+					// cast_ArrayBuffer_to_JS_String
+					javascript->add_proxy(Script::Miscellaneous::cast_ArrayBuffer_to_JS_String, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_ArrayBuffer_to_JS_String"_sv);
+					// cast_ArrayBuffer_to_JS_WideString
+					javascript->add_proxy(Script::Miscellaneous::cast_ArrayBuffer_to_JS_WideString, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_ArrayBuffer_to_JS_WideString"_sv);
 				}
 				// DataStreamView
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);

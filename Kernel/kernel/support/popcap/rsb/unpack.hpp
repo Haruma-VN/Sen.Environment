@@ -10,34 +10,84 @@ namespace Sen::Kernel::Support::PopCap::RSB
     class Unpack
     {
     protected:
-        DataStreamView sen;
+        std::unique_ptr<DataStreamView> sen;
 
         inline auto unpack_rsb(
-            std::string_view destination
-        ) const -> void
+            std::string_view destination) const -> void
         {
-            auto rsb_headinfo = read_head();
-            auto rsb_data_list = std::vector<RSB_Data>{};
-            rsb_data_list.reserve(rsb_headinfo.composite_number);
-            for (auto i : Range(rsb_headinfo.composite_number))
-            {
-                auto composite_start_pos = i * rsb_headinfo.composite_info_each_length + rsb_headinfo.composite_info_begin;
-                auto composite_name = sen.readStringByEmpty(composite_start_pos);
-                auto composite_info_pos = composite_start_pos + 0x80;
-                for (auto k : Range(sen.readUint32(composite_start_pos + 0x480)))
-                {
-                    auto rsg_index = sen.readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
-                    auto rsg_res = sen.readUint32();
-                    auto rsb_data = read_rsg_info(rsg_index, rsb_headinfo);
-                    rsb_data.rsg_res = rsg_res;
-                    rsb_data.composite_name = composite_name;
-                    rsb_data_list.emplace_back(std::move(rsb_data));
+            auto rsb_head_info = read_head();
+            auto manifest_info = Manifest{};
+            manifest_info.version = rsb_head_info.version;
+            auto group = std::map<std::string, RSG_Group>{};
+            auto packet_folder = fmt::format("{}/{}", destination, "packet");
+            FileSystem::create_directory(destination);
+            FileSystem::create_directory(packet_folder);
+            if (rsb_head_info.version == 3) {
+                if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
+                    throw Exception("invaild_version_resources_pos");
                 }
+
             }
-            write_file<true>(destination, rsb_data_list);
+            for (auto i : Range(rsb_head_info.composite_number))
+            {
+                auto composite_start_pos = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
+                auto composite_name = sen->readStringByEmpty(composite_start_pos);
+                auto composite_info_pos = composite_start_pos + 0x80;
+                auto is_composite = composite_name.ends_with("_CompositeShell");
+                auto rsg_group = RSG_Group{is_composite};
+                auto subgroup = std::map<std::string, RSG_Info>{};
+                for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
+                {
+                    auto rsg_info = RSG_Info{};
+                    auto rsg_index = sen->readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
+                    read_rsg_category(rsb_head_info.version, rsg_info);
+                    auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
+                    auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
+                    read_rsg_info(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
+                    subgroup.insert(std::pair{rsg_name, rsg_info});
+                }
+                rsg_group.subgroup = subgroup;
+                group.insert(std::pair{composite_name, rsg_group});
+            }
+            manifest_info.group = group;
+            FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
             return;
         }
 
+        inline auto read_description(
+            const RSB_HeadInfo &rsb_head_info
+        ) const -> void 
+        {
+            sen->read_pos = rsb_head_info.part1_begin;
+            auto part2_pos = rsb_head_info.part2_begin;
+            auto part3_pos = rsb_head_info.part3_begin;
+            return;
+        }
+
+        inline auto read_rsg_category(
+            int version, 
+            RSG_Info &rsg_info) const -> void
+        {
+            if (version == 3)
+            {
+                auto res_1 = sen->readString(4);
+                auto res_2 = sen->readString(4);
+                rsg_info.category = nlohmann::ordered_json::array({res_1, res_2});
+            }
+            else
+            {
+                auto res = sen->readUint32(4);
+                if (res != 0)
+                {
+                    rsg_info.category = nlohmann::ordered_json::array({res, nullptr});
+                }
+                else {
+                    rsg_info.category = nlohmann::ordered_json::array({nullptr, nullptr});
+                }
+            }
+            return;
+        }
+        /*
         template <auto use_async>
         inline auto write_file(
             std::string_view destination,
@@ -51,7 +101,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     }));
                 }
                 for (auto& p : process) {
-                    p.get(); 
+                    p.get();
                 }
             }
             else {
@@ -61,88 +111,143 @@ namespace Sen::Kernel::Support::PopCap::RSB
             }
             return;
         }
+        */
 
         inline auto read_rsg_info(
             int rsg_index,
-            const RSB_HeadInfo &rsb_headinfo) const -> RSB_Data
+            const RSB_HeadInfo &rsb_head_info,
+            int rsg_info_pos,
+            RSG_Info &rsg_info,
+            const std::string &rsg_name,
+            const std::string &packet_folder) const -> void
         {
-            auto rsg_info_pos = rsg_index * rsb_headinfo.rsg_info_each_length + rsb_headinfo.rsg_info_begin;
-            auto rsg_name = sen.readStringByEmpty(rsg_info_pos);
-            auto packet_pos = sen.readUint32(static_cast<size_t>(rsg_info_pos) + 0x80);
-            auto packet_size = sen.readUint32();
-            auto packet_data = sen.getBytes(packet_pos, static_cast<size_t>(packet_pos) + packet_size);
-            auto ptx_number = sen.readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4);
-            if (ptx_number > 0)
+            auto packet_pos = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0x80);
+            auto packet_size = sen->readUint32();
+            auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<size_t>(packet_pos) + packet_size)};
+            auto rsg_packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
+            auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
+            rsg_packet_info.res = read_res_info(packet_sen, rsb_head_info, ptx_number_pool);
+            rsg_info.packet_info = rsg_packet_info;
+            packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
+            return;
+        }
+
+        inline auto read_res_info(
+            const DataStreamView &packet_sen,
+            const RSB_HeadInfo &rsb_head_info,
+            int ptx_number_pool) const -> std::vector<RSG_ResInfo>
+        {
+            auto res_list = std::vector<RSG_ResInfo>{};
+            auto name_dist_list = std::vector<NameDict>{};
+            std::string name_path;
+            // read rsg_file_list_length;
+            auto file_list_lengh = packet_sen.readUint32(0x48);
+            // read rsg_file_list_pos;
+            auto file_list_pos = packet_sen.readUint32();
+            packet_sen.read_pos = file_list_pos;
+            auto offset_limit = file_list_pos + file_list_lengh;
+            while (packet_sen.read_pos < offset_limit)
             {
-                auto ptx_before = sen.readUint32();
-                auto temp_sen = DataStreamView{std::move(packet_data)};
-                temp_sen.writeUint32(ptx_number, 0x08);
-                auto write_pos = temp_sen.readUint32(0x28) + temp_sen.readUint32();
-                temp_sen.writeUint32(write_pos);
-                auto ptx_info_pos = ptx_before * rsb_headinfo.ptx_info_each_length + rsb_headinfo.ptx_info_begin;
-                temp_sen.writeBytes(sen.getBytes(ptx_info_pos, ptx_info_pos + static_cast<size_t>(ptx_number) * rsb_headinfo.ptx_info_each_length), write_pos);
-                packet_data = temp_sen.toBytes();
+                auto char_byte = packet_sen.readUint8();
+                auto pos = packet_sen.readUint24() * 4;
+                if (char_byte == 0)
+                {
+                    if (pos != 0)
+                    {
+                        name_dist_list.emplace_back(NameDict{
+                            name_path,
+                            pos});
+                    }
+                    auto is_atlas = packet_sen.readUint32() == 1;
+                    auto res = RSG_ResInfo{name_path};
+                    packet_sen.read_pos += 8;
+                    if (is_atlas)
+                    {
+                        auto id = packet_sen.readUint32();
+                        packet_sen.read_pos += 8;
+                        res.ptx_info = RSG_PTXInfo{id, packet_sen.readUint32(), packet_sen.readUint32()};
+                        auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
+                        res.ptx_info.format = sen->readUint32(format_pos);
+                    }
+                    res_list.emplace_back(res);
+                    for (auto i : Range(name_dist_list.size()))
+                    {
+                        if (name_dist_list[i].pos + static_cast<unsigned long long>(file_list_pos) == packet_sen.read_pos)
+                        {
+                            name_path = name_dist_list[i].name_path;
+                            name_dist_list.erase(name_dist_list.begin() + i);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (pos != 0)
+                    {
+                        name_dist_list.emplace_back(NameDict{
+                            name_path,
+                            pos});
+                        name_path += static_cast<char>(char_byte);
+                    }
+                    else
+                    {
+                        name_path += static_cast<char>(char_byte);
+                    }
+                }
             }
-            auto rsb_data = RSB_Data{};
-            rsb_data.name = rsg_name;
-            rsb_data.data = std::move(packet_data);
-            return rsb_data;
+            return res_list;
         }
 
         inline auto read_head() const -> RSB_HeadInfo
         {
             auto rsb_headinfo = RSB_HeadInfo{};
             {
-                auto magic = sen.readString(4);
+                auto magic = sen->readString(4);
                 if (magic != "1bsr")
                 {
                     throw Exception("Invalid RSB head", std::source_location::current(), "read_head");
                 }
             }
-            rsb_headinfo.version = sen.readUint32();
-            if (rsb_headinfo.version == 3)
-            {
-                throw Exception("Unsupported");
-            }
-            sen.readString(4);
-            rsb_headinfo.file_offset = sen.readUint32();
-            rsb_headinfo.file_list_length = sen.readUint32();
-            rsb_headinfo.file_list_begin = sen.readUint32();
-            sen.readString(8);
-            rsb_headinfo.rsg_list_length = sen.readUint32();
-            rsb_headinfo.rsg_list_begin = sen.readUint32();
-            rsb_headinfo.rsg_number = sen.readUint32();
-            rsb_headinfo.rsg_info_begin = sen.readUint32();
-            rsb_headinfo.rsg_info_each_length = sen.readUint32();
-            rsb_headinfo.composite_number = sen.readUint32();
-            rsb_headinfo.composite_info_begin = sen.readUint32();
-            rsb_headinfo.composite_info_each_length = sen.readUint32();
-            rsb_headinfo.composite_list_length = sen.readUint32();
-            rsb_headinfo.composite_list_begin = sen.readUint32();
-            rsb_headinfo.autopool_number = sen.readUint32();
-            rsb_headinfo.autopool_info_begin = sen.readUint32();
-            rsb_headinfo.autopool_info_each_length = sen.readUint32();
-            rsb_headinfo.ptx_number = sen.readUint32();
-            rsb_headinfo.ptx_info_begin = sen.readUint32();
-            rsb_headinfo.ptx_info_each_length = sen.readUint32();
-            rsb_headinfo.part1_begin = sen.readUint32();
-            rsb_headinfo.part2_begin = sen.readUint32();
-            rsb_headinfo.part3_begin = sen.readUint32();
+            rsb_headinfo.version = sen->readUint32();
+            sen->read_pos += 4;
+            rsb_headinfo.file_offset = sen->readUint32();
+            rsb_headinfo.file_list_length = sen->readUint32();
+            rsb_headinfo.file_list_begin = sen->readUint32();
+            sen->read_pos += 8;
+            rsb_headinfo.rsg_list_length = sen->readUint32();
+            rsb_headinfo.rsg_list_begin = sen->readUint32();
+            rsb_headinfo.rsg_number = sen->readUint32();
+            rsb_headinfo.rsg_info_begin = sen->readUint32();
+            rsb_headinfo.rsg_info_each_length = sen->readUint32();
+            rsb_headinfo.composite_number = sen->readUint32();
+            rsb_headinfo.composite_info_begin = sen->readUint32();
+            rsb_headinfo.composite_info_each_length = sen->readUint32();
+            rsb_headinfo.composite_list_length = sen->readUint32();
+            rsb_headinfo.composite_list_begin = sen->readUint32();
+            rsb_headinfo.autopool_number = sen->readUint32();
+            rsb_headinfo.autopool_info_begin = sen->readUint32();
+            rsb_headinfo.autopool_info_each_length = sen->readUint32();
+            rsb_headinfo.ptx_number = sen->readUint32();
+            rsb_headinfo.ptx_info_begin = sen->readUint32();
+            rsb_headinfo.ptx_info_each_length = sen->readUint32();
+            rsb_headinfo.part1_begin = sen->readUint32();
+            rsb_headinfo.part2_begin = sen->readUint32();
+            rsb_headinfo.part3_begin = sen->readUint32();
             if (rsb_headinfo.version >= 4)
             {
-                rsb_headinfo.file_offset = sen.readUint32();
+                rsb_headinfo.file_offset = sen->readUint32();
             }
             return rsb_headinfo;
         }
 
     public:
         explicit Unpack(
-            std::string_view source) : sen(source)
+            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
         explicit Unpack(
-            DataStreamView &it) : sen(it)
+            DataStreamView &it) : sen(&it)
         {
         }
 
@@ -154,11 +259,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             std::string_view source,
             std::string_view destination) -> void
         {
-            auto unpack = Unpack{ source };
-            FileSystem::create_directory(destination);
-            auto packet = fmt::format("{}/{}", destination, "packet"_sv);
-            FileSystem::create_directory(packet);
-            unpack.unpack_rsb(packet);
+            auto unpack = Unpack{source};
+            unpack.unpack_rsb(destination);
             return;
         }
     };

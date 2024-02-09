@@ -26,12 +26,6 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 		private:
 
 			/**
-			 * Buffer handling
-			*/
-
-			DataStreamView sen;
-
-			/**
 			 * Key for compiled text
 			*/
 
@@ -50,6 +44,12 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			bool use_64_bit_variant;
 
 		public:
+
+			/**
+			 * Buffer handling
+			*/
+
+			std::unique_ptr<DataStreamView> sen;
 
 			/**
 			 * Default constructor
@@ -77,7 +77,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				std::string_view key,
 				std::string_view iv,
 				bool use_64_bit_variant
-			) : sen(source), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(std::make_unique<DataStreamView>(source)), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
@@ -87,7 +87,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				std::string_view key,
 				std::string_view iv,
 				bool use_64_bit_variant
-			) : sen(it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+			) : sen(&it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
 			{
 
 			}
@@ -98,12 +98,12 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * --------------
 			*/
 
-			auto process(
+			inline auto process(
 
-			) -> DataStreamView
+			) -> void
 			{
 				auto buffer = DataStreamView{};
-				buffer.append(PopCap::Zlib::Compress{use_64_bit_variant}.compress(thiz.sen.get()));
+				buffer.append(PopCap::Zlib::Compress{use_64_bit_variant}.compress(thiz.sen->get()));
     			buffer.writeNull(buffer.size() - ((buffer.size() + iv.size() - 1) % iv.size() + 1));
 				auto result = DataStreamView{};
 				result.writeUint8(0x10);
@@ -111,7 +111,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				auto decoded_base64 = DataStreamView{};
 				decoded_base64.fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data())));
 				result.writeBytes(decoded_base64.get());
-				return result;
+				return;
 			}
 
 			/**
@@ -129,8 +129,8 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			) -> void
 			{
 				auto compiled_text = Encode{source, key, iv, use_64_bit_variant};
-				auto sen = compiled_text.process();
-				FileSystem::write_binary<unsigned char>(destination, sen.get());
+				compiled_text.process();
+				FileSystem::write_binary<unsigned char>(destination, compiled_text.sen->get());
 				return;
 			}
 

@@ -41,20 +41,19 @@ namespace Sen::Kernel::Support::PopCap::RTON
             std::map<std::string_view, int> r0x92_stringpool;
             int r0x90_index;
             int r0x92_index;
-            DataStreamView sen;
 
         protected:
-            inline auto encode_rton(
-                ondemand::document &json
-            ) -> DataStreamView
-            {
-                sen.close();
-                sen.writeStringView(RTON_head);
-                sen.writeUint32(RTON_vesion);
-                auto object = static_cast<ondemand::object>(json.get_object());
-                write_object(object);
-                sen.writeStringView(RTON_end);
-                return sen;
+        inline auto encode_rton(
+            ondemand::document &json
+        ) -> void
+        {
+            sen->close();
+            sen->writeStringView(RTON_head);
+            sen->writeUint32(RTON_vesion);
+            auto object = static_cast<ondemand::object>(json.get_object());
+            write_object(object);
+            sen->writeStringView(RTON_end);
+            return;
         }
 
         inline auto write_object(
@@ -66,7 +65,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 write_string(field.unescaped_key());
                 write_value(field.value());
             }
-            sen.writeUint8(object_end);
+            sen->writeUint8(object_end);
             return;
         }
 
@@ -74,13 +73,13 @@ namespace Sen::Kernel::Support::PopCap::RTON
             ondemand::array array
         ) -> void
         {
-            sen.writeUint8(array_start);
-            sen.writeVarInt32((int)array.count_elements());
+            sen->writeUint8(array_start);
+            sen->writeVarInt32((int)array.count_elements());
             for (auto child : array)
             {
                 write_value(child.value());
             }
-            sen.writeUint8(array_end);
+            sen->writeUint8(array_end);
             return;
         }
 
@@ -92,24 +91,24 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
             case ondemand::json_type::object:
             {
-                sen.writeUint8(object_begin);
+                sen->writeUint8(object_begin);
                 write_object(element.get_object());
                 break;
             }
             case ondemand::json_type::array:
             {
-                sen.writeUint8(array_begin);
+                sen->writeUint8(array_begin);
                 write_array(element.get_array());
                 break;
             }
             case ondemand::json_type::boolean:
             {
-                sen.writeBoolean(static_cast<bool>(element.get_bool()));
+                sen->writeBoolean(static_cast<bool>(element.get_bool()));
                 break;
             }
             case ondemand::json_type::null:
             {
-                sen.writeUint8(null_byte);
+                sen->writeUint8(null_byte);
                 break;
             }
             case ondemand::json_type::string:
@@ -143,19 +142,19 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             if (num == 0.0)
             {
-                sen.writeUint8(0x23);
+                sen->writeUint8(0x23);
             }
             else
             {
                 if (static_cast<float>(num) == num)
                 {
-                    sen.writeUint8(0x22);
-                    sen.writeFloat(num);
+                    sen->writeUint8(0x22);
+                    sen->writeFloat(num);
                 }
                 else
                 {
-                    sen.writeUint8(0x42);
-                    sen.writeDouble(num);
+                    sen->writeUint8(0x42);
+                    sen->writeDouble(num);
                 }
             }
             return;
@@ -167,57 +166,57 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             if (num == 0)
             {
-                sen.writeUint8(0x21);
+                sen->writeUint8(0x21);
             }
             else if (0 <= num and num <= 2097151)
             {
-                sen.writeUint8(0x24);
-                sen.writeVarInt32(num);
+                sen->writeUint8(0x24);
+                sen->writeVarInt32(num);
             }
             else if (-1048576 <= num and num <= 0)
             {
-                sen.writeUint8(0x25);
-                sen.writeZigZag32(num);
+                sen->writeUint8(0x25);
+                sen->writeZigZag32(num);
             }
             else if (-2147483648 <= num and num <= 2147483648)
             {
-                sen.writeUint8(0x20);
-                sen.writeInt32(num);
+                sen->writeUint8(0x20);
+                sen->writeInt32(num);
             }
             else if (0 <= num and num <= 4294967295)
             {
-                sen.writeUint8(0x26);
-                sen.writeUint32(num);
+                sen->writeUint8(0x26);
+                sen->writeUint32(num);
             }
             else if (0 <= num and num <= 562949953421311)
             {
-                sen.writeUint8(0x44);
-                sen.writeVarInt64(num);
+                sen->writeUint8(0x44);
+                sen->writeVarInt64(num);
             }
             else if (-281474976710656 <= num and num <= 0)
             {
-                sen.writeUint8(0x45);
-                sen.writeZigZag64(num);
+                sen->writeUint8(0x45);
+                sen->writeZigZag64(num);
             }
             else if (-9223372036854775808 <= num and num <= 9223372036854775807)
             {
-                sen.writeUint8(0x40);
-                sen.writeInt64(num);
+                sen->writeUint8(0x40);
+                sen->writeInt64(num);
             }
             else if (0 <= num and num > 9223372036854775807)
             {
-                sen.writeUint8(0x46);
-                sen.writeUint64(num);
+                sen->writeUint8(0x46);
+                sen->writeUint64(num);
             }
             else if (0 <= num)
             {
-                sen.writeUint8(0x44);
-                sen.writeZigZag32(num);
+                sen->writeUint8(0x44);
+                sen->writeZigZag32(num);
             }
             else
             {
-                sen.writeUint8(0x45);
-                sen.writeZigZag64(num);
+                sen->writeUint8(0x45);
+                sen->writeZigZag64(num);
             }
             return;
         }
@@ -228,7 +227,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             if (str == star)
             {
-                sen.writeUint8(0x02);
+                sen->writeUint8(0x02);
             }
             else if (write_binary(str))
                 return;
@@ -238,13 +237,13 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
                 if (r0x90_stringpool.contains(str))
                 {
-                    sen.writeUint8(0x91);
-                    sen.writeVarInt32(r0x90_stringpool[str]);
+                    sen->writeUint8(0x91);
+                    sen->writeVarInt32(r0x90_stringpool[str]);
                 }
                 else
                 {
-                    sen.writeUint8(0x90);
-                    sen.writeStringViewByVarInt32(str);
+                    sen->writeUint8(0x90);
+                    sen->writeStringViewByVarInt32(str);
                     r0x90_stringpool.insert({str, r0x90_index++});
                 }
             }
@@ -252,14 +251,14 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
                 if (r0x92_stringpool.contains(str))
                 {
-                    sen.writeUint8(0x93);
-                    sen.writeVarInt32(r0x92_stringpool[str]);
+                    sen->writeUint8(0x93);
+                    sen->writeVarInt32(r0x92_stringpool[str]);
                 }
                 else
                 {
-                    sen.writeUint8(0x92);
-                    sen.writeVarInt32(get_utf8_size(str));
-                    sen.writeStringViewByVarInt32(str);
+                    sen->writeUint8(0x92);
+                    sen->writeVarInt32(get_utf8_size(str));
+                    sen->writeStringViewByVarInt32(str);
                     r0x92_stringpool.insert({str, r0x92_index++});
                 }
             }
@@ -315,7 +314,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
                 if (str == rtid_0)
                 {
-                    sen.writeUint8(null_byte);
+                    sen->writeUint8(null_byte);
                     return true;
                 }
                 auto new_str = p_str.slice(5, p_str.length() - 1);
@@ -323,27 +322,27 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 {
                     auto name_str = new_str.split(rtid_seperator);
                     auto dot_count = static_cast<std::size_t>(std::count(name_str[0].begin(), name_str[0].end(), '.'));
-                    sen.writeUint8(0x83);
+                    sen->writeUint8(0x83);
                     if (dot_count == 2)
                     {
                         auto int_str = String{name_str[0]}.split(rtid_dot);
-                        sen.writeUint8(0x02);
-                        sen.writeVarInt32(name_str[1].length());
-                        sen.writeStringByVarInt32(name_str[1]);
-                        sen.writeVarInt32(std::stoi(int_str[1]));
-                        sen.writeVarInt32(std::stoi(int_str[0]));
+                        sen->writeUint8(0x02);
+                        sen->writeVarInt32(name_str[1].length());
+                        sen->writeStringByVarInt32(name_str[1]);
+                        sen->writeVarInt32(std::stoi(int_str[1]));
+                        sen->writeVarInt32(std::stoi(int_str[0]));
                         auto hex_string = int_str[2];
                         std::reverse(hex_string.begin(), hex_string.end());
                         auto hex_int = static_cast<int>(strtol(hex_string.c_str(), NULL, 16));
-                        sen.writeInt32(hex_int);
+                        sen->writeInt32(hex_int);
                     }
                     else
                     {
-                        sen.writeUint8(0x03);
-                        sen.writeVarInt32(name_str[1].length());
-                        sen.writeStringByVarInt32(name_str[1]);
-                        sen.writeVarInt32(name_str[0].length());
-                        sen.writeStringByVarInt32(name_str[0]);
+                        sen->writeUint8(0x03);
+                        sen->writeVarInt32(name_str[1].length());
+                        sen->writeStringByVarInt32(name_str[1]);
+                        sen->writeVarInt32(name_str[0].length());
+                        sen->writeStringByVarInt32(name_str[0]);
                     }
                     return true;
                 }
@@ -373,20 +372,25 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 {
                     return false;
                 }
-                sen.writeUint8(0x87);
-                sen.writeUint8(0x00);
-                sen.writeStringViewByVarInt32(str_v.substr(9, index));
-                sen.writeVarInt32(v);
+                sen->writeUint8(0x87);
+                sen->writeUint8(0x00);
+                sen->writeStringViewByVarInt32(str_v.substr(9, index));
+                sen->writeVarInt32(v);
                 return true;
             }
             return false;
         }
 
     public:
+        
+        std::unique_ptr<DataStreamView> sen;
 
         explicit Encode(
 
-        ) noexcept = default;
+        ) : sen(std::make_unique<DataStreamView>())
+        {
+
+        }
 
         ~Encode(
 
@@ -403,8 +407,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto str = padded_string::load(source);
             auto json = static_cast<ondemand::document>(parser.iterate(str));
             auto encoder = Encode{};
-            auto sen = encoder.encode_rton(json);
-            sen.out_file(destination);
+            encoder.encode_rton(json);
+            encoder.sen->out_file(destination);
             return;
         }
 
@@ -418,9 +422,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{ source };
-            auto source_iv = DataStreamView{};
-            source_iv.writeStringView(iv);
-            fill_rijndael_block(source_buffer, source_iv);
+            {
+                auto source_iv = DataStreamView{};
+                source_iv.writeStringView(iv);
+                fill_rijndael_block(source_buffer, source_iv);
+            }
             auto encrypted_data = DataStreamView{};
             encrypted_data.append(std::array<uint8_t, 2>{ 0x10, 0x00 });
             encrypted_data.writeBytes(

@@ -18,10 +18,6 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 		private:
 
-			// buffer reader
-
-			DataStreamView sen;
-
 			/**
 			 * read enumeration
 			*/
@@ -30,7 +26,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) -> uint8_t
 			{
-				return sen.readUint8();
+				return sen->readUint8();
 			}
 
 			/**
@@ -42,7 +38,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			) -> bool
 			{
 				auto value = bool{};
-				switch(sen.readUint8()){
+				switch(sen->readUint8()){
 					case 0x01: {
 						value = true;
 						break;
@@ -52,7 +48,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						break;
 					}
 					default:{
-						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen.get_read_pos() - 1), std::source_location::current(), "read_boolean");
+						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen->get_read_pos() - 1), std::source_location::current(), "read_boolean");
 					}
 				}
 				return value;
@@ -66,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) -> int
 			{
-				return sen.readInt32();
+				return sen->readInt32();
 			}
 
 			/**
@@ -77,10 +73,14 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			) -> std::string
 			{
-				return sen.readString(static_cast<size_t>(sen.readUint32()));
+				return sen->readString(static_cast<size_t>(sen->readUint32()));
 			}
 
 		public:
+
+			// buffer reader
+
+			std::unique_ptr<DataStreamView> sen;
 
 			/**
 			 * Process method
@@ -258,16 +258,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			explicit Decode(
 				std::string_view source
-			) : sen(source)
-			{
-
-			}
-
-			// constructor
-
-			explicit Decode(
-				const String & source
-			) : sen(source.value)
+			) : sen(std::make_unique<DataStreamView>(source))
 			{
 
 			}
@@ -276,7 +267,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			explicit Decode(
 				DataStreamView & it
-			) : sen(it)
+			) : sen(&it)
 			{
 
 			}
@@ -307,7 +298,8 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 				std::string_view destination
 			) -> void
 			{
-				auto result = Decode::instance().process();
+				auto view = Decode{source};
+				auto result = view.process();
 				FileSystem::write_json(destination, result);
 				return;
 			}
