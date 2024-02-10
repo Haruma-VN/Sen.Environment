@@ -28,7 +28,7 @@
 #endif
 
 #if WINDOWS
-#define MAIN_FUNCTION inline auto wmain(int size, wchar_t** argc) -> int
+#define MAIN_FUNCTION int wmain(int size, wchar_t** argc)
 #else
 #define MAIN_FUNCTION int main(int size, char** argc)
 #endif

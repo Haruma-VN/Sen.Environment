@@ -196,20 +196,26 @@ MAIN_FUNCTION
     }
     auto script_pointer = std::make_unique<CStringView>(script.size(), script.data());
     auto argument_size = static_cast<uint64_t>(size);
-    auto argument_list = std::make_unique<CStringList>(new CStringView[argument_size], argument_size);
+    auto argument_list = new CStringList{ .value = new CStringView[argument_size], .size = argument_size };
     for (auto i = 0; i < size; ++i) {
         #if WINDOWS
-                auto argument_value = Sen::Shell::utf16_to_utf8(argc[i]);
-                (argument_list.get())->value[i].value = argument_value.c_str();
-                (argument_list.get())->value[i].size = argument_value.size();
+                auto argument_value = Sen::Shell::utf16_to_utf8(reinterpret_cast<char16_t const*>(argc[i]));
+                auto value_copy = new char[argument_value.size() + 1];
+                std::memcpy(value_copy, argument_value.c_str(), argument_value.size());
+                (argument_list)->value[i].value = value_copy;
+                (argument_list)->value[i].size = argument_value.size();
         #else
-                (argument_list.get())->value[i].value = argc[i];
-                (argument_list.get())->value[i].size = strlen(argc[i]);
+                (argument_list)->value[i].value = argc[i];
+                (argument_list)->value[i].size = strlen(argc[i]);
         #endif
     }
-    auto result = execute_method(script_pointer.get(), argument_list.get(), callback);
+    auto result = execute_method(script_pointer.get(), argument_list, callback);
     delete[] copy;
+    for (auto i = 0; i < size; ++i) {
+        delete[] argument_list->value[i].value;
+    }
     delete[] argument_list->value;
+    delete argument_list;
     #if WIN32
         FreeLibrary(hinstLib);
     #else

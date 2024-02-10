@@ -39,6 +39,10 @@ namespace Sen::Kernel::Definition
             inline static constexpr auto NullValue = std::string_view{"null"};
 
             inline static constexpr auto RemoveFlagsBitMask = 0x7FFFFFFF;
+            inline static auto backslash_pattern = std::regex("\\\\");
+            inline static auto newline_pattern = std::regex("\n");
+            inline static auto carriage_pattern = std::regex("\r");
+            inline static auto tab_pattern = std::regex("\t");
         };
 
         /// This enum defines the various JSON tokens that make up a JSON text and is used by
@@ -147,19 +151,19 @@ namespace Sen::Kernel::Definition
                 // faster algorithm, but need hex convertion.
                 if (value.find(JsonConstants::BackSlash) != std::string::npos)
                 {
-                    value = ctre::match< R"(\\\\)" >(value).to_string();
+                    value = std::regex_replace(value, JsonConstants::backslash_pattern, "\\\\");
                 }
                 if (value.find(JsonConstants::LineFeed) != std::string::npos)
                 {
-                    value = ctre::match< R"(\n)" >(value).to_string();
+                    value = std::regex_replace(value, JsonConstants::newline_pattern, "\\n");
                 }
                 if (value.find(JsonConstants::CarriageReturn) != std::string::npos)
                 {
-                    value = ctre::match< R"(\r)" >(value).to_string();
+                    value = std::regex_replace(value, JsonConstants::carriage_pattern, "\\r");
                 }
                 if (value.find(JsonConstants::Tab) != std::string::npos)
                 {
-                    value = ctre::match< R"(\t)" >(value).to_string();
+                    value = std::regex_replace(value, JsonConstants::tab_pattern, "\\t");
                 }
                 /*
                 if (value.find(JsonConstants::FormFeed) != std::string::npos)

@@ -15,7 +15,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto unpack_rsb(
             std::string_view destination) const -> void
         {
-            auto rsb_head_info = read_head();
+            auto rsb_head_info = RSB_HeadInfo{};
+            read_head(&rsb_head_info);
             auto manifest_info = Manifest{};
             manifest_info.version = rsb_head_info.version;
             auto group = std::map<std::string, RSG_Group>{};
@@ -46,10 +47,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     read_rsg_info(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
-                rsg_group.subgroup = subgroup;
+                rsg_group.subgroup = std::move(subgroup);
                 group.insert(std::pair{composite_name, rsg_group});
             }
-            manifest_info.group = group;
+            manifest_info.group = std::move(group);
             FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
             return;
         }
@@ -126,7 +127,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<size_t>(packet_pos) + packet_size)};
             auto rsg_packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
             auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
-            rsg_packet_info.res = read_res_info(packet_sen, rsb_head_info, ptx_number_pool);
+            read_res_info(packet_sen, rsb_head_info, ptx_number_pool, &rsg_packet_info.res);
             rsg_info.packet_info = rsg_packet_info;
             packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
             return;
@@ -135,9 +136,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto read_res_info(
             const DataStreamView &packet_sen,
             const RSB_HeadInfo &rsb_head_info,
-            int ptx_number_pool) const -> std::vector<RSG_ResInfo>
+            int ptx_number_pool,
+            std::vector<RSG_ResInfo>* res_list
+            ) const -> void
         {
-            auto res_list = std::vector<RSG_ResInfo>{};
             auto name_dist_list = std::vector<NameDict>{};
             std::string name_path;
             // read rsg_file_list_length;
@@ -169,7 +171,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
                         res.ptx_info.format = sen->readUint32(format_pos);
                     }
-                    res_list.emplace_back(res);
+                    res_list->emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
                     {
                         if (name_dist_list[i].pos + static_cast<unsigned long long>(file_list_pos) == packet_sen.read_pos)
@@ -195,12 +197,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     }
                 }
             }
-            return res_list;
+            return;
         }
 
-        inline auto read_head() const -> RSB_HeadInfo
+        inline auto read_head(
+            RSB_HeadInfo* rsb_headinfo
+        ) const -> void
         {
-            auto rsb_headinfo = RSB_HeadInfo{};
             {
                 auto magic = sen->readString(4);
                 if (magic != "1bsr")
@@ -208,36 +211,36 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     throw Exception("Invalid RSB head", std::source_location::current(), "read_head");
                 }
             }
-            rsb_headinfo.version = sen->readUint32();
+            rsb_headinfo->version = sen->readUint32();
             sen->read_pos += 4;
-            rsb_headinfo.file_offset = sen->readUint32();
-            rsb_headinfo.file_list_length = sen->readUint32();
-            rsb_headinfo.file_list_begin = sen->readUint32();
+            rsb_headinfo->file_offset = sen->readUint32();
+            rsb_headinfo->file_list_length = sen->readUint32();
+            rsb_headinfo->file_list_begin = sen->readUint32();
             sen->read_pos += 8;
-            rsb_headinfo.rsg_list_length = sen->readUint32();
-            rsb_headinfo.rsg_list_begin = sen->readUint32();
-            rsb_headinfo.rsg_number = sen->readUint32();
-            rsb_headinfo.rsg_info_begin = sen->readUint32();
-            rsb_headinfo.rsg_info_each_length = sen->readUint32();
-            rsb_headinfo.composite_number = sen->readUint32();
-            rsb_headinfo.composite_info_begin = sen->readUint32();
-            rsb_headinfo.composite_info_each_length = sen->readUint32();
-            rsb_headinfo.composite_list_length = sen->readUint32();
-            rsb_headinfo.composite_list_begin = sen->readUint32();
-            rsb_headinfo.autopool_number = sen->readUint32();
-            rsb_headinfo.autopool_info_begin = sen->readUint32();
-            rsb_headinfo.autopool_info_each_length = sen->readUint32();
-            rsb_headinfo.ptx_number = sen->readUint32();
-            rsb_headinfo.ptx_info_begin = sen->readUint32();
-            rsb_headinfo.ptx_info_each_length = sen->readUint32();
-            rsb_headinfo.part1_begin = sen->readUint32();
-            rsb_headinfo.part2_begin = sen->readUint32();
-            rsb_headinfo.part3_begin = sen->readUint32();
-            if (rsb_headinfo.version >= 4)
+            rsb_headinfo->rsg_list_length = sen->readUint32();
+            rsb_headinfo->rsg_list_begin = sen->readUint32();
+            rsb_headinfo->rsg_number = sen->readUint32();
+            rsb_headinfo->rsg_info_begin = sen->readUint32();
+            rsb_headinfo->rsg_info_each_length = sen->readUint32();
+            rsb_headinfo->composite_number = sen->readUint32();
+            rsb_headinfo->composite_info_begin = sen->readUint32();
+            rsb_headinfo->composite_info_each_length = sen->readUint32();
+            rsb_headinfo->composite_list_length = sen->readUint32();
+            rsb_headinfo->composite_list_begin = sen->readUint32();
+            rsb_headinfo->autopool_number = sen->readUint32();
+            rsb_headinfo->autopool_info_begin = sen->readUint32();
+            rsb_headinfo->autopool_info_each_length = sen->readUint32();
+            rsb_headinfo->ptx_number = sen->readUint32();
+            rsb_headinfo->ptx_info_begin = sen->readUint32();
+            rsb_headinfo->ptx_info_each_length = sen->readUint32();
+            rsb_headinfo->part1_begin = sen->readUint32();
+            rsb_headinfo->part2_begin = sen->readUint32();
+            rsb_headinfo->part3_begin = sen->readUint32();
+            if (rsb_headinfo->version >= 4)
             {
-                rsb_headinfo.file_offset = sen->readUint32();
+                rsb_headinfo->file_offset = sen->readUint32();
             }
-            return rsb_headinfo;
+            return;
         }
 
     public:

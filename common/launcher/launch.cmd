@@ -3,9 +3,9 @@
 set home=%~dp0%
 set home=%home:~0,-1%
 
-"%home%\shell.exe" ^
-	"%home%\kernel.dll" ^
-	"%home%\script\main.js" ^
+"%home%\Shell.exe" ^
+	"%home%\Kernel.dll" ^
+	"%home%\Script\main.js" ^
 	%*
 
 set /p _=Press ^<ENTER^> to ^exit^ program... 

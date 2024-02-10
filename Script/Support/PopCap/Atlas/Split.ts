@@ -127,7 +127,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
             } else {
                 image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.composite_multiple_fs_asynchronous(source, data));
             }
-            Sen.Kernel.JSON.serialize_fs<Structure.Definition>(Sen.Kernel.Path.join(destination, `atlas.json`), convert_resource_group(resources_used, method, style), 1, false);
+            Sen.Kernel.JSON.serialize_fs<Structure.Definition>(Sen.Kernel.Path.join(destination, "atlas.json"), convert_resource_group(resources_used, method, style), 1, false);
             return;
         }
 
