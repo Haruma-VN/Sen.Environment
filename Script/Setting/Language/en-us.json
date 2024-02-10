@@ -168,5 +168,7 @@
     "popcap.animation.from_flash.image_has_no_elements": "Image {} has no property \"elements\" in \"DOMFrame\"",
     "popcap.animation.from_flash.image_has_no_DOMBitmapInstance": "Image {} has no property \"DOMBitmapInstance\" in \"elements\"",
     "popcap.animation.from_flash.image_has_no_matrix": "Image {} has no property \"matrix\" in \"DOMBitmapInstance\"",
-    "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\""
+    "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\"",
+    "popcap.rsb.unpack.invalid_rsb_magic": "Mismatch RSB magic, should begins with \"1BSR\"",
+    "popcap.rsb.unpack.invalid_version_resources_pos": "Invalid version 3 resource position"
 }

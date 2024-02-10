@@ -141,7 +141,7 @@
     "kernel.tuple.js_string": "sâu kí tự",
     "kernel.tuple.js_boolean": "boolean",
     "kernel.tuple.js_number": "số",
-    "kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer": "Failed to get JS ArrayBuffer",
+    "kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer": "Không thể lấy được JS ArrayBuffer",
     "popcap.animation.from_flash.sprite_has_no_DOMSymbolItem": "Sprite {} has no \"DOMSymbolItem\" property",
     "popcap.animation.from_flash.invalid_sprite_name": "Mismatch sprite name in \"sprite/{}.xml\", received: {} but actual {}",
     "popcap.animation.from_flash.sprite_has_no_timeline": "Sprite {} has no property \"timeline\"",
@@ -168,5 +168,7 @@
     "popcap.animation.from_flash.image_has_no_elements": "Image {} has no property \"elements\" in \"DOMFrame\"",
     "popcap.animation.from_flash.image_has_no_DOMBitmapInstance": "Image {} has no property \"DOMBitmapInstance\" in \"elements\"",
     "popcap.animation.from_flash.image_has_no_matrix": "Image {} has no property \"matrix\" in \"DOMBitmapInstance\"",
-    "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\""
+    "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\"",
+    "popcap.rsb.unpack.invalid_rsb_magic": "RSB magic không hợp lệ, nên bắt đầu bằng \"1BSR\"",
+    "popcap.rsb.unpack.invalid_version_resources_pos": "Vị trí tài nguyên của phiên bản 3 không hợp lệ"
 }

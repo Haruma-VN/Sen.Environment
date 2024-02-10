@@ -12,7 +12,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     protected:
         std::unique_ptr<DataStreamView> sen;
 
-        inline auto unpack_rsb(
+        inline auto process(
             std::string_view destination
         ) const -> void
         {
@@ -20,15 +20,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
             read_head(&rsb_head_info);
             auto manifest_info = Manifest{};
             manifest_info.version = rsb_head_info.version;
-            auto group = std::map<std::string, RSG_Group>{};
             auto packet_folder = fmt::format("{}/{}", destination, "packet");
             FileSystem::create_directory(destination);
             FileSystem::create_directory(packet_folder);
             if (rsb_head_info.version == 3) {
                 if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
-                    throw Exception("invalid_version_resources_pos");
+                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
                 }
-
             }
             for (auto i : Range(rsb_head_info.composite_number))
             {
@@ -37,7 +35,6 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto composite_info_pos = composite_start_pos + 0x80;
                 auto is_composite = composite_name.ends_with("_CompositeShell");
                 auto rsg_group = RSG_Group{is_composite};
-                auto subgroup = std::map<std::string, RSG_Info>{};
                 for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
                 {
                     auto rsg_info = RSG_Info{};
@@ -46,12 +43,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
                     read_rsg_info<int>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
-                    subgroup.insert(std::pair{rsg_name, rsg_info});
+                    rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
-                rsg_group.subgroup = std::move(subgroup);
-                group.insert(std::pair{composite_name, rsg_group});
+                manifest_info.group.insert(std::pair{composite_name, rsg_group});
             }
-            manifest_info.group = std::move(group);
             FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
             return;
         }
@@ -213,7 +208,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto magic = sen->readString(4);
                 if (magic != "1bsr")
                 {
-                    throw Exception("Invalid RSB head", std::source_location::current(), "read_head");
+                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsb_magic")), std::source_location::current(), "read_head");
                 }
             }
             rsb_headinfo->version = sen->readUint32();
@@ -271,7 +266,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ) -> void
         {
             auto unpack = Unpack{source};
-            unpack.unpack_rsb(destination);
+            unpack.process(destination);
             return;
         }
     };
