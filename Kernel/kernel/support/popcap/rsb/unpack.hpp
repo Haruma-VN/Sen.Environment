@@ -13,7 +13,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         std::unique_ptr<DataStreamView> sen;
 
         inline auto unpack_rsb(
-            std::string_view destination) const -> void
+            std::string_view destination
+        ) const -> void
         {
             auto rsb_head_info = RSB_HeadInfo{};
             read_head(&rsb_head_info);
@@ -41,10 +42,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     auto rsg_info = RSG_Info{};
                     auto rsg_index = sen->readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
-                    read_rsg_category(rsb_head_info.version, rsg_info);
+                    read_rsg_category<int>(rsb_head_info.version, rsg_info);
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
-                    read_rsg_info(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
+                    read_rsg_info<int>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
                 rsg_group.subgroup = std::move(subgroup);
@@ -65,9 +66,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
+        template <typename T> requires std::is_integral<T>::value
         inline auto read_rsg_category(
-            int version, 
-            RSG_Info &rsg_info) const -> void
+            T version, 
+            RSG_Info &rsg_info
+        ) const -> void
         {
             if (version == 3)
             {
@@ -113,35 +116,36 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
         */
-
+        template <typename T> requires std::is_integral<T>::value
         inline auto read_rsg_info(
-            int rsg_index,
+            T rsg_index,
             const RSB_HeadInfo &rsb_head_info,
-            int rsg_info_pos,
+            T rsg_info_pos,
             RSG_Info &rsg_info,
-            const std::string &rsg_name,
-            const std::string &packet_folder) const -> void
+            std::string_view rsg_name,
+            std::string_view packet_folder
+        ) const -> void
         {
             auto packet_pos = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0x80);
             auto packet_size = sen->readUint32();
             auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<size_t>(packet_pos) + packet_size)};
-            auto rsg_packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
+            rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
             auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
-            read_res_info(packet_sen, rsb_head_info, ptx_number_pool, &rsg_packet_info.res);
-            rsg_info.packet_info = rsg_packet_info;
+            read_res_info<int>(packet_sen, rsb_head_info, ptx_number_pool, &rsg_info.packet_info.res);
             packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
             return;
         }
 
+        template <typename T> requires std::is_integral<T>::value
         inline auto read_res_info(
             const DataStreamView &packet_sen,
             const RSB_HeadInfo &rsb_head_info,
-            int ptx_number_pool,
+            T ptx_number_pool,
             std::vector<RSG_ResInfo>* res_list
-            ) const -> void
+        ) const -> void
         {
             auto name_dist_list = std::vector<NameDict>{};
-            std::string name_path;
+            auto name_path = std::string{};
             // read rsg_file_list_length;
             auto file_list_lengh = packet_sen.readUint32(0x48);
             // read rsg_file_list_pos;
@@ -158,7 +162,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     {
                         name_dist_list.emplace_back(NameDict{
                             name_path,
-                            pos});
+                            pos,
+                        });
                     }
                     auto is_atlas = packet_sen.readUint32() == 1;
                     auto res = RSG_ResInfo{name_path};
@@ -245,22 +250,25 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     public:
         explicit Unpack(
-            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
+            std::string_view source
+        ) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
         explicit Unpack(
-            DataStreamView &it) : sen(&it)
+            DataStreamView &it
+        ) : sen(&it)
         {
         }
 
         ~Unpack(
 
-            ) = default;
+        ) = default;
 
         inline static auto unpack_fs(
             std::string_view source,
-            std::string_view destination) -> void
+            std::string_view destination
+        ) -> void
         {
             auto unpack = Unpack{source};
             unpack.unpack_rsb(destination);

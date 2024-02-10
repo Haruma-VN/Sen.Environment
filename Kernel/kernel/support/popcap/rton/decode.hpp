@@ -453,7 +453,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto source_buffer = DataStreamView{source};
             {
                 auto source_iv = DataStreamView{};
-                source_iv.writeStringView(iv);
+                source_iv.writeString(iv);
                 fill_rijndael_block(source_buffer, source_iv);
             }
             FileSystem::write_binary<unsigned char>(destination, 
@@ -475,7 +475,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto source_buffer = DataStreamView{source};
             {
                 auto source_iv = DataStreamView{};
-                source_iv.writeStringView(iv);
+                source_iv.writeString(iv);
                 fill_rijndael_block(source_buffer, source_iv);
             }
             auto sen = DataStreamView{Encryption::Rijndael::decrypt(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), key, iv, source_buffer.size() - 2, Sen::Kernel::Definition::Encryption::RijndaelMode::CBC)};

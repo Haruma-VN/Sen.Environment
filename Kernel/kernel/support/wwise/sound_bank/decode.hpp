@@ -53,18 +53,16 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
             ) -> void
             {
                 sen.readUint32();
-                info.environments = ENVS
-                {
-                    .obstruction = decode_environment_item(info),
-                    .occlusion = decode_environment_item(info),
-                };
+                decode_environment_item(info, &info.environments.obstruction);
+                decode_environment_item(info, &info.environments.occlusion);
                 info.has_environments = true;
                 return;
             }
 
             inline auto decode_environment_item(
-                SoundBankInformation &info
-            ) -> ENVSItem
+                SoundBankInformation &info,
+                ENVSItem* environment_item
+            ) -> void
             {
                 auto volumeValue = create_hex_string(sen.readBytes(2));
                 auto volumeNumber = sen.readUint16();
@@ -92,7 +90,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     {
                         highPassFilterPoint.emplace_back(create_hex_string(sen.readBytes(12)));
                     }
-                    return ENVSItem
+                    *environment_item = 
                     {
                         .volume = ENVSVolume
                         {
@@ -113,8 +111,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 }
                 else
                 {
-                    return ENVSItem
-                    {
+                    *environment_item = {
                         .volume = ENVSVolume
                         {
                             .volume_value = volumeValue,
@@ -127,6 +124,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                         },
                     };
                 }
+                return;
             }
 
             inline auto decode_hirc(
@@ -386,8 +384,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                 ) = default;
 
                 inline auto process(
-                    std::string_view destination
-                ) -> SoundBankInformation
+                    std::string_view destination,
+                    SoundBankInformation* info
+                ) -> void
                 {
                     auto BKHD_magic = sen.readString(4);
                     if (BKHD_magic != "BKHD")
@@ -400,25 +399,22 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     auto dataLength = BKHD_length - 12;
                     auto language = sen.readUint32();
                     auto head_expand = create_hex_string(sen.readBytes(static_cast<std::uint64_t>(dataLength)));
-                    auto info = SoundBankInformation
+                    (*info).bank_header = BKHD
                     {
-                        .bank_header = BKHD
-                        {
-                            .version = version,
-                            .id = id,
-                            .language = language,
-                            .head_expand = head_expand,
-                        }
+                        .version = version,
+                        .id = id,
+                        .language = language,
+                        .head_expand = head_expand,
                     };
                     auto senLength = sen.size();
                     while (sen.read_pos < senLength) {
-                        decode_type(info, destination);
+                        decode_type(*info, destination);
                     }
                     if (sen.read_pos != senLength)
                     {
                         throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_reader")), std::source_location::current(), "process");
                     }
-                    return info;
+                    return;
                 }
 
                 inline static auto process_fs(
@@ -426,9 +422,11 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
                     std::string_view destination
                 ) -> void
                 {
+                    auto info = SoundBankInformation{};
+                    Decode(source).process(destination, &info);
                     FileSystem::write_json(Path::Script::join(
                         std::vector<std::string>{destination.data(), "definition.json"}),
-                        Decode(source).process(destination)
+                        info
                     );
                     return;
                 }

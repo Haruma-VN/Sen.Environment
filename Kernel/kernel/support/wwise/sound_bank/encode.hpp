@@ -106,7 +106,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			{
 				// debug("encode_bkhd");
 				auto head_expand = convert_hex_string(BKHDInfo.head_expand);
-				sen.writeStringView("BKHD"_sv);
+				sen.writeString("BKHD"_sv);
 				sen.writeUint32(BKHDInfo.version, 8);
 				sen.writeUint32(BKHDInfo.id);
 				sen.writeUint32(BKHDInfo.language);
@@ -122,7 +122,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			{
 				// debug("encode_didx");
 				auto DATABank = DataStreamView{};
-				sen.writeStringView("DIDX"_sv);
+				sen.writeString("DIDX"_sv);
 				auto DIDXLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				auto DIDXLength = DIDXInfo.size();
@@ -140,7 +140,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 				}
 				insert_type(DIDXLengthOffset);
 				// debug("data");
-				sen.writeStringView("DATA"_sv);
+				sen.writeString("DATA"_sv);
 				sen.writeUint32(static_cast<std::uint32_t>(DATABank.size()));
 				debug("databank");
 				debug(DATABank.size());
@@ -156,7 +156,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_init");
-				sen.writeStringView("INIT"_sv);
+				sen.writeString("INIT"_sv);
 				auto INITLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				auto INITLength = INITInfo.size();
@@ -176,7 +176,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_stmg");
-				sen.writeStringView("STMG"_sv);
+				sen.writeString("STMG"_sv);
 				auto STMGLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				auto volumeThresHold = convert_hex_string(STMGInfo.volume_threshold);
@@ -264,7 +264,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_envs");
-				sen.writeStringView("ENVS"_sv);
+				sen.writeString("ENVS"_sv);
 				auto ENVSLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				encode_envs_item(ENVSInfo.obstruction, version);
@@ -311,7 +311,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_hirc");
-				sen.writeStringView("HIRC"_sv);
+				sen.writeString("HIRC"_sv);
 				auto HIRCLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				auto HIRCLength = HIRCInfo.size();
@@ -333,7 +333,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_stid");
-				sen.writeStringView("STID"_sv);
+				sen.writeString("STID"_sv);
 				auto STIDLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				sen.writeUint32(STIDInfo.unknown_type);
@@ -353,7 +353,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 			) -> void
 			{
 				// debug("encode_plat");
-				sen.writeStringView("PLAT"_sv);
+				sen.writeString("PLAT"_sv);
 				auto PLATLengthOffset = sen.write_pos;
 				sen.writeNull(4);
 				sen.writeStringByEmpty(PLATInfo.platform);

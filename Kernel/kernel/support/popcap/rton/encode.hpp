@@ -48,11 +48,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             sen->close();
-            sen->writeStringView(RTON_head);
+            sen->writeString(RTON_head);
             sen->writeUint32(RTON_vesion);
             auto object = static_cast<ondemand::object>(json.get_object());
             write_object(object);
-            sen->writeStringView(RTON_end);
+            sen->writeString(RTON_end);
             return;
         }
 
@@ -229,10 +229,12 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
                 sen->writeUint8(0x02);
             }
-            else if (write_binary(str))
+            else if (write_binary(str)) {
                 return;
-            else if (write_RTID(str))
+            }
+            else if (write_rtid(str)){
                 return;
+            }
             else if (is_ascii(str))
             {
                 if (r0x90_stringpool.contains(str))
@@ -243,7 +245,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 else
                 {
                     sen->writeUint8(0x90);
-                    sen->writeStringViewByVarInt32(str);
+                    sen->writeStringByVarInt32(str);
                     r0x90_stringpool.insert({str, r0x90_index++});
                 }
             }
@@ -258,7 +260,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 {
                     sen->writeUint8(0x92);
                     sen->writeVarInt32(get_utf8_size(str));
-                    sen->writeStringViewByVarInt32(str);
+                    sen->writeStringByVarInt32(str);
                     r0x92_stringpool.insert({str, r0x92_index++});
                 }
             }
@@ -305,9 +307,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return true;
         }
 
-        inline auto write_RTID(
+        inline auto write_rtid(
             std::string_view str
-        ) -> bool
+        ) const -> bool
         {
             auto p_str = String{str};
             if (str.starts_with(rtid_begin) and str.ends_with(rtid_close))
@@ -331,9 +333,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
                         sen->writeStringByVarInt32(name_str[1]);
                         sen->writeVarInt32(std::stoi(int_str[1]));
                         sen->writeVarInt32(std::stoi(int_str[0]));
-                        auto hex_string = int_str[2];
+                        auto& hex_string = int_str[2];
                         std::reverse(hex_string.begin(), hex_string.end());
-                        auto hex_int = static_cast<int>(strtol(hex_string.c_str(), NULL, 16));
+                        auto hex_int = static_cast<int>(std::strtol(hex_string.c_str(), NULL, 16));
                         sen->writeInt32(hex_int);
                     }
                     else
@@ -352,7 +354,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline auto write_binary(
             std::string_view str_v
-        ) -> bool
+        ) const -> bool
         {
             auto p_str = String{str_v};
             if (str_v.starts_with(binary_begin) and str_v.ends_with(binary_end))
@@ -374,7 +376,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                 }
                 sen->writeUint8(0x87);
                 sen->writeUint8(0x00);
-                sen->writeStringViewByVarInt32(str_v.substr(9, index));
+                sen->writeStringByVarInt32(str_v.substr(9, index));
                 sen->writeVarInt32(v);
                 return true;
             }
@@ -424,7 +426,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto source_buffer = DataStreamView{ source };
             {
                 auto source_iv = DataStreamView{};
-                source_iv.writeStringView(iv);
+                source_iv.writeString(iv);
                 fill_rijndael_block(source_buffer, source_iv);
             }
             auto encrypted_data = DataStreamView{};

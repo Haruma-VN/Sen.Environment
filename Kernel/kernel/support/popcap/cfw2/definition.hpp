@@ -381,7 +381,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 
 		public:
 
-			std::vector<uint8_t> unknown;
+			std::array<uint8_t, 16> unknown;
 			int ascent;
 			int ascent_padding;
 			int height;
@@ -401,13 +401,6 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			CharacterFontWidget2(
 
 			) = default;
-
-			explicit constexpr CharacterFontWidget2(
-				const std::vector<uint8_t> & unknown
-			) : unknown(std::move(unknown))
-			{
-
-			}
 
 			~CharacterFontWidget2(
 

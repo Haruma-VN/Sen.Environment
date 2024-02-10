@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.RSB.Unpack {
+namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
     /**
      * Argument for the current method
      */
@@ -39,33 +39,29 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Unpack {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.RSB.Unpack.Argument,
-            Sen.Script.Executor.Methods.PopCap.RSB.Unpack.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.Unpack.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.Unpack.Configuration
+            Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument,
+            Sen.Script.Executor.Methods.PopCap.CFW2.Decode.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.CFW2.Decode.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Configuration
         >({
-            id: "popcap.rsb.unpack",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb.unpack.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Unpack.Argument): void {
+            id: "popcap.cfw2.decode",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.cfw2.decode.json"),
+            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.Unpack.Argument, string>(
-                    argument,
-                    "destination",
-                    `${Sen.Kernel.Path.except_extension(argument.source)}.bundle`,
-                );
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument, string>(argument, "destination", `${argument.source}.json`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Kernel.Support.PopCap.RSB.unpack_fs(argument.source, argument.destination!);
+                Sen.Kernel.Support.PopCap.CharacterFontWidget2.decode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Unpack.BatchArgument): void {
+            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Decode.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Unpack.AsyncArgument): void {
+            async_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Decode.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
                 for (let i = 0n; i < BigInt(argument.parameter.length); i += Setting.setting.thread_limit_count) {
                     const current_thread: Array<[string, string]> = [
@@ -78,7 +74,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Unpack {
                         Sen.Script.Console.obtained(e[0]);
                         Sen.Script.Console.output(e[1]);
                     });
-                    // to do
                 }
                 Sen.Script.Executor.clock.stop_safe();
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
@@ -86,10 +81,10 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Unpack {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.*)\.(rsb|obb)$/gi],
+            filter: ["file", /(.+)\.cfw2$/gi],
         });
         return;
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.RSB.Unpack.forward();
+Sen.Script.Executor.Methods.PopCap.CFW2.Decode.forward();

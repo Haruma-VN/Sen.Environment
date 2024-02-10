@@ -19,26 +19,26 @@ inline auto static print(
     #if WINDOWS
         auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, color);
-        std::cout << title << std::endl;
+        std::cout << title << std::endl << std::flush;
     #else
         switch (color) {
             case Sen::Shell::Interactive::Color::RED: {
-                std::cout << "\033[31m" << title << "\033[0m" << std::endl;
+                std::cout << "\033[31m" << title << "\033[0m" << std::endl << std::flush;
                 break;
             }
             case Sen::Shell::Interactive::Color::GREEN: {
-                std::cout << "\033[32m" << title << "\033[0m" << std::endl;
+                std::cout << "\033[32m" << title << "\033[0m" << std::endl << std::flush;
                 break;
             }
             case Sen::Shell::Interactive::Color::CYAN: {
-                std::cout << "\033[36m" << title << "\033[0m" << std::endl;
+                std::cout << "\033[36m" << title << "\033[0m" << std::endl << std::flush;
                 break;
             }
             case Sen::Shell::Interactive::Color::YELLOW: {
-                std::cout << "\033[33m" << title << "\033[0m" << std::endl;
+                std::cout << "\033[33m" << title << "\033[0m" << std::endl << std::flush;
                 break;
             case Sen::Shell::Interactive::Color::DEFAULT: {
-                std::cout << title << std::endl;
+                std::cout << title << std::endl << std::flush;
                 break;
             }
             default: {
@@ -50,7 +50,7 @@ inline auto static print(
        SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
     #endif
    if (message != "") {
-      std::cout << message << std::endl;
+      std::cout << message << std::endl << std::flush;
    }
     return;
 }
@@ -105,10 +105,10 @@ inline static auto callback(
         copy = nullptr;
         auto c = get_line();
         copy = new char[c.size() + 1];
-        std::strcpy(copy, c.c_str());
+        std::memcpy(copy, c.c_str(), c.size());
         return CStringView{
             .size = c.size(),
-            .value = copy
+            .value = copy,
         };
     }
     if (result[0] == "is_gui") {
@@ -118,7 +118,7 @@ inline static auto callback(
         #if WINDOWS
                 auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::CYAN);
-                std::cout << "● ";
+                std::cout << "● " << std::flush;
         #else
                 std::cout << "\033[36m● \033[0m";
         #endif
@@ -136,7 +136,7 @@ inline static auto callback(
         copy = nullptr;
         auto version = std::to_string(Sen::Shell::version);
         copy = new char[version.size() + 1];
-        std::strcpy(copy, version.c_str());
+        std::memcpy(copy, version.c_str(), version.size());
         return CStringView{ .size = version.size(), .value = copy };
     }
     return EMPTY_STRING_VIEW;
@@ -196,22 +196,39 @@ MAIN_FUNCTION
     }
     auto script_pointer = std::make_unique<CStringView>(script.size(), script.data());
     auto argument_size = static_cast<uint64_t>(size);
-    auto argument_list = new CStringList{ .value = new CStringView[argument_size], .size = argument_size };
+    auto argument_list = new CStringList{ 
+        .value = new CStringView[argument_size], 
+        .size = argument_size,
+    };
     for (auto i = 0; i < size; ++i) {
-        #if WINDOWS
-                auto argument_value = Sen::Shell::utf16_to_utf8(reinterpret_cast<char16_t const*>(argc[i]));
-                auto value_copy = new char[argument_value.size() + 1];
-                std::memcpy(value_copy, argument_value.c_str(), argument_value.size());
-                (argument_list)->value[i].value = value_copy;
-                (argument_list)->value[i].size = argument_value.size();
-        #else
-                (argument_list)->value[i].value = argc[i];
-                (argument_list)->value[i].size = strlen(argc[i]);
-        #endif
+        switch (i) {
+            case 1: {
+                argument_list->value[i].value = kernel.c_str();
+                argument_list->value[i].size = kernel.size();
+                break;
+            }
+            case 2: {
+                argument_list->value[i].value = script.c_str();
+                argument_list->value[i].size = script.size();
+                break;
+            }
+            default: {
+                #if WINDOWS
+                    auto argument_value = Sen::Shell::utf16_to_utf8(reinterpret_cast<char16_t const*>(argc[i]));
+                    auto value_copy = new char[argument_value.size() + 1];
+                    std::memcpy(value_copy, argument_value.c_str(), argument_value.size());
+                    argument_list->value[i].value = value_copy;
+                    argument_list->value[i].size = argument_value.size();
+                #else
+                    argument_list->value[i].value = argc[i];
+                    argument_list->value[i].size = strlen(argc[i]);
+                #endif
+            };
+        }
     }
     auto result = execute_method(script_pointer.get(), argument_list, callback);
     delete[] copy;
-    for (auto i = 0; i < size; ++i) {
+    for (auto i = 3; i < size; ++i) {
         delete[] argument_list->value[i].value;
     }
     delete[] argument_list->value;

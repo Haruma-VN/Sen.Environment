@@ -652,8 +652,8 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringView(
-                 std::string_view str
+            inline auto writeString(
+                std::string_view str
             ) const -> void
             {
                 auto new_pos = thiz.write_pos + str.size();
@@ -672,37 +672,10 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringView(
+            inline auto writeString(
                 std::string_view str,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringView(str);
-                return;
-            }
-
-            inline auto writeString(
-                const std::string &str) const -> void
-            {
-                auto new_pos = thiz.write_pos + str.size();
-                if (new_pos > thiz.capacity())
-                {
-                    thiz.reserve(new_pos + thiz.buffer_size);
-                }
-                if (new_pos > thiz.length)
-                {
-                    thiz.length = new_pos;
-                }
-                for (auto &c : str)
-                {
-                    thiz.data[thiz.write_pos++] = (uint8_t)c;
-                }
-                return;
-            }
-
-            inline auto writeString(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeString(str);
@@ -710,7 +683,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringFourByte(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 auto new_pos = thiz.write_pos + str.size() * 4;
                 if (new_pos > thiz.capacity())
@@ -728,8 +702,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringFourByte(
-                const std::string &str,
-                std::size_t pos)
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringFourByte(str);
@@ -737,7 +712,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeNull(
-                std::size_t size) const -> void
+                std::size_t size
+            ) const -> void
             {
                 if (size == 0)
                 {
@@ -758,7 +734,8 @@ namespace Sen::Kernel::Definition
 
             inline auto writeNull(
                 std::size_t size,
-                std::size_t pos) const -> void
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeNull(size);
@@ -766,7 +743,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeCharByInt16(
-                char value) const -> void
+                char value
+            ) const -> void
             {
                 thiz.writeInt16(static_cast<int16_t>(value));
                 return;
@@ -782,7 +760,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint8(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -795,8 +774,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint8(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByUint8(str);
@@ -804,7 +784,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint16(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -817,8 +798,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint16(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByUint16(str);
@@ -826,7 +808,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint32(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -839,8 +822,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByUint32(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByUint32(str);
@@ -848,7 +832,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt8(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -861,7 +846,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt8(
-                const std::string &str,
+                std::string_view str,
                 std::size_t pos) const -> void
             {
                 thiz.write_pos = pos;
@@ -870,7 +855,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt16(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -883,8 +869,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt16(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByInt16(str);
@@ -892,7 +879,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt32(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -905,40 +893,18 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByInt32(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByInt32(str);
                 return;
             }
 
-            inline auto writeStringViewByVarInt32(
+            inline auto writeStringByVarInt32(
                 std::string_view str
             ) const -> void
-            {
-                if (str.empty())
-                {
-                    thiz.writeVarInt32(0);
-                    return;
-                }
-                thiz.writeVarInt32(str.size());
-                thiz.writeStringView(str);
-                return;
-            }
-
-            inline auto writeStringViewByVarInt32(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByVarInt32(str);
-                return;
-            }
-
-            inline auto writeStringByVarInt32(
-                const std::string &str) const -> void
             {
                 if (str.empty())
                 {
@@ -951,8 +917,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByVarInt32(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 thiz.writeStringByVarInt32(str);
@@ -960,7 +927,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByEmpty(
-                const std::string &str) const -> void
+                std::string_view str
+            ) const -> void
             {
                 if (str.empty())
                 {
@@ -973,8 +941,9 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeStringByEmpty(
-                const std::string &str,
-                std::size_t pos) const -> void
+                std::string_view str,
+                std::size_t pos
+            ) const -> void
             {
                 thiz.read_pos = pos;
                 thiz.writeStringByEmpty(str);

@@ -86,7 +86,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.json$/gi],
+            filter: ["file", /.*\.pam\.json$/gi],
         });
         return;
     }
