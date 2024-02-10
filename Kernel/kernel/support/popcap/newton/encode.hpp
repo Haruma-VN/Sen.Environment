@@ -101,10 +101,10 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						sen->writeUint8(0x00);
 					}
 					sen->writeUint32(m_data["id"].get<std::string>().size());
-					sen->writeString(m_data["id"]);
+					sen->writeString(m_data["id"].get<std::string>());
 					if (is_not_null_object(m_data, "parent")) {
 						sen->writeUint32(m_data["parent"].get<std::string>().size());
-						sen->writeString(m_data["parent"]);
+						sen->writeString(m_data["parent"].get<std::string>());
 					}
 					if(m_data["type"] == "composite"){
 						assert_conditional(is_null_object(m_data, "resources"), fmt::format("{}", Kernel::Language::get("popcap.newton.encode.resource_must_be_null_with_composite")), "process");
@@ -116,7 +116,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								sen->writeInt32(0x00);
 							}
 							sen->writeUint32(current["id"].get<std::string>().size());
-							sen->writeString(current["id"]);
+							sen->writeString(current["id"].get<std::string>());
 						}
 					}
 					if(m_data["type"] == "simple"){
@@ -235,12 +235,12 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 								sen->writeUint8(0x00);
 							}
 							sen->writeUint32(resource_x["id"].get<std::string>().size());
-							sen->writeString(resource_x["id"]);
+							sen->writeString(resource_x["id"].get<std::string>());
 							sen->writeUint32(resource_x["path"].get<std::string>().size());
-							sen->writeString(resource_x["path"]);
+							sen->writeString(resource_x["path"].get<std::string>());
 							if (resource_has_parent) {
 								sen->writeUint32(resource_x["parent"].get<std::string>().size());
-								sen->writeString(resource_x["parent"]);
+								sen->writeString(resource_x["parent"].get<std::string>());
 							}
 						}
 					}

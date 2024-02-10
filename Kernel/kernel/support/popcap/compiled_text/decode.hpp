@@ -83,7 +83,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 			std::string_view key,
 			std::string_view iv,
 			bool use_64_bit_variant
-		) : sen(std::make_unique<DataStreamView>(source)), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+		) : sen(std::make_unique<DataStreamView>(source)), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant), destination(std::make_unique<DataStreamView>())
 		{
 		}
 
@@ -92,9 +92,13 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 			std::string_view key,
 			std::string_view iv,
 			bool use_64_bit_variant
-		) : sen(&it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant)
+		) : sen(&it), key(key), iv(iv), use_64_bit_variant(use_64_bit_variant), destination(std::make_unique<DataStreamView>())
 		{
 		}
+
+		// Store the output data
+
+		std::unique_ptr<DataStreamView> destination;
 
 		/**
 		 * --------------
@@ -104,13 +108,12 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 
 		inline auto process(
 
-		) -> DataStreamView
+		) -> void
 		{
-			auto buffer = DataStreamView{};
 			auto decoded_base64 = DataStreamView{};
 			decoded_base64.fromString(Base64::decode(thiz.sen->toString()));
-			buffer.append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02, RijndaelMode::CBC)));
-			return buffer;
+			destination->append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02, RijndaelMode::CBC)));
+			return;
 		}
 
 		/**
@@ -128,8 +131,8 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		) -> void
 		{
 			auto compiled_text = Decode{source, key, iv, use_64_bit_variant};
-			auto sen = compiled_text.process();
-			FileSystem::write_binary<unsigned char>(destination, sen.get());
+			compiled_text.process();
+			FileSystem::write_binary<unsigned char>(destination, compiled_text.destination->get());
 			return;
 		}
 	};

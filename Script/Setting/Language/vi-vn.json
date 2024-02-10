@@ -170,5 +170,6 @@
     "popcap.animation.from_flash.image_has_no_matrix": "Image {} has no property \"matrix\" in \"DOMBitmapInstance\"",
     "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\"",
     "popcap.rsb.unpack.invalid_rsb_magic": "RSB magic không hợp lệ, nên bắt đầu bằng \"1BSR\"",
-    "popcap.rsb.unpack.invalid_version_resources_pos": "Vị trí tài nguyên của phiên bản 3 không hợp lệ"
+    "popcap.rsb.unpack.invalid_version_resources_pos": "Vị trí tài nguyên của phiên bản 3 không hợp lệ",
+    "kernel.tuple.js_object": "Đối tượng JS"
 }

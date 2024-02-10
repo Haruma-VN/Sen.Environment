@@ -436,7 +436,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma region DescriptionGroup
     struct DescriptionGroup
     {
-        boolean composite;
+        bool composite;
         std::map<std::string, DescriptionSubGroup> subgroups;
     };
 
