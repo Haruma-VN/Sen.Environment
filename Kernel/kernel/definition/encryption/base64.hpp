@@ -44,11 +44,11 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto decode_fs(
-				const std::string &filePath,
-				const std::string &outPath
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::decode(Sen::Kernel::FileSystem::read_file(filePath)));
+				Sen::Kernel::FileSystem::write_file(destination, Sen::Kernel::Definition::Encryption::Base64::decode(Sen::Kernel::FileSystem::read_file(source)));
 				return;
 			}
 
@@ -58,13 +58,17 @@ namespace Sen::Kernel::Definition::Encryption {
 			*/
 
 			inline static auto encode_fs(
-				const std::string &filePath,
-				const std::string &outPath
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				Sen::Kernel::FileSystem::write_file(outPath, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::read_file(filePath)));
+				Sen::Kernel::FileSystem::write_file(destination, Sen::Kernel::Definition::Encryption::Base64::encode(Sen::Kernel::FileSystem::read_file(source)));
 				return;
 			}
+
+			/**
+			 * Process
+			*/
 
 			inline static auto encode_fs_as_multiple_thread(
 				const std::vector<std::vector<std::string>> & paths
@@ -84,6 +88,10 @@ namespace Sen::Kernel::Definition::Encryption {
 				}
 				return;
 			}
+
+			/**
+			 * Process
+			*/
 
 			inline static auto decode_fs_as_multiple_thread(
 				const std::vector<std::vector<std::string>> & paths

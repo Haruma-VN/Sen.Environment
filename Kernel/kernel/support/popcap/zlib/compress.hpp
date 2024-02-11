@@ -92,7 +92,7 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 					sen.writeUint32(static_cast<uint32_t>(0x00));
 				}
 				// compressed zlib part
-				sen.append<unsigned char>(Compression::Zlib::compress(source, level));
+				sen.append<unsigned char>(Compression::Zlib::compress<Compression::Zlib::Level::LEVEL_9>(source));
 				return sen.get();
 			}
 

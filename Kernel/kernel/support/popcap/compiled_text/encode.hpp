@@ -109,7 +109,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 				result.writeUint8(0x10);
 				result.writeUint8(0x00);
 				auto decoded_base64 = DataStreamView{};
-				decoded_base64.fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size(), Sen::Kernel::Definition::Encryption::RijndaelMode::CBC).data())));
+				decoded_base64.fromString(Base64::encode(reinterpret_cast<char*>(Rijndael::encrypt<std::uint64_t, Sen::Kernel::Definition::Encryption::Rijndael::Mode::CBC>(reinterpret_cast<const char *>(buffer.get().data()), key, iv, buffer.size()).data())));
 				result.writeBytes(decoded_base64.get());
 				return;
 			}
@@ -120,7 +120,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			 * @returns: Encoded file
 			*/
 
-			static auto process_fs(
+			inline static auto process_fs(
 				std::string_view source,
 				std::string_view destination,
 				std::string_view key,

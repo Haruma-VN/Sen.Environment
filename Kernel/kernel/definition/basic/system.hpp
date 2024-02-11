@@ -69,7 +69,7 @@ namespace Sen::Kernel {
 			#else
 				auto buffer = std::array<char, 128>{};
 				auto result = std::string{};
-				std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.data(), "r"), pclose);
+				auto pipe = std::unique_ptr<FILE, decltype(&pclose)>(popen(command.data(), "r"), pclose);
 				if (!pipe) {
 					throw Exception("open process failed", std::source_location::current(), "execute");
 				}

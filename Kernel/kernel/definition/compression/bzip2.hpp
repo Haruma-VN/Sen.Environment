@@ -50,11 +50,11 @@ namespace Sen::Kernel::Definition::Compression {
 			 * work_factor: work factor
 			 * return: compressed bzip2 stream
 			*/
-
+			template <typename T> requires std::is_integral<T>::value
 			inline static auto compress(
 				const std::vector<unsigned char>& input,
-				int block_size,
-				int work_factor
+				T block_size,
+				T work_factor
 			) -> std::vector<unsigned char> 
 			{
 				auto bzerror = int{};
@@ -85,23 +85,23 @@ namespace Sen::Kernel::Definition::Compression {
 			 * input: stream
 			 * return: result after uncompress
 			*/
-
 			inline static auto uncompress(
 				const std::vector<unsigned char> & input
 			) -> std::vector<unsigned char> 
 			{
 				auto bzerror = int{};
-				auto strm = bz_stream{};
-				strm.bzalloc = NULL;
-				strm.bzfree = NULL;
-				strm.opaque = NULL;
+				auto strm = bz_stream{
+					.bzalloc = NULL,
+					.bzfree = NULL,
+					.opaque = NULL,
+				};
 				BZ2_bzDecompressInit(&strm, 0, 0);
 				strm.next_in = (char*)input.data();
-				strm.avail_in = input.size();
+				strm.avail_in = static_cast<unsigned int>(input.size());
 				auto result = std::vector<unsigned char>{};
 				unsigned char outbuffer[4096];
 				do {
-					strm.next_out = (char*)outbuffer;
+					strm.next_out = reinterpret_cast<char*>(outbuffer);
 					strm.avail_out = sizeof(outbuffer);
 					bzerror = BZ2_bzDecompress(&strm);
 					if (bzerror < 0) {
@@ -121,11 +121,11 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto compress_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				FileSystem::write_binary<unsigned char>(destination, Bzip2::compress(FileSystem::read_binary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
+				FileSystem::write_binary<unsigned char>(destination, Bzip2::compress<int>(FileSystem::read_binary<unsigned char>(source), Bzip2::BLOCK_SIZE, Bzip2::WORK_FACTOR));
 				return;
 			}
 
@@ -136,8 +136,8 @@ namespace Sen::Kernel::Definition::Compression {
 			*/
 
 			inline static auto uncompress_fs(
-				const std::string & source,
-				const std::string & destination
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
 				FileSystem::write_binary<unsigned char>(destination, Bzip2::uncompress(FileSystem::read_binary<unsigned char>(source)));

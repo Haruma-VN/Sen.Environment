@@ -23,7 +23,7 @@ namespace Sen::Kernel::Definition::Diff {
 				VCD_STANDARD_FORMAT = 0x00,
 				VCD_FORMAT_INTERLEAVED = 0x01,
 				VCD_FORMAT_CHECKSUM = 0x02,
-				VCD_FORMAT_JSON = 0x04
+				VCD_FORMAT_JSON = 0x04,
 			};
 
 			/**
@@ -51,13 +51,12 @@ namespace Sen::Kernel::Definition::Diff {
 			 * @param flag: encoder flag
 			 * @returns: encoded buffer
 			*/
-
+			template <typename T, auto flag> requires std::is_integral<T>::value
 			inline static auto encode(
 				const char* before,
-				size_t before_size,
+				T before_size,
 				const char* after,
-				size_t after_size,
-				Flag flag
+				T after_size
 			) -> std::vector<char>
 			{
 				auto encoding = std::string{};
@@ -79,11 +78,12 @@ namespace Sen::Kernel::Definition::Diff {
 			 * @returns: decoded buffer
 			*/
 
+			template <typename T> requires std::is_integral<T>::value
 			inline static auto decode(
 				const char* before,
-				size_t before_size,
+				T before_size,
 				const char* patch,
-				size_t patch_size
+				T patch_size
 			) -> std::vector<char>
 			{
 				auto decoded_data = std::string{};
@@ -104,15 +104,35 @@ namespace Sen::Kernel::Definition::Diff {
 			*/
 
 			inline static auto encode_fs(
-				const std::string & before_file,
-				const std::string & after_file,
-				const std::string & patch_file,
+				std::string_view before_file,
+				std::string_view after_file,
+				std::string_view patch_file,
 				Flag flag
 			) -> void
 			{
 				auto before = FileSystem::read_binary<char>(before_file);
 				auto after = FileSystem::read_binary<char>(after_file);
-				FileSystem::write_binary<char>(patch_file, VCDiff::encode(before.data(), before.size(), after.data(), after.size(), flag));
+				switch (flag) {
+					case Flag::VCD_FORMAT_CHECKSUM:{
+						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_CHECKSUM>(before.data(), before.size(), after.data(), after.size()));
+						break;
+					}
+					case Flag::VCD_FORMAT_INTERLEAVED:{
+						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t,Flag::VCD_FORMAT_INTERLEAVED>(before.data(), before.size(), after.data(), after.size()));
+						break;
+					}
+					case Flag::VCD_FORMAT_JSON:{
+						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_JSON>(before.data(), before.size(), after.data(), after.size()));
+						break;
+					}
+					case Flag::VCD_STANDARD_FORMAT:{
+						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_STANDARD_FORMAT>(before.data(), before.size(), after.data(), after.size()));
+						break;
+					}
+					default:{
+						throw Exception(fmt::format("{}", Kernel::Language::get("vcdiff.encode.flag_not_found")), std::source_location::current(), "encode_fs");
+					}
+				}
 				return;
 			}
 
@@ -124,9 +144,9 @@ namespace Sen::Kernel::Definition::Diff {
 			*/
 
 			inline static auto decode_fs(
-				const std::string & before_file,
-				const std::string & patch_file,
-				const std::string & after_file
+				std::string_view before_file,
+				std::string_view patch_file,
+				std::string_view after_file
 			) -> void
 			{
 				auto before = FileSystem::read_binary<char>(before_file);

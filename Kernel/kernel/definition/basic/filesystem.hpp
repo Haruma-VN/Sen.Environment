@@ -440,13 +440,13 @@ namespace Sen::Kernel::FileSystem
 	*/
 
 	inline static auto read_xml(
-		std::string_view filePath
+		std::string_view source
 	) -> std::unique_ptr<tinyxml2::XMLDocument>
 	{
 		auto xml = std::unique_ptr<tinyxml2::XMLDocument>(new tinyxml2::XMLDocument{});
-		auto data = FileSystem::read_file(filePath);
+		auto data = FileSystem::read_file(source);
 		auto eResult = xml->Parse(data.data(), data.size());
-		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", filePath), "read_xml");
+		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", source), "read_xml");
 		return xml;
 	}
 

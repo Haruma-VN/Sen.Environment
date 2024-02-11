@@ -34,7 +34,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * Lzma compression level
 			*/
 
-			enum Level
+			enum class Level
 			{
 				LEVEL_0,
 				LEVEL_1,
@@ -45,17 +45,16 @@ namespace Sen::Kernel::Definition::Compression {
 				LEVEL_6,
 				LEVEL_7,
 				LEVEL_8,
-				LEVEL_9
+				LEVEL_9,
 			};
 
 			/**
 			 * data: data stream
 			 * level: compression level
 			*/
-
+			template <auto level>
 			inline static auto compress(
-				const std::vector<unsigned char> &data,
-				const Level &level
+				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
 				auto destination_length = static_cast<size_t>(data.size() * 1.1 + 1024);
@@ -87,10 +86,10 @@ namespace Sen::Kernel::Definition::Compression {
 			 * size: actual size
 			 * return: uncompressed data
 			*/
-
+			template <typename T> requires std::is_integral<T>::value
 			inline static auto uncompress(
 				const std::vector<unsigned char> &data,
-				const size_t &actual_size
+				T actual_size
 			) -> std::vector<unsigned char>
 			{
 				auto result = std::vector<unsigned char>(actual_size);
@@ -110,38 +109,81 @@ namespace Sen::Kernel::Definition::Compression {
 			}
 
 			/**
-			 * file in: input file
-			 * file out: output file
+			 * source: input file
+			 * destination: output file
 			 * return: compressed file
 			*/
-
 			inline static auto compress_fs(
-				const string &fileIn,
-				const string &fileOut
+				std::string_view source,
+				std::string_view destination,
+				Level level
 			) -> void
 			{
-				auto dataStream = FileSystem::read_binary<unsigned char>(fileIn);
-				auto compressedData = Lzma::compress(dataStream, Lzma::Level::LEVEL_9);
-				FileSystem::write_binary<unsigned char>(fileOut, compressedData);
+				auto data = FileSystem::read_binary<unsigned char>(source);
+				switch(level){
+					case Level::LEVEL_0:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_0>(data));
+						break;
+					}
+					case Level::LEVEL_1:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_1>(data));
+						break;
+					}
+					case Level::LEVEL_2:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_2>(data));
+						break;
+					}
+					case Level::LEVEL_3:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_3>(data));
+						break;
+					}
+					case Level::LEVEL_4:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_4>(data));
+						break;
+					}
+					case Level::LEVEL_5:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_5>(data));
+						break;
+					}
+					case Level::LEVEL_6:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_7:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_7>(data));
+						break;
+					}
+					case Level::LEVEL_8:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_8>(data));
+						break;
+					}
+					case Level::LEVEL_9:{
+						FileSystem::write_binary<unsigned char>(destination, Lzma::compress<Level::LEVEL_9>(data));
+						break;
+					}
+					default:{
+						throw Exception(fmt::format("{}", Kernel::Language::get("lzma.compress.no_level_found")), std::source_location::current(), "compress_fs");
+					}
+				}
 				return;
 			}
 
 			/**
-			 * file in: input file
-			 * file out: output file
+			 * source: input file
+			 * destination: output file
 			 * size: actual size
 			 * return: uncompressed file
 			*/
-
+			template <typename T> requires std::is_integral<T>::value
 			inline static auto uncompress_fs(
-				const string &fileIn,
-				const string &fileOut,
-				const size_t &actual_size
+				std::string_view source,
+				std::string_view destination,
+				T actual_size
 			) -> void
 			{
-				auto dataStream = FileSystem::read_binary<unsigned char>(fileIn);
-				auto uncompressedData = Lzma::uncompress(dataStream, actual_size);
-				FileSystem::write_binary<unsigned char>(fileOut, uncompressedData);
+				auto data = FileSystem::read_binary<unsigned char>(source);
+				auto uncompressed_data = Lzma::uncompress<T>(data, actual_size);
+				FileSystem::write_binary<unsigned char>(destination, uncompressed_data);
 				return;
 			}
 

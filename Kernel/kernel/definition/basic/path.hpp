@@ -16,10 +16,10 @@ namespace Sen::Kernel::Path
 	*/
 	
 	inline auto toWindowsStyle(
-		const std::string & mPath
+		const std::string & source
 	) -> std::string const
 	{
-		return String::toWindowsStyle(mPath);
+		return String::toWindowsStyle(source);
 	}
 
 	
@@ -28,10 +28,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto toPosixStyle(
-		const std::string & mPath
+		const std::string & source
 	) -> std::string const
 	{
-		return String::toPosixStyle(mPath);
+		return String::toPosixStyle(source);
 	}
 
 	/**
@@ -40,10 +40,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto absolute(
-		const string &mPath
-	) -> string const
+		const std::string & source
+	) -> std::string const
 	{
-		return fs::absolute(mPath).string();
+		return fs::absolute(source).string();
 	}
 
 	/**
@@ -52,10 +52,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto getParents(
-		const string &mPath
-	) -> string const
+		const std::string &source
+	) -> std::string const
 	{
-		return fs::path(mPath).parent_path().string();
+		return fs::path(source).parent_path().string();
 	}
 
 	/**
@@ -65,10 +65,10 @@ namespace Sen::Kernel::Path
 
 
 	inline auto getFileName(
-		const string &mPath
-	) -> string const
+		const std::string &source
+	) -> std::string const
 	{
-		return fs::path(mPath).filename().string();
+		return fs::path(source).filename().string();
 	}
 
 	/**
@@ -77,10 +77,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto getNearestParent(
-		const string &mPath
-	) -> string const
+		const std::string &source
+	) -> std::string const
 	{
-		return fs::path(mPath).parent_path().filename().string();
+		return fs::path(source).parent_path().filename().string();
 	}
 
 	/**
@@ -89,10 +89,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto getExtension(
-		const string &mPath
-	) -> string const
+		const std::string &source
+	) -> std::string const
 	{
-		return fs::path(mPath).extension().string();
+		return fs::path(source).extension().string();
 	}
 
 	/**
@@ -101,10 +101,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto getFileNameWithoutExtension(
-		const string &mPath
-	) -> string const
+		const std::string &source
+	) -> std::string const
 	{
-		return fs::path(mPath).stem().string();
+		return fs::path(source).stem().string();
 	}
 
 
@@ -113,10 +113,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto normalize(
-		const std::string &mPath
+		const std::string &source
 	) -> std::string const
 	{
-		return Path::absolute(Path::toPosixStyle(mPath));
+		return Path::absolute(Path::toPosixStyle(source));
 	}
 
 	/**
@@ -124,10 +124,10 @@ namespace Sen::Kernel::Path
 	*/
 
 	inline auto join(
-		const std::string & str
+		const std::string & source
 	) -> std::string
 	{
-		return fs::path(str).string();
+		return fs::path(source).string();
 	}
 
 	/**

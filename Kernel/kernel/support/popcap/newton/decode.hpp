@@ -21,12 +21,17 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			/**
 			 * read enumeration
 			*/
-
+			template <auto use_uint>
 			inline auto read_enumeration(
 
-			) -> uint8_t
+			)
 			{
-				return sen->readUint8();
+				if constexpr (use_uint) {
+					return sen->readUint8();
+				}
+				else {
+					return sen->readInt8();
+				}
 			}
 
 			/**
@@ -57,12 +62,17 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			/**
 			 * read integer
 			*/
-
+			template <auto use_uint>
 			inline auto read_integer(
 
-			) -> int
+			)
 			{
-				return sen->readInt32();
+				if constexpr (use_uint) {
+					return sen->readUint32();
+				}
+				else {
+					return sen->readInt32();
+				}
 			}
 
 			/**
@@ -95,11 +105,11 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					{"content_version", 1}
 				};
 				auto groups = nlohmann::ordered_json::array_t{};
-				result["slot_count"] = thiz.read_integer();
-				auto group_size = thiz.read_integer();
+				result["slot_count"] = thiz.read_integer<true>();
+				auto group_size = thiz.read_integer<true>();
 				for(auto i : Range<int>(group_size)){
 					auto group = nlohmann::ordered_json{};
-					auto group_type = thiz.read_enumeration();
+					auto group_type = thiz.read_enumeration<true>();
 					switch (static_cast<int>(group_type)){
 						case 0x01:{
 							group["type"] = "composite";
@@ -113,13 +123,13 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							throw Exception(fmt::format("{} {}. {}: group[\"type\"] == 1 || group[\"type\"] == 2, {} {}", Language::get("popcap.newton.invalid_group_type"), i, Language::get("conditional"), Language::get("but_received"), group_type), std::source_location::current(), "process");
 						}
 					}
-					auto res = thiz.read_integer();
+					auto res = thiz.read_integer<true>();
 					if (res != 0x00) {
 						group["res"] = fmt::format("{}", res);
 					}
-					auto subgroups_count = thiz.read_integer();
-					auto resources_count = thiz.read_integer();
-					auto version = thiz.read_enumeration();
+					auto subgroups_count = thiz.read_integer<true>();
+					auto resources_count = thiz.read_integer<true>();
+					auto version = thiz.read_enumeration<true>();
 					assert_conditional(version == 0x01, fmt::format("{} {} {} {}", Kernel::Language::get("popcap.newton.decode.unknown_version"), version, Kernel::Language::get("popcap.newton.decode.at_index"), i), "process");
       				auto group_has_parent = thiz.read_boolean();
 					group["id"] = thiz.read_string();
@@ -131,7 +141,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						auto subgroups = nlohmann::ordered_json::array_t{};
 						for (auto subgroups_index : Range<int>(subgroups_count)) {
 							auto subgroup = nlohmann::ordered_json{};
-							auto sub_res = thiz.read_integer();
+							auto sub_res = thiz.read_integer<true>();
 							if (sub_res != 0x00) {
 								subgroup["res"] = fmt::format("{}", sub_res);
 							}
@@ -146,7 +156,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						auto resources = nlohmann::ordered_json::array_t{};
 						for (auto resources_index : Range<int>(resources_count)){
           					auto sub_resources = nlohmann::ordered_json{};
-							auto resource_type = thiz.read_enumeration();
+							auto resource_type = thiz.read_enumeration<true>();
 							switch(static_cast<int>(resource_type)){
 								case 0x01:{
 									sub_resources["type"] = "Image";
@@ -180,17 +190,17 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 									throw Exception(fmt::format("{} {}, {}", Language::get("popcap.newton.invalid_resource_type"), group["id"].get<std::string>(), Language::get("popcap.newton.expected_from_to"), resource_type), std::source_location::current(), "process");
 								}
 							}
-							auto slot = thiz.read_integer();
-							auto width = thiz.read_integer();
-							auto height = thiz.read_integer();
-							auto x = thiz.read_integer();
-							auto y = thiz.read_integer();
-							auto ax = thiz.read_integer();
-							auto ay = thiz.read_integer();
-							auto aw = thiz.read_integer();
-							auto ah = thiz.read_integer();
-							auto cols = thiz.read_integer();
-							auto rows = thiz.read_integer();
+							auto slot = thiz.read_integer<true>();
+							auto width = thiz.read_integer<false>();
+							auto height = thiz.read_integer<false>();
+							auto x = thiz.read_integer<false>();
+							auto y = thiz.read_integer<false>();
+							auto ax = thiz.read_integer<false>();
+							auto ay = thiz.read_integer<false>();
+							auto aw = thiz.read_integer<false>();
+							auto ah = thiz.read_integer<false>();
+							auto cols = thiz.read_integer<false>();
+							auto rows = thiz.read_integer<false>();
 							auto atlas = thiz.read_boolean();
           					auto is_sprite = aw != 0x00 and ah != 0x00;
 							sub_resources["slot"] = slot;
@@ -220,8 +230,8 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							if(rows != 0x01){
 								sub_resources["rows"] = rows;
 							}
-							thiz.read_enumeration();
-							thiz.read_enumeration();
+							thiz.read_enumeration<true>();
+							thiz.read_enumeration<true>();
 							auto resource_has_parent = thiz.read_boolean();
 							sub_resources["id"] = thiz.read_string();
 							sub_resources["path"] = thiz.read_string();

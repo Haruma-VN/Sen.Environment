@@ -432,12 +432,11 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto encrypted_data = DataStreamView{};
             encrypted_data.append(std::array<uint8_t, 2>{ 0x10, 0x00 });
             encrypted_data.writeBytes(
-                Encryption::Rijndael::encrypt(
+                Encryption::Rijndael::encrypt<std::size_t, Encryption::Rijndael::Mode::CBC>(
                     reinterpret_cast<const char*>(source_buffer.get().data()),
                     key,
                     iv,
-                    source_buffer.size(),
-                    Encryption::RijndaelMode::CBC
+                    source_buffer.size()
                 )
             );
             encrypted_data.out_file(destination);

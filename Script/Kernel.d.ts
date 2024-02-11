@@ -1086,7 +1086,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function compress_fs(source: string, destination: string): void;
+                export function compress_fs(source: string, destination: string, level: Script.Zlib.Level): void;
 
                 /**
                  * --------------------------------------------------

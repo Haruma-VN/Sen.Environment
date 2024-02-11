@@ -2532,9 +2532,9 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					auto level = JS::Converter::get_int32(context, argv[2]);
-					if (!(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT <= level or level <= Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9))
+					if (!(static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT) <= level or level <= static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9)))
 					{
-						throw std::invalid_argument(fmt::format("Invalid zlib level, expected level from 0 to 9, received {}", level));
+						throw std::invalid_argument(fmt::format("{}, {} {}", Kernel::Language::get("zlib.compress.invalid_level"), Kernel::Language::get("but_received"), level));
 					}
 					Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
 					return JS::Converter::get_undefined();
@@ -2649,10 +2649,11 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto destination = JS::Converter::get_string(context, argv[1]);
-					Sen::Kernel::Definition::Compression::Lzma::compress_fs(source, destination);
+				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto destination = JS::Converter::get_c_string(context, argv[1]);
+					auto level = JS::Converter::get_bigint64(context, argv[2]);
+					Sen::Kernel::Definition::Compression::Lzma::compress_fs(source.get(), destination.get(), static_cast<Sen::Kernel::Definition::Compression::Lzma::Level>(level));
 					return JS::Converter::get_undefined();
 				}, "compress_fs"_sv);
 			}
@@ -2679,7 +2680,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					auto actual_size = JS::Converter::get_uint64(context, argv[2]);
-					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination, actual_size);
+					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs<std::size_t>(source, destination, actual_size);
 					return JS::Converter::get_undefined();
 				}, "uncompress_fs"_sv);
 			}
@@ -2708,10 +2709,15 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
-					Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination);
+					auto level = JS::Converter::get_int32(context, argv[2]);
+					if (!(static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT) <= level or level <= static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9)))
+					{
+						throw std::invalid_argument(fmt::format("{}, {} {}", Kernel::Language::get("zlib.compress.invalid_level"), Kernel::Language::get("but_received"), level));
+					}
+					Sen::Kernel::Definition::Compression::Zlib::compress_gzip_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
 					return JS::Converter::get_undefined();
 				}, "compress_fs"_sv);
 			}

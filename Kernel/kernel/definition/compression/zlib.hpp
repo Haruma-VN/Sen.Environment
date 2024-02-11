@@ -45,7 +45,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * Zlib compression level supported by zlib.h
 			*/
 
-			enum Level
+			enum class Level
 			{
 				DEFAULT = -1,
 				LEVEL_0,
@@ -57,7 +57,7 @@ namespace Sen::Kernel::Definition::Compression {
 				LEVEL_6,
 				LEVEL_7,
 				LEVEL_8,
-				LEVEL_9
+				LEVEL_9,
 			};
 
 			/**
@@ -65,16 +65,15 @@ namespace Sen::Kernel::Definition::Compression {
 			 * level: zlib compression level
 			 * return: the compressed data
 			 */
-
+			template <auto level>
 			inline static auto compress(
-				const std::vector<unsigned char> &data,
-				const Level &level
+				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char> 
 			{
 				auto destLen = compressBound(data.size());
 				auto zlib_outdata = std::vector<unsigned char>(static_cast<size_t>(destLen));
 				auto ret = compress2(zlib_outdata.data(), &destLen, data.data(), data.size(), static_cast<int>(level));
-				assert(ret == Z_OK);
+				assert_conditional(ret == Z_OK, fmt::format("{}", Kernel::Language::get("zlib.compress.failed")), "compress");
 				zlib_outdata.resize(destLen);
 				return zlib_outdata;
 			}
@@ -88,13 +87,13 @@ namespace Sen::Kernel::Definition::Compression {
 				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
-				auto zlib_init = z_stream{
+				auto zlib_init = z_stream {
+					.next_in = const_cast<Bytef*>(data.data()),
+					.avail_in = static_cast<uInt>(data.size()),
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
-					.opaque = Z_NULL
+					.opaque = Z_NULL,
 				};
-				zlib_init.avail_in = static_cast<uInt>(data.size());
-				zlib_init.next_in = const_cast<Bytef*>(data.data());
 				inflateInit(&zlib_init);
 				auto result = std::vector<unsigned char>{};
 				unsigned char out_chunk[Zlib::CHUNK];
@@ -102,7 +101,7 @@ namespace Sen::Kernel::Definition::Compression {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
 					auto ret = inflate(&zlib_init, Z_NO_FLUSH);
-					assert_conditional(ret != Z_STREAM_ERROR, "Zlib uncompress failed", "uncompress");
+					assert_conditional(ret != Z_STREAM_ERROR, fmt::format("{}", Kernel::Language::get("zlib.uncompress.failed")), "uncompress");
 					switch(ret){
 						case Z_NEED_DICT:{
 							ret = Z_DATA_ERROR;
@@ -125,10 +124,9 @@ namespace Sen::Kernel::Definition::Compression {
 			 * return: the compressed data
 			 */
 
-
+			template <auto level>
 			inline static auto compress_deflate(
-				const std::vector<unsigned char> &data,
-				const Level &level
+				const std::vector<unsigned char> &data
 			) ->  std::vector<unsigned char>
 			{
 				auto zlib_outdata = std::vector<unsigned char>(static_cast<size_t>(compressBound(static_cast<uLong>(data.size()))));
@@ -142,7 +140,7 @@ namespace Sen::Kernel::Definition::Compression {
 					.opaque = Z_NULL,
 				};
 				auto ret = deflateInit(&zlib_init, static_cast<int>(level));
-				assert_conditional(ret == Z_OK, "data is failed to compress", "compress_deflate");
+				assert_conditional(ret == Z_OK, fmt::format("{}", Kernel::Language::get("zlib.compress.failed")), "compress_deflate");
 				while (zlib_init.avail_in != Zlib::Z_COMPRESS_END){
 					deflate(&zlib_init, Z_NO_FLUSH);
 				}
@@ -155,7 +153,7 @@ namespace Sen::Kernel::Definition::Compression {
 					}
 					deflate_res = deflate(&zlib_init, Z_FINISH);
 				}
-				assert_conditional(deflate_res == Z_STREAM_END, "data is failed to compress", "compress_deflate");
+				assert_conditional(deflate_res == Z_STREAM_END, fmt::format("{}", Kernel::Language::get("zlib.compress.failed")), "compress_deflate");
 				zlib_outdata.resize(zlib_outdata.size() - zlib_init.avail_out);
 				deflateEnd(&zlib_init);
 				return zlib_outdata;
@@ -166,27 +164,26 @@ namespace Sen::Kernel::Definition::Compression {
 			 * level: zlib level
 			 * return: compressed data
 			*/
-
+			template <auto level>
 			inline static auto compress_gzip(
-				const std::vector<unsigned char> &data,
-				const Level &level
+				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
-				auto zlib_init = z_stream{
+				auto zlib_init = z_stream {
+					.next_in = const_cast<Bytef *>(data.data()),
+					.avail_in = static_cast<uInt>(data.size()),
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
 					.opaque = Z_NULL
 				};
-				zlib_init.avail_in = static_cast<uInt>(data.size());
-				zlib_init.next_in = const_cast<Bytef *>(data.data());
-				deflateInit2(&zlib_init, level, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
+				deflateInit2(&zlib_init, static_cast<int>(level), Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
 				auto result = std::vector<unsigned char>();
 				unsigned char out_chunk[Zlib::CHUNK];
 				do {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
 					auto ret = deflate(&zlib_init, Z_FINISH);
-					assert_conditional(ret != Z_STREAM_ERROR, "data is failed to compress", "compress_deflate");
+					assert_conditional(ret != Z_STREAM_ERROR, fmt::format("{}", Kernel::Language::get("zlib.compress.failed")), "compress_gzip");
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
 				} while (zlib_init.avail_out == Zlib::Z_COMPRESS_END);
 				deflateEnd(&zlib_init);
@@ -202,13 +199,13 @@ namespace Sen::Kernel::Definition::Compression {
 				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
-				auto zlib_init = z_stream{
+				auto zlib_init = z_stream {
+					.next_in = Z_NULL,
+					.avail_in = 0,
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
 					.opaque = Z_NULL
 				};
-				zlib_init.avail_in = 0;
-				zlib_init.next_in = Z_NULL;
 				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
 					throw Exception(fmt::format("{}", Language::get("gzip.init_stream.failed")), std::source_location::current(), "uncompress_gzip");
 				}
@@ -249,8 +246,55 @@ namespace Sen::Kernel::Definition::Compression {
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(source);
-				auto compressedData = Zlib::compress_deflate(data, level);
-				FileSystem::write_binary<unsigned char>(destination, compressedData);
+				switch (level) {
+					case Level::DEFAULT:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_0:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_0>(data));
+						break;
+					}
+					case Level::LEVEL_1:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_1>(data));
+						break;
+					}
+					case Level::LEVEL_2:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_2>(data));
+						break;
+					}
+					case Level::LEVEL_3:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_3>(data));
+						break;
+					}
+					case Level::LEVEL_4:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_4>(data));
+						break;
+					}
+					case Level::LEVEL_5:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_5>(data));
+						break;
+					}
+					case Level::LEVEL_6:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_7:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_7>(data));
+						break;
+					}
+					case Level::LEVEL_8:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_8>(data));
+						break;
+					}
+					case Level::LEVEL_9:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_9>(data));
+						break;
+					}
+					default:{
+						throw Exception(fmt::format("{}", Kernel::Language::get("zlib.compress.invalid_level")), std::source_location::current(), "compress_fs");
+					}
+				}
 				return;
 			}
 
@@ -282,12 +326,60 @@ namespace Sen::Kernel::Definition::Compression {
 
 			inline static auto compress_gzip_fs(
 				std::string_view source,
-				std::string_view destination
+				std::string_view destination,
+				Level level
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(source);
-				auto compressed_data = Zlib::compress_gzip(data, Zlib::Level::DEFAULT);
-				FileSystem::write_binary<unsigned char>(destination, compressed_data);
+				switch (level){
+					case Level::DEFAULT:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_0:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_0>(data));
+						break;
+					}
+					case Level::LEVEL_1:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_1>(data));
+						break;
+					}
+					case Level::LEVEL_2:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_2>(data));
+						break;
+					}
+					case Level::LEVEL_3:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_3>(data));
+						break;
+					}
+					case Level::LEVEL_4:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_4>(data));
+						break;
+					}
+					case Level::LEVEL_5:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_5>(data));
+						break;
+					}
+					case Level::LEVEL_6:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_7:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_7>(data));
+						break;
+					}
+					case Level::LEVEL_8:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_8>(data));
+						break;
+					}
+					case Level::LEVEL_9:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_gzip<Level::LEVEL_9>(data));
+						break;
+					}
+					default: {
+						throw Exception(fmt::format("{}", Kernel::Language::get("zlib.compress.invalid_level")), std::source_location::current(), "compress_gzip_fs");
+					}
+				}
 				return;
 			}
 
@@ -300,12 +392,60 @@ namespace Sen::Kernel::Definition::Compression {
 
 			inline static auto compress_deflate_fs(
 				std::string_view source,
-				std::string_view destination
+				std::string_view destination,
+				Level level
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(source);
-				auto compressedData = Zlib::compress_deflate(data, Zlib::Level::DEFAULT);
-				FileSystem::write_binary<unsigned char>(destination, compressedData);
+				switch (level){
+					case Level::DEFAULT:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_0:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_0>(data));
+						break;
+					}
+					case Level::LEVEL_1:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_1>(data));
+						break;
+					}
+					case Level::LEVEL_2:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_2>(data));
+						break;
+					}
+					case Level::LEVEL_3:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_3>(data));
+						break;
+					}
+					case Level::LEVEL_4:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_4>(data));
+						break;
+					}
+					case Level::LEVEL_5:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_5>(data));
+						break;
+					}
+					case Level::LEVEL_6:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_6>(data));
+						break;
+					}
+					case Level::LEVEL_7:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_7>(data));
+						break;
+					}
+					case Level::LEVEL_8:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_8>(data));
+						break;
+					}
+					case Level::LEVEL_9:{
+						FileSystem::write_binary<unsigned char>(destination, Zlib::compress_deflate<Level::LEVEL_9>(data));
+						break;
+					}
+					default: {
+						throw Exception(fmt::format("{}", Kernel::Language::get("zlib.compress.invalid_level")), std::source_location::current(), "compress_deflate_fs");
+					}
+				}
 				return;
 			}
 

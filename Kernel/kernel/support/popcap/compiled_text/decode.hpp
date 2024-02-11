@@ -112,7 +112,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		{
 			auto decoded_base64 = DataStreamView{};
 			decoded_base64.fromString(Base64::decode(thiz.sen->toString()));
-			destination->append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02, RijndaelMode::CBC)));
+			destination->append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt<std::uint64_t, Rijndael::Mode::CBC>(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02)));
 			return;
 		}
 

@@ -5,35 +5,27 @@
 
 namespace Sen::Kernel {
 
-	template <typename T> 
-	struct Temporary {
-		public:
-		
-			T value;
+	// free c memory allocation
 
-			explicit Temporary(
-				T value
-			) 
-			{
-				thiz.value = value;
-			}
-
-			~Temporary(
-
-			) = default;
+	inline static auto constexpr free_c_memory = [](auto p)
+	{
+		free(p);
+		return;
 	};
 
-	/**
-	 * Pass value and generic type for casting pointer
-	*/
+	// free c++ memory allocation
 
-	template <typename T> 
-	inline auto static create_pointer_for_reference(
-		const T &value
-	) -> Temporary<T> const
+	inline static auto constexpr free_memory = [](auto p)
 	{
-		return Temporary<T>(value);
-	}
+		delete p;
+		return;
+	};
 
+	// free c++ memory allocation
 
+	inline static auto constexpr free_array = [](auto p)
+	{
+		delete[] p;
+		return;
+	};
 }

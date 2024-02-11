@@ -1057,7 +1057,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return reverseEndian(this->template read<std::uint16_t>());
+                    return reverse_endian(this->template read<std::uint16_t>());
                 }
                 else
                 {
@@ -1075,7 +1075,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read_has<std::uint32_t>(3));
+                    return thiz.reverse_endian(this->template read_has<std::uint32_t>(3));
                 }
                 else
                 {
@@ -1093,7 +1093,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return reverseEndian(this->template read<std::uint32_t>());
+                    return reverse_endian(this->template read<std::uint32_t>());
                 }
                 else
                 {
@@ -1111,7 +1111,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read<std::uint64_t>());
+                    return thiz.reverse_endian(this->template read<std::uint64_t>());
                 }
                 else
                 {
@@ -1140,7 +1140,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read<std::int16_t>());
+                    return thiz.reverse_endian(this->template read<std::int16_t>());
                 }
                 else
                 {
@@ -1158,7 +1158,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read_has<std::int32_t>(3));
+                    return thiz.reverse_endian(this->template read_has<std::int32_t>(3));
                 }
                 else
                 {
@@ -1176,7 +1176,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read<std::int32_t>());
+                    return thiz.reverse_endian(this->template read<std::int32_t>());
                 }
                 else
                 {
@@ -1194,7 +1194,7 @@ namespace Sen::Kernel::Definition
             {
                 if constexpr (use_big_endian)
                 {
-                    return thiz.reverseEndian(this->template read<std::int64_t>());
+                    return thiz.reverse_endian(this->template read<std::int64_t>());
                 }
                 else
                 {
@@ -1522,7 +1522,7 @@ namespace Sen::Kernel::Definition
 
             template <typename T>
                 requires std::is_integral_v<T> || std::is_floating_point_v<T>
-            inline auto static reverseEndian(T num) -> T
+            inline auto static reverse_endian(T num) -> T
             {
                 auto bytes = std::array<uint8_t, sizeof(T)>{};
                 std::memcpy(bytes.data(), &num, sizeof(T));

@@ -149,6 +149,7 @@
     "popcap.animation.from_flash.sprite_has_no_layers": "Sprite {} has no property \"layers\"",
     "popcap.animation.from_flash.cannot_find_sprite": "Sprite {} is not found",
     "popcap.animation.from_flash.sprite_has_no_DOMLayer": "Sprite {} has no property \"DOMLayer\" in layer {}",
+    "popcap.animation.from_flash.sprite_has_no_frames": "Sprite {} has no property \"frames\" in \"DOMLayer\" in layer {}",
     "popcap.animation.from_flash.sprite_has_no_DOMFrame": "Sprite {} has no property \"DOMFrame\" in \"DOMLayer\" in layer {}",
     "popcap.animation.from_flash.sprite_has_no_elements": "Sprite {} has no property \"elements\" in \"DOMFrame\" in layer {}",
     "popcap.animation.from_flash.invalid_name_match": "Sprite {} can only call \"image\" or \"sprite\" in layer {}",
@@ -170,5 +171,12 @@
     "popcap.animation.from_flash.image_has_no_matrix": "Image {} has no property \"matrix\" in \"DOMBitmapInstance\"",
     "popcap.animation.from_flash.invalid_image_matrix": "Image {} has no property \"Matrix\" in \"matrix\"",
     "popcap.rsb.unpack.invalid_rsb_magic": "Mismatch RSB magic, should begins with \"1BSR\"",
-    "popcap.rsb.unpack.invalid_version_resources_pos": "Invalid version 3 resource position"
+    "popcap.rsb.unpack.invalid_version_resources_pos": "Invalid version 3 resource position",
+    "kernel.tuple.js_object": "JS Object",
+    "lzma.compress.failed": "lzma compress failed",
+    "lzma.uncompress.failed": "lzma uncompress failed",
+    "zlib.compress.failed": "Zlib compress failed",
+    "zlib.uncompress.failed": "Zlib uncompress failed",
+    "zlib.compress.invalid_level": "Invalid zlib level, expected level from 0 to 9",
+    "vcdiff.encode.flag_not_found": "VCDiff encode flag not found"
 }

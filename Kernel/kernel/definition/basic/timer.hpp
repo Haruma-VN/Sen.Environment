@@ -41,12 +41,12 @@ namespace Sen::Kernel::Definition {
 			/**
 			 * Sleep to wait for a thread
 			*/
-
+			template <typename T> requires std::is_integral<T>::value
 			inline static auto sleep(
-				long long m
+				T m
 			) -> void
 			{
-				std::this_thread::sleep_for(clock::milliseconds(m));
+				std::this_thread::sleep_for(clock::milliseconds(static_cast<long long>(m)));
 				return;
 			}
 

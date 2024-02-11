@@ -155,7 +155,7 @@ namespace Sen::Kernel::Math {
 	*/
 
 
-	template <typename T> requires std::is_integral_v<T>
+	template <typename T> requires std::is_integral_v<T> || std::is_floating_point<T>::value
 	inline static auto compare(
 		const T & a,
 		const T & b

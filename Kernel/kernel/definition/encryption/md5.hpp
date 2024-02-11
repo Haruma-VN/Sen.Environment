@@ -19,7 +19,7 @@ namespace Sen::Kernel::Definition::Encryption::MD5
 		const std::span<const byte> &message
 	) -> std::string
 	{
-		auto md5 = std::make_shared<Dependencies::md5::MD5>(message);
+		auto md5 = std::make_unique<Dependencies::md5::MD5>(message);
 		auto result = md5->toStr();
 		return result;
 	}
@@ -30,11 +30,11 @@ namespace Sen::Kernel::Definition::Encryption::MD5
 	*/
 
 	inline static auto hash_fs(
-		const std::string & source
+		std::string_view source
 	) -> std::string
 	{
-		auto str = FileSystem::read_file(source);
-		auto result = Kernel::Definition::Encryption::MD5::hash(static_cast<std::span<unsigned char>>(String::convertStringToSpan<unsigned char>(str)));
+		auto str = FileSystem::read_binary<unsigned char>(source);
+		auto result = Kernel::Definition::Encryption::MD5::hash(str);
 		return result;
 	}
 

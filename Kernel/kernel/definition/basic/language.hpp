@@ -20,14 +20,24 @@ namespace Sen::Kernel::Language
 
 	static std::map<std::string, std::string> language;
 
+	/**
+	 * Lambda auto close file
+	*/
+
 	inline static auto constexpr close_file = [](auto f)
 	{
 		if(f)
 		{
-			fclose(f);
+			std::fclose(f);
+			f = nullptr;
 		}
 		return;
 	};
+
+	/**
+	 * Language file reader
+	 * Kernel will parse language before start program
+	*/
 
 	inline static auto read_language(
 		std::string_view source
@@ -42,6 +52,11 @@ namespace Sen::Kernel::Language
 		language = nlohmann::json::parse(buffer.str());
 		return;
 	}
+
+	/**
+	 * Get the string from Kernel
+	 * The Script will obtain from here, also inner kernel method
+	*/
 
 	inline static auto get(
 		std::string_view key
