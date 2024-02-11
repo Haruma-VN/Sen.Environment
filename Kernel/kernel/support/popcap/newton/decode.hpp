@@ -128,7 +128,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 						group["res"] = fmt::format("{}", res);
 					}
 					auto subgroups_count = thiz.read_integer<true>();
-					auto resources_count = thiz.read_integer<true>();
+					auto resources_count = thiz.read_integer<false>();
 					auto version = thiz.read_enumeration<true>();
 					assert_conditional(version == 0x01, fmt::format("{} {} {} {}", Kernel::Language::get("popcap.newton.decode.unknown_version"), version, Kernel::Language::get("popcap.newton.decode.at_index"), i), "process");
       				auto group_has_parent = thiz.read_boolean();

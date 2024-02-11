@@ -5,37 +5,40 @@
 namespace Sen::Kernel::Support::PopCap::RSB
 {
 #pragma region RSB_HeadInfo
+
+    template <typename T> requires std::is_integral<T>::value
     struct RSB_HeadInfo
     {
         std::string_view magic = "1bsr"_sv;
-        uint32_t version;
-        uint32_t file_offset;
-        uint32_t file_list_length;
-        uint32_t file_list_begin;
-        uint32_t rsg_list_length;
-        uint32_t rsg_list_begin;
-        uint32_t rsg_number;
-        uint32_t rsg_info_begin;
-        uint32_t rsg_info_each_length;
-        uint32_t composite_number;
-        uint32_t composite_info_begin;
-        uint32_t composite_info_each_length;
-        uint32_t composite_list_length;
-        uint32_t composite_list_begin;
-        uint32_t autopool_number;
-        uint32_t autopool_info_begin;
-        uint32_t autopool_info_each_length;
-        uint32_t ptx_number;
-        uint32_t ptx_info_begin;
-        uint32_t ptx_info_each_length;
-        uint32_t part1_begin;
-        uint32_t part2_begin;
-        uint32_t part3_begin;
+        T version;
+        T file_offset;
+        T file_list_length;
+        T file_list_begin;
+        T rsg_list_length;
+        T rsg_list_begin;
+        T rsg_number;
+        T rsg_info_begin;
+        T rsg_info_each_length;
+        T composite_number;
+        T composite_info_begin;
+        T composite_info_each_length;
+        T composite_list_length;
+        T composite_list_begin;
+        T autopool_number;
+        T autopool_info_begin;
+        T autopool_info_each_length;
+        T ptx_number;
+        T ptx_info_begin;
+        T ptx_info_each_length;
+        T part1_begin;
+        T part2_begin;
+        T part3_begin;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const RSB_HeadInfo& nlohmann_json_t
+        const RSB_HeadInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["magic"] = nlohmann_json_t.magic; 
@@ -65,9 +68,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        RSB_HeadInfo& nlohmann_json_t
+        RSB_HeadInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("magic").get_to(nlohmann_json_t.magic); 
@@ -100,29 +104,33 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
 
 #pragma region NameDict
+
+    template <typename T> requires std::is_integral<T>::value
     struct NameDict
     {
     public:
         std::string name_path;
-        uint32_t pos;
+        T pos;
         explicit NameDict(
 
             ) = default;
 
         explicit NameDict(
             std::string name_path,
-            uint32_t pos) : name_path(name_path), pos(pos)
+            T pos
+        ) : name_path(name_path), pos(pos)
         {
         }
 
         ~NameDict(
 
-            ) = default;
+        ) = default;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const NameDict& nlohmann_json_t
+        const NameDict<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["name_path"] = nlohmann_json_t.name_path; 
@@ -130,9 +138,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        NameDict& nlohmann_json_t
+        NameDict<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("name_path").get_to(nlohmann_json_t.name_path); 
@@ -143,22 +152,24 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma endregion
 
 #pragma region RSG_PacketInfo
+    template <typename T> requires std::is_integral<T>::value
     struct RSG_PTXInfo
     {
         public:
-        uint32_t id;
-        uint32_t format;
-        uint32_t width;
-        uint32_t height;
+        T id;
+        T format;
+        T width;
+        T height;
 
         explicit RSG_PTXInfo(
 
             ) = default;
 
         explicit RSG_PTXInfo(
-            uint32_t id,
-            uint32_t width,
-            uint32_t height) : id(id), width(width), height(height)
+            T id,
+            T width,
+            T height
+        ) : id(id), width(width), height(height)
         {
         }
 
@@ -167,9 +178,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j,
-        const RSG_PTXInfo& nlohmann_json_t
+        const RSG_PTXInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id; 
@@ -179,9 +191,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j,
-        RSG_PTXInfo& nlohmann_json_t
+        RSG_PTXInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("id").get_to(nlohmann_json_t.id); 
@@ -195,15 +208,17 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
 
 #pragma region RSG_ResInfo
+
+    template <typename T> requires std::is_integral<T>::value
     struct RSG_ResInfo
     {
     public:
         std::string path;
-        RSG_PTXInfo ptx_info;
+        RSG_PTXInfo<T> ptx_info;
 
         explicit RSG_ResInfo(
 
-            ) = default;
+        ) = default;
 
         explicit RSG_ResInfo(
             std::string path) : path(path)
@@ -212,12 +227,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         ~RSG_ResInfo(
 
-            ) = default;
+         ) = default;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const RSG_ResInfo& nlohmann_json_t
+        const RSG_ResInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["path"] = nlohmann_json_t.path; 
@@ -225,9 +241,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        RSG_ResInfo& nlohmann_json_t
+        RSG_ResInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path); 
@@ -238,30 +255,33 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma endregion
 
 #pragma region RSG_PacketInfo
+
+    template <typename T> requires std::is_integral<T>::value
     struct RSG_PacketInfo
     {
     public:
-        uint32_t compression_flags;
-        std::vector<RSG_ResInfo> res;
+        T compression_flags;
+        std::vector<RSG_ResInfo<T>> res;
 
         explicit RSG_PacketInfo(
 
-            ) = default;
+        ) = default;
 
         explicit RSG_PacketInfo(
-            uint32_t compression_flags) : compression_flags(compression_flags)
+            T compression_flags
+        ) : compression_flags(compression_flags)
         {
         }
 
         ~RSG_PacketInfo(
 
-            ) = default;
+        ) = default;
     };
 
-
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const RSG_PacketInfo& nlohmann_json_t
+        const RSG_PacketInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["compression_flags"] = nlohmann_json_t.compression_flags; 
@@ -269,9 +289,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        RSG_PacketInfo& nlohmann_json_t
+        RSG_PacketInfo<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("compression_flags").get_to(nlohmann_json_t.compression_flags); 
@@ -283,25 +304,28 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
 
 #pragma region RSG_Info
+
+    template <typename T> requires std::is_integral<T>::value
     struct RSG_Info
     {
     public:
         nlohmann::ordered_json category;
-        RSG_PacketInfo packet_info;
+        RSG_PacketInfo<T> packet_info;
 
         
         explicit RSG_Info(
 
-            ) = default;
+        ) = default;
 
         ~RSG_Info(
 
-            ) = default;
+         ) = default;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const RSG_Info& nlohmann_json_t
+        const RSG_Info<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["category"] = nlohmann_json_t.category; 
@@ -309,9 +333,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        RSG_Info& nlohmann_json_t
+        RSG_Info<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("category").get_to(nlohmann_json_t.category); 
@@ -323,15 +348,17 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
 
 #pragma region RSG_Group
+
+    template <typename T> requires std::is_integral<T>::value
     struct RSG_Group
     {
     public:
         bool is_composite;
-        std::map<std::string, RSG_Info> subgroup;
+        std::map<std::string, RSG_Info<T>> subgroup;
 
         explicit RSG_Group(
 
-            ) = default;
+        ) = default;
 
         explicit RSG_Group(
             bool is_composite) : is_composite(is_composite)
@@ -343,9 +370,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ) = default;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline auto to_json(
         nlohmann::ordered_json& nlohmann_json_j, 
-        const RSG_Group& nlohmann_json_t
+        const RSG_Group<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["is_composite"] = nlohmann_json_t.is_composite; 
@@ -353,9 +381,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     } 
     
+    template <typename T> requires std::is_integral<T>::value
     inline auto from_json(
         const nlohmann::ordered_json& nlohmann_json_j, 
-        RSG_Group& nlohmann_json_t
+        RSG_Group<T>& nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j.at("is_composite").get_to(nlohmann_json_t.is_composite); 
@@ -367,15 +396,18 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
 
 #pragma region Manifest
+
+    template <typename T> requires std::is_integral<T>::value
     struct Manifest
     {
-        uint32_t version;
-        std::map<std::string, RSG_Group> group;
+        T version;
+        std::map<std::string, RSG_Group<T>> group;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline static auto to_json(
         nlohmann::ordered_json &nlohmann_json_j,
-        const Manifest &nlohmann_json_t
+        const Manifest<T> &nlohmann_json_t
     ) -> void
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
@@ -383,9 +415,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
         return;
     };
 
+    template <typename T> requires std::is_integral<T>::value
     inline static auto from_json(
         const nlohmann::ordered_json &json,
-        Manifest &info) -> void
+        Manifest<T> &info
+    ) -> void
     {
         json.at("version").get_to(info.version);
         json.at("group").get_to(info.group);
@@ -413,9 +447,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma endregion
 
 #pragma region DescriptionResources
+    template <typename T> requires std::is_integral<T>::value
     struct DescriptionResources
     {
-        int type;
+        T type;
         std::string path;
         PropertiesPtxInfo ptx_info;
         std::map<std::string, std::string> properties;
@@ -424,28 +459,31 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma endregion
 
 #pragma region DescriptionSubGroup
+    template <typename T> requires std::is_integral<T>::value
     struct DescriptionSubGroup
     {
         std::string res;
         std::string language;
-        std::map<std::string, DescriptionResources> resources;
+        std::map<std::string, DescriptionResources<T>> resources;
     };
 
 #pragma endregion
 
 #pragma region DescriptionGroup
+    template <typename T> requires std::is_integral<T>::value
     struct DescriptionGroup
     {
         bool composite;
-        std::map<std::string, DescriptionSubGroup> subgroups;
+        std::map<std::string, DescriptionSubGroup<T>> subgroups;
     };
 
 #pragma endregion
 
 #pragma region Description
+    template <typename T> requires std::is_integral<T>::value
     struct Description
     {
-        std::map<std::string, DescriptionGroup> groups;
+        std::map<std::string, DescriptionGroup<T>> groups;
     };
 
 #pragma endregion

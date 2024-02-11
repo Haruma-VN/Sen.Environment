@@ -12,13 +12,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
     protected:
         std::unique_ptr<DataStreamView> sen;
 
+        template <typename T, auto write_info> requires std::is_integral<T>::value
         inline auto process(
-            std::string_view destination
+            std::string_view destination,
+            Manifest<T>& manifest_info
         ) const -> void
         {
-            auto rsb_head_info = RSB_HeadInfo{};
+            auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);
-            auto manifest_info = Manifest{};
             manifest_info.version = rsb_head_info.version;
             auto packet_folder = fmt::format("{}/{}", destination, "packet");
             FileSystem::create_directory(destination);
@@ -34,25 +35,28 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto composite_name = sen->readStringByEmpty(composite_start_pos);
                 auto composite_info_pos = composite_start_pos + 0x80;
                 auto is_composite = composite_name.ends_with("_CompositeShell");
-                auto rsg_group = RSG_Group{is_composite};
+                auto rsg_group = RSG_Group<T>{is_composite};
                 for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
                 {
-                    auto rsg_info = RSG_Info{};
+                    auto rsg_info = RSG_Info<T>{};
                     auto rsg_index = sen->readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
-                    read_rsg_category<int>(rsb_head_info.version, rsg_info);
+                    read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
-                    read_rsg_info<int>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
+                    read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
                 manifest_info.group.insert(std::pair{composite_name, rsg_group});
             }
-            FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
+            if constexpr (write_info) {
+                FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
+            }
             return;
         }
 
+        template <typename T> requires std::is_integral<T>::value
         inline auto read_description(
-            const RSB_HeadInfo &rsb_head_info
+            const RSB_HeadInfo<T> &rsb_head_info
         ) const -> void 
         {
             sen->read_pos = rsb_head_info.part1_begin;
@@ -61,10 +65,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
-        template <typename T> requires std::is_integral<T>::value
+        template <typename T, typename U> requires std::is_integral<T>::value && 
+            std::is_integral<U>::value
         inline auto read_rsg_category(
             T version, 
-            RSG_Info &rsg_info
+            RSG_Info<U> &rsg_info
         ) const -> void
         {
             if (version == 3)
@@ -111,12 +116,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
         */
-        template <typename T> requires std::is_integral<T>::value
+        template <typename T, typename U, auto write_rsg> requires std::is_integral<T>::value && std::is_integral<U>::value
         inline auto read_rsg_info(
             T rsg_index,
-            const RSB_HeadInfo &rsb_head_info,
+            const RSB_HeadInfo<U> &rsb_head_info,
             T rsg_info_pos,
-            RSG_Info &rsg_info,
+            RSG_Info<U> &rsg_info,
             std::string_view rsg_name,
             std::string_view packet_folder
         ) const -> void
@@ -127,19 +132,21 @@ namespace Sen::Kernel::Support::PopCap::RSB
             rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
             auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
             read_res_info<int>(packet_sen, rsb_head_info, ptx_number_pool, &rsg_info.packet_info.res);
-            packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
+            if constexpr (write_rsg) {
+                packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
+            }
             return;
         }
 
-        template <typename T> requires std::is_integral<T>::value
+        template <typename T, typename U> requires std::is_integral<T>::value && std::is_integral<U>::value
         inline auto read_res_info(
             const DataStreamView &packet_sen,
-            const RSB_HeadInfo &rsb_head_info,
+            const RSB_HeadInfo<U> &rsb_head_info,
             T ptx_number_pool,
-            std::vector<RSG_ResInfo>* res_list
+            std::vector<RSG_ResInfo<U>>* res_list
         ) const -> void
         {
-            auto name_dist_list = std::vector<NameDict>{};
+            auto name_dist_list = std::vector<NameDict<std::uint32_t>>{};
             auto name_path = std::string{};
             // read rsg_file_list_length;
             auto file_list_lengh = packet_sen.readUint32(0x48);
@@ -155,19 +162,19 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     if (pos != 0)
                     {
-                        name_dist_list.emplace_back(NameDict{
+                        name_dist_list.emplace_back(NameDict<std::uint32_t>{
                             name_path,
                             pos,
                         });
                     }
                     auto is_atlas = packet_sen.readUint32() == 1;
-                    auto res = RSG_ResInfo{name_path};
+                    auto res = RSG_ResInfo<std::uint32_t>{name_path};
                     packet_sen.read_pos += 8;
                     if (is_atlas)
                     {
                         auto id = packet_sen.readUint32();
                         packet_sen.read_pos += 8;
-                        res.ptx_info = RSG_PTXInfo{id, packet_sen.readUint32(), packet_sen.readUint32()};
+                        res.ptx_info = RSG_PTXInfo<std::uint32_t>{id, packet_sen.readUint32(), packet_sen.readUint32()};
                         auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
                         res.ptx_info.format = sen->readUint32(format_pos);
                     }
@@ -200,8 +207,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
+        template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
         inline auto read_head(
-            RSB_HeadInfo* rsb_headinfo
+            RSB_HeadInfo<T>* rsb_headinfo
         ) const -> void
         {
             {
@@ -266,7 +274,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ) -> void
         {
             auto unpack = Unpack{source};
-            unpack.process(destination);
+            auto manifest = Manifest<std::uint32_t>{};
+            unpack.process<std::uint32_t, true>(destination, manifest);
             return;
         }
     };
