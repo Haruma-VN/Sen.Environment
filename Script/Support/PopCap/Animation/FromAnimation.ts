@@ -193,7 +193,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                         height: `${animation["size"]["height"]}`,
                         xflVersion: "2.971",
                     },
-                    folder: {
+                    folders: {
                         DOMFolderItem: [
                             {
                                 "@attributes": {
@@ -289,11 +289,11 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function write_sprite(frame_node_list: FrameNodeList, animation_sprite_name_list: string[], animation_image_id_list: string[], name: string, is_action: boolean): string {
             const frame_keys: string[] = Object.keys(frame_node_list);
-            let sprite_layers: SpriteLayers[] = [];
+            let dom_sprite_layers: SpriteDomLayer[] = [];
             for (let i = frame_keys.length - 1; i > 0; i--) {
                 const layers_index: bigint = BigInt(frame_keys[i]);
                 const frame_node: FrameNode[] = frame_node_list[`${layers_index}`];
-                const layer_frames: SpriteFrame[] = [];
+                const dom_layer_frames: SpriteDomFrame[] = [];
                 for (let k = 0; k < frame_node.length; k++) {
                     const transform: number[] = frame_node[k]["transform"];
                     const base_color: number[] = frame_node[k]["color"];
@@ -313,16 +313,16 @@ namespace Sen.Script.Support.PopCap.Animation {
                     if (check_base_frame(transform, base_color, resource)) {
                         const symbol_instance_attributes: DOMSymbolInstanceAttributes = frame_node[k]["sprite"]
                             ? {
-                                  libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
-                                  firstFrame: `${frame_node[k]["first_frame"]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              }
+                                libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
+                                firstFrame: `${frame_node[k]["first_frame"]}`,
+                                symbolType: "graphic",
+                                loop: "loop",
+                            }
                             : {
-                                  libraryItemName: `image/${animation_image_id_list[Number(resource)]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              };
+                                libraryItemName: `image/${animation_image_id_list[Number(resource)]}`,
+                                symbolType: "graphic",
+                                loop: "loop",
+                            };
                         if (frame_node[k]["sprite"]) {
                             symbol_instance_attributes["firstFrame"] = `${frame_node[k]["first_frame"]}`;
                         }
@@ -355,18 +355,17 @@ namespace Sen.Script.Support.PopCap.Animation {
                             DOMSymbolInstance: dom_symbol_instance,
                         };
                     }
-                    layer_frames.push({
-                        DOMFrame: sprite_dom_frame,
-                    });
+                    dom_layer_frames.push(sprite_dom_frame);
                 }
-                sprite_layers.push({
-                    DOMLayer: {
-                        "@attributes": {
-                            name: `${i}`,
-                        },
-                        frames: layer_frames,
+                dom_sprite_layers.push({
+                    "@attributes": {
+                        name: `${i}`,
                     },
-                });
+                    frames: {
+                        DOMFrame: dom_layer_frames
+                    },
+                }
+                );
             }
             const sprite_attributes: Attributes = {
                 "xmlns:xsi": xmlns_xsi,
@@ -382,7 +381,9 @@ namespace Sen.Script.Support.PopCap.Animation {
                             "@attributes": {
                                 name: name,
                             },
-                            layers: sprite_layers,
+                            layers: {
+                                DOMLayer: dom_sprite_layers
+                            },
                         },
                     },
                 },

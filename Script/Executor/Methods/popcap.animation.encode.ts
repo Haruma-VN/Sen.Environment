@@ -52,7 +52,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument, string>(
                     argument,
                     "destination",
-                    `${Sen.Kernel.Path.except_extension(argument.source)}.pam`,
+                    `${Sen.Kernel.Path.except_extension(argument.source)}`,
                 );
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Kernel.Support.PopCap.Animation.encode_fs(argument.source, argument.destination!);

@@ -69,30 +69,30 @@ namespace Sen.Script.Support.PopCap.Animation {
         DOMSymbolInstance: DOMSymbolInstance;
     }
 
-    export interface SpriteFrame {
-        DOMFrame: SpriteDomFrame;
-    }
+    export type SpriteDomFrameProperty = SpriteDomFrame | SpriteDomFrame[];
 
-    export type SpriteFrameProperty = SpriteFrame | SpriteFrame[];
+    export interface SpriteFrame {
+        DOMFrame: SpriteDomFrameProperty;
+    }
 
     export interface SpriteDomLayer {
         "@attributes": {
             name: string;
         };
-        frames: SpriteFrameProperty;
+        frames: SpriteFrame;
     }
+
+    export type SpriteDomLayerProperty = SpriteDomLayer | SpriteDomLayer[];
 
     export interface SpriteLayers {
-        DOMLayer: SpriteDomLayer;
+        DOMLayer: SpriteDomLayerProperty;
     }
-
-    export type SpriteLayersProperty = SpriteLayers | SpriteLayers[];
 
     export interface SpriteDomTimeline {
         "@attributes": {
             name: string;
         };
-        layers: SpriteLayersProperty;
+        layers: SpriteLayers;
     }
 
     // image_document
@@ -154,7 +154,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     export interface DOMDocument extends Kernel.XML.XMLDocument {
         DOMDocument: {
             "@attributes": DocumentAttributes;
-            folder: DomFolderItem;
+            folders: DomFolderItem;
             media: DomBitmapItem;
             symbols: {
                 Include: AttributesSymbolsItem[];

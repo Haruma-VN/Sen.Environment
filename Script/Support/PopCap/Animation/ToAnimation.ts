@@ -43,7 +43,6 @@ namespace Sen.Script.Support.PopCap.Animation {
             const animation_label_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "action"))
                 .filter((e) => /(.*)\.xml$/gi.test(e))
                 .map((e) => Kernel.Path.base_without_extension(e));
-            debug(animation_label_list);
             const animation_action_map: Record<string, FrameNode> = {};
             for (let action_label of animation_label_list) {
                 const action_document: SpriteDocument = Kernel.XML.deserialize(Kernel.FileSystem.read_file(Kernel.Path.join(source, "library", "action", `${action_label}.xml`)));
@@ -85,7 +84,7 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, bigint>, last_frame: bigint): void {
             // debug("parse_dom_document");
-            if (!dom_document["DOMDocument"].hasOwnProperty("folder")) {
+            if (!dom_document["DOMDocument"].hasOwnProperty("folders")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_folder"));
             }
             if (!dom_document["DOMDocument"].hasOwnProperty("media")) {
@@ -268,14 +267,18 @@ namespace Sen.Script.Support.PopCap.Animation {
             if (!DOMtimeline.hasOwnProperty("layers")) {
                 throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_layers"), sprite_name));
             }
-            const sprite_layers: SpriteLayersProperty = DOMtimeline["layers"];
-            const sprite_layers_list: SpriteLayers[] = [];
-            if (Array.isArray(sprite_layers)) {
-                sprite_layers_list.push(...sprite_layers);
-            } else {
-                sprite_layers_list.push(sprite_layers);
+            const sprite_layers: SpriteLayers = DOMtimeline["layers"];
+            if (!sprite_layers.hasOwnProperty("DOMLayer")) {
+                throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_DOMLayer"), sprite_name));
             }
-            sprite_layers_list.reverse();
+            const dom_layers: SpriteDomLayerProperty = sprite_layers["DOMLayer"];
+            const dom_layers_list: SpriteDomLayer[] = [];
+            if (Array.isArray(dom_layers)) {
+                dom_layers_list.push(...dom_layers);
+            } else {
+                dom_layers_list.push(dom_layers);
+            }
+            dom_layers_list.reverse();
             let layer_count: bigint = 0n;
             let model: Model | null = null;
             const frames_result: Structure.AnimationFrame[] = [];
@@ -315,32 +318,28 @@ namespace Sen.Script.Support.PopCap.Animation {
                 }
                 return index;
             }
-
-            sprite_layers_list.forEach((layer: SpriteLayers, index: number) => {
-                if (!layer.hasOwnProperty("DOMLayer")) {
-                    throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_DOMLayer"), sprite_name, index + 1));
-                }
-                if (!layer["DOMLayer"].hasOwnProperty("frames")) {
+            dom_layers_list.forEach((layer: SpriteDomLayer, index: number) => {
+                if (!layer.hasOwnProperty("frames")) {
                     throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_frames"), sprite_name, index + 1));
                 }
-                const sprite_frames: SpriteFrameProperty = layer["DOMLayer"]["frames"];
-                const sprite_frames_list: SpriteFrame[] = [];
-                if (Array.isArray(sprite_frames)) {
-                    sprite_frames_list.push(...sprite_frames);
-                } else {
-                    sprite_frames_list.push(sprite_frames);
+                const sprite_frames: SpriteFrame = layer["frames"];
+                if (!sprite_frames.hasOwnProperty("DOMFrame")) {
+                    throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_DOMFrame"), sprite_name, index + 1));
                 }
-                sprite_frames_list.forEach((frame) => {
-                    if (!frame.hasOwnProperty("DOMFrame")) {
-                        throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_DOMFrame"), sprite_name, index + 1));
-                    }
-                    const dom_frame: SpriteDomFrame = frame["DOMFrame"];
+                const dom_frames: SpriteDomFrameProperty = sprite_frames["DOMFrame"];
+                const dom_frames_list: SpriteDomFrame[] = [];
+                if (Array.isArray(dom_frames)) {
+                    dom_frames_list.push(...dom_frames);
+                } else {
+                    dom_frames_list.push(dom_frames);
+                }
+                dom_frames_list.forEach((dom_frame: SpriteDomFrame) => {
                     const frame_index: bigint = BigInt(dom_frame["@attributes"]["index"]);
-                    const frame_duration: bigint = BigInt(dom_frame["@attributes"]["duration"]);
-                    if (!frame["DOMFrame"].hasOwnProperty("elements")) {
+                    const frame_duration: bigint = BigInt(dom_frame["@attributes"]["duration"] ?? "1");
+                    if (!dom_frame.hasOwnProperty("elements")) {
                         throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_elements"), sprite_name, index + 1));
                     }
-                    const elements: any = frame["DOMFrame"]["elements"];
+                    const elements: any = dom_frame["elements"];
                     if (elements === null) {
                         close_current_model();
                         return;
@@ -431,7 +430,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             frames_result.pop();
             return {
                 frames: frames_result,
-                layer_length: BigInt(sprite_layers_list.length),
+                layer_length: BigInt(dom_layers_list.length),
             };
         }
 
