@@ -189,7 +189,7 @@ namespace Sen::Kernel::Support::Texture {
 				for(auto y : Range<int>(height)){
 					for(auto x : Range<int>(width)){
 						auto temp_pixel = sen.readUint16();
-						auto red = temp_pixel >> 12;
+						auto red = temp_pixel >> 11;
 						auto green = (temp_pixel & 0x7E0) >> 5;
 						auto blue = temp_pixel & 0x1F;
 						auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(x, y, width));
@@ -222,7 +222,7 @@ namespace Sen::Kernel::Support::Texture {
 					for(auto x : Range<int>(width)){
 						auto temp_pixel = sen.readUint16();
 						auto red = (temp_pixel & 0xF800) >> 11;
-						auto green = (temp_pixel & 0x7E0) >> 5;
+						auto green = (temp_pixel & 0x7E0) >> 6;
 						auto blue = (temp_pixel & 0x3E) >> 1;
 						auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(x, y, width));
 						data[index] = static_cast<unsigned char>((red << 3) | (red >> 2));
@@ -260,7 +260,7 @@ namespace Sen::Kernel::Support::Texture {
 									auto green = (temp_pixel & 0xF00) >> 8;
 									auto blue = (temp_pixel & 0xF0) >> 4;
 									auto alpha = temp_pixel & 0xF;
-									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(w + k, i + j, width));
+									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel((w + k), (i + j), width));
 									data[index] = static_cast<unsigned char>((red << 4) | red);
 									data[index + 1] = static_cast<unsigned char>((green << 4) | green);
 									data[index + 2] = static_cast<unsigned char>((blue << 4) | blue);
@@ -298,10 +298,10 @@ namespace Sen::Kernel::Support::Texture {
 									auto red = (temp_pixel & 0xF800) >> 8;
 									auto green = (temp_pixel & 0x7E0) >> 3;
 									auto blue = (temp_pixel & 0x1F) << 3;
-									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(w + k, i + j, width));
-									data[index] = static_cast<unsigned char>((red << 4) | red);
-									data[index + 1] = static_cast<unsigned char>((green << 4) | green);
-									data[index + 2] = static_cast<unsigned char>((blue << 4) | blue);
+									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel((w + k), (i + j), width));
+									data[index] = static_cast<unsigned char>(red);
+									data[index + 1] = static_cast<unsigned char>(green);
+									data[index + 2] = static_cast<unsigned char>(blue);
 									data[index + 3] = PixelColor::NON_ALPHA;
 								}
 							}
@@ -336,7 +336,7 @@ namespace Sen::Kernel::Support::Texture {
 									auto red = temp_pixel >> 11;
 									auto green = (temp_pixel & 0x7C0) >> 6;
 									auto blue = (temp_pixel & 0x3E) >> 1;
-									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(w + k, i + j, width));
+									auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel((w + k), (i + j), width));
 									data[index] = static_cast<unsigned char>((red << 3) | (red >> 2));
 									data[index + 1] = static_cast<unsigned char>((green << 3) | (green >> 2));
 									data[index + 2] = static_cast<unsigned char>((blue << 3) | (blue >> 2));

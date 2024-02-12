@@ -38,9 +38,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "library", "sprite", `${sprite_name}.xml`), sprite_document);
             }
             const frame_list: FrameList = decode_frame_list(animation["main_sprite"], animation_sprite_map, animation_sprite_name_list);
-            Sen.Kernel.JSON.serialize_fs("C:/Users/Shift/Desktop/mod_pam/frame_list.json", frame_list, 1, false);
             const action_node_list: Record<string, Record<string, FrameNode[]>> = write_action(frame_list);
-            Sen.Kernel.JSON.serialize_fs("C:/Users/Shift/Desktop/mod_pam/action_node.json", action_node_list, 1, false);
             const action_keys_templates: string[] = Object.keys(action_node_list);
             for (let action_label of action_keys_templates) {
                 const action_document: string = write_sprite(action_node_list[action_label], animation_sprite_name_list, animation_image_id_list, action_label, true);

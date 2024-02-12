@@ -135,7 +135,7 @@ namespace Sen::Kernel::Support::Texture {
 						sen.writeUint16(color);
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgb_565(
@@ -147,11 +147,11 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto y : Range<int>(image.height)) {
 					for (auto x : Range<int>(image.width)) {
 						auto index = set_pixel(x, y, image.width);
-						auto color = ((data[index + 2]) >> 3 | (((data[index + 1]) & 0xFC) << 3) | (((data[index]) & 0xF8) << 8));
+						auto color = static_cast<uint16_t>((data[index + 2] >> 3) | (((data[index + 1]) & 0xFC) << 3) | (((data[index]) & 0xF8) << 8));
 						sen.writeUint16(color);
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgba_5551(
@@ -170,7 +170,7 @@ namespace Sen::Kernel::Support::Texture {
 						sen.writeUint16(color);
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgba_4444_tiled(
@@ -184,9 +184,9 @@ namespace Sen::Kernel::Support::Texture {
 						for (auto j : Range<int>(32)) {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
-									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = ((data[index + 3]) >> 4 |
-										(data[index + 2]) & 0xF0 |
+									auto index = set_pixel((x + k), (y + j), image.width);
+									auto color = static_cast<uint16_t>((data[index + 3] >> 4) |
+										(data[index + 2] & 0xF0) |
 										(((data[index + 1]) & 0xF0) << 4) |
 										(((data[index + 0]) & 0xF0) << 8));
 									sen.writeUint16(color);
@@ -198,7 +198,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgb_565_tiled(
@@ -212,8 +212,8 @@ namespace Sen::Kernel::Support::Texture {
 						for (auto j : Range<int>(32)) {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
-									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = (((data[index + 2]) & 0xF8 >> 3) |
+									auto index = set_pixel((x + k), (y + j), image.width);
+									auto color = static_cast<uint16_t>(((data[index + 2] & 0xF8) >> 3) |
 												(((data[index + 1]) & 0xFC) << 3) |
 												(((data[index + 0]) & 0xF8) << 8));
 									sen.writeUint16(color);
@@ -225,7 +225,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgba_5551_tiled(
@@ -239,11 +239,11 @@ namespace Sen::Kernel::Support::Texture {
 						for (auto j : Range<int>(32)) {
 							for (auto k : Range<int>(32)) {
 								if ((y + j) < image.height and (x + k) < image.width) {
-									auto index = set_pixel(x + k, y + j, image.width);
-									auto color = ((((data[index + 3]) & 0x80) >> 7) |
-												((data[index + 2]) & 0xF8 >> 2) |
-												(((data[index + 1]) & 0xF8) << 3) |
-												(((data[index + 0]) & 0xF8) << 8));
+									auto index = set_pixel((x + k), (y + j), image.width);
+									auto color = static_cast<uint16_t>(((data[index + 3] & 0x80) >> 7) |
+												((data[index + 2] & 0xF8) >> 2) |
+												((data[index + 1] & 0xF8) << 3) |
+												((data[index + 0] & 0xF8) << 8));
 									sen.writeUint16(color);
 								} 
 								else {
@@ -253,7 +253,7 @@ namespace Sen::Kernel::Support::Texture {
 						}
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgb_etc1_a_8(
@@ -282,7 +282,7 @@ namespace Sen::Kernel::Support::Texture {
 						sen.writeUint8(data[set_pixel(x, y, image.width) + 3]);
 					}
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto rgb_etc1_a_palette(
@@ -317,7 +317,7 @@ namespace Sen::Kernel::Support::Texture {
 				if((size & 1) == 1){
 					sen.writeUint8(static_cast<uint8_t>(data[(half_size * 4 << 1)] & 0xF0));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto a_8(
@@ -329,7 +329,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4) {
 					sen.writeUint8(data[i + 3]);
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto argb_1555(
@@ -341,7 +341,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4) {
 					sen.writeUint16(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto argb_4444(
@@ -353,7 +353,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4){
 					sen.writeUint16(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto l_8(
@@ -365,7 +365,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4){
 					sen.writeUint8(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2]));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto la_44(
@@ -377,7 +377,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4){
 					sen.writeUint8(Encode::convert_luminance_from_rgba(data[i], data[i + 1], data[i + 2], data[i + 3]));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 
 			inline static auto la_88(
@@ -389,7 +389,7 @@ namespace Sen::Kernel::Support::Texture {
 				for (auto i = 0; i < image.area() * 4; i += 4){
 					sen.writeUint16(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
 				}
-				return sen.get();
+				return sen.toBytes();
 			}
 	};
 	

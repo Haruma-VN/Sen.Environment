@@ -1045,6 +1045,18 @@ namespace Sen::Kernel {
 				return myconv.from_bytes(str);
 			}
 
+			/*
+				Convert UTF8 to UTF16
+			*/
+
+			inline static auto utf8view_to_utf16(
+				std::string_view str
+			) -> std::wstring
+			{
+				auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+				return myconv.from_bytes(str.data(), str.data() + str.size());
+			}
+
 			inline static auto utf16_to_utf8(
 				const std::wstring& wstr
 			) -> std::string
