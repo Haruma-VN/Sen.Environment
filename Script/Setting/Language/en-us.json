@@ -178,5 +178,10 @@
     "zlib.compress.failed": "Zlib compress failed",
     "zlib.uncompress.failed": "Zlib uncompress failed",
     "zlib.compress.invalid_level": "Invalid zlib level, expected level from 0 to 9",
-    "vcdiff.encode.flag_not_found": "VCDiff encode flag not found"
+    "vcdiff.encode.flag_not_found": "VCDiff encode flag not found",
+    "popcap.rsb.unpack": "PopCap RSB: Unpack",
+    "popcap.rsb.unpack_for_modding": "PopCap RSB: Unpack for Modding",
+    "popcap.rsb.pack": "PopCap RSB: Pack",
+    "popcap.rsb.pack_for_modding": "PopCap RSB: Pack for Modding",
+    "invalid.argument": "Invalid argument: {}, please re-input"
 }

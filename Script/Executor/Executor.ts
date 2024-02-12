@@ -114,25 +114,38 @@ namespace Sen.Script.Executor {
 
     export function argument_load<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
         argument: Argument,
-        key: string,
+        key: keyof Argument & keyof Configuration,
         configuration: Configuration,
         rule: Array<bigint> | Array<[bigint, string, string]>,
         title: string,
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            Sen.Kernel.Console.print(`    ${(argument as any & Argument)[key]}`);
+            Sen.Kernel.Console.print(`    ${argument[key]}`);
             return;
         }
         if ((configuration as any)[key] === "?") {
-            return configurate_or_input(argument, key, rule as Array<[bigint, string, string]>);
+            return configurate_or_input(argument, key as string, rule as Array<[bigint, string, string]>);
         }
-        if ((configuration as any)[key] !== "?") {
-            Sen.Kernel.Console.print(`    ${(configuration as any)[key]}`);
-            (argument as any & Argument)[key] = (configuration as any)[key];
+        if (configuration[key] !== "?") {
+            if (rule.includes(configuration[key] as unknown as bigint & string)) {
+                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                (argument as any & Argument)[key] = configuration[key];
+                return;
+            } else {
+                Console.error(format(Kernel.Language.get("invalid.argument"), configuration[key]));
+                (configuration as any)[key] = "?";
+                return argument_load(argument, key, configuration, rule, title);
+            }
         }
         return;
     }
+
+    /**
+     *
+     * @param rule - Rule to filter
+     * @returns Input in rule
+     */
 
     export function input_integer(rule: Array<bigint>): bigint {
         let input: string = undefined!;

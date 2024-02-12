@@ -107,6 +107,10 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
         }
     }
 
+    /**
+     * Algorithm
+     */
+
     export namespace Algorithm {
         /**
          *

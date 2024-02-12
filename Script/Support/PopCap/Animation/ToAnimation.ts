@@ -9,11 +9,18 @@ namespace Sen.Script.Support.PopCap.Animation {
             layer_length: bigint;
         }
 
+        export interface FrameList {
+            index: bigint;
+            duration: bigint;
+        }
+
         export function process(source: string): SexyAnimation {
             // debug("process");
             const record_info: ExtraInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "record.json"));
             const animation_image_id_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "image"))
-                .filter((e) => /(.*)\.xml$/gi.test(e))
+                .filter((e) => {
+                    return /(.*)\.xml$/gi.test(e) && !e.startsWith("TMP");
+                })
                 .map((e) => Kernel.Path.base_without_extension(e));
             const animation_image_map: Record<string, Structure.AnimationImage> = {};
             for (let image_id of animation_image_id_list) {
@@ -49,7 +56,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 animation_action_map[action_label] = parse_sprite(action_document, action_label, true, animation_image_id_list, animation_sprite_name_list);
             }
             const dom_document: DOMDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "DomDocument.xml"));
-            const action_index_list: Record<string, bigint> = get_action_index(dom_document);
+            const action_index_list: Record<string, FrameList> = get_action_index(dom_document);
             const main_frame: Structure.AnimationFrame[] = merge_action(animation_action_map, action_index_list);
             const animation: Structure.SexyAnimation = {
                 version: 6n,
@@ -82,7 +89,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return list.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
         }
 
-        export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, bigint>, last_frame: bigint): void {
+        export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, FrameList>, last_frame: bigint): void {
             // debug("parse_dom_document");
             if (!dom_document["DOMDocument"].hasOwnProperty("folders")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_folder"));
@@ -102,7 +109,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             }
             const action_label_list: string[] = Object.keys(action_index_list);
             for (let label of action_label_list) {
-                const frame_index: bigint = action_index_list[label];
+                const frame_index: bigint = action_index_list[label]["index"];
                 animation["main_sprite"]["frame"][Number(frame_index)]["label"] = label;
             }
             const dom_command: DocumentDomLayer = dom_document["DOMDocument"]["timelines"]["DOMTimeline"]["layers"]["DOMLayer"][1];
@@ -159,7 +166,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return;
         }
 
-        export function merge_action(animation_action_map: Record<string, FrameNode>, action_index_list: Record<string, bigint>): Structure.AnimationFrame[] {
+        export function merge_action(animation_action_map: Record<string, FrameNode>, action_index_list: Record<string, FrameList>): Structure.AnimationFrame[] {
             // debug("merge_action");
             const main_frame: Structure.AnimationFrame[] = [];
             const animation_label_list: string[] = Object.keys(action_index_list);
@@ -168,8 +175,23 @@ namespace Sen.Script.Support.PopCap.Animation {
             const remove_list: bigint[] = [];
             for (let i = 0; i < animation_label_list.length; i++) {
                 const action_name: string = animation_label_list[i];
+                const duration: bigint = action_index_list[action_name]["duration"];
                 const layer_length: bigint = animation_action_map[action_name]["layer_length"];
                 const action_frames: Structure.AnimationFrame[] = animation_action_map[action_name]["frames"];
+                const action_length: number = action_frames.length;
+                if (BigInt(action_length) != duration) {
+                    if (duration > BigInt(action_length)) {
+                        const append_frames: Structure.AnimationFrame[] = [];
+                        for (let k = 0; k < Number(duration) - action_length; k++) {
+                            const add_frame: Structure.AnimationFrame = Kernel.Miscellaneous.make_copy<Structure.AnimationFrame>(action_frames[k]);
+                            add_frame["append"] = [];
+                            append_frames.push(add_frame);
+                        }
+                        action_frames.push(...append_frames);
+                    } else {
+                        action_frames.splice(Number(duration), action_length - Number(duration));
+                    }
+                }
                 for (let k = 0; k < action_frames.length; k++) {
                     const frame_remove: bigint[] = action_frames[k]["remove"];
                     for (let h = 0; h < frame_remove.length; h++) {
@@ -200,7 +222,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return main_frame;
         }
 
-        export function get_action_index(dom_document: DOMDocument): Record<string, bigint> {
+        export function get_action_index(dom_document: DOMDocument): Record<string, FrameList> {
             // debug("get_action_index");
             if (!dom_document.hasOwnProperty("DOMDocument")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_DOMDocument"));
@@ -232,14 +254,18 @@ namespace Sen.Script.Support.PopCap.Animation {
             } else {
                 flow_domframes_list.push(flow_dom_frames);
             }
-            const action_index_list: Record<string, bigint> = {};
+            const action_index_list: Record<string, FrameList> = {};
             for (let frame of flow_domframes_list) {
                 const frame_index: bigint = BigInt(frame["@attributes"]["index"]);
+                const duration: bigint = BigInt(frame["@attributes"]["duration"] ?? "1");
                 if (frame["@attributes"]["name"] !== undefined) {
                     if (frame["@attributes"]["labelType"] !== "name") {
                         throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_action_label"), frame["@attributes"].name));
                     }
-                    action_index_list[frame["@attributes"]["name"]] = frame_index;
+                    action_index_list[frame["@attributes"]["name"]] = {
+                        index: frame_index,
+                        duration: duration,
+                    };
                 }
             }
             return action_index_list;
@@ -318,6 +344,9 @@ namespace Sen.Script.Support.PopCap.Animation {
                 }
                 return index;
             }
+
+            let use_empty_last_layer = false;
+
             dom_layers_list.forEach((layer: SpriteDomLayer, index: number) => {
                 if (!layer.hasOwnProperty("frames")) {
                     throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_frames"), sprite_name, index + 1));
@@ -341,6 +370,23 @@ namespace Sen.Script.Support.PopCap.Animation {
                     }
                     const elements: any = dom_frame["elements"];
                     if (elements === null) {
+                        if (index === dom_layers_list.length - 1) {
+                            const frame_duration_temp: number = Number(frame_duration) - frames_result.length + 1;
+                            if (frame_duration_temp > 0 && dom_frames_list.length === 1) {
+                                use_empty_last_layer = true;
+                                for (let k = 0; k < frame_duration_temp; k++) {
+                                    frames_result.push({
+                                        label: "",
+                                        stop: true,
+                                        command: [],
+                                        remove: [],
+                                        append: [],
+                                        change: [],
+                                    });
+                                }
+                                return;
+                            }
+                        }
                         close_current_model();
                         return;
                     }
@@ -430,7 +476,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             frames_result.pop();
             return {
                 frames: frames_result,
-                layer_length: BigInt(dom_layers_list.length),
+                layer_length: use_empty_last_layer ? BigInt(dom_layers_list.length) - 1n : BigInt(dom_layers_list.length),
             };
         }
 
