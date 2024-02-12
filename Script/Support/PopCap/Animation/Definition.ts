@@ -39,7 +39,6 @@ namespace Sen.Script.Support.PopCap.Animation {
             alphaOffset?: string;
             tintMultiplier?: string;
             tintColor?: string;
-            
         };
     }
 
@@ -223,9 +222,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             labelType?: string;
         };
         Actionscript?: ActionscriptProperty;
-        elements?: DocumentElements
-            | null
-            | PureInstance;
+        elements?: DocumentElements | null | PureInstance;
     }
 
     export type DocumentDomFrameProperty = DocumentDomFrame | DocumentDomFrame[];
@@ -270,10 +267,13 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     // extra_info
-    export type ExtraInfo = Record<string, Sen.Script.Support.PopCap.Animation.Structure.AnimationSize>;
+    export type ExtraInfo = {
+        version: bigint;
+        group: Record<string, Sen.Script.Support.PopCap.Animation.Structure.AnimationSize>;
+    };
 
     export interface Model {
-        index?: bigint,
+        index?: bigint;
         state: boolean | null;
         resource: bigint;
         sprite: boolean;
@@ -315,7 +315,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     export type ActionList = Record<string, Action>;
 
     export interface Instance {
-        resource: bigint,
-        sprite: boolean
+        resource: bigint;
+        sprite: boolean;
     }
 }

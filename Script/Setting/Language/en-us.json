@@ -132,6 +132,10 @@
     "popcap.animation.from_flash.invalid_document_DOMLayer_length": "DOMDocument.xml contains invalid DOMLayer, it should only have one for \"flow\" and one for \"command\"",
     "popcap.animation.from_flash.invalid_document_flow": "DOMDocument.xml contains invalid DOMLayer, the first element must have name = \"flow\"",
     "popcap.animation.from_flash.invalid_action_label": "Action label is invalid in DOMDocument.xml, because the \"labelType\" value must be \"name\", caused from {}",
+    "popcap.animation.from_flash.dom_frame_has_no_elements": "DOMFrame has no elements DOMDocument.xml, caused from {}",
+    "popcap.animation.from_flash.dom_frame_has_no_DOMSymbolInstance": "DOMFrame has no \"DOMSymbolInstance\" in DOMDocument.xml, caused from {}",
+    "popcap.animation.from_flash.dom_symbol_cannot_be_array": "DOMSymbolInstance cannot have more than one element in DOMDocument.xml, caused from {}",
+    "popcap.animation.from_flash.invaild_action_index": "Mismatch action name in DOMDocument.xml, expected {}, caused from {}",
     "kernel.argument_expected": "argument expected",
     "kernel.argument_received": "received",
     "kernel.expected_argument": "Expected argument at index number",
@@ -183,5 +187,6 @@
     "popcap.rsb.unpack_for_modding": "PopCap RSB: Unpack for Modding",
     "popcap.rsb.pack": "PopCap RSB: Pack",
     "popcap.rsb.pack_for_modding": "PopCap RSB: Pack for Modding",
-    "invalid.argument": "Invalid argument: {}, please re-input"
+    "invalid.argument": "Invalid argument: {}, please re-input",
+    "popcap.animation.from_flash.invalid_version": "Invalid version number, expected version number from 1 to 6, received {}"
 }
