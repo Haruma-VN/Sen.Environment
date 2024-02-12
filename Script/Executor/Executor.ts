@@ -310,10 +310,12 @@ namespace Sen.Script.Executor {
                 return;
             }
             if (is_string(argument.source)) {
-                query(test, worker.filter as [MethodType, RegExp], argument.source, method_name);
+                argument.source = normalize(argument.source);
+                query(test, worker.filter as [MethodType, RegExp], argument.source as string, method_name);
             }
             if (is_array(argument.source)) {
-                query(test_array, worker.filter as [MethodType, RegExp], argument.source, method_name);
+                argument.source = argument.source.map((e) => normalize(e));
+                query(test_array, worker.filter as [MethodType, RegExp], argument.source as string[], method_name);
             }
         });
         display_argument(argument.source as string | string[]);

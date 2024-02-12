@@ -113,4 +113,14 @@ namespace Sen.Script {
         }
         return;
     }
+
+    /**
+     *
+     * @param path - path to normalize
+     * @returns after
+     */
+
+    export function normalize(path: string): string {
+        return path.replaceAll("\\", "/");
+    }
 }
