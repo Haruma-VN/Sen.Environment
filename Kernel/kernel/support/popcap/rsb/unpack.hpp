@@ -21,14 +21,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);
             manifest_info.version = rsb_head_info.version;
-            auto packet_folder = fmt::format("{}/{}", destination, "packet");
-            FileSystem::create_directory(destination);
-            FileSystem::create_directory(packet_folder);
             if (rsb_head_info.version == 3) {
                 if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
                 }
             }
+            auto packet_folder = fmt::format("{}/{}", destination, "packet");
+            FileSystem::create_directory(destination);
+            FileSystem::create_directory(packet_folder);
             for (auto i : Range(rsb_head_info.composite_number))
             {
                 auto composite_start_pos = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
@@ -174,6 +174,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     {
                         auto id = packet_sen.readUint32();
                         packet_sen.read_pos += 8;
+                        res.ptx_info_is_null = false;
                         res.ptx_info = RSG_PTXInfo<std::uint32_t>{id, packet_sen.readUint32(), packet_sen.readUint32()};
                         auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
                         res.ptx_info.format = sen->readUint32(format_pos);

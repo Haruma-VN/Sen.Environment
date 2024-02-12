@@ -215,13 +215,18 @@ namespace Sen::Kernel::Support::PopCap::RSB
     public:
         std::string path;
         RSG_PTXInfo<T> ptx_info;
+        bool ptx_info_is_null;
 
         explicit RSG_ResInfo(
 
-        ) = default;
+        ) : ptx_info_is_null(true)
+        {
+
+        }
 
         explicit RSG_ResInfo(
-            std::string path) : path(path)
+            std::string path
+        ) : path(path), ptx_info_is_null(true)
         {
         }
 
@@ -237,7 +242,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
     ) -> void
     {
         nlohmann_json_j["path"] = nlohmann_json_t.path; 
-        nlohmann_json_j["ptx_info"] = nlohmann_json_t.ptx_info;
+        if (nlohmann_json_t.ptx_info_is_null) {
+            nlohmann_json_j["ptx_info"] = nullptr;
+        }
+        else {
+            nlohmann_json_j["ptx_info"] = nlohmann_json_t.ptx_info;
+        }
         return;
     } 
     
@@ -248,7 +258,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
     ) -> void
     {
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path); 
-        nlohmann_json_j.at("ptx_info").get_to(nlohmann_json_t.ptx_info);
+        if (nlohmann_json_j["ptx_info"].is_null()) {
+            nlohmann_json_t.ptx_info_is_null = true;
+        }
+        else {
+            nlohmann_json_j["ptx_info"] = nlohmann_json_t.ptx_info;
+            nlohmann_json_t.ptx_info_is_null = false;
+        }
         return;
     }
 
