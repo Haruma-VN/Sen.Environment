@@ -181,6 +181,12 @@ namespace Sen.Script {
                 .join("\n");
         }
 
+        /**
+         * JS Make exception for error
+         * @param e - Error
+         * @returns error with stack
+         */
+
         export function make_exception(e: Error): string {
             let result: string = e.message;
             result += "\n";
@@ -230,8 +236,6 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
-
-            // Kernel.FileSystem.write_file("C:/Users/HarumaVN/Downloads/LAWNSTRINGS1.TXT", utf16);
             Kernel.arguments.forEach((source: string) => {
                 Sen.Script.Executor.load_module({ source });
             });

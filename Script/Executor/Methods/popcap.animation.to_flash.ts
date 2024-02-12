@@ -43,13 +43,15 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
          * Input resolution are supported covered here
          */
 
-        export const resolution: Array<[bigint, string, string]> = [
-            [1n, "1536", Kernel.Language.get("popcap.animation.to_flash.resolution.1536n")],
-            [2n, "768", Kernel.Language.get("popcap.animation.to_flash.resolution.768n")],
-            [3n, "384", Kernel.Language.get("popcap.animation.to_flash.resolution.384n")],
-            [4n, "1200", Kernel.Language.get("popcap.animation.to_flash.resolution.1200n")],
-            [5n, "640", Kernel.Language.get("popcap.animation.to_flash.resolution.640n")],
-        ];
+        export const resolution = (): Array<[bigint, string, string]> => {
+            return [
+                [1n, "1536", Kernel.Language.get("popcap.animation.to_flash.resolution.1536n")],
+                [2n, "768", Kernel.Language.get("popcap.animation.to_flash.resolution.768n")],
+                [3n, "384", Kernel.Language.get("popcap.animation.to_flash.resolution.384n")],
+                [4n, "1200", Kernel.Language.get("popcap.animation.to_flash.resolution.1200n")],
+                [5n, "640", Kernel.Language.get("popcap.animation.to_flash.resolution.640n")],
+            ];
+        };
     }
 
     /**
@@ -72,14 +74,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Methods.PopCap.Animation.ToFlash.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.xfl`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(argument, "resolution", this.configuration, Detail.resolution, Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                Sen.Script.Executor.argument_load(argument, "resolution", this.configuration, Detail.resolution(), Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 Sen.Script.Executor.clock.start_safe();
                 Script.Support.PopCap.Animation.FromAnimation.process_fs(argument.source, argument.destination!, BigInt(argument.resolution!));
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.BatchArgument): void {
-                argument_load(argument, "resolution", this.configuration, Detail.resolution, Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                argument_load(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path) && this.filter[1].test(path));
                 files.forEach((source: string) => this.direct_forward({ source: source, resolution: BigInt(argument.resolution!) }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
