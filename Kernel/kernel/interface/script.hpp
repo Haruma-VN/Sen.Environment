@@ -72,6 +72,241 @@ namespace Sen::Kernel::Interface::Script {
 	}
 
 	/**
+	 * JavaScript Custom JSON Serializer
+	*/
+
+	namespace JSON {
+
+		/**
+		 * Convert nlohmann::ordered_json to JSValue for quickjs
+		*/
+
+		inline static auto json_to_js_value(
+			JSContext* context,
+			const nlohmann::ordered_json& json
+		) -> JSValue
+		{
+			switch (json.type()) {
+			case nlohmann::ordered_json::value_t::null: {
+				return JS::Converter::get_null();
+			}
+			case nlohmann::ordered_json::value_t::object: {
+				auto js_obj = JS_NewObject(context);
+				for (auto& [key, value] : json.items()) {
+					JS_DefinePropertyValueStr(context, js_obj, key.c_str(), json_to_js_value(context, value), JS_PROP_C_W_E);
+				}
+				return js_obj;
+			}
+			case nlohmann::ordered_json::value_t::array: {
+				auto js_arr = JS_NewArray(context);
+				for (auto i : Range<size_t>(json.size())) {
+					JS_DefinePropertyValueUint32(context, js_arr, i, json_to_js_value(context, json[i]), JS_PROP_C_W_E);
+				}
+				return js_arr;
+			}
+			case nlohmann::ordered_json::value_t::string: {
+				return JS_NewString(context, json.get<std::string>().c_str());
+			}
+			case nlohmann::ordered_json::value_t::boolean: {
+				return JS_NewBool(context, json.get<bool>());
+			}
+			case nlohmann::ordered_json::value_t::number_integer: {
+				return JS_NewBigInt64(context, json.get<int64_t>());
+			}
+			case nlohmann::ordered_json::value_t::number_unsigned: {
+				return JS_NewBigInt64(context, json.get<uint64_t>());
+			}
+			case nlohmann::ordered_json::value_t::number_float: {
+				return JS_NewFloat64(context, json.get<double>());
+			}
+			default: {
+				return JS::Converter::get_undefined();
+			}
+			}
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Deserializer
+		 * @param argv[0]: JS String
+		 * @returns: Deserialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto deserialize(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto json = nlohmann::ordered_json::parse(source);
+				auto js_obj = json_to_js_value(context, json);
+				return js_obj;
+				}, "deserialize"_sv);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Deserializer
+		 * @param argv[0]: JS String
+		 * @returns: Deserialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto deserialize_fs(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto json = Sen::Kernel::FileSystem::read_json(source.get());
+				auto js_obj = json_to_js_value(context, json);
+				return js_obj;
+				}, "deserialize_fs"_sv);
+		}
+
+		/**
+		 * QuickJS JSON Value to nlohmann::ordered_json and then to string
+		*/
+
+		inline static auto js_object_to_json(
+			JSContext* context,
+			JSValueConst value
+		) -> nlohmann::ordered_json
+		{
+			switch (JS_VALUE_GET_TAG(value)) {
+			case JS_TAG_UNDEFINED: {
+				return nullptr;
+			}
+			case JS_TAG_NULL: {
+				return nullptr;
+			}
+			case JS_TAG_OBJECT: {
+				if (JS_IsArray(context, value)) {
+					auto json = nlohmann::ordered_json::array();
+					auto length = uint32_t{};
+					JS_ToUint32(context, &length, JS_GetPropertyStr(context, value, "length"));
+					for (auto i : Range<uint32_t>(length)) {
+						auto val = JS_GetPropertyUint32(context, value, i);
+						json.push_back(js_object_to_json(context, val));
+						JS_FreeValue(context, val);
+					}
+					return json;
+				}
+				else if (JS_IsObject(value)) {
+					auto json = nlohmann::ordered_json::object();
+					auto* tab = static_cast<JSPropertyEnum*>(nullptr);
+					auto tab_size = uint32_t{};
+					if (JS_GetOwnPropertyNames(context, &tab, &tab_size, value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
+						for (auto i : Range<uint32_t>(tab_size)) {
+							auto key = JS_AtomToCString(context, tab[i].atom);
+							auto val = JS_GetProperty(context, value, tab[i].atom);
+							if (JS_VALUE_GET_TAG(val) != JS_TAG_UNDEFINED) {
+								json[key] = js_object_to_json(context, val);
+							}
+							JS_FreeAtom(context, tab[i].atom);
+							JS_FreeValue(context, val);
+						}
+						js_free(context, tab);
+					}
+					return json;
+				}
+				else {
+					throw Exception("Unknown type");
+				}
+			}
+			case JS_TAG_STRING: {
+				auto str = JS::Converter::get_string(context, value);
+				auto json = nlohmann::ordered_json(str);
+				return json;
+			}
+			case JS_TAG_BOOL: {
+				return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value) == 0 ? false : true);
+			}
+			case JS_TAG_INT: {
+				return nlohmann::ordered_json(static_cast<double>(JS_VALUE_GET_INT(value)));
+			}
+			case JS_TAG_FLOAT64: {
+				return nlohmann::ordered_json(JS_VALUE_GET_FLOAT64(value));
+			}
+			case JS_TAG_BIG_INT: {
+				auto val = int64_t{};
+				JS_ToBigInt64(context, &val, value);
+				return nlohmann::ordered_json(val);
+			}
+			}
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Serializer
+		 * @param argv[0]: JSValue
+		 * @param argv[1]: indent
+		 * @param argv[2]: char
+		 * @param argv[3]: ensure ascii
+		 * @returns: Serialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto serialize(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+				auto json = js_object_to_json(context, argv[0]);
+				auto indent = JS::Converter::get_int32(context, argv[1]);
+				auto ensure_ascii = JS::Converter::get_bool(context, argv[2]);;
+				auto source = json.dump(indent, '\t', ensure_ascii);
+				auto js_val = JS_NewString(context, source.c_str());
+				return js_val;
+				}, "serialize"_sv);
+		}
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript JSON Serializer
+		 * @param argv[0]: Destination
+		 * @param argv[1]: json
+		 * @param argv[2]: indent
+		 * @param argv[3]: ensure ascii
+		 * @returns: Serialized object
+		 * ----------------------------------------
+		*/
+
+		inline static auto serialize_fs(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
+				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto json = js_object_to_json(context, argv[1]);
+				auto indent = JS::Converter::get_int32(context, argv[2]);
+				auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);
+				;
+				auto result = json.dump(indent, '\t', ensure_ascii);
+				Sen::Kernel::FileSystem::write_file(destination, result);
+				return JS::Converter::get_undefined();
+				}, "serialize_fs"_sv);
+		}
+	}
+
+	/**
 	 * Language Support
 	*/
 
@@ -3579,11 +3814,38 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						Kernel::Support::PopCap::RSB::Unpack::unpack_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
+					}, "unpack_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RSB Unpack File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Unpacked file
+				 * ----------------------------------------
+				*/
+
+				inline static auto unpack_for_modding_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto manifest = Sen::Kernel::Support::PopCap::RSB::Manifest <unsigned int>{};
+						auto unpack = Kernel::Support::PopCap::RSB::Unpack{ source.get() };
+						unpack.process(destination.get(), manifest);
+						return JSON::json_to_js_value(context, manifest);
 					}, "unpack_fs"_sv);
 				}
 
@@ -3931,241 +4193,6 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 
-	}
-
-	/**
-	 * JavaScript Custom JSON Serializer
-	*/
-
-	namespace JSON {
-
-		/**
-		 * Convert nlohmann::ordered_json to JSValue for quickjs
-		*/
-
-		inline static auto json_to_js_value(
-			JSContext *context, 
-			const nlohmann::ordered_json &json
-		) -> JSValue
-		{
-			switch (json.type()) {
-				case nlohmann::ordered_json::value_t::null:{
-					return JS::Converter::get_null();
-				}
-				case nlohmann::ordered_json::value_t::object: {
-					auto js_obj = JS_NewObject(context);
-					for (auto & [key, value] : json.items()) {
-						JS_DefinePropertyValueStr(context, js_obj, key.c_str(), json_to_js_value(context, value), JS_PROP_C_W_E);
-					}
-					return js_obj;
-				}
-				case nlohmann::ordered_json::value_t::array: {
-					auto js_arr = JS_NewArray(context);
-					for (auto i : Range<size_t>(json.size())) {
-						JS_DefinePropertyValueUint32(context, js_arr, i, json_to_js_value(context, json[i]), JS_PROP_C_W_E);
-					}
-					return js_arr;
-				}
-				case nlohmann::ordered_json::value_t::string:{
-					return JS_NewString(context, json.get<std::string>().c_str());
-				}
-				case nlohmann::ordered_json::value_t::boolean:{
-					return JS_NewBool(context, json.get<bool>());
-				}
-				case nlohmann::ordered_json::value_t::number_integer:{
-					return JS_NewBigInt64(context, json.get<int64_t>());
-				}
-				case nlohmann::ordered_json::value_t::number_unsigned:{
-					return JS_NewBigInt64(context, json.get<uint64_t>());
-				}
-				case nlohmann::ordered_json::value_t::number_float:{
-					return JS_NewFloat64(context, json.get<double>());
-				}
-				default:{
-					return JS::Converter::get_undefined();
-				}
-			}
-		}
-		
-		/**
-		 * ----------------------------------------
-		 * JavaScript JSON Deserializer
-		 * @param argv[0]: JS String
-		 * @returns: Deserialized object
-		 * ----------------------------------------
-		*/
-
-		inline static auto deserialize(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto json = nlohmann::ordered_json::parse(source);
-				auto js_obj = json_to_js_value(context, json);
-				return js_obj;
-			}, "deserialize"_sv);
-		}
-
-		/**
-		 * ----------------------------------------
-		 * JavaScript JSON Deserializer
-		 * @param argv[0]: JS String
-		 * @returns: Deserialized object
-		 * ----------------------------------------
-		*/
-
-		inline static auto deserialize_fs(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_c_string(context, argv[0]);
-				auto json = Sen::Kernel::FileSystem::read_json(source.get());
-				auto js_obj = json_to_js_value(context, json);
-				return js_obj;
-			}, "deserialize_fs"_sv);
-		}
-
-		/**
-		 * QuickJS JSON Value to nlohmann::ordered_json and then to string
-		*/
-
-		inline static auto js_object_to_json(
-			JSContext *context, 
-			JSValueConst value
-		) -> nlohmann::ordered_json
-		{
-			switch (JS_VALUE_GET_TAG(value)) {
-				case JS_TAG_UNDEFINED:{
-					return nullptr;
-				}
-				case JS_TAG_NULL:{
-					return nullptr;
-				}
-				case JS_TAG_OBJECT: {
-					if (JS_IsArray(context, value)) {
-						auto json = nlohmann::ordered_json::array();
-						auto length = uint32_t{};
-						JS_ToUint32(context, &length, JS_GetPropertyStr(context, value, "length"));
-						for (auto i : Range<uint32_t>(length)) {
-							auto val = JS_GetPropertyUint32(context, value, i);
-							json.push_back(js_object_to_json(context, val));
-							JS_FreeValue(context, val);
-						}
-						return json;
-					} 
-					else if (JS_IsObject(value)) {
-						auto json = nlohmann::ordered_json::object();
-						auto *tab = static_cast<JSPropertyEnum*>(nullptr);
-						auto tab_size = uint32_t{};
-						if (JS_GetOwnPropertyNames(context, &tab, &tab_size, value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
-							for (auto i : Range<uint32_t>(tab_size)) {
-								auto key = JS_AtomToCString(context, tab[i].atom);
-								auto val = JS_GetProperty(context, value, tab[i].atom);
-								if(JS_VALUE_GET_TAG(val) != JS_TAG_UNDEFINED){	
-									json[key] = js_object_to_json(context, val);
-								}
-								JS_FreeAtom(context, tab[i].atom);
-								JS_FreeValue(context, val);
-							}
-							js_free(context, tab);
-						}
-						return json;
-					}
-					else{
-						throw Exception("Unknown type");
-					}
-				}
-				case JS_TAG_STRING: {
-					auto str = JS::Converter::get_string(context, value);
-					auto json = nlohmann::ordered_json(str);
-					return json;
-				}
-				case JS_TAG_BOOL:{
-					return nlohmann::ordered_json(JS_VALUE_GET_BOOL(value) == 0 ? false : true);
-				}
-				case JS_TAG_INT:{
-					return nlohmann::ordered_json(static_cast<double>(JS_VALUE_GET_INT(value)));
-				}
-				case JS_TAG_FLOAT64:{
-					return nlohmann::ordered_json(JS_VALUE_GET_FLOAT64(value));
-				}
-				case JS_TAG_BIG_INT: {
-					auto val = int64_t{};
-					JS_ToBigInt64(context, &val, value);
-					return nlohmann::ordered_json(val);
-				}
-			}
-		}
-
-		/**
-		 * ----------------------------------------
-		 * JavaScript JSON Serializer
-		 * @param argv[0]: JSValue
-		 * @param argv[1]: indent
-		 * @param argv[2]: char
-		 * @param argv[3]: ensure ascii
-		 * @returns: Serialized object
-		 * ----------------------------------------
-		*/
-
-		inline static auto serialize(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-				auto json = js_object_to_json(context, argv[0]);
-				auto indent = JS::Converter::get_int32(context, argv[1]);
-				auto ensure_ascii = JS::Converter::get_bool(context, argv[2]);;
-				auto source = json.dump(indent, '\t', ensure_ascii);
-				auto js_val = JS_NewString(context, source.c_str());
-				return js_val;
-			}, "serialize"_sv);
-		}
-
-		/**
-		 * ----------------------------------------
-		 * JavaScript JSON Serializer
-		 * @param argv[0]: Destination
-		 * @param argv[1]: json
-		 * @param argv[2]: indent
-		 * @param argv[3]: ensure ascii
-		 * @returns: Serialized object
-		 * ----------------------------------------
-		*/
-
-		inline static auto serialize_fs(
-			JSContext *context, 
-			JSValueConst this_val, 
-			int argc, 
-			JSValueConst *argv
-		) -> JSValue
-		{
-			M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 4, fmt::format("argument expected {} but received {}", 4, argc));
-				auto destination = JS::Converter::get_string(context, argv[0]);
-				auto json = js_object_to_json(context, argv[1]);
-				auto indent = JS::Converter::get_int32(context, argv[2]);
-				auto ensure_ascii = JS::Converter::get_bool(context, argv[3]);
-				;
-				auto result = json.dump(indent, '\t', ensure_ascii);
-				Sen::Kernel::FileSystem::write_file(destination, result);
-				return JS::Converter::get_undefined();
-			}, "serialize_fs"_sv);
-		}
 	}
 
 

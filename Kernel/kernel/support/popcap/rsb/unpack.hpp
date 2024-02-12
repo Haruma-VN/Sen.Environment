@@ -10,49 +10,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
     class Unpack
     {
     protected:
-        std::unique_ptr<DataStreamView> sen;
 
-        template <typename T, auto write_info> requires std::is_integral<T>::value
-        inline auto process(
-            std::string_view destination,
-            Manifest<T>& manifest_info
-        ) const -> void
-        {
-            auto rsb_head_info = RSB_HeadInfo<T>{};
-            read_head(&rsb_head_info);
-            manifest_info.version = rsb_head_info.version;
-            if (rsb_head_info.version == 3) {
-                if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
-                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
-                }
-            }
-            auto packet_folder = fmt::format("{}/{}", destination, "packet");
-            FileSystem::create_directory(destination);
-            FileSystem::create_directory(packet_folder);
-            for (auto i : Range(rsb_head_info.composite_number))
-            {
-                auto composite_start_pos = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
-                auto composite_name = sen->readStringByEmpty(composite_start_pos);
-                auto composite_info_pos = composite_start_pos + 0x80;
-                auto is_composite = composite_name.ends_with("_CompositeShell");
-                auto rsg_group = RSG_Group<T>{is_composite};
-                for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
-                {
-                    auto rsg_info = RSG_Info<T>{};
-                    auto rsg_index = sen->readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
-                    read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
-                    auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
-                    auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
-                    read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
-                    rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
-                }
-                manifest_info.group.insert(std::pair{composite_name, rsg_group});
-            }
-            if constexpr (write_info) {
-                FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
-            }
-            return;
-        }
+        std::unique_ptr<DataStreamView> sen;
 
         template <typename T> requires std::is_integral<T>::value
         inline auto read_description(
@@ -268,6 +227,48 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ~Unpack(
 
         ) = default;
+
+        template <typename T, auto write_info = true> requires std::is_integral<T>::value
+        inline auto process(
+            std::string_view destination,
+            Manifest<T>& manifest_info
+        ) const -> void
+        {
+            auto rsb_head_info = RSB_HeadInfo<T>{};
+            read_head(&rsb_head_info);
+            manifest_info.version = rsb_head_info.version;
+            if (rsb_head_info.version == 3) {
+                if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
+                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
+                }
+            }
+            auto packet_folder = fmt::format("{}/{}", destination, "packet");
+            FileSystem::create_directory(destination);
+            FileSystem::create_directory(packet_folder);
+            for (auto i : Range(rsb_head_info.composite_number))
+            {
+                auto composite_start_pos = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
+                auto composite_name = sen->readStringByEmpty(composite_start_pos);
+                auto composite_info_pos = composite_start_pos + 0x80;
+                auto is_composite = composite_name.ends_with("_CompositeShell");
+                auto rsg_group = RSG_Group<T>{ is_composite };
+                for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
+                {
+                    auto rsg_info = RSG_Info<T>{};
+                    auto rsg_index = sen->readUint32(static_cast<size_t>(k) * 0x10 + composite_info_pos);
+                    read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
+                    auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
+                    auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
+                    read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
+                    rsg_group.subgroup.insert(std::pair{ rsg_name, rsg_info });
+                }
+                manifest_info.group.insert(std::pair{ composite_name, rsg_group });
+            }
+            if constexpr (write_info) {
+                FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
+            }
+            return;
+        }
 
         inline static auto unpack_fs(
             std::string_view source,

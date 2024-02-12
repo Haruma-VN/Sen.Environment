@@ -117,6 +117,18 @@ namespace Sen.Script {
         export function output(source: string): void {
             Sen.Script.Console.display(Sen.Kernel.Language.get("output_argument"), source, Definition.Console.Color.GREEN);
         }
+
+        /**
+         * --------------------------------------------------
+         * JavaScript notify
+         * @param source - source to send
+         * @returns The console output
+         * --------------------------------------------------
+         */
+
+        export function warning(source: string): void {
+            Sen.Script.Console.display(Sen.Kernel.Language.get("warning"), source, Definition.Console.Color.YELLOW);
+        }
     }
 
     /**
@@ -236,9 +248,17 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
-            Kernel.arguments.forEach((source: string) => {
-                Sen.Script.Executor.load_module({ source });
-            });
+            let before = Date.now();
+            let manifest = Kernel.Support.PopCap.RSB.unpack_for_modding_fs(
+                "D:/test/ZombieSkycityZombossGroup_1536.sprite/ipad3_10.8.1_main.rsb",
+                "D:/test/ZombieSkycityZombossGroup_1536.sprite/ipad3_10.8.1_main.rsb.bundle",
+            );
+            let after = Date.now();
+            Console.send(`Time spent: ${(after - before) / 1000}`);
+            debug(manifest);
+            // Kernel.arguments.forEach((source: string) => {
+            //     Sen.Script.Executor.load_module({ source });
+            // });
             // Executor.execute<Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.Argument>(
             //     { source: "D:/test/test/main.rsb.bundle/ZombieSkycityZombossGroup_Common.packet/res/IMAGES/768/ZOMBIE2/ZOMBIE/ZOMBIE_SKYCITY_ZOMBOSS/ZOMBIE_SKYCITY_ZOMBOSS.xfl" },
             //     "popcap.animation.from_flash",

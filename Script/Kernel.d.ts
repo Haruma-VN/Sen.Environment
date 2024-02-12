@@ -1446,6 +1446,64 @@ declare namespace Sen {
 
                 declare namespace RSB {
                     /**
+                     * Compression flag
+                     */
+
+                    export type flag = 0n | 1n | 2n | 3n;
+
+                    /**
+                     * Res-Info
+                     */
+
+                    export interface ResourceStreamGroupResInfo {
+                        id: bigint;
+                        format: bigint;
+                        width: bigint;
+                        height: bigint;
+                        [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    /**
+                     * RSG Packet info
+                     */
+
+                    export interface ResourceStreamGroupPacketInfo {
+                        compression_flags: flag;
+                        res: Array<ResourceStreamGroupResInfo>;
+                        [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    /**
+                     * Group-Info
+                     */
+
+                    export interface ResourceStreamGroupInfo {
+                        category: null | bigint;
+                        packet_info: ResourceStreamGroupPacketInfo;
+                        [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    /**
+                     * Group-Pool
+                     */
+
+                    export interface ResourceStreamGroupPool {
+                        is_composite: boolean;
+                        subgroup: Record<string, ResourceStreamGroupInfo>;
+                        [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    /**
+                     * Manifest
+                     */
+
+                    export interface Manifest {
+                        version: bigint;
+                        group: Record<string, ResourceStreamGroupPool>;
+                        [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    /**
                      * --------------------------------------------------
                      * JavaScript RSB Unpack method for file
                      * @param source : source file
@@ -1454,6 +1512,16 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSB Unpack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: unpacked file
+                     * --------------------------------------------------
+                     */
+                    export function unpack_for_modding_fs(source: string, destination: string): Manifest;
 
                     /**
                      * --------------------------------------------------

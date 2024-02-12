@@ -390,6 +390,7 @@ namespace Sen::Kernel::Interface {
 				// rsb
 				{
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_for_modding_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSB"_sv, "unpack_for_modding_fs"_sv);
 					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_fs"_sv);
 				}
 				// rsg
