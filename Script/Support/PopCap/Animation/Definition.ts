@@ -29,14 +29,17 @@ namespace Sen.Script.Support.PopCap.Animation {
 
     export interface Color {
         "@attributes": {
-            redMultiplier: string;
-            greenMultiplier: string;
-            blueMultiplier: string;
-            alphaMultiplier: string;
+            redMultiplier?: string;
+            greenMultiplier?: string;
+            blueMultiplier?: string;
+            alphaMultiplier?: string;
             redOffset?: string;
             greenOffset?: string;
             blueOffset?: string;
             alphaOffset?: string;
+            tintMultiplier?: string;
+            tintColor?: string;
+            
         };
     }
 
@@ -189,6 +192,12 @@ namespace Sen.Script.Support.PopCap.Animation {
             symbolType: string;
             loop: string;
         };
+        matrix?: {
+            Matrix: Matrix;
+        } | null;
+        color?: {
+            Color: Color;
+        } | null;
     }
 
     export type Actionscript = {
@@ -202,6 +211,10 @@ namespace Sen.Script.Support.PopCap.Animation {
         script: Actionscript;
     }
 
+    export interface DocumentElements {
+        DOMSymbolInstance: DocumentDomSymbolInstance;
+    }
+
     export interface DocumentDomFrame {
         "@attributes": {
             index: string;
@@ -210,10 +223,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             labelType?: string;
         };
         Actionscript?: ActionscriptProperty;
-        elements?:
-            | {
-                  DOMSymbolInstance: DocumentDomSymbolInstance;
-              }
+        elements?: DocumentElements
             | null
             | PureInstance;
     }
@@ -283,6 +293,15 @@ namespace Sen.Script.Support.PopCap.Animation {
         first_frame?: bigint;
         transform: number[];
         color: number[];
+    }
+
+    export interface ActionFrameNode {
+        index: bigint;
+        duration: bigint;
+        use_transform: boolean;
+        transform?: number[] | null;
+        use_color: boolean;
+        color?: number[] | null;
     }
 
     export type FrameNodeList = Record<string, FrameNode[]>;

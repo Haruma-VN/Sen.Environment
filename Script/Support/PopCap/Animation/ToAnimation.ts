@@ -4,14 +4,9 @@ namespace Sen.Script.Support.PopCap.Animation {
 
         const initial_color: number[] = [1.0, 1.0, 1.0, 1.0];
 
-        export interface FrameNode {
+        export interface AnimFramNode {
             frames: Structure.AnimationFrame[];
             layer_length: bigint;
-        }
-
-        export interface FrameList {
-            index: bigint;
-            duration: bigint;
         }
 
         export function process(source: string): SexyAnimation {
@@ -37,7 +32,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 // debug(sprite_name);
                 const sprite_document: SpriteDocument = Kernel.XML.deserialize(Kernel.FileSystem.read_file(Kernel.Path.join(source, "library", "sprite", `${sprite_name}.xml`)));
                 // debug(sprite_document);
-                const frame_node: FrameNode = parse_sprite(sprite_document, sprite_name, false, animation_image_id_list, animation_sprite_name_list);
+                const frame_node: AnimFramNode = parse_sprite(sprite_document, sprite_name, false, animation_image_id_list, animation_sprite_name_list);
                 animation_sprite_map[sprite_name] = {
                     description: "",
                     work_area: {
@@ -50,13 +45,13 @@ namespace Sen.Script.Support.PopCap.Animation {
             const animation_label_list: string[] = Kernel.FileSystem.read_directory_only_file(Kernel.Path.join(source, "library", "action"))
                 .filter((e) => /(.*)\.xml$/gi.test(e))
                 .map((e) => Kernel.Path.base_without_extension(e));
-            const animation_action_map: Record<string, FrameNode> = {};
+            const animation_action_map: Record<string, AnimFramNode> = {};
             for (let action_label of animation_label_list) {
                 const action_document: SpriteDocument = Kernel.XML.deserialize(Kernel.FileSystem.read_file(Kernel.Path.join(source, "library", "action", `${action_label}.xml`)));
                 animation_action_map[action_label] = parse_sprite(action_document, action_label, true, animation_image_id_list, animation_sprite_name_list);
             }
             const dom_document: DOMDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "DomDocument.xml"));
-            const action_index_list: Record<string, FrameList> = get_action_index(dom_document);
+            const action_index_list: Record<string, ActionFrameNode> = get_action_index(dom_document);
             const main_frame: Structure.AnimationFrame[] = merge_action(animation_action_map, action_index_list);
             const animation: Structure.SexyAnimation = {
                 version: 6n,
@@ -89,7 +84,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return list.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
         }
 
-        export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, FrameList>, last_frame: bigint): void {
+        export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, ActionFrameNode>, last_frame: bigint): void {
             // debug("parse_dom_document");
             if (!dom_document["DOMDocument"].hasOwnProperty("folders")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_folder"));
@@ -166,7 +161,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return;
         }
 
-        export function merge_action(animation_action_map: Record<string, FrameNode>, action_index_list: Record<string, FrameList>): Structure.AnimationFrame[] {
+        export function merge_action(animation_action_map: Record<string, AnimFramNode>, action_index_list: Record<string, ActionFrameNode>): Structure.AnimationFrame[] {
             // debug("merge_action");
             const main_frame: Structure.AnimationFrame[] = [];
             const animation_label_list: string[] = Object.keys(action_index_list);
@@ -179,6 +174,8 @@ namespace Sen.Script.Support.PopCap.Animation {
                 const layer_length: bigint = animation_action_map[action_name]["layer_length"];
                 const action_frames: Structure.AnimationFrame[] = animation_action_map[action_name]["frames"];
                 const action_length: number = action_frames.length;
+                const use_transform: boolean = action_index_list[action_name]['use_transform'];
+                const use_color: boolean = action_index_list[action_name]['use_color'];
                 if (BigInt(action_length) != duration) {
                     if (duration > BigInt(action_length)) {
                         const append_frames: Structure.AnimationFrame[] = [];
@@ -205,6 +202,17 @@ namespace Sen.Script.Support.PopCap.Animation {
                     const frame_change: Structure.AnimationMove[] = action_frames[k]["change"];
                     for (let h = 0; h < frame_change.length; h++) {
                         frame_change[h]["index"] += start_index;
+                        if (use_transform) {
+                            frame_change[h]['transform'] = mix_transform(frame_change[h]['transform'], action_index_list[action_name]['transform']!);
+                        }
+                        if (use_color) {
+                            if (frame_change[h]['color'] !== null) {
+                                frame_change[h]['color'] = mix_color(frame_change[h]['color']!, action_index_list[action_name]['color']!);
+                            }
+                            else {
+                                frame_change[h]['color'] = Kernel.Miscellaneous.make_copy<number[]>(action_index_list[action_name]['color']!);
+                            }
+                        }
                     }
                 }
                 if (i > 0) {
@@ -222,7 +230,27 @@ namespace Sen.Script.Support.PopCap.Animation {
             return main_frame;
         }
 
-        export function get_action_index(dom_document: DOMDocument): Record<string, FrameList> {
+        export function mix_transform(source: number[], change: number[]): number[] {
+            return [
+                change[0] * source[0] + change[2] * source[1],
+                change[1] * source[0] + change[3] * source[1],
+                change[0] * source[2] + change[2] * source[3],
+                change[1] * source[2] + change[3] * source[3],
+                change[0] * source[4] + change[2] * source[5] + change[4],
+                change[1] * source[4] + change[3] * source[5] + change[5]
+            ];
+        }
+
+        export function mix_color(source: number[], change: number[]): number[] {
+            return [
+                change[0] * source[0],
+                change[1] * source[1],
+                change[2] * source[2],
+                change[3] * source[3]
+            ];
+        }
+
+        export function get_action_index(dom_document: DOMDocument): Record<string, ActionFrameNode> {
             // debug("get_action_index");
             if (!dom_document.hasOwnProperty("DOMDocument")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_DOMDocument"));
@@ -254,7 +282,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             } else {
                 flow_domframes_list.push(flow_dom_frames);
             }
-            const action_index_list: Record<string, FrameList> = {};
+            const action_index_list: Record<string, ActionFrameNode> = {};
             for (let frame of flow_domframes_list) {
                 const frame_index: bigint = BigInt(frame["@attributes"]["index"]);
                 const duration: bigint = BigInt(frame["@attributes"]["duration"] ?? "1");
@@ -262,16 +290,62 @@ namespace Sen.Script.Support.PopCap.Animation {
                     if (frame["@attributes"]["labelType"] !== "name") {
                         throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_action_label"), frame["@attributes"].name));
                     }
-                    action_index_list[frame["@attributes"]["name"]] = {
+                    if (!frame.hasOwnProperty("elements") && frame['elements'] !== null) {
+                        throw new Error("dom_frame_has_no_elements");
+                    }
+                    const elements: DocumentElements = frame['elements'] as DocumentElements;
+                    if (!elements.hasOwnProperty("DOMSymbolInstance")) {
+                        throw new Error("dom_frame_has_no_DOMSymbolInstance");
+                    }
+                    const dom_symbol_instance: DocumentDomSymbolInstance = elements['DOMSymbolInstance'];
+                    if (Array.isArray(dom_symbol_instance)) {
+                        throw new Error("dom_symbol_cannot_be_array");
+                    }
+                    const action_label: string = frame["@attributes"]["name"];
+                    if (dom_symbol_instance['@attributes']['libraryItemName'] !== `action/${action_label}`) {
+                        throw new Error("invaild_action_index");
+                    }
+                    action_index_list[action_label] = {
                         index: frame_index,
                         duration: duration,
+                        use_transform: false,
+                        transform: null,
+                        use_color: false,
+                        color: null
                     };
+                    if (dom_symbol_instance['matrix'] !== null && dom_symbol_instance['matrix'] !== undefined) {
+                        const transform: number[] = parse_transform(dom_symbol_instance['matrix']!['Matrix']);
+                        const use_transform: boolean = !(
+                            transform[0] === initial_transform[0] &&
+                            transform[1] === initial_transform[1] &&
+                            transform[2] === initial_transform[2] &&
+                            transform[3] === initial_transform[3] &&
+                            transform[4] === initial_transform[4] &&
+                            transform[5] === initial_transform[5]);
+                        if (use_transform) {
+                            action_index_list[action_label]["use_transform"] = use_transform;
+                            action_index_list[action_label]["transform"] = transform;
+                        }
+                    }
+                    if (dom_symbol_instance['color'] !== null && dom_symbol_instance['color'] !== undefined) {
+                        const color: number[] = parse_color(dom_symbol_instance['color']!['Color']);
+                        const use_color: boolean = !(
+                            color[0] === initial_color[0] &&
+                            color[1] === initial_color[1] &&
+                            color[2] === initial_color[2] &&
+                            color[3] === initial_color[3]);
+                        if (use_color) {
+                            action_index_list[action_label]["use_color"] = use_color;
+                            action_index_list[action_label]["color"] = color;
+                        }
+                    }
                 }
             }
             return action_index_list;
         }
 
-        export function parse_sprite(sprite_document: SpriteDocument, sprite_name: string, is_action: boolean, animation_image_id_list: string[], animation_sprite_name_list: string[]): FrameNode {
+
+        export function parse_sprite(sprite_document: SpriteDocument, sprite_name: string, is_action: boolean, animation_image_id_list: string[], animation_sprite_name_list: string[]): AnimFramNode {
             // debug("parse_sprite");
             if (!sprite_document.hasOwnProperty("DOMSymbolItem")) {
                 throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.sprite_has_no_DOMSymbolItem"), sprite_name));
@@ -377,7 +451,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                                 for (let k = 0; k < frame_duration_temp; k++) {
                                     frames_result.push({
                                         label: "",
-                                        stop: true,
+                                        stop: false,
                                         command: [],
                                         remove: [],
                                         append: [],
@@ -407,9 +481,9 @@ namespace Sen.Script.Support.PopCap.Animation {
                     };
                     let transform: number[];
                     if (dom_symbol_instance["matrix"] === undefined || dom_symbol_instance["matrix"] === null || Object.keys(dom_symbol_instance["matrix"]).length === 0) {
-                        transform = [0.0, 0.0];
+                        transform = [...initial_transform];
                     } else if (dom_symbol_instance["matrix"].hasOwnProperty("Matrix")) {
-                        transform = transform_calculator(parse_transform(dom_symbol_instance["matrix"]["Matrix"]));
+                        transform = parse_transform(dom_symbol_instance["matrix"]["Matrix"]);
                     } else {
                         throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_sprite_matrix"), sprite_name, index + 1));
                     }
@@ -481,18 +555,39 @@ namespace Sen.Script.Support.PopCap.Animation {
         }
 
         export function parse_color(color: Color): number[] {
-            // debug("parse_color");
-            return [
-                parse_color_compute(parseFloat(color["@attributes"]["redMultiplier"] ?? "1"), parseFloat(color["@attributes"]["redOffset"] ?? "0")),
-                parse_color_compute(parseFloat(color["@attributes"]["greenMultiplier"] ?? "1"), parseFloat(color["@attributes"]["greenOffset"] ?? "0")),
-                parse_color_compute(parseFloat(color["@attributes"]["blueMultiplier"] ?? "1"), parseFloat(color["@attributes"]["blueOffset"] ?? "0")),
-                parse_color_compute(parseFloat(color["@attributes"]["alphaMultiplier"] ?? "1"), parseFloat(color["@attributes"]["alphaOffset"] ?? "0")),
-            ];
+            if (color['@attributes']['tintMultiplier'] !== null && color['@attributes']['tintMultiplier'] !== undefined) {
+               return tiny_to_color(color);
+              // return [1, 1, 1, 1];
+            }
+            else {
+                return [
+                    parse_color_compute(parseFloat(color["@attributes"]["redMultiplier"] ?? "1"), parseFloat(color["@attributes"]["redOffset"] ?? "0")),
+                    parse_color_compute(parseFloat(color["@attributes"]["greenMultiplier"] ?? "1"), parseFloat(color["@attributes"]["greenOffset"] ?? "0")),
+                    parse_color_compute(parseFloat(color["@attributes"]["blueMultiplier"] ?? "1"), parseFloat(color["@attributes"]["blueOffset"] ?? "0")),
+                    parse_color_compute(parseFloat(color["@attributes"]["alphaMultiplier"] ?? "1"), parseFloat(color["@attributes"]["alphaOffset"] ?? "0")),
+                ];
+            }
+        }
+
+        export function tiny_to_color(color: Color): number[] {
+            const tiny_color: number[] = hex_to_rgb(color['@attributes']['tintColor']!);
+            const tint_multiplier: number = parseFloat(color["@attributes"]["tintMultiplier"]! ?? "1") * 255;
+            tiny_color.map(e => parse_color_compute(e, tint_multiplier));
+            tiny_color.push(1);
+            return tiny_color;
+        }
+
+        export function hex_to_rgb(hex_color: string): number[] {
+            const normal = hex_color.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+            if (normal) return normal.slice(1).map(e => parseInt(e, 16) / 255);
+            const shorthand = hex_color.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+            if (shorthand) return shorthand.slice(1).map(e => 0x11 * parseInt(e, 16) / 255);
+            return [1, 1, 1];
+
         }
 
         export function parse_color_compute(mutil: number, offset: number): number {
-            // debug("parse_color_compute");
-            return Math.max(0, Math.min(255, mutil * 255 + offset)) / 255;
+            return (Math.max(0, Math.min(255, mutil * 255 + offset)) / 255);
         }
 
         export function transform_calculator(transform: number[]): number[] {
