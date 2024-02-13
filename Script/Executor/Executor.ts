@@ -192,6 +192,13 @@ namespace Sen.Script.Executor {
         return;
     }
 
+    /**
+     * JS Filter
+     * @param param0 - Type
+     * @param source - Source file to test
+     * @returns Filter
+     */
+
     export function test([type, pattern]: [MethodType, RegExp], source: string): boolean {
         let is_valid: boolean = undefined!;
         switch (type) {
@@ -202,6 +209,9 @@ namespace Sen.Script.Executor {
             case "directory": {
                 is_valid = Kernel.FileSystem.is_directory(source);
                 break;
+            }
+            case "any": {
+                is_valid = true;
             }
         }
         is_valid &&= pattern.test(source);
@@ -218,6 +228,9 @@ namespace Sen.Script.Executor {
             case "directory": {
                 is_valid = source.every((e) => Kernel.FileSystem.is_directory(e));
                 break;
+            }
+            case "any": {
+                is_valid = true;
             }
         }
         return is_valid && method.every((e) => source.some((i) => e.test(i)));
@@ -310,11 +323,9 @@ namespace Sen.Script.Executor {
                 return;
             }
             if (is_string(argument.source)) {
-                argument.source = normalize(argument.source);
                 query(test, worker.filter as [MethodType, RegExp], argument.source as string, method_name);
             }
             if (is_array(argument.source)) {
-                argument.source = argument.source.map((e) => normalize(e));
                 query(test_array, worker.filter as [MethodType, RegExp], argument.source as string[], method_name);
             }
         });
@@ -337,6 +348,40 @@ namespace Sen.Script.Executor {
                 const input_value: bigint = input_integer(view);
                 execute<Argument>(argument, modules.get(input_value)!, Forward.DIRECT);
             }
+        }
+        return;
+    }
+
+    export function forward<Argument extends Base>(argument: Argument): void {
+        argument.source = (argument.source as Array<string>).map((e: string) => normalize(e));
+        if ((argument.source as Array<string>).length > 1) {
+            Console.send(format(`${Kernel.Language.get("js.obtained_argument")}:`, (argument.source as string).length), Definition.Console.Color.CYAN);
+            Kernel.Console.print(`    ${1n}. ${Kernel.Language.get("js.process_whole")}`);
+            Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
+            Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("js.process_in_script")}`);
+            Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
+            const input: bigint = input_integer([1n, 2n, 3n, 4n]);
+            switch (input) {
+                case 1n: {
+                    // to do
+                    break;
+                }
+                case 2n: {
+                    (argument.source as Array<string>).forEach((e: string) => {
+                        load_module({ source: e });
+                    });
+                    break;
+                }
+                case 3n: {
+                    // to do
+                    break;
+                }
+                case 4n: {
+                    execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT);
+                }
+            }
+        } else {
+            return load_module(argument);
         }
         return;
     }

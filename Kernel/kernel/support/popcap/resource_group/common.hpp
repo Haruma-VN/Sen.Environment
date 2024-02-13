@@ -65,14 +65,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			inline static auto split(
-				std::string_view infile,
-				std::string_view output
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto resource = FileSystem::read_json(infile);
-				assert_conditional(!resource["groups"].is_null(), fmt::format("\"{}\" cannot be null in resources.json", "groups"), "split");
-				FileSystem::create_directory(fmt::format("{}/{}", output, "subgroup"));
-				auto content = json{};
+				auto resource = FileSystem::read_json(source);
+				assert_conditional(!resource["groups"].is_null(), fmt::format("{}", Language::get("popcap.resource_group.split.groups_cannot_be_null")), "split");
+				FileSystem::create_directory(fmt::format("{}/{}", destination, "subgroup"));
+				auto content = ordered_json{};
 				for(auto & c : resource["groups"])
 				{
 					if(c.find("resources") != c.end())
@@ -84,30 +84,30 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}
 					if((c.find("resources") != c.end()) && (c.find("parent") != c.end()))
 					{
-						FileSystem::write_json(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
+						FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"]), c);
 					}
 					if((c.find("subgroups") != c.end()) || (c.find("resources") != c.end() && c.find("parent") == c.end())){
 						if(c.find("subgroups") != c.end())
 						{
-							content[c["id"]]["is_composite"] = true;
+							content[c["id"].get<std::string>()]["is_composite"] = true;
 							for(auto &e : c["subgroups"]){
-								content[c["id"]]["subgroups"][e["id"]] = json{{"type", e["res"]}};
+								content[c["id"].get<std::string>()]["subgroups"][e["id"].get<std::string>()] = ordered_json{{"type", e["res"]}};
 							}
 						}
 						else{
-							content[c["id"]] = json{
+							content[c["id"].get<std::string>()] = ordered_json{
 								{"is_composite",  false},
-								{"subgroups", json{
-									{c["id"], json{
+								{"subgroups", ordered_json{
+									{c["id"], ordered_json{
 										{"type", nullptr}
 									}}
 								}}
 							};
-							FileSystem::write_json(fmt::format("{}/subgroup/{}.json", output, c["id"]), c);
+							FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"]), c);
 						}
 					}
 				}
-				FileSystem::write_json(fmt::format("{}/content.json", output), content);
+				FileSystem::write_json(fmt::format("{}/content.json", destination), content);
 				return;
 			}
 

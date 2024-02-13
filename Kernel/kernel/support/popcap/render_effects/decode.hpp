@@ -21,7 +21,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 	 * Decode Struct
 	*/
 
-	struct Decode : public Common {
+	class Decode : public Common {
 		
 		private:
 
@@ -93,52 +93,49 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			 * Decode method
 			*/
 			
-			inline auto decode(
-
-			) -> RenderEffects
+			inline auto process(
+				RenderEffects* render_effects
+			) -> void
 			{
 				auto info = std::make_unique<BasicDefinition>();
-				assert_conditional(decoder->readString(4) == BasicDefinition::magic, "mismatch magic", "decode");
-				assert_conditional(decoder->readUint32() == BasicDefinition::version, "mismatch version", "decode");
+				assert_conditional(decoder->readString(4) == BasicDefinition::magic, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.mismatch_magic")), "process");
+				assert_conditional(decoder->readUint32() == BasicDefinition::version, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.mismatch_version")), "process");
 				{
 					info->block1_size = decoder->readUint32();
 					info->block1_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block1SectionSize, "invalid block1", "decode");
+					assert_conditional(decoder->readUint32() == info->Block1SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_1_section_size")), "process");
 					info->block2_size = decoder->readUint32();
 					info->block2_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block2SectionSize, "invalid block2", "decode");
+					assert_conditional(decoder->readUint32() == info->Block2SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_2_section_size")), "process");
 					info->block3_size = decoder->readUint32();
 					info->block3_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block3SectionSize, "invalid block3", "decode");
+					assert_conditional(decoder->readUint32() == info->Block3SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_3_section_size")), "process");
 					info->block4_size = decoder->readUint32();
 					info->block4_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block4SectionSize, "invalid block4", "decode");
+					assert_conditional(decoder->readUint32() == info->Block4SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_4_section_size")), "process");
 					info->block5_size = decoder->readUint32();
 					info->block5_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block5SectionSize, "invalid block5", "decode");
+					assert_conditional(decoder->readUint32() == info->Block5SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_5_section_size")), "process");
 					info->block6_size = decoder->readUint32();
 					info->block6_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block6SectionSize, "invalid block6", "decode");
+					assert_conditional(decoder->readUint32() == info->Block6SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_6_section_size")), "process");
 					info->block7_size = decoder->readUint32();
 					info->block7_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block7SectionSize, "invalid block7", "decode");
+					assert_conditional(decoder->readUint32() == info->Block7SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_7_section_size")), "process");
 					info->block8_size = decoder->readUint32();
 					info->block8_section_offset = decoder->readUint32();
-					assert_conditional(decoder->readUint32() == info->Block8SectionSize, "invalid block8", "decode");
+					assert_conditional(decoder->readUint32() == info->Block8SectionSize, fmt::format("{}", Kernel::Language::get("popcap.render_effects.decode.invalid_block_8_section_size")), "process");
 					info->string_section_offset = decoder->readUint32();
 				}
-				auto block1 = std::vector<Block1>{};
 				decoder->change_read_pos(info->block1_section_offset);
 				for	(auto i : Range<uint32_t>(info->block1_size)) {
-					block1.emplace_back(Block1{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_1.emplace_back(Block1{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
 				}
-				auto block2 = std::vector<Block2>{};
 				decoder->change_read_pos(info->block2_section_offset);
 				for	(auto i : Range<uint32_t>(info->block2_size)) {
-					block2.emplace_back(Block2{decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_2.emplace_back(Block2{decoder->readUint32(), decoder->readUint32()});
 				}
 				auto string_section = DataStreamView{decoder->get(info->string_section_offset, decoder->size())};
-				auto block3 = std::vector<Block3>{};
 				decoder->change_read_pos(info->block3_section_offset);
 				for	(auto i : Range<uint32_t>(info->block3_size)){
 					decoder->readUint32();
@@ -146,43 +143,29 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 					block_3.unknown_2 = decoder->readUint32();
 					string_section.change_read_pos(decoder->readUint32());
 					block_3.string = string_section.readStringByEmpty();
-					block3.emplace_back(block_3);
+					render_effects->block_3.emplace_back(block_3);
 				}
-				auto block4 = std::vector<Block4>{};
 				decoder->change_read_pos(info->block4_section_offset);
 				for (auto i : Range<uint32_t>(info->block4_size)) {
-					block4.emplace_back(Block4{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(),decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_4.emplace_back(Block4{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(),decoder->readUint32(), decoder->readUint32()});
 				}
-				auto block5 = std::vector<Block5>{};
 				decoder->change_read_pos(info->block5_section_offset);
 				for	(auto i : Range<uint32_t>(info->block5_size)) {
-					block5.emplace_back(Block5{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_5.emplace_back(Block5{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
 				}
-				auto block6 = std::vector<Block6>{};
 				decoder->change_read_pos(info->block6_section_offset);
 				for	(auto i : Range<uint32_t>(info->block6_size)) {
-					block6.emplace_back(Block6{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_6.emplace_back(Block6{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32(), decoder->readUint32()});
 				}
-				auto block7 = std::vector<Block7>{};
 				decoder->change_read_pos(info->block7_section_offset);
 				for	(auto i : Range<uint32_t>(info->block7_size)) {
-					block7.emplace_back(Block7{decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_7.emplace_back(Block7{decoder->readUint32(), decoder->readUint32()});
 				}
-				auto block8 = std::vector<Block8>{};
 				decoder->change_read_pos(info->block8_section_offset);
 				for (auto i : Range<uint32_t>(info->block8_size)) {
-					block8.emplace_back(Block8{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(),decoder->readUint32(), decoder->readUint32()});
+					render_effects->block_8.emplace_back(Block8{decoder->readUint32(), decoder->readUint32(), decoder->readUint32(),decoder->readUint32(), decoder->readUint32()});
 				}
-				return RenderEffects{
-					block1,
-					block2,
-					block3,
-					block4,
-					block5,
-					block6,
-					block7,
-					block8
-				};
+				return;
 			}
 
 			/**
@@ -200,7 +183,8 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 			) -> void
 			{
 				auto view = std::make_unique<Decode>(source);
-				auto result = view->decode();
+				auto result = RenderEffects{};
+				view->process(&result);
 				FileSystem::write_json(destination, result);
 				return;
 			}

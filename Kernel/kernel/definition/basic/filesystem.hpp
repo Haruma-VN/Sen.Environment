@@ -446,7 +446,7 @@ namespace Sen::Kernel::FileSystem
 		auto xml = std::unique_ptr<tinyxml2::XMLDocument>(new tinyxml2::XMLDocument{});
 		auto data = FileSystem::read_file(source);
 		auto eResult = xml->Parse(data.data(), data.size());
-		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("XML Read error: {}", source), "read_xml");
+		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), source), "read_xml");
 		return xml;
 	}
 

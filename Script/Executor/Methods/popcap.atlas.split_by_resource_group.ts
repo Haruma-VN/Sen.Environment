@@ -32,6 +32,38 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
     }
 
     /**
+     * Detail
+     */
+
+    export namespace Detail {
+        /**
+         *
+         * Typical Method
+         *
+         */
+
+        export function method(): Array<[bigint, string, string]> {
+            return [
+                [1n, "id", Sen.Kernel.Language.get("popcap.atlas.split.method.id")],
+                [2n, "path", Sen.Kernel.Language.get("popcap.atlas.split.method.path")],
+            ];
+        }
+
+        /**
+         *
+         * Typical Style
+         *
+         */
+
+        export function style(): Array<[bigint, string, string]> {
+            return [
+                [1n, "string", Sen.Kernel.Language.get("popcap.atlas.split.style.string")],
+                [2n, "array", Sen.Kernel.Language.get("popcap.atlas.split.style.array")],
+            ];
+        }
+    }
+
+    /**
      * Configuration file if needed
      */
 
@@ -48,31 +80,13 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             configuration: undefined!,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument): void {
                 if (!/\.json$/gi.test(argument.source[0])) {
-                    throw new Error("source file must be json");
+                    throw new Error(format(Kernel.Language.get("popcap.atlas.split_by_resource_group.source_file_must_be_json"), argument.source[0]));
                 }
                 argument.source.forEach((e: string) => Sen.Script.Console.obtained(e));
                 Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(
-                    argument,
-                    "method",
-                    this.configuration,
-                    [
-                        [1n, "id", Sen.Kernel.Language.get("popcap.atlas.split.method.id")],
-                        [2n, "path", Sen.Kernel.Language.get("popcap.atlas.split.method.path")],
-                    ],
-                    Sen.Kernel.Language.get("popcap.atlas.split.method"),
-                );
-                Sen.Script.Executor.argument_load(
-                    argument,
-                    `style`,
-                    this.configuration,
-                    [
-                        [1n, "string", Sen.Kernel.Language.get("popcap.atlas.split.style.string")],
-                        [2n, "array", Sen.Kernel.Language.get("popcap.atlas.split.style.array")],
-                    ],
-                    Sen.Kernel.Language.get("popcap.atlas.split.style"),
-                );
+                Sen.Script.Executor.argument_load(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
+                Sen.Script.Executor.argument_load(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(argument.source, argument.destination!, argument.method!, argument.style!);
                 Sen.Script.Executor.clock.stop_safe();

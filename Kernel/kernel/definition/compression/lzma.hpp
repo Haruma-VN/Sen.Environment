@@ -76,7 +76,7 @@ namespace Sen::Kernel::Definition::Compression {
 					-1,
 					-1
 				);
-				assert_conditional(ret != SZ_OK, "lzma compression failed", "compress");
+				assert_conditional(ret != SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.compress.failed")), "compress");
 				result.resize(destination_length);
 				return result;
 			}
@@ -103,7 +103,7 @@ namespace Sen::Kernel::Definition::Compression {
 					&data[0],
 					LZMA_PROPS_SIZE
 				);
-				assert_conditional(ret != SZ_OK, "lzma uncompress failed", "uncompress");
+				assert_conditional(ret != SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "compress");
 				result.resize(destination_length);
 				return result;
 			}

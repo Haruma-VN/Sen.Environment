@@ -53,34 +53,11 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 	using namespace ResourceGroup;
 
-	// virtual class inheritit common
+	// Convert
 
-	class Virtual : public ResourceGroup::Common {
+	class Convert : public RewriteSlot, public ResourceGroup::Common {
 
-		protected:
-
-			// virtual composite generator
-
-			virtual auto generate_composite(
-				std::string_view id,
-    			const nlohmann::ordered_json & composite
-			) -> nlohmann::ordered_json = 0;
-
-			// virtual common generator
-
-			virtual auto generate_common(
-				const SubInformation & extra_information,
-				const nlohmann::ordered_json & resource_information
-			) -> nlohmann::ordered_json = 0;
-
-			// virtual image generator
-
-			virtual auto generate_image(
-				const SubInformation & extra_information,
-				const nlohmann::ordered_json & resource_information
-			) -> nlohmann::ordered_json = 0;
-
-		public:
+		private:
 
 			// composite
 
@@ -91,28 +68,6 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			inline static auto constexpr Simple = std::string_view{"simple"};
 
 			// constructor
-
-			explicit Virtual(
-
-			) noexcept = default;
-
-			// destructor
-
-			~Virtual(
-
-			) = default;
-
-			// need override this method
-
-			virtual auto convert_whole(
-				const nlohmann::ordered_json & res_info
-			) -> nlohmann::ordered_json = 0;
-			
-	};
-
-	// convert class
-
-	class Convert : public Virtual, public RewriteSlot {
 
 		protected:
 
@@ -126,7 +81,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			inline auto generate_composite(
 				std::string_view id,
     			const nlohmann::ordered_json & composite
-			) -> nlohmann::ordered_json override final
+			) -> nlohmann::ordered_json
 			{
 				auto result = nlohmann::ordered_json{
 					{ "type", Convert::Composite },
@@ -155,7 +110,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			inline auto generate_common(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
-			) -> nlohmann::ordered_json override final
+			) -> nlohmann::ordered_json
 			{
 				auto result = nlohmann::ordered_json {
 					{"type", Simple},
@@ -203,7 +158,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			inline auto generate_image(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
-			) -> nlohmann::ordered_json override final
+			) -> nlohmann::ordered_json
 			{
 				auto result = nlohmann::ordered_json {
 					{"type", Simple},
@@ -269,7 +224,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			// use windows path : new style
 
-			bool use_string_for_style = true;
+			bool use_string_for_style;
 
 
 		public:
@@ -278,16 +233,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			explicit Convert(
 
-			) noexcept = default;
-
-			// constructor
-
-			explicit constexpr Convert(
-				bool use_string_for_style
-			) noexcept : use_string_for_style(use_string_for_style)
-			{
-
-			}
+				) = default;
 
 			// destructor
 
@@ -301,24 +247,19 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * return: Resource Group
 			*/
 
-			inline auto convert_whole(
-				const nlohmann::ordered_json & res_info
-			) -> nlohmann::ordered_json override final
+			inline auto process(
+				const nlohmann::ordered_json & res_info,
+				nlohmann::ordered_json &result
+			) -> void
 			{
-				assert_conditional(res_info.find("expand_path") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "expand_path"), "convert_whole");
-				assert_conditional(res_info.find("groups") != res_info.end(), fmt::format("Property \"{}\" cannot be null in Res-Info", "groups"), "convert_whole");
+				assert_conditional(res_info.find("expand_path") != res_info.end(), fmt::format("{}", Kernel::Language::get("popcap.res_info.convert.expand_path_is_null_in_res_info")), "process");
+				assert_conditional(res_info.find("groups") != res_info.end(), fmt::format("{}", Kernel::Language::get("popcap.res_info.convert.groups_is_null_in_res_info")), "process");
 				if(res_info["expand_path"].get<std::string>() == "string"){
 					thiz.use_string_for_style = true;
 				}
 				else{
 					thiz.use_string_for_style = false;
 				}
-				auto result = nlohmann::ordered_json{
-					{"version", 1},
-					{"content_version", 1},
-					{"slot_count", 0},
-					{"groups", nlohmann::ordered_json::array()}
-				};
 				for(auto & [composite_name, group] : res_info["groups"].items()){
 					if(group["is_composite"].get<bool>()){
         				result["groups"].emplace_back(thiz.generate_composite(composite_name, group));
@@ -353,16 +294,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					}
 				}
 				Convert::rewrite_slot_count(result);
-				return result;
-			}
-
-
-			inline static auto instance(
-				bool use_string_for_style
-			) -> Convert&
-			{
-				static auto INSTANCE = Convert{use_string_for_style};
-				return INSTANCE;
+				return;
 			}
 
 			/**
@@ -371,13 +303,14 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * @return: nlohmann json object as Resource Group
 			*/
 
-			inline static auto convert(
+			inline static auto convert (
 				const nlohmann::ordered_json & res_info,
-				bool use_string_for_style
-			) -> nlohmann::ordered_json const
+				nlohmann::ordered_json &destination
+			) -> void
 			{
-				auto result = ResInfo::Convert::instance(use_string_for_style).convert_whole(res_info);
-				return result;
+				auto converter = Sen::Kernel::Support::PopCap::ResInfo::Convert{};
+				converter.process(res_info, destination);
+				return;
 			}
 
 			/**
@@ -387,13 +320,20 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * @return: Res-Info to Resource-Group
 			*/
 
-			inline static auto convert_fs(
+			inline static auto convert_fs (
 				std::string_view source,
 				std::string_view destination,
 				bool use_string_for_style
 			) -> void
 			{
-				FileSystem::write_json(destination, Convert::convert(FileSystem::read_json(source), use_string_for_style));
+				auto result = nlohmann::ordered_json {
+					{"version", 1},
+					{"content_version", 1},
+					{"slot_count", 0},
+					{"groups", nlohmann::ordered_json::array()}
+				};
+				Convert::convert(FileSystem::read_json(source), result);
+				FileSystem::write_json(destination, result);
 				return;
 			}
 

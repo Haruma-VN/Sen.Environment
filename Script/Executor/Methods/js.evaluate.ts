@@ -30,6 +30,18 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
     export interface Configuration extends Sen.Script.Executor.Configuration {}
 
     /**
+     * Detail
+     */
+
+    export namespace Detail {
+        /**
+         * If an argument is input, will be stored here
+         */
+
+        export const argument: Array<string> = undefined!;
+    }
+
+    /**
      * ----------------------------------------------
      * JavaScript forward method, this method need
      * to be evaluated during script loading time

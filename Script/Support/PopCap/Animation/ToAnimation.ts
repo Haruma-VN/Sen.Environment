@@ -472,7 +472,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                         resource: get_resource(is_sprite, sprite_item_name),
                         sprite: is_sprite,
                     };
-                    let transform: number[];
+                    let transform: number[] = undefined!;
                     if (dom_symbol_instance["matrix"] === undefined || dom_symbol_instance["matrix"] === null || Object.keys(dom_symbol_instance["matrix"]).length === 0) {
                         transform = [...initial_transform];
                     } else if (dom_symbol_instance["matrix"].hasOwnProperty("Matrix")) {

@@ -82,7 +82,7 @@ namespace Sen.Script {
      */
 
     export function is_array(value: unknown): value is Array<any> {
-        return is_object(value) && Array.isArray(value);
+        return is_object(value) && value.constructor.name === "Array";
     }
 
     /**
