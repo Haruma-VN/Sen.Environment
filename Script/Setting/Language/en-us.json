@@ -204,10 +204,11 @@
     "popcap.res_info.convert.expand_path_is_null_in_res_info": "Property \"expand_path\" cannot be null in Res-Info",
     "popcap.res_info.convert.groups_is_null_in_res_info": "Property \"groups\" cannot be null in Res-Info",
     "popcap.resource_group.split.groups_cannot_be_null": "\"groups\" cannot be null in Resources-Group",
-    "popcap.atlas.split_by_resource_group.source_file_must_be_json": "Source file must be JSON, received: {}",
+    "popcap.atlas.split_by_resource_group.source_file_must_be_json": "Source files must contain JSON",
     "js.rule.test_failed": "Test filter failed, got type {}, source file: {}",
     "js.obtained_argument": "Obtained {} arguments, select a typical forward",
     "js.process_whole": "Process every arguments using same function",
     "js.process_in_queue": "Process every arguments in queue",
-    "js.process_in_script": "Forward every argument to JS Executable"
+    "js.process_in_script": "Forward every argument to JS Executable",
+    "js.make_host.argument_obtained": "Argument obtained"
 }

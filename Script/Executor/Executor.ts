@@ -355,6 +355,10 @@ namespace Sen.Script.Executor {
     export function forward<Argument extends Base>(argument: Argument): void {
         argument.source = (argument.source as Array<string>).map((e: string) => normalize(e));
         if ((argument.source as Array<string>).length > 1) {
+            Console.send(`${Kernel.Language.get("js.make_host.argument_obtained")}:`, Definition.Console.Color.CYAN);
+            (argument.source as Array<string>).forEach((e, i) => {
+                Kernel.Console.print(`    ${i + 1}. ${e}`);
+            });
             Console.send(format(`${Kernel.Language.get("js.obtained_argument")}:`, (argument.source as string).length), Definition.Console.Color.CYAN);
             Kernel.Console.print(`    ${1n}. ${Kernel.Language.get("js.process_whole")}`);
             Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
@@ -378,10 +382,13 @@ namespace Sen.Script.Executor {
                 }
                 case 4n: {
                     execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT);
+                    break;
                 }
             }
         } else {
-            return load_module(argument);
+            (argument.source as Array<string>).forEach((e: string) => {
+                load_module({ source: e });
+            });
         }
         return;
     }

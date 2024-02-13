@@ -68,6 +68,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
      */
 
     export interface Configuration extends Sen.Script.Executor.Configuration {}
+
+    /**
+     * ----------------------------------------------
+     * JavaScript forward method, this method need
+     * to be evaluated during script loading time
+     * ----------------------------------------------
+     */
+
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument,
@@ -79,8 +87,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
             configuration_file: Home.query("~/Executor/Configuration/popcap.atlas.split_by_resource_group.json"),
             configuration: undefined!,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument): void {
-                if (!/\.json$/gi.test(argument.source[0])) {
-                    throw new Error(format(Kernel.Language.get("popcap.atlas.split_by_resource_group.source_file_must_be_json"), argument.source[0]));
+                let has_json: boolean = false;
+                for (const source of argument.source) {
+                    if (/\.json$/gi.test(source)) {
+                        has_json = true;
+                    }
+                }
+                if (!has_json) {
+                    throw new Error(Kernel.Language.get("popcap.atlas.split_by_resource_group.source_file_must_be_json"));
                 }
                 argument.source.forEach((e: string) => Sen.Script.Console.obtained(e));
                 Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);

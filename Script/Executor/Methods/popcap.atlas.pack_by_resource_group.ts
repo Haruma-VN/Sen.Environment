@@ -50,6 +50,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
      */
 
     export interface Configuration extends Sen.Script.Executor.Configuration {}
+
+    /**
+     * ----------------------------------------------
+     * JavaScript forward method, this method need
+     * to be evaluated during script loading time
+     * ----------------------------------------------
+     */
+
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup.Argument,
