@@ -78,14 +78,14 @@ namespace Sen::Kernel::Support::Texture
 		inline static auto read_one_bit(
 			int &bitPostion,
 			unsigned char &buffer,
-			DataStreamViewBigEndian &image_bytes) -> int
+			DataStreamView &image_bytes) -> int
 		{
 			if (bitPostion == 0)
 			{
 				buffer = image_bytes.readUint8();
 			}
 			bitPostion = (bitPostion + 7) & 7;
-			return static_cast<int>((buffer >> bitPostion) & 1);
+			return static_cast<int>((buffer >> bitPostion) & 0b1);
 		}
 
 		template <typename T>
@@ -94,7 +94,7 @@ namespace Sen::Kernel::Support::Texture
 			int bits,
 			int &bitPostion,
 			unsigned char &buffer,
-			DataStreamViewBigEndian &image_bytes) -> int
+			DataStreamView &image_bytes) -> int
 		{
 			auto ans = 0;
 			for (auto i = bits - 1; i >= 0; i--)
@@ -376,18 +376,24 @@ namespace Sen::Kernel::Support::Texture
 		{
 			auto sen = DataStreamView{color};
 			auto area = pixel_area_rgba(width, height);
-			auto data = std::vector<unsigned char>(area, 0x00);
-			auto image_block = std::make_unique<uint32_t[]>(pixel_area_rgba(k_block_width, k_block_width));
-			/*
+			auto image_block = std::make_unique<uint32_t[]>(width * height);
+			auto dst = image_block.get();
 			for (auto block_y : Range<int>(height / k_block_width))
 			{
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
 					auto d = sen.readUint64();
-					// DecodeRGBPart(d, image_block.get(), width);
+					BlockData::DecodeRGBBBlock(d, dst, width);
+					dst += 4;
 				}
-			}*/
-			return Image<int>{0, 0, width, height, data};
+				dst += width * 3;
+			}
+			auto data = DataStreamView{};
+			for (auto i : Range<int>(width * height))
+			{
+				data.writeUint32(image_block[i]);
+			}
+			return Image<int>{0, 0, width, height, data.toBytes()};
 		}
 
 		/**
@@ -403,39 +409,26 @@ namespace Sen::Kernel::Support::Texture
 			int height) -> Image<int>
 		{
 			auto sen = DataStreamView{color};
-			auto area = pixel_area_rgba(width, height);
-			auto data = std::vector<unsigned char>(area, 0x00);
-			auto image_block = std::make_unique<uint8_t[]>(pixel_area_rgba(k_block_width, k_block_width));
+			auto image_square = width * height;
+			auto image_block = std::make_unique<uint32_t[]>(image_square);
+			auto dst = image_block.get();
 			for (auto block_y : Range<int>(height / k_block_width))
 			{
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
-					auto block_part_1 = sen.readUint32();
-					auto block_part_2 = sen.readUint32();
-					decompressBlockETC2c(
-						static_cast<unsigned int>(block_part_1),
-						static_cast<unsigned int>(block_part_2),
-						image_block.get(),
-						k_block_width,
-						k_block_width,
-						k_begin_index,
-						k_begin_index,
-						4);
-					for (auto pixel_y : Range<int>(k_block_width))
-					{
-						for (auto pixel_x : Range<int>(k_block_width))
-						{
-							auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel((block_x * k_block_width + pixel_x), (block_y * k_block_width + pixel_y), width));
-							auto block_index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(pixel_x, pixel_y, k_block_width));
-							data[index] = image_block[block_index];
-							data[index + 1] = image_block[block_index + 1];
-							data[index + 2] = image_block[block_index + 2];
-							data[index + 3] = image_block[block_index + 3];
-						}
-					}
+					auto d = sen.readUint64();
+					BlockData::DecodeRGBBBlock(d, dst, width);
+					dst += 4;
 				}
+				dst += width * 3;
 			}
-			return Image<int>{0, 0, width, height, data};
+			auto data = DataStreamView{};
+			for (auto i : Range<int>(image_square))
+			{
+				data.writeInt24(image_block[i]);
+				data.writeUint8(sen.readUint8());
+			}
+			return Image<int>{0, 0, width, height, data.toBytes()};
 		}
 
 		/**
@@ -450,37 +443,19 @@ namespace Sen::Kernel::Support::Texture
 			int width,
 			int height) -> Image<int>
 		{
-			auto sen = DataStreamViewBigEndian{color};
-			auto area = pixel_area_rgba(width, height);
-			auto data = std::vector<unsigned char>(area, 0x00);
-			auto image_block = std::make_unique<uint8_t[]>(pixel_area_rgba(k_block_width, k_block_width));
+			auto sen = DataStreamView{color};
+			auto image_square = width * height;
+			auto image_block = std::make_unique<uint32_t[]>(image_square);
+			auto dst = image_block.get();
 			for (auto block_y : Range<int>(height / k_block_width))
 			{
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
-					auto block_part_1 = sen.readUint32();
-					auto block_part_2 = sen.readUint32();
-					decompressBlockETC2c(
-						static_cast<unsigned int>(block_part_1),
-						static_cast<unsigned int>(block_part_2),
-						image_block.get(),
-						k_block_width,
-						k_block_width,
-						k_begin_index,
-						k_begin_index,
-						4);
-					for (auto pixel_y : Range<int>(k_block_width))
-					{
-						for (auto pixel_x : Range<int>(k_block_width))
-						{
-							auto index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel((block_x * k_block_width + pixel_x), (block_y * k_block_width + pixel_y), width));
-							auto block_index = static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(pixel_x, pixel_y, k_block_width));
-							data[index] = image_block[block_index];
-							data[index + 1] = image_block[block_index + 1];
-							data[index + 2] = image_block[block_index + 2];
-						}
-					}
+					auto d = sen.readUint64();
+					BlockData::DecodeRGBBBlock(d, dst, width);
+					dst += 4;
 				}
+				dst += width * 3;
 			}
 			auto num = sen.readUint8();
 			auto index_table = std::make_unique<uint8_t[]>(num == 0 ? 2 : num);
@@ -493,27 +468,23 @@ namespace Sen::Kernel::Support::Texture
 			}
 			else
 			{
+				bit_depth = num == 1 ? 1 : std::ilogb(num - 1) + 1;
 				for (auto i : Range(num))
 				{
 					auto p_byte = sen.readUint8();
-					index_table[i] = static_cast<unsigned char>((p_byte << 4) | p_byte);
-				}
-				auto tableSize = 2;
-				for (bit_depth = 1; num > tableSize; bit_depth++)
-				{
-					tableSize *= 2;
+					index_table[i] = static_cast<unsigned char>(((p_byte << 4) | p_byte));
 				}
 			}
 			auto bitPostion = 0;
 			auto buffer = static_cast<unsigned char>(0x00);
-			for (auto y : Range<int>(height))
+			
+			auto data = DataStreamView{};
+			for (auto i : Range<int>(image_square))
 			{
-				for (auto x : Range<int>(width))
-				{
-					data[static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(set_pixel(x, y, width)) + 3] = index_table[read_bits<int>(bit_depth, bitPostion, buffer, sen)];
-				}
+				data.writeInt24(image_block[i]);
+				data.writeUint8(index_table[read_bits<int>(bit_depth, bitPostion, buffer, sen)]);
 			}
-			return Image<int>{0, 0, width, height, data};
+			return Image<int>{0, 0, width, height, data.toBytes()};
 		}
 
 		/**

@@ -50,18 +50,9 @@ namespace Sen.Script.Support.PopCap.Animation {
             const dom_document: string = write_document(animation, frame_list["action_list"], animation_image_id_list, animation_sprite_name_list);
             Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "DomDocument.xml"), dom_document);
             Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "main.xfl"), "PROXY-CS5");
-            Sen.Kernel.JSON.serialize_fs(Sen.Kernel.Path.join(desitnation, "record.json"), sort_object(extra_info), 1, false);
+            Sen.Kernel.JSON.serialize_fs(Sen.Kernel.Path.join(desitnation, "record.json"), extra_info, 1, false);
             Sen.Kernel.FileSystem.create_directory(Sen.Kernel.Path.join(desitnation, "library", "media"));
             return;
-        }
-
-        export function sort_object<T extends Record<string, unknown>>(object: T): T {
-            return Object.keys(object)
-                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-                .reduce(function (result: any, key: any) {
-                    result[key] = object[key];
-                    return result;
-                }, {});
         }
 
         export function write_document(animation: SexyAnimation, action_list: ActionList, animation_image_id_list: string[], animation_sprite_name_list: string[]): string {

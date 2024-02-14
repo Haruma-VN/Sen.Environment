@@ -106,11 +106,6 @@ namespace Sen.Script.Support.PopCap.Animation {
             return dom_symbol_list;
         }
 
-        export function sort_list(list: string[]): string[] {
-            // debug("sort_list");
-            return list.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
-        }
-
         export function parse_dom_document(dom_document: DOMDocument, animation: Structure.SexyAnimation, action_index_list: Record<string, ActionFrameNode>, last_frame: bigint): void {
             // debug("parse_dom_document");
             if (!dom_document["DOMDocument"].hasOwnProperty("folders")) {

@@ -159,11 +159,6 @@ inline static auto callback(
 
 MAIN_FUNCTION
 {
-    auto cli = httplib::Client("api.github.com");
-    auto res = cli.Get("/repos/Haruma-VN/Sen/releases/tags/scripts", httplib::Headers{
-        {"User-Agent", "Sen"} 
-    }); 
-    std::cout << res->body << std::endl;
     #if WINDOWS
         SetConsoleCP(CP_UTF8);
         SetConsoleOutputCP(CP_UTF8);
