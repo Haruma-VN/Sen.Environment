@@ -1,15 +1,11 @@
-﻿# CMakeList.txt : CMake project for Shell, include source and define
-# project specific logic here.
-#
-cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required (VERSION 3.8)
 
-# Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("Shell")
+project (Shell)
 
 if(MSVC)
     add_compile_options(/utf-8)
@@ -27,8 +23,15 @@ add_executable (
     ./Shell.cpp 
 )
 
+target_include_directories(
+	${PROJECT_NAME} PRIVATE
+	..
+)
+
+add_subdirectory(./deps/cpp-httplib)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Shell PROPERTY CXX_STANDARD 20)
 endif()
-
+set(CMAKE_CXX_STANDARD 23)
 # TODO: Add tests and install targets if needed.

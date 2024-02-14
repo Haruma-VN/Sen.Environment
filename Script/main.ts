@@ -248,6 +248,7 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
+            Executor.forward({ source: Kernel.arguments });
             // Executor.execute<Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.Argument>(
             //     { source: "D:/test/test/main.rsb.bundle/ZombieSkycityZombossGroup_Common.packet/res/IMAGES/768/ZOMBIE2/ZOMBIE/ZOMBIE_SKYCITY_ZOMBOSS/ZOMBIE_SKYCITY_ZOMBOSS.xfl" },
             //     "popcap.animation.from_flash",

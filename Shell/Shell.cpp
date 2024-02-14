@@ -10,7 +10,7 @@ inline auto static get_line(
     return str;
 }
 
-inline auto static print(
+inline auto static print_callback(
     const std::string & title,
     const std::string & message = std::string{""},
     const Sen::Shell::Interactive::Color color = Sen::Shell::Interactive::Color::DEFAULT
@@ -50,7 +50,7 @@ inline auto static print(
        SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
     #endif
    if (message != "") {
-      std::cout << message << std::endl << std::flush;
+      std::cout << message << '\n' << std::flush;
    }
     return;
 }
@@ -86,15 +86,15 @@ inline static auto callback(
         assert_conditional(result.size() >= 2, "argument must be greater than 2");
         switch (result.size()) {
             case 2: {
-                print(result[1]);
+                print_callback(result[1]);
                 break;
             }
             case 3: {
-                print(result[1], result[2]);
+                print_callback(result[1], result[2]);
                 break;
             }
             case 4: {
-                print(result[1], result[2], convert_color(result[3]));
+                print_callback(result[1], result[2], convert_color(result[3]));
                 break;
             }
         }
@@ -112,7 +112,10 @@ inline static auto callback(
         };
     }
     if (result[0] == "is_gui") {
-        return CStringView{ .size = 1, .value = "0" };
+        return CStringView{ 
+            .size = 1, 
+            .value = "0" ,
+        };
     }
     if (result[0] == "wait") {
         #if WINDOWS
@@ -137,13 +140,30 @@ inline static auto callback(
         auto version = std::to_string(Sen::Shell::version);
         copy = new char[version.size() + 1];
         std::memcpy(copy, version.c_str(), version.size());
-        return CStringView{ .size = version.size(), .value = copy };
+        return CStringView{ 
+            .size = version.size(), 
+            .value = copy,
+        };
+    }
+    if (result[0] == "host") {
+        assert_conditional(result.size() >= 5, "argument must be greater than 5");
+        auto svr = Server{};
+        svr.Get(std::format("/{}", result[1]), [&](const Request&, Response& res) {
+            res.set_content(result[2], "text/html");
+        });
+        svr.listen(result[3], std::stoi(result[4]));
+        return EMPTY_STRING_VIEW;
     }
     return EMPTY_STRING_VIEW;
 }
 
 MAIN_FUNCTION
 {
+    auto cli = httplib::Client("api.github.com");
+    auto res = cli.Get("/repos/Haruma-VN/Sen/releases/tags/scripts", httplib::Headers{
+        {"User-Agent", "Sen"} 
+    }); 
+    std::cout << res->body << std::endl;
     #if WINDOWS
         SetConsoleCP(CP_UTF8);
         SetConsoleOutputCP(CP_UTF8);
@@ -156,9 +176,9 @@ MAIN_FUNCTION
     }
     else {
     #if WINDOWS
-            kernel = Sen::Shell::utf16_to_utf8(std::filesystem::absolute(KERNEL_DEFAULT).generic_wstring());
+            kernel = Sen::Shell::utf16_to_utf8(std::filesystem::absolute(KERNEL_DEFAULT).wstring());
     #else
-            kernel = std::filesystem::absolute(KERNEL_DEFAULT).generic_string();
+            kernel = std::filesystem::absolute(KERNEL_DEFAULT).string();
     #endif
     }
     if (size >= 3) {
@@ -166,9 +186,9 @@ MAIN_FUNCTION
     }
     else {
         #if WINDOWS
-                script = Sen::Shell::utf16_to_utf8(std::filesystem::absolute("./Script/main.js").generic_wstring());
+                script = Sen::Shell::utf16_to_utf8(std::filesystem::absolute("./Script/main.js").wstring());
         #else
-                script = std::filesystem::absolute("./Script/main.js").generic_string();
+                script = std::filesystem::absolute("./Script/main.js").string();
         #endif
     }
     #if WIN32
@@ -177,7 +197,7 @@ MAIN_FUNCTION
         auto hinstLib = dlopen(kernel.c_str(), RTLD_LAZY);
     #endif
     if (hinstLib == NULL) {
-        print("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
+        print_callback("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
         return 1;
     }
     #if WIN32
@@ -186,7 +206,7 @@ MAIN_FUNCTION
         auto execute_method = (execute)dlsym(hinstLib, "execute");
     #endif
     if (execute_method == NULL) {
-        print("Method not found", "", Sen::Shell::Interactive::Color::RED);
+        print_callback("Method not found", "", Sen::Shell::Interactive::Color::RED);
         #if WINDOWS
                 FreeLibrary(hinstLib);
         #else

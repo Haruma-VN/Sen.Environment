@@ -94,6 +94,10 @@ namespace Sen::Kernel::Support::Texture {
 						ImageIO::write_png(destination, Decode::rgba_5551_tiled(source_binary, width, height));
 						break;
 					}
+					case Format::RGB_ETC1:{
+						ImageIO::write_png(destination, Decode::rgb_etc1(source_binary, width, height));
+						break;
+					}
 					case Format::RGB_ETC1_A_8:{
 						ImageIO::write_png(destination, Decode::rgb_etc1_a_8(source_binary, width, height));
 						break;
@@ -192,6 +196,10 @@ namespace Sen::Kernel::Support::Texture {
 					}
 					case Format::RGBA_5551_TILED:{
 						result = std::move(Encode::rgba_5551_tiled(source_image));
+						break;
+					}
+					case Format::RGB_ETC1:{
+						result = std::move(Encode::rgb_etc1(source_image));
 						break;
 					}
 					case Format::RGB_ETC1_A_8:{

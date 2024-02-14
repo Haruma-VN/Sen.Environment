@@ -256,6 +256,30 @@ namespace Sen::Kernel::Support::Texture {
 				return sen.toBytes();
 			}
 
+			inline static auto rgb_etc1(
+				const Image<int> & image
+			) -> std::vector<unsigned char>
+			{
+				auto size = image.area();
+				auto view = std::make_unique<unsigned int[]>(size);
+				auto data = image.data();
+				auto index = 0;
+				for	(auto y : Range<int>(image.height)){
+					for (auto x : Range<int>(image.width)){
+						auto pixel = set_pixel(x, y, image.width);
+						view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					}
+				}
+				auto destination_size = size / 16;
+				auto destination = std::make_unique<unsigned long long[]>(destination_size);
+				CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+				auto sen = DataStreamView{};
+				for (auto i : Range<int>(destination_size)) {
+					sen.writeUint64(destination[i]);
+				}
+				return sen.toBytes();
+			}
+
 			inline static auto rgb_etc1_a_8(
 				const Image<int> & image
 			) -> std::vector<unsigned char>
@@ -272,8 +296,8 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				auto destination_size = size / 16;
 				auto destination = std::make_unique<unsigned long long[]>(destination_size);
-				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = DataStreamViewBigEndian{};
+				CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+				auto sen = DataStreamView{};
 				for (auto i : Range<int>(destination_size)) {
 					sen.writeUint64(destination[i]);
 				}
@@ -301,8 +325,8 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				auto destination_size = size / 16;
 				auto destination = std::make_unique<unsigned long long[]>(destination_size);
-				CompressEtc1Rgb(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-				auto sen = DataStreamViewBigEndian{};
+				CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+				auto sen = DataStreamView{};
 				for (auto i : Range<int>(destination_size)) {
 					sen.writeUint64(destination[i]);
 				}
