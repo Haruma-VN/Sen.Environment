@@ -41,15 +41,22 @@ namespace Sen::Kernel::Language
 
 	inline static auto read_language(
 		std::string_view source
-	) -> void
-	{
-		auto file = std::ifstream(source.data());
-		if (!file.is_open()) {
+	) -> void {
+		#if _WIN32
+		auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(myconv.from_bytes(source.data(), source.data() + source.size()).c_str(), L"r"), close_file);
+		#else
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "r"), close_file);
+		#endif
+		if (!file) {
 			throw Exception(fmt::format("Could not read language file: {}", source), std::source_location::current(), "read_language");
 		}
-		auto buffer = std::stringstream{};
-		buffer << file.rdbuf();
-		language = nlohmann::json::parse(buffer.str());
+		std::fseek(file.get(), 0, SEEK_END);
+		auto fsize = std::ftell(file.get());
+		std::fseek(file.get(), 0, SEEK_SET);
+		auto buffer = std::string(fsize, ' ');
+		std::fread(buffer.data(), 1, fsize, file.get());
+		language = nlohmann::ordered_json::parse(buffer);
 		return;
 	}
 

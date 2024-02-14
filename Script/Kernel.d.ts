@@ -577,14 +577,14 @@ declare namespace Sen {
             /**
              * --------------------------------------------------
              * JavaScript JSON File Serializer
-             * @param desitnation - Destination file
+             * @param destination - Destination file
              * @param obj - Object to serialize
              * @param indent - How many indentation
              * @param ensure_ascii - Ensure ASCII
              * --------------------------------------------------
              */
 
-            export function serialize_fs<T>(desitnation: string, obj: T, indent: number, ensure_ascii: boolean): void;
+            export function serialize_fs<T>(destination: string, obj: T, indent: number, ensure_ascii: boolean): void;
         }
 
         /**
@@ -638,7 +638,7 @@ declare namespace Sen {
              * --------------------------------------------------
              */
 
-            export function create_directory(desitnation: string): void;
+            export function create_directory(destination: string): void;
 
             /**
              * --------------------------------------------------
@@ -975,7 +975,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function decode_fs_as_multiple_threads<source extends string, desitnation extends string>(argument: Array<[source, destination]>): void;
+                export function decode_fs_as_multiple_threads<source extends string, destination extends string>(argument: Array<[source, destination]>): void;
 
                 /**
                  * --------------------------------------------------
@@ -985,7 +985,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function encode_fs_as_multiple_threads<source extends string, desitnation extends string>(argument: Array<[source, destination]>): void;
+                export function encode_fs_as_multiple_threads<source extends string, destination extends string>(argument: Array<[source, destination]>): void;
             }
         }
 

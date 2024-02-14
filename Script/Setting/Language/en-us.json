@@ -210,5 +210,20 @@
     "js.process_whole": "Process every arguments using same function",
     "js.process_in_queue": "Process every arguments in queue",
     "js.process_in_script": "Forward every argument to JS Executable",
-    "js.make_host.argument_obtained": "Argument obtained"
+    "js.make_host.argument_obtained": "Argument obtained",
+    "popcap.crypt_data.encrypt.key": "Key",
+    "popcap.crypt_data.decrypt.key": "Key",
+    "popcap.resource_group.split": "PopCap Resource-Group: Split",
+    "popcap.resource_group.merge": "PopCap Resource-Group: Merge",
+    "popcap.resource_group.convert": "PopCap Resource-Group: Convert to Res-Info",
+    "popcap.res_info.split": "PopCap Res-Info: Split",
+    "popcap.res_info.merge": "PopCap Res-Info: Merge",
+    "popcap.res_info.convert": "PopCap Res-Info: Convert to Resource-Group",
+    "js.helper.debugger.compare_language_file.missing_key": "Missing key: {}",
+    "popcap.render_effects.encode": "PopCap Render-Effects: Encode",
+    "popcap.render_effects.decode": "PopCap Render-Effects: Decode",
+    "popcap.crypt_data.decrypt": "PopCap Crypt-Data: Decrypt",
+    "popcap.crypt_data.encrypt": "PopCap Crypt-Data: Encrypt",
+    "popcap.cfw2.decode": "PopCap Character-Font-Widget-2: Decode",
+    "popcap.cfw2.encode": "PopCap Character-Font-Widget-2: Encode"
 }

@@ -716,9 +716,9 @@ namespace Sen.Script.Support.PopCap.Animation {
             ];
         }
 
-        export function process_fs(source: string, desitnation: string): void {
+        export function process_fs(source: string, destination: string): void {
             // debug("process_fs");
-            Kernel.JSON.serialize_fs<SexyAnimation>(desitnation, process(source), 1, false);
+            Kernel.JSON.serialize_fs<SexyAnimation>(destination, process(source), 1, false);
             return;
         }
     }

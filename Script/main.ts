@@ -237,8 +237,6 @@ namespace Sen.Script {
      * --------------------------------------------------
      */
 
-    //  "AS23DSREPLKL335KO4439032N8345NF"
-
     export function launch(): string {
         let result: string = undefined!;
         try {
@@ -249,45 +247,6 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
             Executor.forward({ source: Kernel.arguments });
-            // Executor.execute<Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.Argument>(
-            //     { source: "D:/test/test/main.rsb.bundle/ZombieSkycityZombossGroup_Common.packet/res/IMAGES/768/ZOMBIE2/ZOMBIE/ZOMBIE_SKYCITY_ZOMBOSS/ZOMBIE_SKYCITY_ZOMBOSS.xfl" },
-            //     "popcap.animation.from_flash",
-            //     Executor.Forward.DIRECT,
-            // );
-            // Kernel.Support.WWise.SoundBank.decode_fs(
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.BNK",
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/WiseAlwaysLoaded.packet/res/SOUNDBANKS/GLOBAL_DATA.soundbank",
-            // );
-            // Support.PopCap.Animation.FromAnimation.process_fs(
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.json",
-            //     "D:/test/ipad3_10.8.1_main.rsb.bundle/packet/PlantPrimalSunflower_Common.packet/res/IMAGES/1536/FULL/PLANT/PRIMAL_SUNFLOWER.xfl",
-            //     1536n,
-            // );
-            // Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(
-            //     "D:/test/ZombieSkycityZombossGroup_1536.sprite",
-            //     {
-            //         height: 4096,
-            //         width: 4096,
-            //         padding: 1,
-            //     },
-            //     {
-            //         allowRotation: false,
-            //         pot: false,
-            //         smart: true,
-            //         square: false,
-            //     },
-            //     "D:/test/test",
-            // );
-            // Sen.Script.Executor.run_as_module<Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument>(
-            //     "popcap.atlas.split_by_resource_group",
-            //     {
-            //         source: ["D:/test/ZombieSkycityZombossGroup_1536.json", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png", "D:/test/ZOMBIESKYCITYZOMBOSSGROUP_1536_01.png"],
-            //         destination: "D:/test/test/ZombieSkycityZombossGroup_1536.sprite",
-            //         method: "path",
-            //         style: "array",
-            //     },
-            //     Executor.Forward.DIRECT,
-            // );
         } catch (e: unknown & any) {
             result = Exception.make_exception(e);
         }
@@ -346,6 +305,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.resource_group.merge.js",
             "~/Executor/Methods/popcap.newton.decode.js",
             "~/Executor/Methods/popcap.newton.encode.js",
+            "~/Executor/Methods/popcap.crypt_data.decrypt.js",
+            "~/Executor/Methods/popcap.crypt_data.encrypt.js",
             "~/Executor/Methods/popcap.animation.decode.js",
             "~/Executor/Methods/popcap.animation.encode.js",
             "~/Executor/Methods/popcap.animation.to_flash.js",

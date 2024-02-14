@@ -16,7 +16,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             action_list: ActionList;
         }
 
-        export function process(animation: SexyAnimation, desitnation: string, resolution: BigInt): void {
+        export function process(animation: SexyAnimation, destination: string, resolution: BigInt): void {
             const image_scale_ratio: number = 1200 / Number(resolution);
             const extra_info: ExtraInfo = {
                 version: animation.version,
@@ -31,27 +31,27 @@ namespace Sen.Script.Support.PopCap.Animation {
                     size: animation_image["size"],
                 };
                 const image_document: string = write_image(animation_image, image_id, image_scale_ratio);
-                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "library", "image", `${image_id}.xml`), image_document);
+                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(destination, "library", "image", `${image_id}.xml`), image_document);
             }
             const animation_sprite_map: Record<string, Structure.AnimationSprite> = animation["sprite"];
             const animation_sprite_name_list: string[] = Object.keys(animation_sprite_map);
             for (let sprite_name of animation_sprite_name_list) {
                 const frame_list: FrameList = decode_frame_list(animation_sprite_map[sprite_name], animation_sprite_map, animation_sprite_name_list);
                 const sprite_document: string = write_sprite(frame_list["frame_node_list"], animation_sprite_name_list, animation_image_id_list, sprite_name, false);
-                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "library", "sprite", `${sprite_name}.xml`), sprite_document);
+                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(destination, "library", "sprite", `${sprite_name}.xml`), sprite_document);
             }
             const frame_list: FrameList = decode_frame_list(animation["main_sprite"], animation_sprite_map, animation_sprite_name_list);
             const action_node_list: Record<string, Record<string, FrameNode[]>> = write_action(frame_list);
             const action_keys_templates: string[] = Object.keys(action_node_list);
             for (let action_label of action_keys_templates) {
                 const action_document: string = write_sprite(action_node_list[action_label], animation_sprite_name_list, animation_image_id_list, action_label, true);
-                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "library", "action", `${action_label}.xml`), action_document);
+                Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(destination, "library", "action", `${action_label}.xml`), action_document);
             }
             const dom_document: string = write_document(animation, frame_list["action_list"], animation_image_id_list, animation_sprite_name_list);
-            Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "DomDocument.xml"), dom_document);
-            Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(desitnation, "main.xfl"), "PROXY-CS5");
-            Sen.Kernel.JSON.serialize_fs(Sen.Kernel.Path.join(desitnation, "record.json"), extra_info, 1, false);
-            Sen.Kernel.FileSystem.create_directory(Sen.Kernel.Path.join(desitnation, "library", "media"));
+            Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(destination, "DomDocument.xml"), dom_document);
+            Sen.Kernel.FileSystem.write_file(Sen.Kernel.Path.join(destination, "main.xfl"), "PROXY-CS5");
+            Sen.Kernel.JSON.serialize_fs(Sen.Kernel.Path.join(destination, "record.json"), extra_info, 1, false);
+            Sen.Kernel.FileSystem.create_directory(Sen.Kernel.Path.join(destination, "library", "media"));
             return;
         }
 

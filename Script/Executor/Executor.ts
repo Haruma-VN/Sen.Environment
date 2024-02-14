@@ -116,7 +116,7 @@ namespace Sen.Script.Executor {
         argument: Argument,
         key: keyof Argument & keyof Configuration,
         configuration: Configuration,
-        rule: Array<bigint> | Array<[bigint, string, string]>,
+        rule: Array<bigint> | Array<[bigint, string, string]> | Array<string>,
         title: string,
     ): void {
         Sen.Script.Console.argument(title);
@@ -136,6 +136,51 @@ namespace Sen.Script.Executor {
                 Console.error(format(Kernel.Language.get("invalid.argument"), configuration[key]));
                 (configuration as any)[key] = "?";
                 return argument_load(argument, key, configuration, rule, title);
+            }
+        }
+        return;
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * JavaScript Executor Implement
+     * @param argument - Argument to query
+     * @param key - Key
+     * @param defined_value - If not, this val will assign to it
+     * @returns
+     * ----------------------------------------------------------
+     */
+
+    export function load_string<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+        argument: Argument,
+        key: keyof Argument & keyof Configuration,
+        configuration: Configuration,
+        title: string,
+        rule?: Array<string>,
+    ): void {
+        Sen.Script.Console.argument(title);
+        if ((argument as any & Argument)[key] !== undefined) {
+            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            return;
+        }
+        if ((configuration as any)[key] === "?") {
+            (configuration as any)[key] = Kernel.Console.readline();
+            return;
+        }
+        if (configuration[key] !== "?") {
+            if (!rule) {
+                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                (argument as any & Argument)[key] = configuration[key];
+                return;
+            }
+            if (rule.includes(configuration[key] as string)) {
+                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                (argument as any & Argument)[key] = configuration[key];
+                return;
+            } else {
+                Console.error(format(Kernel.Language.get("invalid.argument"), configuration[key]));
+                (configuration as any)[key] = "?";
+                return load_string(argument, key, configuration, title, rule);
             }
         }
         return;

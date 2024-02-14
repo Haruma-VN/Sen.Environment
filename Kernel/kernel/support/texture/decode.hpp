@@ -383,7 +383,7 @@ namespace Sen::Kernel::Support::Texture
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
 					auto d = sen.readUint64();
-					BlockData::DecodeRGBBBlock(d, dst, width);
+					//BlockData::DecodeRGBBBlock(d, dst, width);
 					dst += 4;
 				}
 				dst += width * 3;
@@ -417,7 +417,7 @@ namespace Sen::Kernel::Support::Texture
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
 					auto d = sen.readUint64();
-					BlockData::DecodeRGBBBlock(d, dst, width);
+					//BlockData::DecodeRGBBBlock(d, dst, width);
 					dst += 4;
 				}
 				dst += width * 3;
@@ -452,7 +452,7 @@ namespace Sen::Kernel::Support::Texture
 				for (auto block_x : Range<int>(width / k_block_width))
 				{
 					auto d = sen.readUint64();
-					BlockData::DecodeRGBBBlock(d, dst, width);
+					//BlockData::DecodeRGBBBlock(d, dst, width);
 					dst += 4;
 				}
 				dst += width * 3;
