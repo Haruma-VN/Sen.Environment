@@ -34,7 +34,7 @@ namespace Sen::Kernel::Definition::Compression {
 			 * Lzma compression level
 			*/
 
-			enum class Level
+			enum class Level : std::uint8_t
 			{
 				LEVEL_0,
 				LEVEL_1,

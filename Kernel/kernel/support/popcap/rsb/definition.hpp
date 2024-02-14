@@ -150,7 +150,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     };
 
 #pragma endregion
-
+/*
 #pragma region RSG_PacketInfo
     template <typename T> requires std::is_integral<T>::value
     struct RSG_PTXInfo
@@ -269,6 +269,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
     }
 
 #pragma endregion
+*/
+
 
 #pragma region RSG_PacketInfo
 
@@ -277,7 +279,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     {
     public:
         T compression_flags;
-        std::vector<RSG_ResInfo<T>> res;
+        std::vector<nlohmann::ordered_json> res;
 
         explicit RSG_PacketInfo(
 

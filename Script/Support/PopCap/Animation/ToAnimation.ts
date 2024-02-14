@@ -10,9 +10,9 @@ namespace Sen.Script.Support.PopCap.Animation {
         }
 
         export interface DocumentSymbol {
-            action: string[],
-            sprite: string[],
-            image: string[]
+            action: string[];
+            sprite: string[];
+            image: string[];
         }
 
         export function process(source: string): SexyAnimation {
@@ -23,7 +23,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             if (record_info.version > 6n || record_info.version < 1n) {
                 throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_version"), record_info.version));
             }
-            const animation_image_id_list: string[] = dom_symbol_list['image'];
+            const animation_image_id_list: string[] = dom_symbol_list["image"];
             const animation_image_map: Record<string, Structure.AnimationImage> = {};
 
             for (let image_id of animation_image_id_list) {
@@ -85,22 +85,22 @@ namespace Sen.Script.Support.PopCap.Animation {
             const dom_symbol_list: DocumentSymbol = {
                 action: [],
                 sprite: [],
-                image: []
+                image: [],
             };
             if (!dom_document["DOMDocument"].hasOwnProperty("symbols")) {
                 throw new Error(Kernel.Language.get("popcap.animation.from_flash.document_has_no_symbols"));
             }
-            const dom_symbols: AttributesSymbolsItem[] = dom_document['DOMDocument']['symbols']["Include"];
+            const dom_symbols: AttributesSymbolsItem[] = dom_document["DOMDocument"]["symbols"]["Include"];
             for (let symbol of dom_symbols) {
-                const item: string = symbol['@attributes']['href'];
-                if (item.startsWith('action')) {
-                    dom_symbol_list['action'].push(item.substring(7, item.length - 4));
+                const item: string = symbol["@attributes"]["href"];
+                if (item.startsWith("action")) {
+                    dom_symbol_list["action"].push(item.substring(7, item.length - 4));
                 }
-                if (item.startsWith('image')) {
-                    dom_symbol_list['image'].push(item.substring(6, item.length - 4));
+                if (item.startsWith("image")) {
+                    dom_symbol_list["image"].push(item.substring(6, item.length - 4));
                 }
-                if (item.startsWith('sprite')) {
-                    dom_symbol_list['sprite'].push(item.substring(7, item.length - 4));
+                if (item.startsWith("sprite")) {
+                    dom_symbol_list["sprite"].push(item.substring(7, item.length - 4));
                 }
             }
             return dom_symbol_list;
@@ -228,8 +228,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                         frame_change[h]["index"] += start_index;
                         if (use_transform) {
                             frame_change[h]["transform"] = transform_calculator(mix_transform(frame_change[h]["transform"], action_index_list[action_name]["transform"]!));
-                        }
-                        else {
+                        } else {
                             frame_change[h]["transform"] = transform_calculator(frame_change[h]["transform"]);
                         }
                         if (use_color) {

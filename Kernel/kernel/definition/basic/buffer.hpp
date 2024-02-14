@@ -80,6 +80,27 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
+            auto begin(
+
+            ) -> decltype(data.begin())
+            {
+                return thiz.data.begin();
+            }
+
+            auto current_pointer(
+
+            ) -> decltype(data.begin() + write_pos)
+            {
+                return thiz.data.begin() + write_pos;
+            }
+
+            auto end(
+
+            ) -> decltype(data.end())
+            {
+                return thiz.data.end();
+            }
+
             ~Stream()
             {
                 thiz.close();

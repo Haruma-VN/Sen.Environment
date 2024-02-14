@@ -10,13 +10,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
     class Unpack
     {
     protected:
-
         std::unique_ptr<DataStreamView> sen;
 
-        template <typename T> requires std::is_integral<T>::value
+        template <typename T>
+            requires std::is_integral<T>::value
         inline auto read_description(
-            const RSB_HeadInfo<T> &rsb_head_info
-        ) const -> void 
+            const RSB_HeadInfo<T> &rsb_head_info) const -> void
         {
             sen->read_pos = rsb_head_info.part1_begin;
             auto part2_pos = rsb_head_info.part2_begin;
@@ -24,29 +23,23 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
-        template <typename T, typename U> requires std::is_integral<T>::value && 
-            std::is_integral<U>::value
+        template <typename T, typename U>
+            requires std::is_integral<T>::value &&
+                     std::is_integral<U>::value
         inline auto read_rsg_category(
-            T version, 
-            RSG_Info<U> &rsg_info
-        ) const -> void
+            T version,
+            RSG_Info<U> &rsg_info) const -> void
         {
-            if (version == 3)
+            auto res_1 = sen->readUint32();
+            auto res_2 = sen->readUint32();
+            if (res_2 == 0)
             {
-                auto res_1 = sen->readString(4);
-                auto res_2 = sen->readString(4);
-                rsg_info.category = nlohmann::ordered_json::array({res_1, res_2});
+                rsg_info.category = nlohmann::ordered_json::array({res_1, nullptr});
             }
             else
             {
-                auto res = sen->readUint32(4);
-                if (res != 0)
-                {
-                    rsg_info.category = nlohmann::ordered_json::array({res, nullptr});
-                }
-                else {
-                    rsg_info.category = nlohmann::ordered_json::array({nullptr, nullptr});
-                }
+                sen->read_pos -= 4;
+                rsg_info.category = nlohmann::ordered_json::array({res_1, sen->readString(4)});
             }
             return;
         }
@@ -75,15 +68,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
         */
-        template <typename T, typename U, auto write_rsg> requires std::is_integral<T>::value && std::is_integral<U>::value
+        template <typename T, typename U, auto write_rsg>
+            requires std::is_integral<T>::value && std::is_integral<U>::value
         inline auto read_rsg_info(
             T rsg_index,
             const RSB_HeadInfo<U> &rsb_head_info,
             T rsg_info_pos,
             RSG_Info<U> &rsg_info,
             std::string_view rsg_name,
-            std::string_view packet_folder
-        ) const -> void
+            std::string_view packet_folder) const -> void
         {
             auto packet_pos = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0x80);
             auto packet_size = sen->readUint32();
@@ -91,19 +84,20 @@ namespace Sen::Kernel::Support::PopCap::RSB
             rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
             auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
             read_res_info<int>(packet_sen, rsb_head_info, ptx_number_pool, &rsg_info.packet_info.res);
-            if constexpr (write_rsg) {
+            if constexpr (write_rsg)
+            {
                 packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
             }
             return;
         }
 
-        template <typename T, typename U> requires std::is_integral<T>::value && std::is_integral<U>::value
+        template <typename T, typename U>
+            requires std::is_integral<T>::value && std::is_integral<U>::value
         inline auto read_res_info(
             const DataStreamView &packet_sen,
             const RSB_HeadInfo<U> &rsb_head_info,
             T ptx_number_pool,
-            std::vector<RSG_ResInfo<U>>* res_list
-        ) const -> void
+            std::vector<nlohmann::ordered_json> *res_list) const -> void
         {
             auto name_dist_list = std::vector<NameDict<std::uint32_t>>{};
             auto name_path = std::string{};
@@ -127,16 +121,20 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         });
                     }
                     auto is_atlas = packet_sen.readUint32() == 1;
-                    auto res = RSG_ResInfo<std::uint32_t>{name_path};
+                    auto res = nlohmann::ordered_json{
+                        {"path", name_path}};
                     packet_sen.read_pos += 8;
                     if (is_atlas)
                     {
                         auto id = packet_sen.readUint32();
                         packet_sen.read_pos += 8;
-                        res.ptx_info_is_null = false;
-                        res.ptx_info = RSG_PTXInfo<std::uint32_t>{id, packet_sen.readUint32(), packet_sen.readUint32()};
+                        res["ptx_info"] = {
+                            {"id", id},
+                            {"format", 0},
+                            {"width", packet_sen.readUint32()},
+                            {"height", packet_sen.readUint32()}};
                         auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
-                        res.ptx_info.format = sen->readUint32(format_pos);
+                        res["ptx_info"]["format"] = sen->readUint32(format_pos);
                     }
                     res_list->emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
@@ -151,6 +149,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 }
                 else
                 {
+                    if (char_byte == 0x5C)
+                    {
+                        char_byte = 0x2F;
+                    }
                     if (pos != 0)
                     {
                         name_dist_list.emplace_back(NameDict{
@@ -167,10 +169,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
-        template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
+        template <typename T>
+            requires std::is_integral<T>::value && std::is_unsigned<T>::value
         inline auto read_head(
-            RSB_HeadInfo<T>* rsb_headinfo
-        ) const -> void
+            RSB_HeadInfo<T> *rsb_headinfo) const -> void
         {
             {
                 auto magic = sen->readString(4);
@@ -213,34 +215,35 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     public:
         explicit Unpack(
-            std::string_view source
-        ) : sen(std::make_unique<DataStreamView>(source))
+            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
         explicit Unpack(
-            DataStreamView &it
-        ) : sen(&it)
+            DataStreamView &it) : sen(&it)
         {
         }
 
         ~Unpack(
 
-        ) = default;
+            ) = default;
 
-        template <typename T, auto write_info = true> requires std::is_integral<T>::value
+        template <typename T, auto write_info = true>
+            requires std::is_integral<T>::value
         inline auto process(
             std::string_view destination,
-            Manifest<T>& manifest_info
-        ) const -> void
+            Manifest<T> &manifest_info) const -> void
         {
             auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);
             manifest_info.version = rsb_head_info.version;
-            if (rsb_head_info.version == 3) {
-                if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0) {
+            if (rsb_head_info.version == 3)
+            {
+                if (rsb_head_info.part1_begin == 0 && rsb_head_info.part2_begin == 0 && rsb_head_info.part3_begin == 0)
+                {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
                 }
+                read_description(rsb_head_info);
             }
             auto packet_folder = fmt::format("{}/{}", destination, "packet");
             FileSystem::create_directory(destination);
@@ -251,7 +254,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto composite_name = sen->readStringByEmpty(composite_start_pos);
                 auto composite_info_pos = composite_start_pos + 0x80;
                 auto is_composite = composite_name.ends_with("_CompositeShell");
-                auto rsg_group = RSG_Group<T>{ is_composite };
+                if (is_composite)
+                {
+                    composite_name = composite_name.substr(0, -16);
+                }
+                auto rsg_group = RSG_Group<T>{!is_composite};
                 for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))
                 {
                     auto rsg_info = RSG_Info<T>{};
@@ -260,11 +267,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(rsg_info_pos);
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
-                    rsg_group.subgroup.insert(std::pair{ rsg_name, rsg_info });
+                    rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
-                manifest_info.group.insert(std::pair{ composite_name, rsg_group });
+                manifest_info.group.insert(std::pair{composite_name, rsg_group});
             }
-            if constexpr (write_info) {
+            if constexpr (write_info)
+            {
                 FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
             }
             return;
@@ -272,8 +280,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline static auto unpack_fs(
             std::string_view source,
-            std::string_view destination
-        ) -> void
+            std::string_view destination) -> void
         {
             auto unpack = Unpack{source};
             auto manifest = Manifest<std::uint32_t>{};

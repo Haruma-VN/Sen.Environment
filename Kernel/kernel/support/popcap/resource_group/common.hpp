@@ -117,11 +117,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			*/
 
 			inline static auto merge(
-				std::string_view directoryPath,
-				std::string_view fileOutput
+				std::string_view source,
+				std::string_view destination
 			) -> void
 			{
-				auto content = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", directoryPath, "content.json")));
+				auto content = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "content.json")));
 				auto resources_json = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
@@ -145,7 +145,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						groups.emplace_back(composite_object);
 					}
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
-						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", directoryPath, subgroup));
+						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", source, subgroup));
 						auto resource_content = FileSystem::read_json(resource_json_path);
 						assert_conditional(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"), "merge");
 						groups.emplace_back(resource_content);
@@ -153,7 +153,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				}
 				resources_json["groups"] = groups;
 				BasicConversion::rewrite_slot_count(resources_json);
-				FileSystem::write_json(fileOutput, resources_json);
+				FileSystem::write_json(destination, resources_json);
 				return;
 			}
 	};
