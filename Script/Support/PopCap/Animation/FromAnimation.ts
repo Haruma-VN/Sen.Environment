@@ -126,18 +126,20 @@ namespace Sen.Script.Support.PopCap.Animation {
                     write_command = true;
                 }
                 if (write_command) {
-                    command_dom_frames.push({
-                        "@attributes": {
-                            index: `${prev_end_index}`,
-                            duration: `${BigInt(i) - prev_end_index}`,
-                        },
-                        elements: {
-                            "@text": {
-                                is_cdata: false,
-                                value: "",
+                    if (BigInt(i) - prev_end_index > 0) {
+                        command_dom_frames.push({
+                            "@attributes": {
+                                index: `${prev_end_index}`,
+                                duration: `${BigInt(i) - prev_end_index}`,
                             },
-                        },
-                    });
+                            elements: {
+                                "@text": {
+                                    is_cdata: false,
+                                    value: "",
+                                },
+                            },
+                        });
+                    }
                     prev_end_index = BigInt(i);
                     command_dom_frames.push({
                         "@attributes": {
@@ -330,16 +332,16 @@ namespace Sen.Script.Support.PopCap.Animation {
                     if (check_base_frame(transform, base_color, resource)) {
                         const symbol_instance_attributes: DOMSymbolInstanceAttributes = frame_node[k]["sprite"]
                             ? {
-                                  libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
-                                  firstFrame: `${frame_node[k]["first_frame"]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              }
+                                libraryItemName: `sprite/${animation_sprite_name_list[Number(resource)]}`,
+                                firstFrame: `${frame_node[k]["first_frame"]}`,
+                                symbolType: "graphic",
+                                loop: "loop",
+                            }
                             : {
-                                  libraryItemName: `image/${animation_image_id_list[Number(resource)]}`,
-                                  symbolType: "graphic",
-                                  loop: "loop",
-                              };
+                                libraryItemName: `image/${animation_image_id_list[Number(resource)]}`,
+                                symbolType: "graphic",
+                                loop: "loop",
+                            };
                         if (frame_node[k]["sprite"]) {
                             symbol_instance_attributes["firstFrame"] = `${frame_node[k]["first_frame"]}`;
                         }

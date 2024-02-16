@@ -32,6 +32,7 @@ public:
 
     BitmapPtr Decode();
 
+    static void DecodeRGBBBlock(uint64_t d, uint32_t* dst, uint32_t width);
     void Process( const uint32_t* src, uint32_t blocks, size_t offset, size_t width, Channels type, bool dither, bool useHeuristics );
     void ProcessRGBA( const uint32_t* src, uint32_t blocks, size_t offset, size_t width, bool useHeuristics );
     static void PubDecodeETCRGB(uint64_t* src, uint32_t* dst, uint32_t width, uint32_t height);

@@ -868,7 +868,7 @@ namespace Sen::Kernel {
 
 			// posix style test: a/b/c/d
 
-			inline static auto toPosixStyle(
+			inline static auto to_posix_style(
 				std::string str
 			) -> std::string const
 			{
@@ -884,19 +884,13 @@ namespace Sen::Kernel {
 
 			// windows style test: a\b\c
 
-			inline static auto constexpr toWindowsStyle(
+			inline static auto constexpr to_windows_style(
 				const std::string & str
 			) -> std::string const
 			{
-				auto b = std::string{str};
-				for(auto & c : b)
-				{
-					if(c == '/')
-					{
-						c = '\\';
-					}
-				}
-				return b;
+				auto windowsPath = str;
+				std::replace(windowsPath.begin(), windowsPath.end(), '/', '\\');
+				return windowsPath;
 			}
 
 			/*

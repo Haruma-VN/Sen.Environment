@@ -9,6 +9,7 @@
 #endif
 
 #include "dependencies/etcpak/ProcessRGB.hpp"
+#include "dependencies/etcpak/BlockData.hpp"
 
 #if defined MSVC_COMPILER
 #pragma warning(pop)

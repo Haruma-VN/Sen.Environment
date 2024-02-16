@@ -80,27 +80,6 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            auto begin(
-
-            ) -> decltype(data.begin())
-            {
-                return thiz.data.begin();
-            }
-
-            auto current_pointer(
-
-            ) -> decltype(data.begin() + write_pos)
-            {
-                return thiz.data.begin() + write_pos;
-            }
-
-            auto end(
-
-            ) -> decltype(data.end())
-            {
-                return thiz.data.end();
-            }
-
             ~Stream()
             {
                 thiz.close();
@@ -149,14 +128,7 @@ namespace Sen::Kernel::Definition
             {
                 auto bytes = std::vector<std::uint8_t>{};
                 bytes.reserve(thiz.length);
-                if (use_big_endian)
-                {
-                    bytes.assign(thiz.data.rbegin(), thiz.data.rend());
-                }
-                else
-                {
-                    bytes.assign(thiz.data.begin(), thiz.data.end());
-                }
+                bytes.assign(thiz.data.begin(), data.begin() + thiz.length);
                 return bytes;
             }
 
@@ -1367,6 +1339,15 @@ namespace Sen::Kernel::Definition
             {
                 thiz.read_pos = pos;
                 return thiz.readStringByEmpty();
+            }
+
+            inline auto getStringByEmpty(std::size_t pos) const -> std::string
+            {
+                auto thiz_pos = read_pos;
+                read_pos = pos;
+                auto str = readStringByEmpty();
+                read_pos = thiz_pos;
+                return str;
             }
 
             inline auto getBytes(

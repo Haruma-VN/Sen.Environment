@@ -15,11 +15,11 @@ namespace Sen::Kernel::Path
 	 * Convert to: "a\\b\\c" if it's "a/b/c"
 	*/
 	
-	inline auto toWindowsStyle(
+	inline auto to_windows_style(
 		const std::string & source
 	) -> std::string const
 	{
-		return String::toWindowsStyle(source);
+		return String::to_windows_style(source);
 	}
 
 	
@@ -27,11 +27,11 @@ namespace Sen::Kernel::Path
 	 * Convert to: "a/b/c" if it's "a\\b\\c"
 	*/
 
-	inline auto toPosixStyle(
+	inline auto to_posix_style(
 		const std::string & source
 	) -> std::string const
 	{
-		return String::toPosixStyle(source);
+		return String::to_posix_style(source);
 	}
 
 	/**
@@ -116,7 +116,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
-		return Path::absolute(Path::toPosixStyle(source));
+		#if WINDOWS
+			return Path::to_windows_style(Path::absolute(source));
+		#else
+			return Path::absolute(Path::to_posix_style(source));
+		#endif
 	}
 
 	/**

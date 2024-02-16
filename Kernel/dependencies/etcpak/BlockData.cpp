@@ -1313,3 +1313,10 @@ void BlockData::PubDecodeETCRGB(uint64_t* src, uint32_t* dst, uint32_t width, ui
 
     return;
 }
+
+void BlockData::DecodeRGBBBlock(uint64_t d, uint32_t* dst, uint32_t width)
+{
+    DecodeRGBPart(d, dst, width);
+    return;
+}
+

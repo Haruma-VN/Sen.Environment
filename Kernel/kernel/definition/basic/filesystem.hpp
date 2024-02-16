@@ -31,7 +31,8 @@ namespace Sen::Kernel::FileSystem
 	) -> std::string 
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"r"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+					String::to_windows_style(filepath.data()))).data(), L"r"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "r"), close_file);
 		#endif
@@ -53,7 +54,8 @@ namespace Sen::Kernel::FileSystem
 		std::string_view source
 	) -> nlohmann::ordered_json const 
 	{
-		auto file = std::ifstream(source.data());
+		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data());
         if (!file.is_open()) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,source), std::source_location::current(), "read_json");
         }
@@ -72,7 +74,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -98,7 +101,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -122,7 +126,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -150,7 +155,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -170,7 +176,8 @@ namespace Sen::Kernel::FileSystem
 	) -> std::wstring
 	{
 	#if WINDOWS
-		auto wif = std::wifstream(std::wstring{ source.begin(), source.end() });
+		auto wif = std::wifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data());
 		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
 		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
 		return content;
@@ -193,7 +200,8 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto utf16le_locale = std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff,
 			(std::codecvt_mode)(std::little_endian | std::generate_header)>);
-		auto file = std::wofstream(source.data(), std::ios::binary);
+		auto file = std::wofstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data(), std::ios::binary);
 		file.imbue(utf16le_locale);
 		file << data;
 		file.close();
@@ -214,7 +222,11 @@ namespace Sen::Kernel::FileSystem
 		if(fs::is_directory(path)){
 			return;
 		}
-		auto status = fs::create_directories(path);
+		#if WINDOWS
+			fs::create_directories(fmt::format("\\\\?\\{}", String::to_windows_style(path.data())));
+		#else
+			fs::create_directories(path);
+		#endif
 		return;
 	}
 
@@ -229,13 +241,14 @@ namespace Sen::Kernel::FileSystem
 		std::string_view content
 	) -> void
 	{
-		auto temporary = Path::toPosixStyle(filepath.data());
+		auto temporary = Path::to_posix_style(filepath.data());
 		auto data = String::split(temporary, "/"_sv);
 		data.erase(data.end() - 1, data.end());
 		auto c = String::join(data, "/"_sv);
 		create_directory(c);
 		#if WINDOWS
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"w"), close_file);
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -269,7 +282,7 @@ namespace Sen::Kernel::FileSystem
 	// return: the file has been written to json
 
 	inline static auto out_json(
-		const std::string &filePath,
+		std::string_view filePath,
 		const nlohmann::ordered_json &content
 	) -> void
 	{
@@ -277,27 +290,30 @@ namespace Sen::Kernel::FileSystem
 		return;
 	}
 
+	// -------------------------------------------------
 	
 	template <typename T> requires CharacterBufferView<T> 
 	inline static auto read_binary(
 		std::string_view filepath
 	) -> std::vector<T> const
 	{
-		auto file = std::ifstream(filepath.data(), std::ios::binary);
-		if(!file)
-		{
+		#if WINDOWS
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(filepath.data()))).data(), L"rb"), close_file);
+		#else
+		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "rb"), close_file);
+		#endif
+		if (!file) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
 		}
-		file.seekg(0, std::ios::end);
-		auto size = static_cast<std::streamsize>(file.tellg());
-		file.seekg(0, std::ios::beg);
-		auto data = std::vector<T>(size);
-		if (!file.read(reinterpret_cast<char*>(data.data()), size))
-		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath), std::source_location::current(), "read_binary");
+		std::fseek(file.get(), 0, SEEK_END);
+		auto fsize = std::ftell(file.get());
+		std::fseek(file.get(), 0, SEEK_SET);
+		auto data = std::vector<T>(fsize);
+		if (std::fread(data.data(), sizeof(T), fsize, file.get()) != fsize) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
 		}
-		file.close();
-		return data;	
+		return data;
 	}
 
 	// dirPath: directory to read
@@ -339,9 +355,9 @@ namespace Sen::Kernel::FileSystem
 		{
 			if(c.is_regular_file()){
 				#if WINDOWS
-					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().wstring())));
 				#else
-					result.emplace_back(Path::normalize(c.path().generic_string()));
+					result.emplace_back(Path::normalize(c.path().string()));
 				#endif
 			}
 		}
@@ -364,9 +380,9 @@ namespace Sen::Kernel::FileSystem
 		{
 			if(c.is_directory()){
 				#if WINDOWS
-					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().wstring())));
 				#else
-					result.emplace_back(Path::normalize(c.path().generic_string()));
+					result.emplace_back(Path::normalize(c.path().string()));
 				#endif
 			}
 		}
@@ -390,9 +406,9 @@ namespace Sen::Kernel::FileSystem
 		{
 			if(c.is_directory()){
 				#if WINDOWS
-					for (auto& e : read_whole_directory(String::utf16_to_utf8(c.path().generic_wstring())))
+					for (auto& e : read_whole_directory(String::utf16_to_utf8(c.path().wstring())))
 				#else
-					for (auto& e : read_whole_directory(c.path().generic_string()))
+					for (auto& e : read_whole_directory(c.path().string()))
 				#endif
 				{
 					result.emplace_back(Path::normalize(e));
@@ -400,9 +416,9 @@ namespace Sen::Kernel::FileSystem
 			}
 			else{
 				#if WINDOWS
-					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+					result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().wstring())));
 				#else
-					result.emplace_back(Path::normalize(c.path().generic_string()));
+					result.emplace_back(Path::normalize(c.path().string()));
 				#endif
 			}
 		}
@@ -423,7 +439,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"wb"), close_file);
+			auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+				String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "wb"), close_file);
 		#endif
@@ -443,7 +460,7 @@ namespace Sen::Kernel::FileSystem
 		std::string_view source
 	) -> std::unique_ptr<tinyxml2::XMLDocument>
 	{
-		auto xml = std::unique_ptr<tinyxml2::XMLDocument>(new tinyxml2::XMLDocument{});
+		auto xml = std::make_unique<tinyxml2::XMLDocument>();
 		auto data = FileSystem::read_file(source);
 		auto eResult = xml->Parse(data.data(), data.size());
 		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), source), "read_xml");

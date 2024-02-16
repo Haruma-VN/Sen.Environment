@@ -15,11 +15,116 @@ namespace Sen::Kernel::Support::PopCap::RSB
         template <typename T>
             requires std::is_integral<T>::value
         inline auto read_description(
-            const RSB_HeadInfo<T> &rsb_head_info) const -> void
+            RSB_HeadInfo<T>* rsb_head_info
+        ) const -> void
         {
-            sen->read_pos = rsb_head_info.part1_begin;
-            auto part2_pos = rsb_head_info.part2_begin;
-            auto part3_pos = rsb_head_info.part3_begin;
+            sen->read_pos = rsb_head_info->part1_begin;
+            auto part2_pos = rsb_head_info->part2_begin;
+            auto part3_pos = rsb_head_info->part3_begin;
+            auto composite_resources_info = std::vector<CompositeResoucesDescriptionInfo>{};
+            auto description_group = std::map<std::string, DescriptionGroup>{};
+            for (auto i = 0; sen->read_pos < part2_pos; i++) {
+                auto id_part3_pos = sen->readInt32();
+                auto id = sen->getStringByEmpty(part3_pos + id_part3_pos);
+                auto rsg_number = sen->readInt32();
+                auto subgroup = std::map<std::string, DescriptionSubGroup>{};
+                if (sen->readInt32() != 0x10) {
+                    throw Exception("invaild_rsg_number");
+                }
+                auto rsg_info_list = std::vector<ResourcesRsgInfo>{};
+                for (auto k : Range<int>(rsg_number)) {
+                    auto resolution_ratio = sen->readInt32();
+                    auto l_temp = sen->readUint32(4);
+                    auto language = std::string{""};
+                    if (l_temp != 0) {
+                        language = sen->readString(4, sen->read_pos - 4);
+                    }
+                    auto rsg_id_part3_pos = sen->readInt32();
+                    auto resources_number = sen->readInt32();
+                    auto resources_info_list = std::vector<ResourcesInfo>{};
+                    for (auto l : Range(resources_number)) {
+                        auto info_part2_pos = sen->readInt32();
+                        auto resources_info = ResourcesInfo{info_part2_pos};
+                        resources_info_list.emplace_back(resources_info);
+                    }
+                    auto rsg_id = sen->getStringByEmpty(part3_pos + rsg_id_part3_pos);
+                    auto des_subgroup = DescriptionSubGroup{ std::to_string(resolution_ratio), language};
+                    subgroup.insert(std::pair{rsg_id, des_subgroup});
+                    auto res_rsg_info = ResourcesRsgInfo{
+                        resolution_ratio,
+                        language,
+                        rsg_id,
+                        resources_number,
+                        resources_info_list
+                    };
+                    rsg_info_list.emplace_back(res_rsg_info);
+                }
+                auto des_group = DescriptionGroup{
+                    !id.ends_with("_CompositeShell"),
+                    subgroup
+                };
+                description_group.insert({
+                    std::pair{id, des_group}
+                });
+                auto c_res_info = CompositeResoucesDescriptionInfo{ id, rsg_number,rsg_info_list};
+                composite_resources_info.emplace_back(c_res_info);
+                auto thiz_pos = sen->read_pos;
+                auto resources_rsg_number = composite_resources_info[i].rsg_number;
+                for (auto k : Range<int>(resources_rsg_number)) {
+                    auto resources_number = composite_resources_info[i].rsg_info_list[k].resources_number;
+                    for (auto h : Range<int>(resources_number)) {
+                        sen->read_pos = part2_pos + composite_resources_info[i].rsg_info_list[k].resources_info_list[h].info_part2_pos;
+                        if (sen->readInt32() != 0x0) {
+                            throw Exception("invaild_part2_pos");
+                        }
+                        auto type = sen->readUint16();
+                        if (sen->readUint16() != 0x1C) {
+                            throw Exception("invaild_head_lenght");
+                        }
+                        auto ptx_info_part2_end_pos = sen->readInt32();
+                        auto ptx_info_part2_begin_pos = sen->readInt32();
+                        auto res_id_part3_pos = sen->readInt32();
+                        auto path_part3_pos = sen->readInt32();
+                        auto res_id = sen->getStringByEmpty(part3_pos + res_id_part3_pos);
+                        auto res_path = sen->getStringByEmpty(part3_pos + path_part3_pos);
+                        auto properties_num = sen->readInt32();
+                        auto ptx_info_list = PropertiesPtxInfo{};
+                        if (ptx_info_part2_end_pos * ptx_info_part2_begin_pos != 0) {
+                            ptx_info_list.imagetype = std::to_string(sen->readUint16());
+                            ptx_info_list.aflags = std::to_string(sen->readUint16());
+                            ptx_info_list.x = std::to_string(sen->readUint16());
+                            ptx_info_list.y = std::to_string(sen->readUint16());
+                            ptx_info_list.ax = std::to_string(sen->readUint16());
+                            ptx_info_list.ay = std::to_string(sen->readUint16());
+                            ptx_info_list.aw = std::to_string(sen->readUint16());
+                            ptx_info_list.ah = std::to_string(sen->readUint16());
+                            ptx_info_list.rows = std::to_string(sen->readUint16());
+                            ptx_info_list.cols = std::to_string(sen->readUint16());
+                            ptx_info_list.parent = sen->getStringByEmpty(part3_pos + sen->readInt32());
+                        }
+                        auto properties_info_list = std::map<string, string>{};
+                        for (auto l : Range<int>(properties_num)) {
+                            auto key_part3_pos = sen->readInt32();
+                            if (sen->readInt32() != 0x0) {
+                                throw Exception("rsb_is_corrupted");
+                            }
+                            auto value_part3_pos = sen->readInt32();
+                            auto key = sen->getStringByEmpty(part3_pos + key_part3_pos);
+                            auto value = sen->getStringByEmpty(part3_pos + value_part3_pos);
+                            properties_info_list.insert(
+                                std::pair{key, value}
+                            );
+                        }
+                        auto res = DescriptionResources{
+                            type,
+                            res_path,
+                            ptx_info_list,
+                            properties_info_list
+                        };
+                        // 
+                    }
+                }
+            }
             return;
         }
 
@@ -82,8 +187,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto packet_size = sen->readUint32();
             auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<size_t>(packet_pos) + packet_size)};
             rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(0x10)};
-            auto ptx_number_pool = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC4) + sen->readUint32();
-            read_res_info<int>(packet_sen, rsb_head_info, ptx_number_pool, &rsg_info.packet_info.res);
+            auto ptx_before = sen->readUint32(static_cast<size_t>(rsg_info_pos) + 0xC8);
+            read_res_info<int>(packet_sen, rsb_head_info, ptx_before, &rsg_info.packet_info.res);
             if constexpr (write_rsg)
             {
                 packet_sen.out_file(fmt::format("{}/{}.rsg", packet_folder, rsg_name));
@@ -96,7 +201,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto read_res_info(
             const DataStreamView &packet_sen,
             const RSB_HeadInfo<U> &rsb_head_info,
-            T ptx_number_pool,
+            T ptx_before,
             std::vector<nlohmann::ordered_json> *res_list) const -> void
         {
             auto name_dist_list = std::vector<NameDict<std::uint32_t>>{};
@@ -130,11 +235,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         packet_sen.read_pos += 8;
                         res["ptx_info"] = {
                             {"id", id},
-                            {"format", 0},
                             {"width", packet_sen.readUint32()},
                             {"height", packet_sen.readUint32()}};
-                        auto format_pos = (rsb_head_info.ptx_info_begin + (ptx_number_pool - id) * rsb_head_info.ptx_info_each_length) + 0x0C;
-                        res["ptx_info"]["format"] = sen->readUint32(format_pos);
+                        auto pitch_pos = (rsb_head_info.ptx_info_begin + (ptx_before - id) * rsb_head_info.ptx_info_each_length) + 0x08;
+                        res["ptx_info"]["pitch"] = sen->readUint32(pitch_pos);
+                        res["ptx_info"]["format"] = sen->readUint32();
+                        if (rsb_head_info.ptx_info_each_length >= 0x14) {
+                            res["ptx_info"]["alpha_size"] = sen->readUint32();
+                            res["ptx_info"]["alpha_format"] = rsb_head_info.ptx_info_each_length == 0x18 ? sen->readUint32() : (res["ptx_info"]["alpha_size"] == 0 ? 0 : 0x64);
+                        } 
                     }
                     res_list->emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
@@ -243,7 +352,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
                 }
-                read_description(rsb_head_info);
+                read_description(&rsb_head_info);
             }
             auto packet_folder = fmt::format("{}/{}", destination, "packet");
             FileSystem::create_directory(destination);
@@ -256,7 +365,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto is_composite = composite_name.ends_with("_CompositeShell");
                 if (is_composite)
                 {
-                    composite_name = composite_name.substr(0, -16);
+                    composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
                 auto rsg_group = RSG_Group<T>{!is_composite};
                 for (auto k : Range(sen->readUint32(composite_start_pos + 0x480)))

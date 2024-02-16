@@ -80,6 +80,8 @@ add_library(
 	./support/popcap/render_effects/encode.hpp
 	./support/popcap/rsb/definition.hpp
 	./support/popcap/rsb/unpack.hpp
+	./support/popcap/rsg/definition.hpp
+	./support/popcap/rsg/unpack.hpp
 	./support/popcap/rton/decode.hpp
 	./support/popcap/rton/encode.hpp
 	./support/popcap/animation/definition.hpp

@@ -88,7 +88,7 @@ namespace Sen::Kernel::Interface {
 				// home
 				{
 					// script path
-					javascript->add_constant<std::string_view>(String::toPosixStyle(script_path.data()), "Sen"_sv, "Kernel"_sv, "Home"_sv, "script"_sv);
+					javascript->add_constant<std::string_view>(String::to_posix_style(script_path.data()), "Sen"_sv, "Kernel"_sv, "Home"_sv, "script"_sv);
 				}
 				// vcdiff
 				{
