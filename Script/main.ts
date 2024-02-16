@@ -317,6 +317,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.render_effects.encode.js",
             "~/Executor/Methods/wwise.soundbank.decode.js",
             "~/Executor/Methods/wwise.soundbank.encode.js",
+            "~/Executor/Methods/popcap.rsg.unpack.js",
             "~/Executor/Methods/popcap.rsb.unpack.js",
             "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
             "~/Executor/Methods/popcap.atlas.pack_by_resource_group.js",
