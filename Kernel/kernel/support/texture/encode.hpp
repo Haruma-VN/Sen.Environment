@@ -2,7 +2,7 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/texture/decode.hpp"
-//#include "kernel/support/texture/compression/pvrtc/pvrtc_encode.hpp"
+#include "kernel/support/texture/compression/pvrtc/pvrtc.hpp"
 
 namespace Sen::Kernel::Support::Texture
 {
@@ -372,92 +372,162 @@ namespace Sen::Kernel::Support::Texture
 			return sen.toBytes();
 		}
 
-		inline static auto is_padded_size (
+		inline static auto is_padded_size(
 			int size,
-			int unit
-		) -> bool 
+			int unit) -> bool
 		{
 			return size % unit == k_none_size;
 		}
 
-
 		inline static auto rgba_pvrtc_4bpp(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto new_width = image.width;
-			auto new_height = image.height;
-			auto pixels = image.data();
-			auto destination = std::vector<uint8_t>(new_width * new_height / 2, 0x00);
-
-
-			// PVRTC_Encoder::compress_pvrtci_4bpp(pixels, destination, new_width, new_height, true);
-			/*
-			if (is_padded_size(width, k_block_width)) {
-				debug("width");
+			auto newWidth = image.width;
+			auto newHeight = image.height;
+			if (newWidth < 8)
+			{
+				newWidth = 8;
 			}
-			if (is_padded_size(height, k_block_width)) {
-				debug("height");
+			if (newHeight < 8)
+			{
+				newHeight = 8;
 			}
-			auto actual_image = Javelin::RgbaBitmap{width, height};
-			auto actual_data = actual_image.GetData();
+			if ((newWidth & (newWidth - 1)) != 0)
+			{
+				newWidth = 0b10 << (static_cast<int>(Math::floor(Math::log2(newWidth))));
+			}
+			if ((newHeight & (newHeight - 1)) != 0)
+			{
+				newHeight = 0b10 << (static_cast<int>(Math::floor(Math::log2(newHeight))));
+			}
+			if (newWidth != newHeight)
+			{
+				newWidth = newHeight = Math::compare(newWidth, newHeight);
+			}
+			auto new_image = Image<int>(0, 0, newWidth, newWidth, std::vector<uint8_t>(pixel_area_rgba(newWidth, newWidth), 0x00));
+			auto source_data = new_image.data();
 			auto image_data = image.data();
-			for (auto y : Range<int>(height)) {
-				for (auto x : Range<int>(width)) {
-					auto pixel_index = y * width + x;
-					debug(pixel_index);
-					auto & pixel = actual_data[pixel_index];
-					pixel.r = static_cast<unsigned char>(image_data[pixel_index * 4]);
-					pixel.g = static_cast<unsigned char>(image_data[pixel_index * 4 + 1]);
-					pixel.b = static_cast<unsigned char>(image_data[pixel_index * 4 + 2]);
-					pixel.a = static_cast<unsigned char>(image_data[pixel_index * 4 + 3]);
+			for (auto j : Range<int>(image.height))
+			{
+				for (auto i : Range<int>(image.width))
+				{
+					auto source_index = ((j + image.y) * new_image.width + (i + image.x)) * 4;
+					auto img_index = (j * image.width + i) * 4;
+					source_data[source_index] = image_data[img_index];
+					source_data[source_index + 1] = image_data[img_index + 1];
+					source_data[source_index + 2] = image_data[img_index + 2];
+					source_data[source_index + 3] = image_data[img_index + 3];
 				}
 			}
-			debug("run");
-			auto destination = std::make_unique<unsigned char[]>(width * height / 2);
-			Javelin::PvrTcEncoder::EncodeRgba4Bpp(destination.get(), actual_image);
+			auto packets = PVRTC::encode_rgba_4bpp(source_data, newWidth);
 			auto sen = DataStreamView{};
-			for (auto i : Range<int>(width * height / 2)) {
-				sen.writeUint8(destination[i]);
+			for (auto i : Range<int>(packets.size()))
+			{
+				sen.writeUint64(packets[i].PvrTcWord);
 			}
-			*/
-			/*
-			auto size = image.area();
-			auto view = std::make_unique<unsigned int[]>(size);
-			auto data = image.data();
-			auto index = 0;
+			return sen.toBytes();
+		}
 
-
-
-
-
-
-
-			for	(auto y : Range<int>(image.height)){
-				for (auto x : Range<int>(image.width)){
-					auto pixel = set_pixel(x, y, image.width);
-					view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+		inline static auto rgb_pvrtc_4bpp(
+			const Image<int> &image) -> std::vector<unsigned char>
+		{
+			auto newWidth = image.width;
+			auto newHeight = image.height;
+			if (newWidth < 8)
+			{
+				newWidth = 8;
+			}
+			if (newHeight < 8)
+			{
+				newHeight = 8;
+			}
+			if ((newWidth & (newWidth - 1)) != 0)
+			{
+				newWidth = 0b10 << (static_cast<int>(Math::floor(Math::log2(newWidth))));
+			}
+			if ((newHeight & (newHeight - 1)) != 0)
+			{
+				newHeight = 0b10 << (static_cast<int>(Math::floor(Math::log2(newHeight))));
+			}
+			if (newWidth != newHeight)
+			{
+				newWidth = newHeight = Math::compare(newWidth, newHeight);
+			}
+			auto new_image = Image<int>(0, 0, newWidth, newWidth, std::vector<uint8_t>(pixel_area_rgba(newWidth, newWidth), 0x00));
+			auto source_data = new_image.data();
+			auto image_data = image.data();
+			for (auto j : Range<int>(image.height))
+			{
+				for (auto i : Range<int>(image.width))
+				{
+					auto source_index = ((j + image.y) * new_image.width + (i + image.x)) * 4;
+					auto img_index = (j * image.width + i) * 4;
+					source_data[source_index] = image_data[img_index];
+					source_data[source_index + 1] = image_data[img_index + 1];
+					source_data[source_index + 2] = image_data[img_index + 2];
+					source_data[source_index + 3] = image_data[img_index + 3];
 				}
 			}
-			auto destination_size = size / 16;
-			auto destination = std::make_unique<unsigned long long[]>(destination_size);
-			CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
+			auto packets = PVRTC::encode_rgb_4bpp(source_data, newWidth);
 			auto sen = DataStreamView{};
-			for (auto i : Range<int>(destination_size)) {
-				sen.writeUint64(destination[i]);
+			for (auto i : Range<int>(packets.size()))
+			{
+				sen.writeUint64(packets[i].PvrTcWord);
 			}
-			sen.writeUint8(0x10);
-			for (auto i : Range<uint8_t>(16)) {
-				sen.writeUint8(i);
+			return sen.toBytes();
+		}
+
+		inline static auto rgb_pvrtc_4bpp_a8(
+			const Image<int> &image) -> std::vector<unsigned char>
+		{
+			auto newWidth = image.width;
+			auto newHeight = image.height;
+			if (newWidth < 8)
+			{
+				newWidth = 8;
 			}
-			auto half_size = size / 2;
-			for (auto i : Range<int>(half_size)) {
-				sen.writeUint8(static_cast<uint8_t>((data[((i << 1) * 4) + 3] & 0b11110000) | (data[(((i << 1) | 1) * 4) + 3] >> 4)));
+			if (newHeight < 8)
+			{
+				newHeight = 8;
 			}
-			if((half_size & 0b1) == 1){
-				sen.writeUint8(static_cast<uint8_t>(data[((half_size << 1) * 4) + 3] & 0b11110000));
+			if ((newWidth & (newWidth - 1)) != 0)
+			{
+				newWidth = 0b10 << (static_cast<int>(Math::floor(Math::log2(newWidth))));
 			}
-			*/
-			return destination;
+			if ((newHeight & (newHeight - 1)) != 0)
+			{
+				newHeight = 0b10 << (static_cast<int>(Math::floor(Math::log2(newHeight))));
+			}
+			if (newWidth != newHeight)
+			{
+				newWidth = newHeight = Math::compare(newWidth, newHeight);
+			}
+			auto new_image = Image<int>(0, 0, newWidth, newWidth, std::vector<uint8_t>(pixel_area_rgba(newWidth, newWidth), 0x00));
+			auto source_data = new_image.data();
+			auto image_data = image.data();
+			for (auto j : Range<int>(image.height))
+			{
+				for (auto i : Range<int>(image.width))
+				{
+					auto source_index = ((j + image.y) * new_image.width + (i + image.x)) * 4;
+					auto img_index = (j * image.width + i) * 4;
+					source_data[source_index] = image_data[img_index];
+					source_data[source_index + 1] = image_data[img_index + 1];
+					source_data[source_index + 2] = image_data[img_index + 2];
+					source_data[source_index + 3] = image_data[img_index + 3];
+				}
+			}
+			auto packets = PVRTC::encode_rgba_4bpp(source_data, newWidth);
+			auto sen = DataStreamView{};
+			for (auto i : Range<int>(packets.size()))
+			{
+				sen.writeUint64(packets[i].PvrTcWord);
+			}
+			for (auto i : Range<int>(image.width * image.height))
+			{
+				sen.writeUint8(image_data[i * 4 + 3]);
+			}
+			return sen.toBytes();
 		}
 
 		inline static auto a_8(

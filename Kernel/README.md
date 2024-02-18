@@ -46,8 +46,6 @@
 
 -   [open_vcdiff](https://github.com/google/open-vcdiff): Diff two file and generate the different after compare
 
--   [PvRTCCompressor](https://github.com/brenwill/PVRTCCompressor): PVRTC Encode/Decode
-
 -   [SHA](https://github.com/pr0f3ss/SHA): SHA-384, SHA-512 Hash
 
 -   [SHA256](https://github.com/System-Glitch/SHA256): Sha-256 Hash

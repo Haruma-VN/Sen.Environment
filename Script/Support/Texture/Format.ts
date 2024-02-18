@@ -24,6 +24,5 @@ namespace Sen.Script.Support.Texture {
         LA_44,
         LA_88,
         RGB_PVRTC4,
-        RGB_ETC1_A_8_HIGH_QUALITY,
     }
 }

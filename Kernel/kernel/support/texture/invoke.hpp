@@ -30,7 +30,7 @@ namespace Sen::Kernel::Support::Texture {
 		L_8,
 		LA_44,
 		LA_88,
-		RGB_PVRTC4,
+		RGB_PVRTC_4BPP,
 	};
 
 	/**
@@ -104,6 +104,10 @@ namespace Sen::Kernel::Support::Texture {
 					}
 					case Format::RGB_ETC1_A_PALETTE:{
 						ImageIO::write_png(destination, Decode::rgb_etc1_a_palette(source_binary, width, height));
+						break;
+					}
+					case Format::RGB_PVRTC_4BPP:{
+						ImageIO::write_png(destination, Decode::rgba_pvrtc_4bpp(source_binary, width, height));
 						break;
 					}
 					case Format::RGBA_PVRTC_4BPP:{
@@ -210,12 +214,16 @@ namespace Sen::Kernel::Support::Texture {
 						result = std::move(Encode::rgb_etc1_a_palette(source_image));
 						break;
 					}
+					case Format::RGB_PVRTC_4BPP:{
+						result = std::move(Encode::rgb_pvrtc_4bpp(source_image));
+						break;
+					}
 					case Format::RGBA_PVRTC_4BPP:{
-						result = std::move(Encode::rgba(source_image));
+						result = std::move(Encode::rgba_pvrtc_4bpp(source_image));
 						break;
 					}
 					case Format::RGB_PVRTC_4BPP_A_8:{
-						result = std::move(Encode::rgba(source_image));
+						result = std::move(Encode::rgb_pvrtc_4bpp_a8(source_image));
 						break;
 					}
 					case Format::A_8: {

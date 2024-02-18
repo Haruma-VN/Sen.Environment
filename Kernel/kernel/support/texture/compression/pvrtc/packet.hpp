@@ -13,7 +13,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 			 * Represent the 64-bit Integer
 			*/
 
-			using ulong = unsigned long long;
+			using ulong = uint64_t;
 
 			/**
 			 * Represent the boolean type
@@ -43,7 +43,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 
 			ulong PvrTcWord;
 
-			inline static constexpr auto BILINEAR_FACTORS = std::array<std::array<int, 4>, 16>{{
+			inline static constexpr auto BILINEAR_FACTORS = std::array<std::array<uint8_t, 4>, 16>{{
 				{{4, 4, 4, 4}},
 				{{2, 6, 2, 6}},
 				{{8, 0, 8, 0}},
@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				{{9, 3, 3, 1}},
 			}};
 
-			inline static constexpr auto WEIGHTS = std::array<int, 32>{8, 0, 8, 0, 5, 3, 5, 3, 3, 5, 3, 5, 0, 8, 0, 8, 8, 0, 8, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 8, 0, 8};
+			inline static constexpr auto WEIGHTS = std::array<uint8_t, 32>{8, 0, 8, 0, 5, 3, 5, 3, 3, 5, 3, 5, 0, 8, 0, 8, 8, 0, 8, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 8, 0, 8};
 
 			explicit Packet(
 
@@ -84,13 +84,13 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 
 			inline auto get_modulation_data(
 
-			) -> ulong
+			) -> uint32_t
 			{
-				return thiz.PvrTcWord & 0xffffffff;
+				return static_cast<uint32_t>(thiz.PvrTcWord & 0xffffffff);
 			}
 
 			inline auto set_modulation_data(
-				ulong PvrTcWord
+				uint32_t PvrTcWord
 			) -> void
 			{
 				thiz.PvrTcWord |= PvrTcWord;
@@ -108,7 +108,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				boolean value
 			) -> void
 			{
-				thiz.PvrTcWord |= (value ? 1 : 0) << 32;
+				thiz.PvrTcWord |= (value ? uint64_t{1} : uint64_t{0}) << 32;
 				return;
 			}
 
@@ -138,7 +138,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				boolean value
 			) -> void
 			{
-        		thiz.PvrTcWord |= (value ? 1 : 0) << 47;
+        		thiz.PvrTcWord |= (value ? uint64_t{1} : uint64_t{0}) << 47;
 				return;
 			}
 
@@ -161,14 +161,14 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 
 			) -> boolean
 			{
-        		return thiz.PvrTcWord >> 63 == 1;
+        		return (thiz.PvrTcWord >> 63) == 1;
 			}
 
 			inline auto set_color_blue_is_opaque(
 				boolean value
 			) -> void
 			{
-        		thiz.PvrTcWord |= (value ? 1 : 0) << 63;
+        		thiz.PvrTcWord |= (value ? uint64_t{1} : uint64_t{0}) << 63;
 				return;
 			}
 
@@ -181,13 +181,13 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color_alpha >> 9;
 					auto g = (color_alpha >> 4) & 0x1f;
 					auto b = color_alpha & 0xf;
-					return ColorRGBA((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 4) | b);
+					return ColorRGBA(static_cast<uint8_t>((r << 3) | (r >> 2)), static_cast<uint8_t>((g << 3) | (g >> 2)), static_cast<uint8_t>((b << 4) | b));
 				}
 				auto a = (color_alpha >> 11) & 0x7;
 				auto r = (color_alpha >> 7) & 0xf;
 				auto g = (color_alpha >> 3) & 0xf;
 				auto b = color_alpha & 0x7;
-				return ColorRGBA((r << 4) | r, (g << 4) | g, (b << 5) | (b << 2) | (b >> 1), (a << 5) | (a << 2) | (a >> 1));
+				return ColorRGBA(static_cast<uint8_t>((r << 4) | r), static_cast<uint8_t>((g << 4) | g), static_cast<uint8_t>((b << 5) | (b << 2) | (b >> 1)), static_cast<uint8_t>((a << 5) | (a << 2) | (a >> 1)));
 			}
 
 			inline auto get_color_blue_color_rgba(
@@ -199,13 +199,13 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color_blue >> 10;
 					auto g = (color_blue >> 5) & 0x1f;
 					auto b = color_blue & 0x1f;
-					return ColorRGBA((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 3) | (b >> 2));
+					return ColorRGBA(static_cast<uint8_t>((r << 3) | (r >> 2)), static_cast<uint8_t>((g << 3) | (g >> 2)), static_cast<uint8_t>((b << 3) | (b >> 2)));
 				}
 				auto a = (color_blue >> 12) & 0x7;
 				auto r = (color_blue >> 8) & 0xf;
 				auto g = (color_blue >> 4) & 0xf;
 				auto b = color_blue & 0xf;
-				return ColorRGBA((r << 4) | r, (g << 4) | g, (b << 4) | b, (a << 5) | (a << 2) | (a >> 1));
+				return ColorRGBA(static_cast<uint8_t>((r << 4) | r), static_cast<uint8_t>((g << 4) | g), static_cast<uint8_t>((b << 4) | b), static_cast<uint8_t>((a << 5) | (a << 2) | (a >> 1)));
 			}
 
 			inline auto get_color_alpha_color_rgb(
@@ -217,12 +217,12 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color_alpha >> 9;
 					auto g = (color_alpha >> 4) & 0x1f;
 					auto b = color_alpha & 0xf;
-					return ColorRGB((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 4) | b);
+					return ColorRGB(static_cast<uint8_t>((r << 3) | (r >> 2)), static_cast<uint8_t>((g << 3) | (g >> 2)), static_cast<uint8_t>((b << 4) | b));
 				}
 				auto r = (color_alpha >> 7) & 0xf;
 				auto g = (color_alpha >> 3) & 0xf;
 				auto b = color_alpha & 0x7;
-				return ColorRGB((r << 4) | r, (g << 4) | g, (b << 5) | (b << 2) | (b >> 1));
+				return ColorRGB(static_cast<uint8_t>((r << 4) | r), static_cast<uint8_t>((g << 4) | g), static_cast<uint8_t>((b << 5) | (b << 2) | (b >> 1)));
 			}
 
 			inline auto get_color_blue_color_rgb(
@@ -234,16 +234,16 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color_blue >> 10;
 					auto g = (color_blue >> 5) & 0x1f;
 					auto b = color_blue & 0x1f;
-					return ColorRGB((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 3) | (b >> 2));
+					return ColorRGB(static_cast<uint8_t>((r << 3) | (r >> 2), (g << 3)) | static_cast<uint8_t>((g >> 2)), static_cast<uint8_t>((b << 3) | (b >> 2)));
 				}
 				auto r = (color_blue >> 8) & 0xf;
 				auto g = (color_blue >> 4) & 0xf;
 				auto b = color_blue & 0xf;
-            	return ColorRGB((r << 4) | r, (g << 4) | g, (b << 4) | b);
+            	return ColorRGB(static_cast<uint8_t>((r << 4) | r), static_cast<uint8_t>((g << 4) | g), static_cast<uint8_t>((b << 4) | b));
 			}
 
 			inline auto set_color_alpha_color_rgba(
-				const ColorRGBA & color
+				const Rgba32 & color
 			) -> void 
 			{
 				auto a = color.alpha >> 5;
@@ -251,20 +251,20 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color.red >> 3;
 					auto g = color.green >> 3;
 					auto b = color.blue >> 4;
-					thiz.set_alpha((r << 9) | (g << 4) | b);
+					thiz.set_alpha(((r << 9) | (g << 4) | b));
 					thiz.set_color_alpha_is_opaque(true);
 					return;
 				} 
 				auto r = color.red >> 4;
 				auto g = color.green >> 4;
 				auto b = color.blue >> 5;
-				thiz.set_alpha((a << 11) | (r << 7) | (g << 3) | b);
+				thiz.set_alpha(((a << 11) | (r << 7) | (g << 3) | b));
 				thiz.set_color_alpha_is_opaque(false);
 				return;
     		}
 
 			inline auto set_color_blue_color_rgba(
-				const ColorRGBA & color
+				const Rgba32 & color
 			) -> void
 			{
 				auto a = color.alpha >> 5;
@@ -272,38 +272,38 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 					auto r = color.red >> 3;
 					auto g = color.green >> 3;
 					auto b = color.blue >> 3;
-					thiz.set_blue((r << 10) | (g << 5) | b);
+					thiz.set_blue(((r << 10) | (g << 5) | b));
 					thiz.set_color_blue_is_opaque(true);
 					return;
 				}
 				auto r = color.red >> 4;
 				auto g = color.green >> 4;
 				auto b = color.blue >> 4;
-				thiz.set_blue((a << 12) | (r << 8) | (g << 4) | b);
+				thiz.set_blue(((a << 12) | (r << 8) | (g << 4) | b));
 				thiz.set_color_blue_is_opaque(false);
 				return;
 			}
 
 			inline auto set_color_alpha_color_rgb(
-				const ColorRGB & color 
+				const Rgba32 & color 
 			) -> void 
 			{
 				auto r = color.red >> 3;
 				auto g = color.green >> 3;
 				auto b = color.blue >> 4;
-				thiz.set_alpha((r << 9) | (g << 4) | b);
+				thiz.set_alpha(((r << 9) | (g << 4) | b));
 				thiz.set_color_alpha_is_opaque(true);
 				return;
 			}
 
 			inline auto set_color_blue_color_rgb(
-				const ColorRGB & color
+				const Rgba32 & color
 			) -> void 
 			{
 				auto r = color.red >> 3;
 				auto g = color.green >> 3;
 				auto b = color.blue >> 3;
-				thiz.set_blue((r << 10) | (g << 5) | b);
+				thiz.set_blue(((r << 10) | (g << 5) | b));
 				thiz.set_color_blue_is_opaque(true);
 				return;
 			}

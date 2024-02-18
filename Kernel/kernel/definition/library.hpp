@@ -40,7 +40,6 @@
 #include "kernel/dependencies/SHA256.hpp"
 #include "kernel/dependencies/Rijndael.hpp"
 #include "kernel/dependencies/SHA224CryptoServiceProvider.hpp"
-#include "kernel/dependencies/PVRTCCompressor.hpp"
 #include "kernel/dependencies/libpng.hpp"
 #include "kernel/dependencies/etcpak.hpp"
 #include "kernel/dependencies/tinyxml2.hpp"

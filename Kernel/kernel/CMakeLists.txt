@@ -47,7 +47,6 @@ add_library(
 	./dependencies/Rijndael.hpp
 	./dependencies/SHA224CryptoServiceProvider.hpp
 	./dependencies/cpp-base64.hpp
-	./dependencies/PVRTCCompressor.hpp
 	./dependencies/libpng.hpp
 	./dependencies/etcpak.hpp
 	./dependencies/tinyxml2.hpp
@@ -170,7 +169,6 @@ target_link_libraries(
 	SHA224CryptoServiceProvider
 	SHA256
 	cpp-base64
-	PVRTCCompressor
 	libpng
 	etcpak
 	tinyxml2

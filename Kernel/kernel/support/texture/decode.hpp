@@ -2,10 +2,11 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/texture/common.hpp"
-
+#include "kernel/support/texture/compression/pvrtc/pvrtc.hpp"
 namespace Sen::Kernel::Support::Texture
 {
 
+	using namespace Sen::Kernel::Support::Texture::Compression;
 	// pixel color
 
 	class PixelColor
@@ -476,7 +477,7 @@ namespace Sen::Kernel::Support::Texture
 			}
 			auto bitPostion = 0;
 			auto buffer = static_cast<unsigned char>(0x00);
-			
+
 			auto data = DataStreamView{};
 			for (auto i : Range<int>(image_square))
 			{
@@ -484,6 +485,64 @@ namespace Sen::Kernel::Support::Texture
 				data.writeUint8(index_table[read_bits<int>(bit_depth, bitPostion, buffer, sen)]);
 			}
 			return Image<int>{0, 0, width, height, data.toBytes()};
+		}
+
+		/**
+		 * color: stream color
+		 * width: image width
+		 * height: image height
+		 * return: Image struct
+		 */
+
+		inline static auto rgb_pvrtc_4bpp_a_8(
+			const std::vector<unsigned char> &color,
+			int width,
+			int height) -> Image<int>
+		{
+			auto sen = DataStreamView{color};
+			auto newWidth = width;
+			auto newHeight = height;
+			if (newWidth < 8)
+			{
+				newWidth = 8;
+			}
+			if (newHeight < 8)
+			{
+				newHeight = 8;
+			}
+			if ((newWidth & (newWidth - 1)) != 0)
+			{
+				newWidth = 0b10 << (static_cast<int>(Math::floor(Math::log2(newWidth))));
+			}
+			if ((newHeight & (newHeight - 1)) != 0)
+			{
+				newHeight = 0b10 << (static_cast<int>(Math::floor(Math::log2(newHeight))));
+			}
+			if (newWidth != newHeight)
+			{
+				newWidth = newHeight = Math::compare(newWidth, newHeight);
+			}
+			auto packets = std::vector<PVRTC::Packet>{};
+			auto packets_length = ((newWidth * newHeight) >> 4);
+			for (auto i : Range<int>(packets_length)) {
+				packets.emplace_back(PVRTC::Packet{sen.readUint64()});
+			}
+			auto image_data = PVRTC::decode_4bpp(packets, newWidth);
+			if (newWidth != width || newHeight != height) {
+				auto data = std::vector<unsigned char>{};
+				data.reserve(static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(width * height) * 4);
+				for (auto j : Range<int>(height)) {
+					for (auto i : Range<int>(width)) {
+						auto index = (j * newWidth + i) * 4;
+						data.insert(data.end(), &image_data[index], &image_data[static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(index) + 4]);
+					}
+				}
+				image_data = std::move(data);
+			}
+			for (auto i : Range<int>(width * height)) {
+				image_data[i * 4 + 3] = sen.readUint8();
+			}
+			return Image<int>{0, 0, width, height, image_data};;
 		}
 
 		/**
@@ -511,54 +570,28 @@ namespace Sen::Kernel::Support::Texture
 			}
 			if ((newWidth & (newWidth - 1)) != 0)
 			{
-				newWidth = 0b10 << ((int)Math::floor(Math::log2(newWidth)));
+				newWidth = 0b10 << (static_cast<int>(Math::floor(Math::log2(newWidth))));
 			}
 			if ((newHeight & (newHeight - 1)) != 0)
 			{
-				newHeight = 0b10 << ((int)Math::floor(Math::log2(newHeight)));
+				newHeight = 0b10 << (static_cast<int>(Math::floor(Math::log2(newHeight))));
 			}
 			if (newWidth != newHeight)
 			{
 				newWidth = newHeight = Math::compare(newWidth, newHeight);
 			}
-			auto data = std::vector<uint8_t>{};
-			return Image<int>{0, 0, width, height, data};
-
-			// auto sen = DataStreamView{color};
-			// auto area = pixel_area_rgba(width, height);
-			// auto data = std::vector<unsigned char>(area, 0x00);
-			// auto actual_data = std::unique_ptr<Javelin::ColorRgba<unsigned char>[]>(new Javelin::ColorRgba<unsigned char>[calculate_area(width, height)]);
-			// Javelin::PvrTcDecoder::DecodeRgba4Bpp(actual_data.get(), Javelin::Point2<int>(width, height), sen.current_pointer()._Ptr);
-			// for (auto y : Range<int>(height)) {
-			// 	for (auto x : Range<int>(width)) {
-			// 		auto index = set_pixel(x, y, width);
-			// 		auto block_index = y * width + x;
-			// 		data[index] = actual_data[block_index].r;
-			// 		data[index + 1] = actual_data[block_index].g;
-			// 		data[index + 2] = actual_data[block_index].b;
-			// 		data[index + 3] = actual_data[block_index].a;
-			// 	}
-			// }
-		}
-
-		/**
-		 * color: stream color
-		 * width: image width
-		 * height: image height
-		 * return: Image struct
-		 */
-
-		inline static auto rgb_pvrtc_4bpp_a_8(
-			const std::vector<unsigned char> &color,
-			int width,
-			int height) -> Image<int>
-		{
-			auto sen = DataStreamView{color};
-			auto area = pixel_area_rgba(width, height);
-			auto data = std::vector<unsigned char>(area, 0x00);
-
-			// todo
-			return Image<int>{0, 0, width, height, data};
+			auto packets = std::vector<PVRTC::Packet>{};
+			auto packets_length = ((newWidth * newHeight) >> 4);
+			for (auto i : Range<int>(packets_length)) {
+				packets.emplace_back(PVRTC::Packet{sen.readUint64()});
+			}
+			auto image_data = PVRTC::decode_4bpp(packets, newWidth);
+			auto image = Image<int>{0, 0, newWidth, newHeight, image_data};
+			if (newWidth != width || newHeight != height) {
+				auto new_image = Image<int>::composite(image, Rectangle{0, 0, width, height});
+				return new_image;
+			}
+			return image;
 		}
 
 		inline static auto a_8(
