@@ -613,7 +613,8 @@ namespace Sen::Kernel::Definition {
 			) -> Image<int> 
 			{
 				#if WINDOWS
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(source.data()).c_str(), L"rb"), Language::close_file);
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data(), L"rb"), Language::close_file);
 				#else
 				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "rb"), Language::close_file);
 				#endif

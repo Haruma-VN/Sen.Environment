@@ -5,20 +5,21 @@
 namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 {
 
+	template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 	struct Rgba32 {
 
 		public:
 
-			uint8_t red;
-			uint8_t green;
-			uint8_t blue;
-			uint8_t alpha;
+			T red;
+			T green;
+			T blue;
+			T alpha;
 
 			explicit Rgba32(
-				uint8_t red = 0xFF,
-				uint8_t green = 0xFF,
-				uint8_t blue = 0xFF,
-				uint8_t alpha = 0xFF
+				T red = 0xFF,
+				T green = 0xFF,
+				T blue = 0xFF,
+				T alpha = 0xFF
 			) : red(red), green(green), blue(blue), alpha(alpha)
 			{
 

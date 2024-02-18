@@ -24,6 +24,7 @@
 #include "kernel/definition/encryption/XOR.hpp"
 #include "kernel/definition/encryption/sha256.hpp"
 #include "kernel/definition/encryption/base64.hpp"
+#include "kernel/definition/encryption/fnv.hpp"
 #include "kernel/definition/encryption/Rijndael.hpp"
 #include "kernel/definition/compression/zlib.hpp"
 #include "kernel/definition/compression/zip.hpp"

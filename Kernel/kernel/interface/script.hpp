@@ -2154,6 +2154,60 @@ namespace Sen::Kernel::Interface::Script {
 		 * JavaScript Encryption System Supportive of MD5
 		*/
 
+		namespace FNV {
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript MD5 Hash method
+			 * @param argv[0]: source hash
+			 * @returns: hashed string
+			 * ----------------------------------------
+			*/
+
+			inline static auto hash(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto result = Kernel::Definition::Encryption::FNV::Hash<std::uint32_t>{}.make_hash(source.get());
+					return JS::Converter::to_bigint(context, result);
+				}, "hash"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript MD5 Hash file method
+			 * @param argv[0]: source file
+			 * @returns: hashed string
+			 * ----------------------------------------
+			*/
+
+			inline static auto hash_fs(
+				JSContext *context, 
+				JSValueConst this_val, 
+				int argc, 
+				JSValueConst *argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto result = Sen::Kernel::Definition::Encryption::FNV::Hash<std::uint32_t>::hash_fs(source.get());
+					return JS::Converter::to_bigint(context, result);
+				}, "hash_fs"_sv);
+			}
+
+		}
+
+		/**
+		 * JavaScript Encryption System Supportive of MD5
+		*/
+
 		namespace MD5 {
 			/**
 			 * ----------------------------------------

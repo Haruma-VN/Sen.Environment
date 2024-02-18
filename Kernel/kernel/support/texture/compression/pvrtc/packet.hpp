@@ -242,8 +242,9 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
             	return ColorRGB(static_cast<uint8_t>((r << 4) | r), static_cast<uint8_t>((g << 4) | g), static_cast<uint8_t>((b << 4) | b));
 			}
 
+			template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 			inline auto set_color_alpha_color_rgba(
-				const Rgba32 & color
+				const Rgba32<T> & color
 			) -> void 
 			{
 				auto a = color.alpha >> 5;
@@ -263,8 +264,9 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				return;
     		}
 
+			template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 			inline auto set_color_blue_color_rgba(
-				const Rgba32 & color
+				const Rgba32<T> & color
 			) -> void
 			{
 				auto a = color.alpha >> 5;
@@ -284,8 +286,9 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				return;
 			}
 
+			template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 			inline auto set_color_alpha_color_rgb(
-				const Rgba32 & color 
+				const Rgba32<T> & color 
 			) -> void 
 			{
 				auto r = color.red >> 3;
@@ -296,8 +299,9 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				return;
 			}
 
+			template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 			inline auto set_color_blue_color_rgb(
-				const Rgba32 & color
+				const Rgba32<T> & color
 			) -> void 
 			{
 				auto r = color.red >> 3;

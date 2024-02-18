@@ -204,7 +204,6 @@ namespace Sen::Kernel::FileSystem
 			String::to_windows_style(source.data()))).data(), std::ios::binary);
 		file.imbue(utf16le_locale);
 		file << data;
-		file.close();
 		return;
 	}
 
@@ -298,22 +297,24 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<T> const
 	{
 		#if WINDOWS
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-			String::to_windows_style(filepath.data()))).data(), L"rb"), close_file);
+		auto file = std::ifstream(fmt::format("\\\\?\\{}",
+			String::to_windows_style(filepath.data())).data(), std::ios::binary);
 		#else
-		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "rb"), close_file);
+		auto file = std::ifstream(filepath.data(), std::ios::binary);
 		#endif
-		if (!file) {
+		if(!file)
+		{
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
 		}
-		std::fseek(file.get(), 0, SEEK_END);
-		auto fsize = std::ftell(file.get());
-		std::fseek(file.get(), 0, SEEK_SET);
-		auto data = std::vector<T>(fsize);
-		if (std::fread(data.data(), sizeof(T), fsize, file.get()) != fsize) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
+		file.seekg(0, std::ios::end);
+		auto size = static_cast<std::streamsize>(file.tellg());
+		file.seekg(0, std::ios::beg);
+		auto data = std::vector<T>(size);
+		if (!file.read(reinterpret_cast<char*>(data.data()), size))
+		{
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath), std::source_location::current(), "read_binary");
 		}
-		return data;
+		return data;	
 	}
 
 	// dirPath: directory to read
@@ -439,8 +440,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-			auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-				String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+				String::to_windows_style(filepath.data()))).data(), L"wb"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "wb"), close_file);
 		#endif
@@ -450,6 +451,7 @@ namespace Sen::Kernel::FileSystem
 		std::fwrite(reinterpret_cast<const char *>(data.data()), sizeof(T), data.size(), file.get());
 		return;
 	}
+
 
 	/**
 	 * file path: the file path to read

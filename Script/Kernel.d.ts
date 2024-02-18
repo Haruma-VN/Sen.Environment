@@ -788,6 +788,32 @@ declare namespace Sen {
             }
 
             /**
+             * JavaScript MD5 Hashing methods
+             */
+
+            declare namespace FNV {
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method
+                 * @param str - string to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash(str: string): bigint;
+
+                /**
+                 * --------------------------------------------------
+                 * JavaScript hash method for file
+                 * @param source - source file to hash
+                 * @returns: hashed string
+                 * --------------------------------------------------
+                 */
+
+                export function hash_fs(source: string): bigint;
+            }
+
+            /**
              * JavaScript SHA224 Hashing methods
              */
 

@@ -108,16 +108,24 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 		return result;
 	}
 
+	template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 	inline static auto calculate_bounding_box(
 		const std::vector<uint8_t> &colors,
 		int width,
 		int blockX,
 		int blockY,
-		Rgba32 &min,
-		Rgba32 &max) -> void
+		Rgba32<T> &min,
+		Rgba32<T> &max
+		) -> void
 	{
-		uint8_t maxr = 0, maxg = 0, maxb = 0, maxa = 0;
-		uint8_t minr = 255, ming = 255, minb = 255, mina = 255;
+		auto maxr = static_cast<uint8_t>(0);
+		auto maxg = static_cast<uint8_t>(0);
+		auto maxb = static_cast<uint8_t>(0);
+		auto maxa = static_cast<uint8_t>(0);
+		auto minr = static_cast<uint8_t>(255);
+		auto ming = static_cast<uint8_t>(255);
+		auto minb = static_cast<uint8_t>(255);
+		auto mina = static_cast<uint8_t>(255);
 		auto begin_index = (blockY << 2) * width + (blockX << 2);
 		for (auto i : Range<int>(4))
 		{
@@ -125,45 +133,55 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 			for (auto j : Range<int>(4))
 			{
 				auto index = nindex + j;
-				uint8_t color_byte = 0;
+				auto color_byte = static_cast<uint8_t>(0);
 				color_byte = colors[index * 4];
-				if (color_byte > maxr)
+				if (color_byte > maxr){
 					maxr = color_byte;
-				if (color_byte < minr)
+				}
+				if (color_byte < minr){
 					minr = color_byte;
+				}
 				color_byte = colors[index * 4 + 1];
-				if (color_byte > maxg)
+				if (color_byte > maxg){
 					maxg = color_byte;
-				if (color_byte < ming)
+				}
+				if (color_byte < ming) {
 					ming = color_byte;
+				}
 				color_byte = colors[index * 4 + 2];
-				if (color_byte > maxb)
+				if (color_byte > maxb) {
 					maxb = color_byte;
-				if (color_byte < minb)
+				}
+				if (color_byte < minb) {
 					minb = color_byte;
+				}
 				color_byte = colors[index * 4 + 3];
-				if (color_byte > maxa)
+				if (color_byte > maxa) {
 					maxa = color_byte;
-				if (color_byte < mina)
+				}
+				if (color_byte < mina) {
 					mina = color_byte;
+				}
 			}
 		}
-		min = Rgba32(minr, ming, minb, mina);
-		max = Rgba32(maxr, maxg, maxb, maxa);
+		min = Rgba32<T>(minr, ming, minb, mina);
+		max = Rgba32<T>(maxr, maxg, maxb, maxa);
 		return;
 	}
 
+	template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 	inline static auto encode_rgba_4bpp(
 		const std::vector<uint8_t> &color,
-		int width) -> std::vector<PVRTC::Packet>
+		int width
+	) -> std::vector<PVRTC::Packet>
 	{
 		auto blocks = width >> 2;
 		auto blockMask = blocks - 1;
 		auto result = std::vector<PVRTC::Packet>{};
 		result.resize(((width * width) >> 4));
-		Rgba32 min_color;
-		Rgba32 max_color;
-		int index = 0;
+		auto min_color = Rgba32<T>{};
+		auto max_color = Rgba32<T>{};
+		auto index = static_cast<int>(0);
 		for (auto y : Range<int>(blocks))
 		{
 			for (auto x : Range<int>(blocks))
@@ -184,7 +202,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				auto factorfather = PVRTC::Packet::BILINEAR_FACTORS;
 				auto factor_index = 0;
 				auto data_index = (y << 2) * width + (x << 2);
-				uint32_t modulation_data = 0;
+				auto modulation_data = static_cast<std::uint32_t>(0);
 				for (auto py : Range<int>(4))
 				{
 					auto y_pos = (py < 2) ? -1 : 0;
@@ -210,36 +228,41 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 							color[pixel_index + 2] << 4,
 							color[pixel_index + 3] << 4);
 						auto v = p - ca;
-						int projection = (v % d) << 4;
-						int length_squared = d % d;
-						if (projection > 3 * length_squared)
-							modulation_data++;
-						if (projection > 8 * length_squared)
-							modulation_data++;
-						if (projection > 13 * length_squared)
-							modulation_data++;
+						auto projection = (v % d) << 4;
+						auto length_squared = d % d;
+						if (projection > 3 * length_squared){
+							++modulation_data;
+						}
+						if (projection > 8 * length_squared){
+							++modulation_data;
+						}
+						if (projection > 13 * length_squared){
+							++modulation_data;
+						}
 						modulation_data = rotate_right(modulation_data, 2);
-						factor_index++;
+						++factor_index;
 					}
 				}
-				index++;
+				++index;
 				result[get_morton_number(x, y)].set_modulation_data(modulation_data);
 			}
 		}
 		return result;
 	}
 
+	template <typename T> requires std::is_integral<T>::value && std::is_unsigned<T>::value
 	inline static auto encode_rgb_4bpp(
 		const std::vector<uint8_t> &color,
-		int width) -> std::vector<PVRTC::Packet>
+		int width
+	) -> std::vector<PVRTC::Packet>
 	{
 		auto blocks = width >> 2;
 		auto blockMask = blocks - 1;
 		auto result = std::vector<PVRTC::Packet>{};
 		result.resize(((width * width) >> 4));
-		Rgba32 min_color;
-		Rgba32 max_color;
-		int index = 0;
+		auto min_color = Rgba32<T>{};
+		auto max_color = Rgba32<T>{};
+		auto index = 0;
 		for (auto y : Range<int>(blocks))
 		{
 			for (auto x : Range<int>(blocks))
@@ -260,7 +283,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 				auto factorfather = PVRTC::Packet::BILINEAR_FACTORS;
 				auto factor_index = 0;
 				auto data_index = (y << 2) * width + (x << 2);
-				uint32_t modulation_data = 0;
+				auto modulation_data = static_cast<uint32_t>(0);
 				for (auto py : Range<int>(4))
 				{
 					auto y_pos = (py < 2) ? -1 : 0;
@@ -284,22 +307,24 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 							color[pixel_index] << 4,
 							color[pixel_index + 1] << 4,
 							color[pixel_index + 2] << 4
-							);
-						
+						);
 						auto v = p - ca;
-						int projection = (v % d) << 4;
-						int length_squared = d % d;
-						if (projection > 3 * length_squared)
-							modulation_data++;
-						if (projection > 8 * length_squared)
-							modulation_data++;
-						if (projection > 13 * length_squared)
-							modulation_data++;
+						auto projection = (v % d) << 4;
+						auto length_squared = d % d;
+						if (projection > 3 * length_squared) {
+							++modulation_data;
+						}
+						if (projection > 8 * length_squared) {
+							++modulation_data;
+						}
+						if (projection > 13 * length_squared) {
+							++modulation_data;
+						}
 						modulation_data = rotate_right(modulation_data, 2);
-						factor_index++;
+						++factor_index;
 					}
 				}
-				index++;
+				++index;
 				result[get_morton_number(x, y)].set_modulation_data(modulation_data);
 			}
 		}

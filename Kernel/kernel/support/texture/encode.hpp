@@ -419,9 +419,9 @@ namespace Sen::Kernel::Support::Texture
 					source_data[source_index + 3] = image_data[img_index + 3];
 				}
 			}
-			auto packets = PVRTC::encode_rgba_4bpp(source_data, newWidth);
+			auto packets = PVRTC::encode_rgba_4bpp<std::uint8_t>(source_data, newWidth);
 			auto sen = DataStreamView{};
-			for (auto i : Range<int>(packets.size()))
+			for (auto i : Range<std::size_t>(packets.size()))
 			{
 				sen.writeUint64(packets[i].PvrTcWord);
 			}
@@ -468,9 +468,9 @@ namespace Sen::Kernel::Support::Texture
 					source_data[source_index + 3] = image_data[img_index + 3];
 				}
 			}
-			auto packets = PVRTC::encode_rgb_4bpp(source_data, newWidth);
+			auto packets = PVRTC::encode_rgb_4bpp<std::uint8_t>(source_data, newWidth);
 			auto sen = DataStreamView{};
-			for (auto i : Range<int>(packets.size()))
+			for (auto i : Range<std::uint64_t>(packets.size()))
 			{
 				sen.writeUint64(packets[i].PvrTcWord);
 			}
@@ -517,7 +517,7 @@ namespace Sen::Kernel::Support::Texture
 					source_data[source_index + 3] = image_data[img_index + 3];
 				}
 			}
-			auto packets = PVRTC::encode_rgba_4bpp(source_data, newWidth);
+			auto packets = PVRTC::encode_rgba_4bpp<std::uint8_t>(source_data, newWidth);
 			auto sen = DataStreamView{};
 			for (auto i : Range<int>(packets.size()))
 			{

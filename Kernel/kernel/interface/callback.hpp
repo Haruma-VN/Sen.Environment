@@ -234,6 +234,13 @@ namespace Sen::Kernel::Interface {
 					// hash file method
 					javascript->add_proxy(Script::Encryption::MD5::hash_fs, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "MD5"_sv, "hash_fs"_sv);
 				}
+				// fnv
+				{
+					// hash method
+					javascript->add_proxy(Script::Encryption::FNV::hash, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "FNV"_sv, "hash"_sv);
+					// hash file method
+					javascript->add_proxy(Script::Encryption::FNV::hash_fs, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "FNV"_sv, "hash_fs"_sv);
+				}
 				// sha224
 				{
 					// hash method

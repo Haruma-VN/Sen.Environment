@@ -247,7 +247,7 @@ namespace Sen.Script {
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
             Executor.forward({ source: Kernel.arguments });
-        } catch (e: unknown & any) {
+        } catch (e: any) {
             result = Exception.make_exception(e);
         }
         return result;
