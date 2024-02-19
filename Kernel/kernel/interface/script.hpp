@@ -3401,11 +3401,10 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
+						try_assert(argc == 2, fmt::format("argument expected {} but received {}", 2, argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
-						auto use_string_for_style = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source.get(), destination.get(), use_string_for_style);
+						Sen::Kernel::Support::PopCap::ResInfo::Convert::convert_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "convert_fs"_sv);
 				}

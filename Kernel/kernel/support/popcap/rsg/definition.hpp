@@ -5,7 +5,7 @@
 namespace Sen::Kernel::Support::PopCap::RSG
 {
 
-    enum class RSG_Compression_Flags : uint8_t
+    enum class CompressionFlag : uint8_t
     {
         NO_COMPRESSION,
         DEFAULT_COMPRESSION,
@@ -17,9 +17,9 @@ namespace Sen::Kernel::Support::PopCap::RSG
 #pragma region RSG_HeadInfo
     struct RSG_HeadInfo
     {
-        std::string_view magic = "pgsr"_sv;
+        inline static auto constexpr magic = "pgsr"_sv;
         uint32_t version;
-        RSG_Compression_Flags flags;
+        CompressionFlag flags;
         uint32_t file_pos;
         uint32_t part0_pos;
         uint32_t part0_zlib;

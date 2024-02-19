@@ -57,6 +57,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 	class Convert : public RewriteSlot, public ResourceGroup::Common {
 
+		protected:
+
+			using Common = ResourceGroup::Common;
+
 		private:
 
 			// composite
@@ -127,17 +131,17 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"id", key}
 					};
 					if(thiz.use_string_for_style){
-						resource["path"] = String::join(value["path"].get<std::vector<std::string>>(), ResourceGroup::Common::WindowStyle);
+						resource["path"] = String::replaceAll(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
 					}
 					else{
-						resource["path"] = value["path"].get<std::vector<std::string>>();
+						resource["path"] = String::split(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle);
 					}
 					if(value.find("srcpath") != value.end()){
 						if(thiz.use_string_for_style){
-							resource["srcpath"] = String::join(value["srcpath"].get<std::vector<std::string>>(), ResourceGroup::Common::WindowStyle);
+							resource["srcpath"] = String::replaceAll(value["srcpath"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
 						}
 						else{
-							resource["srcpath"] = value["srcpath"].get<std::vector<std::string>>();
+							resource["srcpath"] = String::split(value["srcpath"].get<std::string>(), ResourceGroup::Common::PosixStyle);
 						}
 					}
 					if(value.find("forceOriginalVectorSymbolSize") != value.end() and value["forceOriginalVectorSymbolSize"].get<bool>()){
@@ -178,10 +182,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"height", value["dimension"]["height"].get<int>()}
 					};
 					if(thiz.use_string_for_style){
-						resource["path"] = String::join(value["path"].get<std::vector<std::string>>(), ResourceGroup::Common::WindowStyle);
+						resource["path"] = String::replaceAll(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
 					}
 					else{
-						resource["path"] = value["path"].get<std::vector<std::string>>();
+						resource["path"] = String::split(value["path"].get<std::string>(), Common::PosixStyle);
 					}
 					result["resources"].emplace_back(resource);
 					for(auto & [sub, sub_value] : value["data"].items()){
@@ -192,10 +196,10 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 							{"parent", key}
 						};
 						if(thiz.use_string_for_style){
-							sub_resource["path"] = String::join(sub_value["path"].get<std::vector<std::string>>(), ResourceGroup::Common::WindowStyle);
+							sub_resource["path"] = String::replaceAll(sub_value["path"].get<std::string>(), Common::PosixStyle , ResourceGroup::Common::WindowStyle);
 						}
 						else{
-							sub_resource["path"] = sub_value["path"].get<std::vector<std::string>>();
+							sub_resource["path"] = String::split(sub_value["path"].get<std::string>(), Common::PosixStyle);
 						}
 						if (sub_value["default"].find("x") != sub_value["default"].end() and sub_value["default"]["x"].get<int>() != ResourceGroup::Common::DefaultCoordinateOffset) {
 							sub_resource["x"] =  sub_value["default"]["x"].get<int>();
@@ -322,8 +326,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 			inline static auto convert_fs (
 				std::string_view source,
-				std::string_view destination,
-				bool use_string_for_style
+				std::string_view destination
 			) -> void
 			{
 				auto result = nlohmann::ordered_json {

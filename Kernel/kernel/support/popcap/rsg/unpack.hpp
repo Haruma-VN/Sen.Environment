@@ -18,33 +18,36 @@ namespace Sen::Kernel::Support::PopCap::RSG
         mutable int atlas_pos;
 
         inline auto read_head(
-            RSG_HeadInfo *rsg_head_info) const -> void
+            RSG_HeadInfo *rsg_head_info
+        ) const -> void
         {
             auto magic = sen->readString(4);
+            assert_conditional(magic == RSG_HeadInfo::magic, fmt::format("{}: {}", Kernel::Language::get("popcap.rsg.unpack.invalid_rsg_magic"), magic), "read_head");
             auto version = sen->readUint32();
-            if (version > 4)
-            {
-                throw Exception("invaild_rsg_version");
-            }
+            assert_conditional(version <= 4, fmt::format("{}: {}", Kernel::Language::get("popcap.rsg.unpack.invalid_rsg_version"), version), "read_head");
             rsg_head_info->version = version;
             sen->read_pos += 8;
             auto flags = sen->readUint32();
             switch (flags)
             {
-            case 0:
-                rsg_head_info->flags = RSG_Compression_Flags::NO_COMPRESSION;
+            case 0: {
+                rsg_head_info->flags = CompressionFlag::NO_COMPRESSION;
                 break;
-            case 1:
-                rsg_head_info->flags = RSG_Compression_Flags::DEFAULT_COMPRESSION;
+            }
+            case 1: {
+                rsg_head_info->flags = CompressionFlag::DEFAULT_COMPRESSION;
                 break;
-            case 2:
-                rsg_head_info->flags = RSG_Compression_Flags::ATLAS_COMPRESSION;
+            }
+            case 2: {
+                rsg_head_info->flags = CompressionFlag::ATLAS_COMPRESSION;
                 break;
-            case 3:
-                rsg_head_info->flags = RSG_Compression_Flags::BEST_COMPRESSION;
+            }
+            case 3: {
+                rsg_head_info->flags = CompressionFlag::BEST_COMPRESSION;
                 break;
+            }
             default:
-                throw Exception("invaild_compression_flags");
+                throw Exception(fmt::format("{}: {}", Kernel::Language::get("popcap.rsg.unpack.unknown_compression_flag"), flags), std::source_location::current(), "read_head");
             }
             rsg_head_info->file_pos = sen->readUint32();
             rsg_head_info->part0_pos = sen->readUint32();
@@ -67,7 +70,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto part0_zlib_length = rsg_head_info.part0_pos + rsg_head_info.part0_zlib;
             if (part0_length > 0 || part0_zlib_length > 0)
             {
-                if (rsg_head_info.flags == RSG_Compression_Flags::NO_COMPRESSION || rsg_head_info.flags == RSG_Compression_Flags::DEFAULT_COMPRESSION)
+                if (rsg_head_info.flags == CompressionFlag::NO_COMPRESSION || rsg_head_info.flags == CompressionFlag::DEFAULT_COMPRESSION)
                 {
                     raw_data->writeBytes(sen->getBytes(rsg_head_info.part0_pos, part0_length));
                 }
@@ -82,7 +85,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             if (use_atlas)
             {
                 atlas_pos = raw_data->write_pos;
-                if (rsg_head_info.flags == RSG_Compression_Flags::NO_COMPRESSION || rsg_head_info.flags == RSG_Compression_Flags::ATLAS_COMPRESSION)
+                if (rsg_head_info.flags == CompressionFlag::NO_COMPRESSION || rsg_head_info.flags == CompressionFlag::ATLAS_COMPRESSION)
                 {
                     raw_data->writeBytes(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_size));
                 }
@@ -113,20 +116,22 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
     public:
         explicit Unpack(
-            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
+            std::string_view source
+        ) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
         explicit Unpack(
-            DataStreamView &it) : sen(&it)
+            DataStreamView &it
+        ) : sen(&it)
         {
         }
 
         ~Unpack(
 
-            ) = default;
+        ) = default;
 
-        template <bool T>
+        template <auto T>
         inline auto process(
             std::string_view destination) -> RSG_PacketInfo
         {

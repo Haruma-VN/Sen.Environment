@@ -232,5 +232,8 @@
     "popcap.resource_group.convert.cannot_exchange_layout": "Cannot exchange layout, received: {}",
     "popcap.rsb.unpack.invalid_rsg_number": "Invalid RSG Number",
     "popcap.resource_group.convert.layout.array": "For PvZ 2 version 10.3 and below",
-    "popcap.resource_group.convert.layout.string": "For PvZ 2 version 10.4 and above"
+    "popcap.resource_group.convert.layout.string": "For PvZ 2 version 10.4 and above",
+    "popcap.rsg.unpack.invalid_rsg_magic": "Invalid RSG magic, should begins with \"PGSR\", received",
+    "popcap.rsg.unpack.invalid_rsg_version": "Invalid RSG version, expected version 3 or 4, received",
+    "popcap.rsg.unpack.unknown_compression_flag": "Invalid RSG compression flags, expected from 0 to 3, received"
 }

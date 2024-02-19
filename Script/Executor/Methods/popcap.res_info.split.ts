@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
+namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Split {
     /**
      * Argument for the current method
      */
@@ -39,29 +39,29 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument,
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Configuration
+            Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Argument,
+            Sen.Script.Executor.Methods.PopCap.ResInfo.Split.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.ResInfo.Split.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Configuration
         >({
-            id: "popcap.resource_group.merge",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.resource_group.merge.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument): void {
+            id: "popcap.res_info.split",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.res_info.split.json"),
+            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Argument, string>(argument, "destination", `${argument.source}.info`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Kernel.Support.PopCap.ResourceGroup.merge_fs(argument.source, argument.destination!);
+                Sen.Kernel.Support.PopCap.ResInfo.split_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.BatchArgument): void {
+            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Split.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.AsyncArgument): void {
+            async_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Split.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
                 for (let i = 0n; i < BigInt(argument.parameter.length); i += Setting.setting.thread_limit_count) {
                     const current_thread: Array<[string, string]> = [
@@ -81,10 +81,10 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /.*\.info$/gi],
+            filter: ["file", /(.+)\.json$/gi],
         });
         return;
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.forward();
+Sen.Script.Executor.Methods.PopCap.ResInfo.Split.forward();
