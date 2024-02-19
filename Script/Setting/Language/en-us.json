@@ -225,5 +225,12 @@
     "popcap.crypt_data.decrypt": "PopCap Crypt-Data: Decrypt",
     "popcap.crypt_data.encrypt": "PopCap Crypt-Data: Encrypt",
     "popcap.cfw2.decode": "PopCap Character-Font-Widget-2: Decode",
-    "popcap.cfw2.encode": "PopCap Character-Font-Widget-2: Encode"
+    "popcap.cfw2.encode": "PopCap Character-Font-Widget-2: Encode",
+    "popcap.rsb.unpack.invalid_part2_position": "Invalid part2 position",
+    "popcap.rsb.unpack.invalid_head_length": "Invalid head length",
+    "popcap.rsb.unpack.rsb_is_corrupted": "RSB is corrupted",
+    "popcap.resource_group.convert.cannot_exchange_layout": "Cannot exchange layout, received: {}",
+    "popcap.rsb.unpack.invalid_rsg_number": "Invalid RSG Number",
+    "popcap.resource_group.convert.layout.array": "For PvZ 2 version 10.3 and below",
+    "popcap.resource_group.convert.layout.string": "For PvZ 2 version 10.4 and above"
 }

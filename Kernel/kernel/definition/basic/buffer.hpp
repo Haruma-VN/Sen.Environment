@@ -54,17 +54,18 @@ namespace Sen::Kernel::Definition
             ) : read_pos(0), write_pos(0)
             {
                 #if WINDOWS
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(source).c_str(), L"rb"), close_file);
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+                    String::to_windows_style(source.data())).data()).data(), L"rb"), close_file);
                 #else 
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "rb"), close_file);
                 #endif
-                if (!file)
+                if (file == nullptr)
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") , source),
                         std::source_location::current(), "Stream");
                 }
                 std::fseek(file.get(), 0, SEEK_END);
-                auto size = std::ftell(file.get());
+                auto size = fsize(file.get());
                 std::fseek(file.get(), 0, SEEK_SET);
                 thiz.reserve(static_cast<std::uint64_t>(size + thiz.buffer_size));
                 thiz.length = size;

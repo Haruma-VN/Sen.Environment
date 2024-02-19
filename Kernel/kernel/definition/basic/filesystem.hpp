@@ -40,7 +40,7 @@ namespace Sen::Kernel::FileSystem
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_file");
 		}
 		std::fseek(file.get(), 0, SEEK_END);
-		auto length = std::ftell(file.get());
+		auto length = fsize(file.get());
 		std::fseek(file.get(), 0, SEEK_SET);
 		auto buffer = std::string(length, ' ');
 		std::fread(buffer.data(), 1, length, file.get());

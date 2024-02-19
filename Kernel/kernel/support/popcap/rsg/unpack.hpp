@@ -207,8 +207,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         inline static auto unpack_fs(
             std::string_view source,
-            std::string_view destination)
-            -> void
+            std::string_view destination
+        ) -> void
         {
             auto unpack = Unpack{source};
             auto packet_info = unpack.process<false>(destination);

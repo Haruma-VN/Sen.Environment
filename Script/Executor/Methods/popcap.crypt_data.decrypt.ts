@@ -31,7 +31,9 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Decrypt {
      * Configuration file if needed
      */
 
-    export interface Configuration extends Sen.Script.Executor.Configuration {}
+    export interface Configuration extends Sen.Script.Executor.Configuration {
+        key: "?" | string;
+    }
 
     /**
      * ----------------------------------------------

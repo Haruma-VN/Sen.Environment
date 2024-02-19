@@ -303,6 +303,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rton.encode.js",
             "~/Executor/Methods/popcap.resource_group.split.js",
             "~/Executor/Methods/popcap.resource_group.merge.js",
+            "~/Executor/Methods/popcap.resource_group.convert.js",
             "~/Executor/Methods/popcap.newton.decode.js",
             "~/Executor/Methods/popcap.newton.encode.js",
             "~/Executor/Methods/popcap.crypt_data.decrypt.js",

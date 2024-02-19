@@ -23,13 +23,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto part3_pos = rsb_head_info->part3_begin;
             auto composite_resources_info = std::vector<CompositeResoucesDescriptionInfo>{};
             auto description_group = std::map<std::string, DescriptionGroup>{};
-            for (auto i = 0; sen->read_pos < part2_pos; i++) {
+            for (auto i = 0; sen->read_pos < part2_pos; ++i) {
                 auto id_part3_pos = sen->readInt32();
                 auto id = sen->getStringByEmpty(part3_pos + id_part3_pos);
                 auto rsg_number = sen->readInt32();
                 auto subgroup = std::map<std::string, DescriptionSubGroup>{};
                 if (sen->readInt32() != 0x10) {
-                    throw Exception("invaild_rsg_number");
+                    throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsg_number")), std::source_location::current(), "read_description");
                 }
                 auto rsg_info_list = std::vector<ResourcesRsgInfo>{};
                 for (auto k : Range<int>(rsg_number)) {
@@ -75,11 +75,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     for (auto h : Range<int>(resources_number)) {
                         sen->read_pos = part2_pos + composite_resources_info[i].rsg_info_list[k].resources_info_list[h].info_part2_pos;
                         if (sen->readInt32() != 0x0) {
-                            throw Exception("invaild_part2_pos");
+                            throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_part2_position")), std::source_location::current(), "read_description");
                         }
                         auto type = sen->readUint16();
                         if (sen->readUint16() != 0x1C) {
-                            throw Exception("invaild_head_lenght");
+                            throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_head_length")), std::source_location::current(), "read_description");
                         }
                         auto ptx_info_part2_end_pos = sen->readInt32();
                         auto ptx_info_part2_begin_pos = sen->readInt32();
@@ -106,7 +106,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         for (auto l : Range<int>(properties_num)) {
                             auto key_part3_pos = sen->readInt32();
                             if (sen->readInt32() != 0x0) {
-                                throw Exception("rsb_is_corrupted");
+                                throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.rsb_is_corrupted")), std::source_location::current(), "read_description");
                             }
                             auto value_part3_pos = sen->readInt32();
                             auto key = sen->getStringByEmpty(part3_pos + key_part3_pos);
@@ -285,6 +285,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         {
             {
                 auto magic = sen->readString(4);
+                debug(magic);
                 if (magic != "1bsr")
                 {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsb_magic")), std::source_location::current(), "read_head");
@@ -324,24 +325,27 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     public:
         explicit Unpack(
-            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
+            std::string_view source
+        ) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
         explicit Unpack(
-            DataStreamView &it) : sen(&it)
+            DataStreamView &it
+        ) : sen(&it)
         {
         }
 
         ~Unpack(
 
-            ) = default;
+        ) = default;
 
-        template <typename T, auto write_info = true>
+        template <typename T, auto write_info = false>
             requires std::is_integral<T>::value
         inline auto process(
             std::string_view destination,
-            Manifest<T> &manifest_info) const -> void
+            Manifest<T> &manifest_info
+        ) const -> void
         {
             auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);

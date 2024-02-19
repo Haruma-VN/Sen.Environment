@@ -1486,7 +1486,15 @@ declare namespace Sen {
                         format: bigint;
                         width: bigint;
                         height: bigint;
+                        pitch: bigint;
+                        alpha_size?: bigint;
+                        alpha_format?: bigint;
                         [Symbol.iterator]: () => Iterator<this>;
+                    }
+
+                    export interface PTXInfo {
+                        path: string;
+                        ptx_info?: ResourceStreamGroupResInfo;
                     }
 
                     /**

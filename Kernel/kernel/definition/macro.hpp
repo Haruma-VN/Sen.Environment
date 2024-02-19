@@ -58,6 +58,20 @@ return INSTANCE;\
 #define _IF_1_ELSE(...)
 #define _IF_0_ELSE(...) __VA_ARGS__
 
+#if WINDOWS
+    #if defined(__x86_64__) || defined(_M_X64)
+    #define fsize _ftelli64
+    #elif defined(__i386__) || defined(_M_IX86)
+    #define fsize std::ftell
+    #endif
+#else
+    #if defined(__x86_64__) || defined(_M_X64)
+    #define fsize ftello64
+    #elif defined(__i386__) || defined(_M_IX86)
+    #define fsize std::ftell
+    #endif
+#endif
+
 #define fill_rijndael_block(raw, iv)                                            \
     auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
     raw.writeNull(padding);

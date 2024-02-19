@@ -35,9 +35,11 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
         resource_group: {
             encode_rton: Questionable<boolean>;
             encode_newton: Questionable<boolean>;
+            automatic_merge_before_encode: Questionable<boolean>;
         };
         res_info: {
             convert: Questionable<boolean>;
+            automatic_merge_before_encode: Questionable<boolean>;
         };
     }
 }

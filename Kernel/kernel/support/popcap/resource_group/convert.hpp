@@ -6,7 +6,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 	// Path style
 
-	enum PathStyle
+	enum class PathStyle : uint8_t
 	{
 
 		// old path style
@@ -50,6 +50,10 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			// New path style
 
 			inline static auto const WindowStyle = std::string{"\\"};
+
+			// Posix style
+
+			inline static auto const PosixStyle = std::string{"/"};
 
 			// Array
 
@@ -102,7 +106,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				for(auto & parent : atlas) {
 					auto atlas_data = nlohmann::ordered_json {
 						{"type", parent["type"].get<std::string>()},
-						{"path", thiz.use_string_for_style ? String::split(parent["path"].get<std::string>(), Common::WindowStyle) : parent["path"].get<std::vector<std::string>>() },
+						{"path", thiz.use_string_for_style ? String::replaceAll(parent["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : 
+						String::join(parent["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
 						{"dimension", nlohmann::ordered_json {
 							{"width", parent["width"].get<int>() },
 							{"height", parent["height"].get<int>() }
@@ -110,14 +115,15 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					};
 					auto children_in_current_parent = std::vector<nlohmann::ordered_json>{};
 					for(auto & element : subgroup["resources"]) {
-						if(element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
+						if(element.find("parent") != element.end() and element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
 							children_in_current_parent.emplace_back(element);
 						}
 					}
 					for(auto & element : children_in_current_parent) {
 						auto children_data = nlohmann::ordered_json {
 							{"type", element["type"].get<std::string>()},
-							{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() },
+							{"path", thiz.use_string_for_style ? String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : 
+							String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
 							{
 								"default", nlohmann::ordered_json {
 									{"ax", element["ax"].get<int>()},
@@ -171,13 +177,13 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				for(auto & element : subgroup["resources"]) {
 					auto data_s = nlohmann::ordered_json {
 						{"type", element["type"].get<std::string>()},
-						{"path", thiz.use_string_for_style ? String::split(element["path"].get<std::string>(), Common::WindowStyle) : element["path"].get<std::vector<std::string>>() }
+						{"path", thiz.use_string_for_style ? String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle) }
 					};
 					if(element.find("forceOriginalVectorSymbolSize") != element.end()) {
 						data_s["forceOriginalVectorSymbolSize"] = element["forceOriginalVectorSymbolSize"].get<bool>();
 					}
 					if(element.find("srcpath") != element.end()) {
-						data_s["srcpath"] = thiz.use_string_for_style ? String::split(element["srcpath"].get<std::string>(), Common::WindowStyle) : element["srcpath"].get<std::vector<std::string>>();
+						data_s["srcpath"] = thiz.use_string_for_style ? String::replaceAll(element["srcpath"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : String::join(element["srcpath"].get<std::vector<std::string>>(), Common::PosixStyle);
 					}
 					data[element["id"].get<std::string>()] = data_s;
 				}

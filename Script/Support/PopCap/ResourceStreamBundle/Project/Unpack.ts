@@ -40,9 +40,11 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             resource_group: {
                 encode_newton: category.rsb.has_newton,
                 encode_rton: category.rsb.has_rton,
+                automatic_merge_before_encode: false,
             },
             res_info: {
                 convert: "?",
+                automatic_merge_before_encode: false,
             },
         };
     }
