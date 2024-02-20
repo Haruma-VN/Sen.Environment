@@ -5122,7 +5122,7 @@ namespace Sen::Kernel::Interface::Script {
 					if (!s) {
 						return JS_EXCEPTION;
 					}
-					s->writeBytes(from_arraybuffer(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
+					s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
 					return JS_UNDEFINED;
 				}, "writeArrayBuffer"_sv);
 			}
@@ -5145,7 +5145,7 @@ namespace Sen::Kernel::Interface::Script {
 						s->writeBytes(from_uint8array(ctx, argv[0]));
 					}
 					else {
-						s->writeBytes(from_uint8array(ctx, argv[0]), JS::Converter::get_bigint64(ctx, argv[1]));
+						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
 					}
 					return JS_UNDEFINED;
 				}, "writeUint8Array"_sv);
@@ -6263,7 +6263,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readZigZag64(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readZigZag64(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readZigZag64();
@@ -6288,7 +6288,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readFloat(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readFloat(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readFloat();
@@ -6313,7 +6313,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readDouble(static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readDouble(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readDouble();

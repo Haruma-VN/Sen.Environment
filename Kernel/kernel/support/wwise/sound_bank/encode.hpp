@@ -107,7 +107,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 				// debug("encode_bkhd");
 				auto head_expand = convert_hex_string(BKHDInfo.head_expand);
 				sen.writeString("BKHD"_sv);
-				sen.writeUint32(BKHDInfo.version, 8);
+				sen.writeUint32(BKHDInfo.version, static_cast<std::uint64_t>(8));
 				sen.writeUint32(BKHDInfo.id);
 				sen.writeUint32(BKHDInfo.language);
 				sen.writeBytes(head_expand);

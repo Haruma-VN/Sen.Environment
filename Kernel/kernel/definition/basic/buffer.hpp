@@ -7,6 +7,10 @@ namespace Sen::Kernel::Definition
 {
     template <typename Type>
     concept CharacterOnView = std::is_same_v<Type, char> || std::is_same_v<Type, unsigned char>;
+
+    template <typename Type>
+    concept IsValidArgument = std::is_same<Type, std::uint64_t>::value && true;
+
     namespace Buffer
     {
         template <bool use_big_endian>
@@ -39,7 +43,7 @@ namespace Sen::Kernel::Definition
 
             Stream(
                 Stream&& that
-            ) : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
+            ) noexcept : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
             {
 
             }
@@ -75,7 +79,8 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                const std::size_t &length) : read_pos(0), write_pos(length), length(length)
+                const std::size_t &length
+            ) : read_pos(0), write_pos(length), length(length)
             {
                 thiz.reserve(length + thiz.buffer_size);
                 return;
@@ -87,7 +92,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto fromString(
-                const std::string &it) const -> void
+                const std::string &it
+            ) const -> void
             {
                 thiz.close();
                 thiz.data = std::vector<unsigned char>(it.begin(), it.end());
@@ -117,7 +123,8 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto reserve(
-                const std::size_t &capacity) const -> void
+                const std::size_t &capacity
+            ) const -> void
             {
                 thiz.data.resize(capacity);
                 return;
@@ -143,7 +150,6 @@ namespace Sen::Kernel::Definition
             inline auto get(
                 size_t from,
                 size_t to
-
             ) const -> std::vector<uint8_t>
             {
                 if (from < 0 || to > thiz.data.size())
@@ -234,25 +240,30 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeUint8(
-                std::uint8_t value) const -> void
+                std::uint8_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 this->template write_LE<std::uint8_t>(value);
                 return;
             }
 
-            inline auto writeUint8(
-                std::uint8_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeUint8(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeUint16(
-                std::uint16_t value) const -> void
+                std::uint16_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::uint16_t>(value);
@@ -264,18 +275,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeUint16(
-                std::uint16_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeUint16(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeUint24(
-                std::uint32_t value) const -> void
+                std::uint32_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto size = 3;
                 if constexpr (use_big_endian)
                 {
@@ -294,18 +303,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeUint24(
-                std::uint32_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeUint24(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeUint32(
-                std::uint32_t value) const -> void
+                std::uint32_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::uint32_t>(value);
@@ -317,18 +324,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeUint32(
-                std::uint32_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeUint32(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeUint64(
-                std::uint64_t value) const -> void
+                std::uint64_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::uint64_t>(value);
@@ -340,34 +345,30 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeUint64(
-                std::uint64_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeUint64(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeInt8(
-                std::int8_t value) const -> void
+                std::int8_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 this->template write_LE<std::int8_t>(value);
                 return;
             }
 
-            inline auto writeInt8(
-                std::int8_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeInt8(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeInt16(
-                std::int16_t value) const -> void
+                std::int16_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::int16_t>(value);
@@ -379,18 +380,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeInt16(
-                std::int16_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeInt16(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeInt24(
-                std::int32_t value) const -> void
+                std::int32_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto size = 3;
                 if constexpr (use_big_endian)
                 {
@@ -409,18 +408,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeInt24(
-                std::int32_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeInt24(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeInt32(
-                std::int32_t value) const -> void
+                std::int32_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::int32_t>(value);
@@ -432,18 +429,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeInt32(
-                std::int32_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeInt32(value);
-                return;
-            }
-
+            template <typename ...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeInt64(
-                std::int64_t value) const -> void
+                std::int64_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if constexpr (use_big_endian)
                 {
                     this->template write_BE<std::int64_t>(value);
@@ -455,19 +450,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeInt64(
-                std::int64_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeInt64(value);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeBytes(
-                const std::vector<std::uint8_t>& inputBytes
+                const std::vector<std::uint8_t>& inputBytes,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto new_pos = thiz.write_pos + inputBytes.size();
                 if (new_pos > thiz.capacity())
                 {
@@ -491,16 +483,6 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-
-            inline auto writeBytes(
-                const std::vector<std::uint8_t> &bytes,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeBytes(bytes);
-                return;
-            }
-
             template <class T>
             inline static auto set_raw_data(const T &val) -> std::vector<uint8_t>
             {
@@ -509,80 +491,79 @@ namespace Sen::Kernel::Definition
                 return res;
             }
 
-            inline auto writeFloat(
-                float value) const -> void
-            {
-                auto res = set_raw_data(value);
-                thiz.writeBytes(res);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeFloat(
                 float value,
-                std::size_t pos) const -> void
+                Args... args
+            ) const -> void
             {
-                thiz.write_pos = pos;
-                thiz.writeFloat(value);
-                return;
-            }
-
-            inline auto writeDouble(
-                double value) const -> void
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto res = set_raw_data(value);
                 thiz.writeBytes(res);
                 return;
             }
 
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeDouble(
                 double value,
-                std::size_t pos) const -> void
+                Args... args
+            ) const -> void
             {
-                thiz.write_pos = pos;
-                thiz.writeDouble(value);
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
+                auto res = set_raw_data(value);
+                thiz.writeBytes(res);
                 return;
             }
 
-            inline auto writeChar(
-                char value) const -> void
-            {
-                thiz.writeUint8(static_cast<uint8_t>(value));
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeChar(
                 char value,
-                std::size_t pos) const -> void
+                Args... args
+            ) const -> void
             {
-                thiz.write_pos = pos;
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 thiz.writeUint8(static_cast<uint8_t>(value));
                 return;
             }
 
-            inline auto writeVarInt32(
-                std::int32_t value) const -> void
-            {
-                auto num = 0;
-                for (num = (uint32_t)value; num >= 128; num >>= 7)
-                {
-                    thiz.writeUint8((uint8_t)(num | 0x80));
-                }
-                thiz.writeUint8((uint8_t)num);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeVarInt32(
                 std::int32_t value,
-                std::size_t pos) const -> void
+                Args... args
+            ) const -> void
             {
-                thiz.write_pos = pos;
-                thiz.writeVarInt32(value);
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
+                auto num = 0;
+                for (num = static_cast<std::uint32_t>(value); num >= 128; num >>= 7)
+                {
+                    thiz.writeUint8(static_cast<uint8_t>(num | 0x80));
+                }
+                thiz.writeUint8(static_cast<uint8_t>(num));
                 return;
             }
 
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeVarInt64(
-                std::int64_t value) const -> void
+                std::int64_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto num = 0;
                 for (num = (uint64_t)value; num >= 128; num >>= 7)
                 {
@@ -592,53 +573,46 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeVarInt64(
-                std::int64_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeVarInt64(value);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeZigZag32(
-                std::int32_t value) const -> void
+                std::int32_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto zigzag_num = (std::uint32_t)((value << 1) ^ (value >> 31));
                 thiz.writeVarInt32(zigzag_num);
                 return;
             }
-
-            inline auto writeZigZag32(
-                std::int32_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeZigZag32(value);
-                return;
-            }
-
+            
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeZigZag64(
-                std::int64_t value) const -> void
+                std::int64_t value,
+                Args... args
+            ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto zigzag_num = (std::uint64_t)((value << 1) ^ (value >> 31));
                 thiz.writeVarInt64(zigzag_num);
                 return;
             }
 
-            inline auto writeZigZag64(
-                std::int64_t value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeZigZag64(value);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeString(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto new_pos = thiz.write_pos + str.size();
                 if (new_pos > thiz.capacity())
                 {
@@ -653,18 +627,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeString(
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto writeStringFourByte(
                 std::string_view str,
-                std::size_t pos
+                Args... args
             ) const -> void
             {
-                thiz.write_pos = pos;
-                thiz.writeString(str);
-                return;
-            }
-
-            inline auto writeStringFourByte(std::string_view str) const -> void
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 auto new_pos = thiz.write_pos + str.size() * 4;
                 if (new_pos > thiz.capacity())
                 {
@@ -679,21 +651,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-
-            inline auto writeStringFourByte(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringFourByte(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeNull(
-                std::size_t size
+                std::size_t size,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (size == 0)
                 {
                     return;
@@ -710,38 +677,31 @@ namespace Sen::Kernel::Definition
                 thiz.write_pos = new_pos;
                 return;
             }
-
-            inline auto writeNull(
-                std::size_t size,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeNull(size);
-                return;
-            }
-
+            
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeCharByInt16(
-                char value
+                char value,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 thiz.writeInt16(static_cast<int16_t>(value));
                 return;
             }
 
-            inline auto writeCharByInt16(
-                char value,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeCharByInt16(value);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByUint8(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeUint8(0);
@@ -752,20 +712,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByUint8(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByUint8(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByUint16(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeUint16(0);
@@ -776,20 +732,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByUint16(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByUint16(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByUint32(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeUint32(0);
@@ -800,20 +752,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByUint32(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByUint32(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByInt8(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeInt8(0);
@@ -824,19 +772,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByInt8(
-                std::string_view str,
-                std::size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByInt8(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByInt16(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeInt16(0);
@@ -847,20 +792,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByInt16(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByInt16(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByInt32(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeInt32(0);
@@ -871,20 +812,16 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByInt32(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByInt32(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByVarInt32(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeVarInt32(0);
@@ -895,43 +832,36 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeStringByVarInt32(
-                std::string_view str,
-                std::size_t pos
-            ) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeStringByVarInt32(str);
-                return;
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto writeStringByEmpty(
-                std::string_view str
+                std::string_view str,
+                Args... args
             ) const -> void
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (str.empty())
                 {
                     thiz.writeUint8(0);
                     return;
                 }
                 thiz.writeString(str);
-                thiz.readUint8(0);
+                thiz.readUint8(static_cast<std::uint64_t>(0));
                 return;
             }
 
-            inline auto writeStringByEmpty(
-                std::string_view str,
-                std::size_t pos
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto writeBoolean(
+                bool value,
+                Args... args
             ) const -> void
             {
-                thiz.read_pos = pos;
-                thiz.writeStringByEmpty(str);
-                return;
-            }
-
-            inline auto writeBoolean(
-                bool value) const -> void
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    thiz.write_pos = std::get<0>(std::make_tuple(args...));
+                }
                 if (value)
                 {
                     thiz.writeUint8(0x01);
@@ -943,39 +873,12 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto writeBoolean(
-                bool value,
-                size_t pos) const -> void
-            {
-                thiz.write_pos = pos;
-                thiz.writeBoolean(value);
-                return;
-            }
-
             inline auto operator[](
-                size_t position) const -> uint8_t &
+                size_t position
+            ) const -> uint8_t &
             {
                 return this->data.at(position);
             }
-            /*
-            inline auto writeBytes_LE(
-                std::uint8_t *bytes,
-                std::size_t size) const -> void
-            {
-                thiz.data.insert(thiz.data.end(), bytes, bytes + size);
-                thiz.write_pos += size;
-                return;
-            }
-
-            inline auto writeBytes_BE(
-                std::uint8_t *bytes,
-                std::size_t size) const -> void
-            {
-                thiz.data.insert(thiz.data.end(), std::reverse_iterator(bytes + size), std::reverse_iterator(bytes));
-                thiz.write_pos += size;
-                return;
-            }
-            */
 
             template <typename T>
             inline auto write_LE(T value) const -> void
@@ -1019,19 +922,35 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto readUint8() const -> std::uint8_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readUint8(
+               Args... args
+            ) const -> std::uint8_t
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"), 
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()), 
+                        "readUint8");
+                    thiz.read_pos = view;
+                }
                 return this->template read<std::uint8_t>();
             }
 
-            inline auto readUint8(std::size_t pos) const -> std::uint8_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readUint16(
+                Args... args
+            ) const -> std::uint16_t
             {
-                thiz.read_pos = pos;
-                return thiz.readUint8();
-            }
-
-            inline auto readUint16() const -> std::uint16_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readUint16");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return reverse_endian(this->template read<std::uint16_t>());
@@ -1042,14 +961,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readUint16(std::size_t pos) const -> std::uint16_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readUint24(
+                Args... args
+            ) const -> std::uint32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readUint16();
-            }
-
-            inline auto readUint24() const -> std::uint32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readUint24");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read_has<std::uint32_t>(3));
@@ -1060,14 +984,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readUint24(std::size_t pos) const -> std::uint32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readUint32(
+                Args... args
+            ) const -> std::uint32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readUint24();
-            }
-
-            inline auto readUint32() const -> std::uint32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readUint32");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return reverse_endian(this->template read<std::uint32_t>());
@@ -1078,14 +1007,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readUint32(std::size_t pos) const -> std::uint32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readUint64(
+                Args... args
+            ) const -> std::uint64_t
             {
-                thiz.read_pos = pos;
-                return thiz.readUint32();
-            }
-
-            inline auto readUint64() const -> std::uint64_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readUint64");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read<std::uint64_t>());
@@ -1096,25 +1030,35 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readUint64(std::size_t pos) const -> std::uint64_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readInt8(
+                Args... args
+            ) const -> std::int8_t
             {
-                thiz.read_pos = pos;
-                return thiz.readUint64();
-            }
-
-            inline auto readInt8() const -> std::int8_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readInt8");
+                    thiz.read_pos = view;
+                }
                 return this->template read<std::int8_t>();
             }
 
-            inline auto readInt8(std::size_t pos) const -> std::int8_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readInt16(
+                Args... args
+            ) const -> std::int16_t
             {
-                thiz.read_pos = pos;
-                return thiz.readInt8();
-            }
-
-            inline auto readInt16() const -> std::int16_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readInt16");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read<std::int16_t>());
@@ -1125,14 +1069,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readInt16(std::size_t pos) const -> std::int16_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readInt24(
+                Args... args
+            ) const -> std::int32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readInt16();
-            }
-
-            inline auto readInt24() const -> std::int32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readInt24");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read_has<std::int32_t>(3));
@@ -1143,14 +1092,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readInt24(std::size_t pos) const -> std::int32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readInt32(
+                Args... args
+            ) const -> std::int32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readInt24();
-            }
-
-            inline auto readInt32() const -> std::int32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readInt32");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read<std::int32_t>());
@@ -1161,14 +1115,19 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readInt32(std::size_t pos) const -> std::int32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readInt64(
+                Args... args
+            ) const -> std::int64_t
             {
-                thiz.read_pos = pos;
-                return thiz.readInt32();
-            }
-
-            inline auto readInt64() const -> std::int64_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readInt64");
+                    thiz.read_pos = view;
+                }
                 if constexpr (use_big_endian)
                 {
                     return thiz.reverse_endian(this->template read<std::int64_t>());
@@ -1179,156 +1138,219 @@ namespace Sen::Kernel::Definition
                 }
             }
 
-            inline auto readInt64(std::size_t pos) const -> std::int64_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readFloat(
+                Args... args
+            ) const -> float
             {
-                thiz.read_pos = pos;
-                return thiz.readInt64();
-            }
-
-            inline auto readFloat() const -> float
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readFloat");
+                    thiz.read_pos = view;
+                }
                 return this->template read<float>();
             }
 
-            inline auto readFloat(std::size_t pos) const -> float
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readDouble(
+                Args... args
+            ) const -> double
             {
-                thiz.read_pos = pos;
-                return thiz.readFloat();
-            }
-
-            inline auto readDouble() const -> double
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readDouble");
+                    thiz.read_pos = view;
+                }
                 return this->template read<double>();
             }
 
-            inline auto readDouble(std::size_t pos) const -> double
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readBoolean(
+                Args... args
+            ) const -> bool
             {
-                thiz.read_pos = pos;
-                return thiz.readDouble();
-            }
-
-            inline auto readBoolean() const -> bool
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readBoolean");
+                    thiz.read_pos = view;
+                }
                 return thiz.readUint8() == 0x01;
             }
 
-            inline auto readBoolean(std::size_t pos) const -> bool
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readString(
+                std::size_t size,
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readBoolean();
-            }
-
-            inline auto readString(std::size_t size) const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readString");
+                    thiz.read_pos = view;
+                }
                 auto str = std::string{};
                 for (auto i : Range(size))
                 {
-                    str += ((char)thiz.readUint8());
+                    str += static_cast<char>(thiz.readUint8());
                 }
                 return str;
             }
 
-            inline auto readString(std::size_t size, std::size_t pos) const -> std::string
-            {
-                thiz.read_pos = pos;
-                return thiz.readString(size);
-            }
-
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto readCharByInt16(
-
+                Args... args
             ) const -> char
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readCharByInt16");
+                    thiz.read_pos = view;
+                }
                 auto value = static_cast<char>(
                     thiz.readInt16());
                 return value;
             }
 
-            inline auto readCharByInt16(
-                std::size_t pos) const -> char
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByUint8(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readCharByInt16();
-            }
-
-            inline auto readStringByUint8() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByUint8");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readUint8());
             }
 
-            inline auto readStringByUint8(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByUint16(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByUint8();
-            }
-
-            inline auto readStringByUint16() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByUint16");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readUint16());
             }
 
-            inline auto readStringByUint16(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByUint32(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByUint16();
-            }
-
-            inline auto readStringByUint32() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByUint32");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readUint32());
             }
 
-            inline auto readStringByUint32(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByInt8(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByUint32();
-            }
-
-            inline auto readStringByInt8() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByInt8");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readInt8());
             }
 
-            inline auto readStringByInt8(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByInt16(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByInt8();
-            }
-
-            inline auto readStringByInt16() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByInt8");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readInt16());
             }
 
-            inline auto readStringByInt16(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByInt32(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByInt16();
-            }
-
-            inline auto readStringByInt32() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByInt32");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readInt32());
             }
 
-            inline auto readStringByInt32(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByVarInt32(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByInt32();
-            }
-
-            inline auto readStringByVarInt32() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByVarInt32");
+                    thiz.read_pos = view;
+                }
                 return thiz.readString(thiz.readVarInt32());
             }
 
-            inline auto readStringByVarInt32(std::size_t pos) const -> std::string
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readStringByEmpty(
+                Args... args
+            ) const -> std::string
             {
-                thiz.read_pos = pos;
-                return thiz.readStringByVarInt32();
-            }
-
-            inline auto readStringByEmpty() const -> std::string
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readStringByEmpty");
+                    thiz.read_pos = view;
+                }
                 auto ss = std::string{};
                 auto byte = 0;
                 while (true)
@@ -1340,12 +1362,6 @@ namespace Sen::Kernel::Definition
                     ss += (char)byte;
                 }
                 return ss;
-            }
-
-            inline auto readStringByEmpty(std::size_t pos) const -> std::string
-            {
-                thiz.read_pos = pos;
-                return thiz.readStringByEmpty();
             }
 
             inline auto getStringByEmpty(std::size_t pos) const -> std::string
@@ -1371,10 +1387,20 @@ namespace Sen::Kernel::Definition
                 return bytes;
             }
 
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
             inline auto readBytes(
-                std::size_t size
+                std::size_t size,
+                Args... args
             ) const -> std::vector<std::uint8_t>
             {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readBytes");
+                    thiz.read_pos = view;
+                }
                 auto bytes = std::vector<std::uint8_t>{};
                 bytes.assign(thiz.data.begin() + thiz.read_pos, thiz.data.begin() + thiz.read_pos + size);
                 thiz.read_pos += size;
@@ -1385,15 +1411,19 @@ namespace Sen::Kernel::Definition
                 return bytes;
             }
 
-
-            inline auto readBytes(std::size_t size, std::size_t pos) const -> std::vector<std::uint8_t>
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readVarInt32(
+                Args... args
+            ) const -> std::int32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readBytes(size);
-            }
-
-            inline auto readVarInt32() const -> std::int32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readVarInt32");
+                    thiz.read_pos = view;
+                }
                 auto num = 0;
                 auto num_2 = 0;
                 auto byte = 0;
@@ -1411,14 +1441,19 @@ namespace Sen::Kernel::Definition
                 return num;
             }
 
-            inline auto readVarInt32(std::size_t pos) const -> std::int32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readVarInt64(
+                Args... args
+            ) const -> std::int64_t
             {
-                thiz.read_pos = pos;
-                return thiz.readVarInt32();
-            }
-
-            inline auto readVarInt64() const -> std::int64_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readVarInt64");
+                    thiz.read_pos = view;
+                }
                 auto num = 0;
                 auto num_2 = 0;
                 auto byte = 0;
@@ -1436,58 +1471,72 @@ namespace Sen::Kernel::Definition
                 return num;
             }
 
-            inline auto readVarInt64(std::size_t pos) const -> std::int64_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readVarUint32(
+                Args... args
+            ) const -> std::uint32_t
             {
-                thiz.read_pos = pos;
-                return thiz.readVarInt64();
-            }
-
-            inline auto readVarUint32() const -> std::uint32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readVarUint32");
+                    thiz.read_pos = view;
+                }
                 return static_cast<std::uint32_t>(thiz.readVarInt32());
             }
 
-            inline auto readVarUint32(std::size_t pos) const -> std::uint32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readVarUint64(
+                Args... args
+            ) const -> std::uint64_t
             {
-                thiz.read_pos = pos;
-                return static_cast<std::uint32_t>(thiz.readVarInt32());
-            }
-
-            inline auto readVarUint64() const -> std::uint64_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readVarUint64");
+                    thiz.read_pos = view;
+                }
                 return static_cast<std::uint64_t>(thiz.readVarInt64());
             }
 
-            inline auto readVarUint64(std::size_t pos) const -> std::uint64_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readZigZag32(
+                Args... args
+            ) const -> std::int32_t
             {
-                thiz.read_pos = pos;
-                return static_cast<std::uint64_t>(thiz.readVarUint64());
-            }
-
-            inline auto readZigZag32() const -> std::int32_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readZigZag32");
+                    thiz.read_pos = view;
+                }
                 auto zigzag_num = thiz.readVarInt32();
                 auto decoded = static_cast<std::int32_t>((zigzag_num >> 1) ^ -(zigzag_num & 1));
                 return decoded;
             }
 
-            inline auto readZigZag32(std::size_t pos) const -> std::int32_t
+            template <typename...Args> requires (IsValidArgument<Args> && ...)
+            inline auto readZigZag64(
+                Args... args
+            ) const -> std::int64_t
             {
-                thiz.read_pos + pos;
-                return thiz.readZigZag32();
-            }
-
-            inline auto readZigZag64() const -> std::int64_t
-            {
+                static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
+                if constexpr (sizeof...(Args) == 1) {
+                    auto view = std::get<0>(std::make_tuple(args...));
+                    assert_conditional(view < this->size(), fmt::format("{}, {}: {}, {}: {}", Language::get("buffer.read_offset_outside_bounds_of_dataview"),
+                        Language::get("buffer.new_position"), this->write_pos, Language::get("buffer.actual_size"), this->size()),
+                        "readZigZag64");
+                    thiz.read_pos = view;
+                }
                 auto zigzag_num = thiz.readVarInt64();
                 auto decoded = static_cast<std::int64_t>((zigzag_num >> 1) ^ -(zigzag_num & 1));
                 return decoded;
-            }
-
-            inline auto readZigZag64(std::size_t pos) const -> std::int64_t
-            {
-                thiz.read_pos + pos;
-                return thiz.readZigZag64();
             }
 
             template <typename T>

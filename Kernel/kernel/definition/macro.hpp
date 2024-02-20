@@ -61,13 +61,13 @@ return INSTANCE;\
 #if WINDOWS
     #if defined(__x86_64__) || defined(_M_X64)
     #define fsize _ftelli64
-    #elif defined(__i386__) || defined(_M_IX86)
+    #else
     #define fsize std::ftell
     #endif
 #else
     #if defined(__x86_64__) || defined(_M_X64)
     #define fsize ftello64
-    #elif defined(__i386__) || defined(_M_IX86)
+    #else
     #define fsize std::ftell
     #endif
 #endif

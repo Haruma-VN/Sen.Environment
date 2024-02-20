@@ -159,7 +159,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
             }
             auto thiz_pos = sen->write_pos;
-            sen->writeUint8(flag, write_pos);
+            sen->writeUint8(flag, static_cast<std::uint64_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }
@@ -212,7 +212,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 sen->writeUint32(append.time_scale * 65536);
             }
             auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, write_pos);
+            sen->writeUint16(flag, static_cast<std::uint64_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }
@@ -278,7 +278,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             };
             flag |= num_flag;
             auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, write_pos);
+            sen->writeUint16(flag, static_cast<std::uint64_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }

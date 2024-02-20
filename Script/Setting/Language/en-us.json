@@ -237,5 +237,8 @@
     "popcap.rsg.unpack.invalid_rsg_version": "Invalid RSG version, expected version 3 or 4, received",
     "popcap.rsg.unpack.unknown_compression_flag": "Invalid RSG compression flags, expected from 0 to 3, received",
     "popcap.rsg.unpack": "PopCap RSG: Unpack",
-    "popcap.rsg.pack": "PopCap RSG: Pack"
+    "popcap.rsg.pack": "PopCap RSG: Pack",
+    "buffer.read_offset_outside_bounds_of_dataview": "Read offset outside bounds of DataStreamView",
+    "buffer.new_position": "new position",
+    "buffer.actual_size": "actual size"
 }
