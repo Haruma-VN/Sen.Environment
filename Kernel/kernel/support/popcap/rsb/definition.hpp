@@ -460,6 +460,42 @@ namespace Sen::Kernel::Support::PopCap::RSB
         std::string parent;
     };
 
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const PropertiesPtxInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["imagetype"] = nlohmann_json_t.imagetype;
+        nlohmann_json_j["aflags"] = nlohmann_json_t.aflags;
+        nlohmann_json_j["x"] = nlohmann_json_t.x;
+        nlohmann_json_j["y"] = nlohmann_json_t.y;
+        nlohmann_json_j["ax"] = nlohmann_json_t.ax;
+        nlohmann_json_j["ay"] = nlohmann_json_t.ay;
+        nlohmann_json_j["aw"] = nlohmann_json_t.aw;
+        nlohmann_json_j["ah"] = nlohmann_json_t.ah;
+        nlohmann_json_j["rows"] = nlohmann_json_t.rows;
+        nlohmann_json_j["cols"] = nlohmann_json_t.cols;
+        nlohmann_json_j["parent"] = nlohmann_json_t.parent;
+        return;
+    };
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        PropertiesPtxInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("imagetype").get_to(nlohmann_json_t.imagetype);
+        nlohmann_json_j.at("aflags").get_to(nlohmann_json_t.aflags);
+        nlohmann_json_j.at("x").get_to(nlohmann_json_t.x);
+        nlohmann_json_j.at("y").get_to(nlohmann_json_t.y);
+        nlohmann_json_j.at("ax").get_to(nlohmann_json_t.ax);
+        nlohmann_json_j.at("ay").get_to(nlohmann_json_t.ay);
+        nlohmann_json_j.at("aw").get_to(nlohmann_json_t.aw);
+        nlohmann_json_j.at("ah").get_to(nlohmann_json_t.ah);
+        nlohmann_json_j.at("rows").get_to(nlohmann_json_t.rows);
+        nlohmann_json_j.at("cols").get_to(nlohmann_json_t.cols);
+        nlohmann_json_j.at("parent").get_to(nlohmann_json_t.parent);
+        return;
+    };
+
 #pragma endregion
 
 #pragma region DescriptionResources
@@ -488,6 +524,28 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
     };
 
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const DescriptionResources &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["type"] = nlohmann_json_t.type;
+        nlohmann_json_j["path"] = nlohmann_json_t.path;
+        nlohmann_json_j["ptx_info"] = nlohmann_json_t.ptx_info;
+        nlohmann_json_j["properties"] = nlohmann_json_t.properties;
+        return;
+    };
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        DescriptionResources &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("type").get_to(nlohmann_json_t.type);
+        nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
+        nlohmann_json_j.at("ptx_info").get_to(nlohmann_json_t.ptx_info);
+        nlohmann_json_j.at("properties").get_to(nlohmann_json_t.properties);
+        return;
+    };
+
 #pragma endregion
 
 #pragma region DescriptionSubGroup
@@ -511,6 +569,26 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ~DescriptionSubGroup(
 
             ) = default;
+    };
+
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const DescriptionSubGroup &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["res"] = nlohmann_json_t.res;
+        nlohmann_json_j["language"] = nlohmann_json_t.language;
+        nlohmann_json_j["resources"] = nlohmann_json_t.resources;
+        return;
+    };
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        DescriptionSubGroup &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("res").get_to(nlohmann_json_t.res);
+        nlohmann_json_j.at("language").get_to(nlohmann_json_t.language);
+        nlohmann_json_j.at("resources").get_to(nlohmann_json_t.resources);
+        return;
     };
 
 #pragma endregion
@@ -537,12 +615,60 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
     };
 
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const DescriptionGroup &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["composite"] = nlohmann_json_t.composite;
+        nlohmann_json_j["subgroups"] = nlohmann_json_t.subgroups;
+        return;
+    };
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        DescriptionGroup &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("composite").get_to(nlohmann_json_t.composite);
+        nlohmann_json_j.at("subgroups").get_to(nlohmann_json_t.subgroups);
+        return;
+    };
+
 #pragma endregion
 
 #pragma region Description
     struct Description
     {
+    public:
         std::map<std::string, DescriptionGroup> groups;
+
+        explicit Description(
+
+            ) = default;
+
+        explicit Description(
+            std::map<std::string, DescriptionGroup> groups) : groups(groups)
+        {
+        }
+
+        ~Description(
+
+            ) = default;
+    };
+
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const Description &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["groups"] = nlohmann_json_t.groups;
+        return;
+    }
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        Description &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("groups").get_to(nlohmann_json_t.groups);
+        return;
     };
 
 #pragma endregion

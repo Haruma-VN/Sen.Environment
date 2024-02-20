@@ -16,6 +16,7 @@
 #include "kernel/definition/basic/buffer.hpp"
 #include "kernel/definition/basic/collections.hpp"
 #include "kernel/definition/basic/system.hpp"
+#include "kernel/definition/basic/thread.hpp"
 
 #include "kernel/definition/encryption/md5.hpp"
 #include "kernel/definition/encryption/sha224.hpp"

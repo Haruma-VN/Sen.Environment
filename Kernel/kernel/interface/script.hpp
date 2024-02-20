@@ -6443,6 +6443,160 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 		}
+
+		namespace Boolean {
+			
+			struct Data {
+				bool value;
+
+				Data(
+				) = default;
+
+				Data(
+					bool value
+				) : value(value)
+				{
+
+				}
+
+				~Data(
+				) = default;
+			};
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = (Data*)JS_GetOpaque(val, class_id);
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data{JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true};
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj))
+					goto fail;
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Boolean",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (!s) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_bool(ctx, s->value);
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = JS_VALUE_GET_BOOL(val) == 0 ? false : true;
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			template <auto T>
+			inline static auto true_instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = new Data{ T };
+				auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+				if (JS_IsException(proto)) {
+					js_free(ctx, s);
+					return JS_EXCEPTION;
+				}
+				auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					js_free(ctx, s);
+					return JS_EXCEPTION;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Boolean"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto default_true_func_val = JS_NewCFunction(ctx, true_instance<true>, "true", 0);
+				auto default_false_func_val = JS_NewCFunction(ctx, true_instance<false>, "false", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "true", default_true_func_val);
+				JS_SetPropertyStr(ctx, point_ctor, "false", default_false_func_val);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
 	}
 
 }

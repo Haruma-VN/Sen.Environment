@@ -1804,6 +1804,49 @@ declare namespace Sen {
         }
 
         /**
+         * Kernel Boolean Wrapper
+         */
+
+        declare class Boolean {
+            /**
+             * Value
+             */
+
+            private _value: boolean;
+
+            /**
+             * Getter
+             */
+
+            public get value(): boolean;
+
+            /**
+             * Setter
+             */
+
+            public set value(value: boolean): void;
+
+            /**
+             * JS Boolean Constructor
+             * @param value - Boolean value
+             */
+
+            public constructor(value: boolean): void;
+
+            /**
+             * Get true instance
+             */
+
+            public static true(): Boolean;
+
+            /**
+             * Get false instance
+             */
+
+            public static false(): Boolean;
+        }
+
+        /**
          * Kernel DataView
          */
 

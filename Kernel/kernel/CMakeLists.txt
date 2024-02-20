@@ -10,6 +10,7 @@ add_library(
 	./definition/library.hpp
 	./definition/literal.hpp
 	./definition/assert.hpp
+	./definition/utility.hpp
 	./definition/basic/filesystem.hpp
 	./definition/basic/string.hpp
 	./definition/basic/math.hpp
@@ -23,6 +24,7 @@ add_library(
 	./definition/basic/array.hpp
 	./definition/basic/list.hpp
 	./definition/basic/system.hpp
+	./definition/basic/thread.hpp
 	./definition/basic/collections.hpp
 	./definition/basic/json_writer.hpp
 

@@ -833,13 +833,20 @@ namespace Sen::Kernel {
 				return String{thiz.value + c};
 			}
 
+			inline auto view(
+
+			) const -> std::string_view
+			{
+				return thiz.value;
+			}
+
 			/**
 			 * regex
 			*/
 
 			inline auto match(
 				const std::regex &reg
-			) -> bool
+			) const -> bool
 			{
 				return std::regex_search(thiz.value, reg); 
 			}

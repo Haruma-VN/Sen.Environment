@@ -449,6 +449,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
 				// DataStreamViewUseBigEndian
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
+				// Boolean
+				javascript->register_object(Script::Class::Boolean::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				// call main

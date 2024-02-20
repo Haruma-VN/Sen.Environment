@@ -76,12 +76,11 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 }
                 else
                 {
-                    auto uncompress_zlib = std::make_unique<PopCap::Zlib::Uncompress>(false);
-                    raw_data->writeBytes(uncompress_zlib->uncompress(sen->getBytes(rsg_head_info.part0_pos, part0_zlib_length)));
+                    raw_data->writeBytes(Definition::Compression::Zlib::uncompress(sen->getBytes(rsg_head_info.part0_pos, part0_zlib_length)));
                 }
             }
 
-            auto use_atlas = (rsg_head_info.part1_pos == 0 and rsg_head_info.part1_size == 0 and rsg_head_info.part1_zlib == 0);
+            auto use_atlas = (rsg_head_info.part1_pos != 0 and rsg_head_info.part1_size != 0 and rsg_head_info.part1_zlib != 0);
             if (use_atlas)
             {
                 atlas_pos = raw_data->write_pos;
@@ -91,8 +90,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 }
                 else
                 {
-                    auto uncompress_zlib = std::make_unique<PopCap::Zlib::Uncompress>(false);
-                    raw_data->writeBytes(uncompress_zlib->uncompress(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_zlib)));
+                    raw_data->writeBytes(Definition::Compression::Zlib::uncompress(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_zlib)));
                 }
             }
             return;
@@ -110,7 +108,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             {
                 std::filesystem::create_directories(filePath.parent_path());
             }
-            FileSystem::write_binary(packet_destination, sen->getBytes(pos, pos + size));
+            FileSystem::write_binary(packet_destination, raw_data->getBytes(pos, pos + size));
             return;
         }
 
@@ -133,7 +131,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         template <auto T>
         inline auto process(
-            std::string_view destination) -> RSG_PacketInfo
+            std::string_view destination
+        ) -> RSG_PacketInfo
         {
             auto rsg_head_info = RSG_HeadInfo{};
             read_head(&rsg_head_info);
