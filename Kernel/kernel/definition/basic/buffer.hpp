@@ -465,10 +465,10 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto writeBytes(
-                const std::vector<std::uint8_t> &inputBytes) const -> void
+                const std::vector<std::uint8_t>& inputBytes
+            ) const -> void
             {
-                auto bytes = inputBytes;
-                auto new_pos = thiz.write_pos + bytes.size();
+                auto new_pos = thiz.write_pos + inputBytes.size();
                 if (new_pos > thiz.capacity())
                 {
                     thiz.reserve(new_pos + thiz.buffer_size);
@@ -479,12 +479,18 @@ namespace Sen::Kernel::Definition
                 }
                 if constexpr (use_big_endian)
                 {
-                    std::reverse(bytes.begin(), bytes.end());
+                    auto reversedBytes = inputBytes;
+                    std::reverse(reversedBytes.begin(), reversedBytes.end());
+                    std::move(reversedBytes.begin(), reversedBytes.end(), thiz.data.begin() + thiz.write_pos);
                 }
-                std::move(bytes.begin(), bytes.end(), thiz.data.begin() + thiz.write_pos);
+                else
+                {
+                    std::move(inputBytes.begin(), inputBytes.end(), thiz.data.begin() + thiz.write_pos);
+                }
                 thiz.write_pos = new_pos;
                 return;
             }
+
 
             inline auto writeBytes(
                 const std::vector<std::uint8_t> &bytes,

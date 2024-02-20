@@ -49,7 +49,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSG.Unpack {
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSG.Unpack.Argument): void {
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSG.Unpack.Argument, string>(argument, "destination", `${argument.source}.packet`);
+                defined_or_default<Sen.Script.Executor.Methods.PopCap.RSG.Unpack.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.packet`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Kernel.Support.PopCap.RSG.unpack_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();

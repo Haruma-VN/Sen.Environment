@@ -383,7 +383,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
                 }
-                manifest_info.group.insert(std::pair{composite_name, rsg_group});
+                manifest_info.group.insert(std::pair{composite_name, std::move(rsg_group)});
             }
             if constexpr (write_info)
             {

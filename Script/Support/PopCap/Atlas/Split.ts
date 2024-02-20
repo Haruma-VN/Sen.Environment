@@ -20,9 +20,17 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
         return false;
     }
 
+    /**
+     * Make destination
+     * @param destination - atlas directory
+     * @param resource - resource
+     * @param is_path - is path
+     * @returns
+     */
+
     export function destination(destination: string, resource: Sen.Kernel.Support.PopCap.ResourceGroup.ResourceContainsSprite, is_path: boolean): string {
         if (is_path) {
-            return `${Sen.Kernel.Path.join(destination, resource.path.at(-1)!)}.png`;
+            return `${Sen.Kernel.Path.join(destination, (resource.path as string).split("/").at(-1)!)}.png`;
         }
         return `${Sen.Kernel.Path.join(destination, resource.id)}.png`;
     }
@@ -56,11 +64,11 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
             for (const subgroup of resource.resources) {
                 if (is_sprite_container(subgroup)) {
                     const wrapper: Sen.Script.Support.PopCap.Atlas.Structure.BasicGroup = {
+                        path: subgroup.path as string,
                         default: {
                             x: (subgroup.x ??= 0n),
                             y: (subgroup.y ??= 0n),
                         },
-                        path: subgroup.path as Array<string>,
                     };
                     if (subgroup.cols && subgroup.cols !== 1n) {
                         wrapper.default.cols = subgroup.cols;
@@ -107,7 +115,9 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                         const current_parent: string = png.replaceAll(/\.png/gi, "").toUpperCase();
                         if (current_resource.parent && current_parent.endsWith(current_resource.parent.replaceAll("ATLASIMAGE_ATLAS_", ""))) {
                             if (style_use_string) {
-                                current_resource.path = (current_resource.path as string).split("\\");
+                                current_resource.path = (current_resource.path as string).replaceAll("\\", "/");
+                            } else {
+                                current_resource.path = (current_resource.path as Array<string>).join("/");
                             }
                             image_wrapper.get(png)!.push({
                                 x: Number(current_resource.ax),

@@ -3,13 +3,13 @@ namespace Sen.Script.Support.PopCap.Atlas.Structure {
      * Method to split
      */
 
-    export type TypicalMethod = `path` | `id`;
+    export type TypicalMethod = "path" | "id";
 
     /**
      * Path style
      */
 
-    export type PathStyle = `string` | `array`;
+    export type PathStyle = "string" | "array";
 
     /**
      * Definition file: atlas.json
@@ -35,6 +35,6 @@ namespace Sen.Script.Support.PopCap.Atlas.Structure {
             cols?: bigint;
             rows?: bigint;
         };
-        path: string[];
+        path: string;
     }
 }

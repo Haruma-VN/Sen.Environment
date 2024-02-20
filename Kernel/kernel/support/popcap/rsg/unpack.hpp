@@ -13,7 +13,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
     protected:
         std::unique_ptr<DataStreamView> sen;
 
-        std::unique_ptr<DataStreamView> raw_data;
+        DataStreamView raw_data;
 
         mutable int atlas_pos;
 
@@ -30,19 +30,23 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto flags = sen->readUint32();
             switch (flags)
             {
-            case 0: {
+            case 0:
+            {
                 rsg_head_info->flags = CompressionFlag::NO_COMPRESSION;
                 break;
             }
-            case 1: {
+            case 1:
+            {
                 rsg_head_info->flags = CompressionFlag::DEFAULT_COMPRESSION;
                 break;
             }
-            case 2: {
+            case 2:
+            {
                 rsg_head_info->flags = CompressionFlag::ATLAS_COMPRESSION;
                 break;
             }
-            case 3: {
+            case 3:
+            {
                 rsg_head_info->flags = CompressionFlag::BEST_COMPRESSION;
                 break;
             }
@@ -64,7 +68,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
         }
 
         inline auto uncompress_zlib(
-            const RSG_HeadInfo &rsg_head_info) const -> void
+            const RSG_HeadInfo &rsg_head_info
+        ) const -> void
         {
             auto part0_length = rsg_head_info.part0_pos + rsg_head_info.part0_size;
             auto part0_zlib_length = rsg_head_info.part0_pos + rsg_head_info.part0_zlib;
@@ -72,43 +77,47 @@ namespace Sen::Kernel::Support::PopCap::RSG
             {
                 if (rsg_head_info.flags == CompressionFlag::NO_COMPRESSION || rsg_head_info.flags == CompressionFlag::DEFAULT_COMPRESSION)
                 {
-                    raw_data->writeBytes(sen->getBytes(rsg_head_info.part0_pos, part0_length));
+                    raw_data.writeBytes(sen->getBytes(rsg_head_info.part0_pos, part0_length));
                 }
                 else
                 {
-                    raw_data->writeBytes(Definition::Compression::Zlib::uncompress(sen->getBytes(rsg_head_info.part0_pos, part0_zlib_length)));
+                    auto rsg_data = sen->getBytes(rsg_head_info.part0_pos, part0_zlib_length);
+                    auto data = Definition::Compression::Zlib::uncompress(rsg_data);
+                    raw_data.writeBytes(data);
                 }
             }
-
             auto use_atlas = (rsg_head_info.part1_pos != 0 and rsg_head_info.part1_size != 0 and rsg_head_info.part1_zlib != 0);
             if (use_atlas)
             {
-                atlas_pos = raw_data->write_pos;
+                atlas_pos = raw_data.write_pos;
                 if (rsg_head_info.flags == CompressionFlag::NO_COMPRESSION || rsg_head_info.flags == CompressionFlag::ATLAS_COMPRESSION)
                 {
-                    raw_data->writeBytes(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_size));
+                    raw_data.writeBytes(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_size));
                 }
                 else
                 {
-                    raw_data->writeBytes(Definition::Compression::Zlib::uncompress(sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_zlib)));
+                    auto rsg_data = sen->getBytes(rsg_head_info.part1_pos, rsg_head_info.part1_pos + rsg_head_info.part1_zlib);
+                    auto data = Definition::Compression::Zlib::uncompress(rsg_data);
+                    raw_data.writeBytes(data);
                 }
             }
             return;
         }
 
         inline auto write_file(
-            const std::string &packet_destination,
+            std::string_view packet_destination,
             const RSG_HeadInfo &rsg_head_info,
-            bool is_atlas) const -> void
+            bool is_atlas
+        ) const -> void
         {
             auto pos = sen->readUint32() + is_atlas ? atlas_pos : 0;
             auto size = sen->readInt32();
-            auto filePath = std::filesystem::path(packet_destination);
+            auto filePath = std::filesystem::path(packet_destination.data());
             if (filePath.has_parent_path())
             {
                 std::filesystem::create_directories(filePath.parent_path());
             }
-            FileSystem::write_binary(packet_destination, raw_data->getBytes(pos, pos + size));
+            FileSystem::write_binary(packet_destination, raw_data.getBytes(pos, pos + size));
             return;
         }
 
@@ -125,22 +134,31 @@ namespace Sen::Kernel::Support::PopCap::RSG
         {
         }
 
+        Unpack(
+            Unpack&& that
+        ) = delete;
+
+        auto operator=(
+            Unpack &&that
+        ) -> Unpack & = delete;
+
         ~Unpack(
 
         ) = default;
 
-        template <auto T>
         inline auto process(
             std::string_view destination
-        ) -> RSG_PacketInfo
+        ) const -> RSG_PacketInfo
         {
             auto rsg_head_info = RSG_HeadInfo{};
             read_head(&rsg_head_info);
             auto packet_destination = std::string_view{};
-            if constexpr (use_res_folder) {
+            if constexpr (use_res_folder)
+            {
                 packet_destination = fmt::format("{}/res", destination);
             }
-            else {
+            else
+            {
                 packet_destination = destination;
             }
             FileSystem::create_directory(packet_destination);
@@ -152,6 +170,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto name_dist_list = std::vector<NameDict>{};
             auto name_path = std::string{};
             sen->read_pos = file_list_pos;
+            auto res_list = std::vector<nlohmann::ordered_json>{};
             while (sen->read_pos < offset_limit)
             {
                 auto char_byte = sen->readUint8();
@@ -177,7 +196,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                             {"width", sen->readUint32()},
                             {"height", sen->readUint32()}};
                     }
-                    packet_info.res.emplace_back(res);
+                    res_list.emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
                     {
                         if (name_dist_list[i].pos + static_cast<unsigned long long>(file_list_pos) == sen->read_pos)
@@ -207,6 +226,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     }
                 }
             }
+            packet_info.res = res_list;
+            return packet_info;
         }
 
         inline static auto unpack_fs(
@@ -215,7 +236,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         ) -> void
         {
             auto unpack = Unpack{source};
-            auto packet_info = unpack.process<false>(destination);
+            auto packet_info = unpack.process(destination);
             FileSystem::write_json(fmt::format("{}/packet.json", destination), packet_info);
             return;
         }

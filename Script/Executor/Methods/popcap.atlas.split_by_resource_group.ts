@@ -96,14 +96,19 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
                 if (!has_json) {
                     throw new Error(Kernel.Language.get("popcap.atlas.split_by_resource_group.source_file_must_be_json"));
                 }
-                argument.source.forEach((e: string) => Sen.Script.Console.obtained(e));
-                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source[0])}.sprite`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
-                Sen.Script.Executor.argument_load(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(argument.source, argument.destination!, argument.method!, argument.style!);
-                Sen.Script.Executor.clock.stop_safe();
+                const jsons: Array<string> = argument.source.filter((e) => /\.json$/gi.test(e));
+                const pngs: Array<string> = argument.source.filter((e) => /\.png$/gi.test(e));
+                jsons.forEach((json: string) => {
+                    const category: [string, ...Array<string>] = [json, ...pngs];
+                    category.forEach((e: string) => Sen.Script.Console.obtained(e));
+                    Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(json)}.sprite`);
+                    Sen.Script.Console.output(argument.destination!);
+                    Sen.Script.Executor.argument_load(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
+                    Sen.Script.Executor.argument_load(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
+                    Sen.Script.Executor.clock.start_safe();
+                    Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(category, argument.destination!, argument.method!, argument.style!);
+                    Sen.Script.Executor.clock.stop_safe();
+                });
                 return;
             },
             async_forward: undefined!,

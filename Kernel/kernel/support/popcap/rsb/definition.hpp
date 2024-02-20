@@ -34,6 +34,22 @@ namespace Sen::Kernel::Support::PopCap::RSB
         T part1_begin;
         T part2_begin;
         T part3_begin;
+
+        RSB_HeadInfo(
+
+        ) = default;
+
+        ~RSB_HeadInfo(
+
+        ) = default;
+
+        RSB_HeadInfo(
+            RSB_HeadInfo&& that
+        ) = delete;
+
+        auto operator =(
+            RSB_HeadInfo&& that
+        )->RSB_HeadInfo & = delete;
     };
 
     template <typename T>
@@ -114,17 +130,18 @@ namespace Sen::Kernel::Support::PopCap::RSB
         T pos;
         explicit NameDict(
 
-            ) = default;
+        ) = default;
 
         explicit NameDict(
-            std::string name_path,
-            T pos) : name_path(name_path), pos(pos)
+            const std::string & name_path,
+            T pos
+        ) : name_path(name_path), pos(pos)
         {
         }
 
         ~NameDict(
 
-            ) = default;
+        ) = default;
     };
 
     template <typename T>
@@ -283,7 +300,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         explicit RSG_PacketInfo(
 
-            ) = default;
+        ) = default;
 
         explicit RSG_PacketInfo(
             T compression_flags) : compression_flags(compression_flags)

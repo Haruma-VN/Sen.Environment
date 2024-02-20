@@ -134,7 +134,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
             for (const member of members) {
                 const data: Sen.Script.Support.PopCap.Atlas.Pack.Detail.MaxRectsPackableData<number> = {
                     id: member,
-                    path: resource.groups[member].path,
+                    path: resource.groups[member].path.split("/"),
                     additional_x: Number(resource.groups[member].default.x) ?? 0,
                     additional_y: Number(resource.groups[member].default.y) ?? 0,
                     height: undefined!,
