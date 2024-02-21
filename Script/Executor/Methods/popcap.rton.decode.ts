@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Decode {
             id: "popcap.rton.decode",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rton.decode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Decode.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Sen.Script.Executor.Methods.PopCap.RTON.Decode.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.json`);
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.RTON.decode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

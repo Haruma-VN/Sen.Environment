@@ -37,6 +37,18 @@ namespace Sen::Kernel::Definition::Encryption {
 				return Sen::Kernel::Dependencies::Base64::base64_encode(message);
 			}
 
+			/**
+			 * Pass message to encode
+			*/
+
+			inline static auto encode(
+				const unsigned char* message,
+				std::size_t size
+			) -> std::string const
+			{
+				return Sen::Kernel::Dependencies::Base64::base64_encode(message, size);
+			}
+
 			
 			/**
 			 * filePath: the file path to decode

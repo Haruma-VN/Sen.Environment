@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Split {
             id: "popcap.resource_group.split",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.resource_group.split.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Split.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.ResourceGroup.Split.Argument, string>(argument, "destination", `${argument.source}.info`);
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.ResourceGroup.split_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

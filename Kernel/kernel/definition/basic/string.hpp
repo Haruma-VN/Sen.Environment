@@ -86,6 +86,13 @@ namespace Sen::Kernel {
 				return thiz.value.front();
 			}
 
+
+			inline static auto view(
+				const std::string & source
+			) -> std::string_view
+			{
+				return std::string_view{source.data(), source.size()};
+			}
 			/**
 			 * index: The index for character
 			   return: '\0' if the index is out of range.

@@ -96,10 +96,24 @@ namespace Sen::Kernel::Definition
             ) const -> void
             {
                 thiz.close();
-                thiz.data = std::vector<unsigned char>(it.begin(), it.end());
+                thiz.data.assign(it.begin(), it.end());
                 thiz.length = thiz.data.size();
                 thiz.write_pos = thiz.length;
                 return;
+            }
+
+            inline auto begin(
+
+            ) -> decltype(thiz.data.begin())
+            {
+                return thiz.data.begin();
+            }
+
+            inline auto end(
+
+            ) -> decltype(thiz.data.end())
+            {
+                return thiz.data.end();
             }
 
             inline auto get_length(
@@ -144,7 +158,7 @@ namespace Sen::Kernel::Definition
 
             ) const -> const std::vector<std::uint8_t> &
             {
-                return std::vector<std::uint8_t>(thiz.data.begin(), thiz.data.begin() + thiz.length);
+                return thiz.getBytes(0x00, thiz.size());
             }
 
             inline auto get(
@@ -187,7 +201,7 @@ namespace Sen::Kernel::Definition
             ) -> std::string
             {
                 auto ss = std::stringstream{};
-                auto bytes = std::unique_ptr<uint8_t>(thiz.data.data());
+                auto bytes = thiz.data.data();
                 ss << bytes;
                 return ss.str();
             }

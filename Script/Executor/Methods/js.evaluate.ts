@@ -58,8 +58,8 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             id: "js.evaluate",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/js.evaluate.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
+                Sen.Script.Executor.clock.start_safe();
                 const result: string | undefined = Sen.Kernel.JavaScript.evaluate_fs(argument.source) as unknown & string;
                 Sen.Script.Console.display(Sen.Kernel.Language.get("js.process.done"), result, Sen.Script.Definition.Console.Color.GREEN);
                 Sen.Script.Executor.clock.stop_safe();

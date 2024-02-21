@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Encode {
             id: "popcap.cfw2.encode",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.cfw2.encode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Encode.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Sen.Script.Executor.Methods.PopCap.CFW2.Encode.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.cfw2`);
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.CharacterFontWidget2.encode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

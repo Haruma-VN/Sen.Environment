@@ -15,14 +15,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
         template <typename T>
             requires std::is_integral<T>::value
         inline auto read_description(
-            RSB_HeadInfo<T>* rsb_head_info
-        ) const -> Description
+            RSB_HeadInfo<T>* rsb_head_info,
+            Description* it
+        ) const -> void
         {
             sen->read_pos = rsb_head_info->part1_begin;
             auto part2_pos = rsb_head_info->part2_begin;
             auto part3_pos = rsb_head_info->part3_begin;
             auto composite_resources_info = std::vector<CompositeResoucesDescriptionInfo>{};
-            auto description_group = std::map<std::string, DescriptionGroup>{};
             auto description_group_key = std::vector<std::string>{};
             for (auto i = 0; sen->read_pos < part2_pos; ++i) {
                 auto id_part3_pos = sen->readInt32();
@@ -66,7 +66,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     !id.ends_with("_CompositeShell"),
                     subgroup
                 };
-                description_group.emplace(id, des_group);
+                it->groups.emplace(id, des_group);
                 description_group_key.emplace_back(id);
                 auto c_res_info = CompositeResoucesDescriptionInfo{ id, rsg_number,rsg_info_list};
                 composite_resources_info.emplace_back(c_res_info);
@@ -114,19 +114,19 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             auto value_part3_pos = sen->readInt32();
                             auto key = sen->getStringByEmpty(part3_pos + key_part3_pos);
                             auto value = sen->getStringByEmpty(part3_pos + value_part3_pos);
-                            properties_info_list.emplace(key, value);
+                            properties_info_list.emplace(std::move(key), std::move(value));
                         }
-                        description_group[description_group_key[i]].subgroups[subgroup_keys[k]].resources.insert(std::pair{res_id, DescriptionResources{
-                            std::to_string(type),
-                            res_path,
-                            ptx_info_list,
-                            properties_info_list
+                        it->groups[description_group_key[i]].subgroups[subgroup_keys[k]].resources.insert(std::pair{res_id, DescriptionResources{
+                            std::move(std::to_string(type)),
+                            std::move(res_path),
+                            std::move(ptx_info_list),
+                            std::move(properties_info_list),
                         }});
                     }
                 }
                 sen->read_pos = thiz_pos;
             }
-            return Description { description_group};
+            return;
         }
 
         template <typename T, typename U>
@@ -182,7 +182,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             T rsg_info_pos,
             RSG_Info<U> &rsg_info,
             std::string_view rsg_name,
-            std::string_view packet_folder) const -> void
+            std::string_view packet_folder
+            ) const -> void
         {
             auto packet_pos = sen->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 0x80));
             auto packet_size = sen->readUint32();
@@ -282,7 +283,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         template <typename T>
             requires std::is_integral<T>::value && std::is_unsigned<T>::value
         inline auto read_head(
-            RSB_HeadInfo<T> *rsb_headinfo) const -> void
+            RSB_HeadInfo<T> *rsb_headinfo
+        ) const -> void
         {
             {
                 auto magic = sen->readString(4);
@@ -359,7 +361,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_version_resources_pos")), std::source_location::current(), "process");
                 }
-                auto description = read_description(&rsb_head_info);
+                auto description = Description{};
+                read_description(&rsb_head_info, &description);
                 FileSystem::write_json(fmt::format("{}/{}", destination, "description.json"), description);
             }
             for (auto i : Range(rsb_head_info.composite_number))
@@ -381,13 +384,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(static_cast<std::uint64_t>(rsg_info_pos));
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
-                    rsg_group.subgroup.insert(std::pair{rsg_name, rsg_info});
+                    rsg_group.subgroup.insert(std::pair{std::move(rsg_name), std::move(rsg_info)});
                 }
-                manifest_info.group.insert(std::pair{composite_name, std::move(rsg_group)});
+                manifest_info.group.insert(std::pair{std::move(composite_name), std::move(rsg_group)});
             }
             if constexpr (write_info)
             {
-                FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), manifest_info);
+                FileSystem::write_json(fmt::format("{}/{}", destination, "manifest.json"), std::move(manifest_info));
             }
             return;
         }

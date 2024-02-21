@@ -73,7 +73,7 @@ return INSTANCE;\
 #endif
 
 #define fill_rijndael_block(raw, iv)                                            \
-    auto padding = raw.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
+    auto padding = iv.size() - ((raw.size() + iv.size() - 1) % iv.size() + 1); \
     raw.writeNull(padding);
 
 namespace Sen::Kernel {

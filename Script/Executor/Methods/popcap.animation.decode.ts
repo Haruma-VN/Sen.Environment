@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Decode {
             id: "popcap.animation.decode",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.animation.decode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.Decode.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.Animation.Decode.Argument, string>(argument, "destination", `${argument.source}.json`);
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.Animation.decode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

@@ -142,8 +142,6 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 				// debug("data");
 				sen.writeString("DATA"_sv);
 				sen.writeUint32(static_cast<std::uint32_t>(DATABank.size()));
-				debug("databank");
-				debug(DATABank.size());
 				// debug(sen.size());
 				sen.writeBytes(DATABank.getBytes(0, DATABank.size()));
 				DATABank.close();

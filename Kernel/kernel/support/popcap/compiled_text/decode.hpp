@@ -132,7 +132,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		{
 			auto compiled_text = Decode{source, key, iv, use_64_bit_variant};
 			compiled_text.process();
-			FileSystem::write_binary<unsigned char>(destination, compiled_text.destination->get());
+			compiled_text.destination->out_file(destination);
 			return;
 		}
 	};

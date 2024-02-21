@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
             id: "data.base64.encode",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/data.base64.encode.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Encode.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.Data.Base64.Encode.Argument, string>(argument, "destination", Sen.Kernel.Path.resolve(`${argument.source}.bin`));
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Encryption.Base64.encode_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

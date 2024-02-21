@@ -7,7 +7,7 @@
 namespace Sen::Kernel::Support::PopCap::RSG
 {
     using namespace Definition;
-    template <bool use_res_folder>
+    
     class Unpack
     {
     protected:
@@ -122,6 +122,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         }
 
     public:
+    
         explicit Unpack(
             std::string_view source
         ) : sen(std::make_unique<DataStreamView>(source))
@@ -146,13 +147,15 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         ) = default;
 
+        template <bool use_res_folder>
         inline auto process(
-            std::string_view destination
-        ) const -> RSG_PacketInfo
+            std::string_view destination,
+            RSG_PacketInfo* packet_info
+        ) const -> void
         {
             auto rsg_head_info = RSG_HeadInfo{};
             read_head(&rsg_head_info);
-            auto packet_destination = std::string_view{};
+            auto packet_destination = std::string{};
             if constexpr (use_res_folder)
             {
                 packet_destination = fmt::format("{}/res", destination);
@@ -163,14 +166,13 @@ namespace Sen::Kernel::Support::PopCap::RSG
             }
             FileSystem::create_directory(packet_destination);
             uncompress_zlib(rsg_head_info);
-            auto packet_info = RSG_PacketInfo{static_cast<std::uint32_t>(rsg_head_info.flags)};
+            packet_info->compression_flags = static_cast<std::uint32_t>(rsg_head_info.flags);
             auto file_list_pos = rsg_head_info.file_list_pos;
             auto file_list_length = rsg_head_info.file_list_length;
             auto offset_limit = file_list_pos + file_list_length;
             auto name_dist_list = std::vector<NameDict>{};
             auto name_path = std::string{};
             sen->read_pos = file_list_pos;
-            auto res_list = std::vector<nlohmann::ordered_json>{};
             while (sen->read_pos < offset_limit)
             {
                 auto char_byte = sen->readUint8();
@@ -196,7 +198,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                             {"width", sen->readUint32()},
                             {"height", sen->readUint32()}};
                     }
-                    res_list.emplace_back(res);
+                    packet_info->res.emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
                     {
                         if (name_dist_list[i].pos + static_cast<unsigned long long>(file_list_pos) == sen->read_pos)
@@ -226,18 +228,22 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     }
                 }
             }
-            packet_info.res = res_list;
-            return packet_info;
+            return;
         }
 
+        template <auto write_info>
         inline static auto unpack_fs(
             std::string_view source,
             std::string_view destination
         ) -> void
         {
+            static_assert(write_info == true || write_info == false, "write_info must be true or false");
             auto unpack = Unpack{source};
-            auto packet_info = unpack.process(destination);
-            FileSystem::write_json(fmt::format("{}/packet.json", destination), packet_info);
+            auto packet_info = RSG_PacketInfo{};
+            unpack.process<true>(destination, &packet_info);
+            if constexpr (write_info) {
+                FileSystem::write_json(fmt::format("{}/packet.json", destination), packet_info);
+            }
             return;
         }
     };

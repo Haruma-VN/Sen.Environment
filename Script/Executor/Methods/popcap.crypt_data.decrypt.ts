@@ -52,11 +52,11 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Decrypt {
             id: "popcap.crypt_data.decrypt",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.crypt_data.decrypt.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CryptData.Decrypt.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Sen.Script.Executor.Methods.PopCap.CryptData.Decrypt.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.bin`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.crypt_data.decrypt.key"));
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.CryptData.decrypt_fs(argument.source, argument.destination!, argument.key!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

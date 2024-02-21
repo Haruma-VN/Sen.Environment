@@ -44,8 +44,9 @@ namespace Sen::Kernel::Support::PopCap::RSG
             ) = default;
 
         explicit NameDict(
-            std::string name_path,
-            uint32_t pos) : name_path(name_path), pos(pos)
+            const std::string & name_path,
+            uint32_t pos
+        ) : name_path(name_path), pos(pos)
         {
         }
 
@@ -66,7 +67,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         explicit RSG_PacketInfo(
 
-            ) = default;
+        ) = default;
 
         explicit RSG_PacketInfo(
             uint32_t compression_flags) : compression_flags(compression_flags)

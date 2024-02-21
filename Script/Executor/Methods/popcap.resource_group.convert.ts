@@ -80,11 +80,11 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
             id: "popcap.resource_group.convert",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.resource_group.convert.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.dirname(argument.source)}/res.json`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.ResourceGroup.convert_fs(argument.source, argument.destination!, Detail.exchange_layout(argument.layout!));
                 Sen.Script.Executor.clock.stop_safe();
                 return;

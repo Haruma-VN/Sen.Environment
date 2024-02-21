@@ -256,8 +256,8 @@ namespace Sen.Script.Executor {
             return;
         }
         if ((configuration as any)[key] === "?") {
-            Console.send(`1. ${Kernel.Language.get("input.set_argument_to_true")}`);
-            Console.send(`2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+            Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
+            Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
             const result = input_integer([1n, 2n]);
             (argument as any)[key] = result === 1n;
             return;
@@ -388,7 +388,7 @@ namespace Sen.Script.Executor {
             throw new Error(Sen.Script.format(Sen.Kernel.Language.get("js.method_not_found"), id));
         }
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
-        Sen.Script.Console.display(`${Sen.Kernel.Language.get("method_loaded")}`, Sen.Kernel.Language.get(id), Sen.Script.Definition.Console.Color.GREEN);
+        Sen.Script.Console.display(`${Sen.Kernel.Language.get("method_loaded")}`, `${Sen.Kernel.Language.get(id)} | ${id}`, Sen.Script.Definition.Console.Color.GREEN);
         switch (forward_type) {
             case Sen.Script.Executor.Forward.ASYNC: {
                 if (worker.async_forward === undefined) {

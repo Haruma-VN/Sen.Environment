@@ -303,13 +303,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ) = default;
 
         explicit RSG_PacketInfo(
-            T compression_flags) : compression_flags(compression_flags)
+            T compression_flags
+        ) : compression_flags(compression_flags)
         {
         }
 
         ~RSG_PacketInfo(
 
-            ) = default;
+        ) = default;
     };
 
     template <typename T>
@@ -348,11 +349,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         explicit RSG_Info(
 
-            ) = default;
+        ) = default;
 
         ~RSG_Info(
 
-            ) = default;
+        ) = default;
     };
 
     template <typename T>
@@ -394,7 +395,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit RSG_Group(
-            bool is_composite) : is_composite(is_composite)
+            bool is_composite
+        ) : is_composite(is_composite)
         {
         }
 
@@ -475,6 +477,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
         std::string rows;
         std::string cols;
         std::string parent;
+
+        PropertiesPtxInfo(
+
+        ) = default;
+
+        ~PropertiesPtxInfo(
+
+        ) = default;
     };
 
     inline auto to_json(
@@ -529,10 +539,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit DescriptionResources(
-            std::string type,
-            std::string path,
-            PropertiesPtxInfo ptx_info,
-            std::map<std::string, std::string> properties) : type(type), path(path), ptx_info(ptx_info), properties(properties)
+            const std::string& type,
+            const std::string& path,
+            const PropertiesPtxInfo& ptx_info,
+            const std::map<std::string, std::string>& properties
+        ) : type(type), path(path), ptx_info(ptx_info), properties(properties)
         {
         }
 
@@ -578,14 +589,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit DescriptionSubGroup(
-            std::string res,
-            std::string language) : res(res), language(language)
+            const std::string & res,
+            const std::string & language
+        ) : res(res), language(language)
         {
         }
 
         ~DescriptionSubGroup(
 
-            ) = default;
+        ) = default;
     };
 
     inline auto to_json(
@@ -619,11 +631,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         explicit DescriptionGroup(
 
-            ) = default;
+        ) = default;
 
         explicit DescriptionGroup(
             int composite,
-            std::map<std::string, DescriptionSubGroup> subgroups) : composite(composite), subgroups(subgroups)
+            const std::map<std::string, DescriptionSubGroup> & subgroups
+        ) : composite(composite), subgroups(subgroups)
         {
         }
 
@@ -663,13 +676,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit Description(
-            std::map<std::string, DescriptionGroup> groups) : groups(groups)
+            const std::map<std::string, DescriptionGroup> & groups
+        ) : groups(groups)
         {
         }
 
         ~Description(
 
-            ) = default;
+        ) = default;
     };
 
     inline auto to_json(
@@ -706,7 +720,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit ResourcesInfo(
-            int info_part2_pos) : info_part2_pos(info_part2_pos)
+            int info_part2_pos
+        ) : info_part2_pos(info_part2_pos)
         {
         }
 
@@ -733,10 +748,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         explicit ResourcesRsgInfo(
             int resolution_ratio,
-            std::string language,
-            std::string id,
+            const std::string & language,
+            const std::string & id,
             int resources_number,
-            std::vector<ResourcesInfo> resources_info_list) : resolution_ratio(resolution_ratio),
+            const std::vector<ResourcesInfo> & resources_info_list) : resolution_ratio(resolution_ratio),
                                                               language(language),
                                                               id(id),
                                                               resources_number(resources_number),
@@ -764,15 +779,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit CompositeResoucesDescriptionInfo(
-            std::string id,
+            const std::string & id,
             int rsg_number,
-            std::vector<ResourcesRsgInfo> rsg_info_list) : id(id), rsg_number(rsg_number), rsg_info_list(rsg_info_list)
+            const std::vector<ResourcesRsgInfo> & rsg_info_list
+        ) : id(id), rsg_number(rsg_number), rsg_info_list(rsg_info_list)
         {
         }
 
         ~CompositeResoucesDescriptionInfo(
 
-            ) = default;
+        ) = default;
     };
 
 #pragma endregion

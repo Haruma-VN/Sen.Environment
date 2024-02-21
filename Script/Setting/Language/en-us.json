@@ -249,5 +249,18 @@
     "popcap.rsg.unpack.invalid_rsg_version": "Invalid RSG version, expected version 3 or 4, received",
     "popcap.rsg.unpack.unknown_compression_flag": "Invalid RSG compression flags, expected from 0 to 3, received",
     "popcap.rsg.unpack": "PopCap RSG: Unpack",
-    "popcap.rsg.pack": "PopCap RSG: Pack"
+    "popcap.rsg.pack": "PopCap RSG: Pack",
+    "popcap.compiled_text.decode.use_64_bit_variant": "Use 64-bit variant",
+    "popcap.compiled_text.decode.key": "Encryption Key",
+    "popcap.compiled_text.decode.iv": "IV",
+    "popcap.compiled_text.encode.use_64_bit_variant": "Use 64-bit variant",
+    "popcap.compiled_text.encode.key": "Encryption Key",
+    "popcap.compiled_text.encode.iv": "IV",
+    "popcap.zlib.uncompress.use_64_bit_variant": "Use 64-bit variant",
+    "popcap.compiled_text.decode": "PopCap Compiled-Text: Decode",
+    "popcap.compiled_text.encode": "PopCap Compiled-Text: Encode",
+    "popcap.zlib.compress": "PopCap Zlib: Compress",
+    "popcap.zlib.uncompress": "PopCap Zlib: Uncompress",
+    "popcap.zlib.compress.use_64_bit_variant": "Use 64-bit variant",
+    "popcap.zlib.uncompress.mismatch_zlib_magic": "Mismatch zlib magic, should begin with"
 }

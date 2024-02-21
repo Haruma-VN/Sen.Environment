@@ -47,10 +47,10 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Merge {
             id: "popcap.res_info.merge",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.res_info.merge.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Merge.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Sen.Script.Executor.Methods.PopCap.ResInfo.Merge.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.ResInfo.merge_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;

@@ -3167,7 +3167,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+						Sen::Kernel::Support::PopCap::Zlib::Uncompress::uncompress_fs(source, destination, use_64_bit_variant);
 						return JS::Converter::get_undefined();
 					}, "uncompress_fs"_sv);
 				}
@@ -4023,10 +4023,10 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
-						Kernel::Support::PopCap::RSG::Unpack<false>::unpack_fs(source.get(), destination.get());
+						Kernel::Support::PopCap::RSG::Unpack::unpack_fs<true>(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "unpack_fs"_sv);
 				}
@@ -4049,7 +4049,7 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						// encode method

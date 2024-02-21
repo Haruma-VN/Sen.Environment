@@ -40,8 +40,8 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             id: "data.md5.hash",
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/data.md5.hash.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.Data.MD5.Hash.Argument): void {
-                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.obtained(argument.source);
+                Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Console.output(Sen.Kernel.Encryption.MD5.hash_fs(argument.source));
                 Sen.Script.Executor.clock.stop_safe();
                 return;
