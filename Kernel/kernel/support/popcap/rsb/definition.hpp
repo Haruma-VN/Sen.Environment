@@ -519,7 +519,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     struct DescriptionResources
     {
     public:
-        int type;
+        std::string type;
         std::string path;
         PropertiesPtxInfo ptx_info;
         std::map<std::string, std::string> properties;
@@ -529,7 +529,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit DescriptionResources(
-            int type,
+            std::string type,
             std::string path,
             PropertiesPtxInfo ptx_info,
             std::map<std::string, std::string> properties) : type(type), path(path), ptx_info(ptx_info), properties(properties)

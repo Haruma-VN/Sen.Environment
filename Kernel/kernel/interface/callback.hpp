@@ -394,6 +394,17 @@ namespace Sen::Kernel::Interface {
 					// encode fs
 					javascript->add_proxy(Script::Support::PopCap::CharacterFontWidget2::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "CharacterFontWidget2"_sv, "encode_fs"_sv);
 				}
+				// particles
+				{
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs<false>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "decode_fs"_sv);
+					// uncompress and decode fs
+					javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "uncompress_and_decode_fs"_sv);
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs<false>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_fs"_sv);
+					// encode and compress fs
+					javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_and_compress_fs"_sv);
+				}
 				// rsb
 				{
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_fs"_sv);

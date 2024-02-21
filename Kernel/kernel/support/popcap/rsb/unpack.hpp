@@ -29,6 +29,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto id = sen->getStringByEmpty(part3_pos + id_part3_pos);
                 auto rsg_number = sen->readInt32();
                 auto subgroup = std::map<std::string, DescriptionSubGroup>{};
+                auto subgroup_keys = std::vector<std::string>{};
                 if (sen->readInt32() != 0x10) {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsg_number")), std::source_location::current(), "read_description");
                 }
@@ -51,6 +52,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_id = sen->getStringByEmpty(part3_pos + rsg_id_part3_pos);
                     auto des_subgroup = DescriptionSubGroup{ std::to_string(resolution_ratio), language};
                     subgroup.emplace(rsg_id, des_subgroup);
+                    subgroup_keys.emplace_back(rsg_id);
                     auto res_rsg_info = ResourcesRsgInfo{
                         resolution_ratio,
                         language,
@@ -64,7 +66,6 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     !id.ends_with("_CompositeShell"),
                     subgroup
                 };
-                auto subgroup_keys = std::vector<std::string>{};
                 description_group.emplace(id, des_group);
                 description_group_key.emplace_back(id);
                 auto c_res_info = CompositeResoucesDescriptionInfo{ id, rsg_number,rsg_info_list};
@@ -88,6 +89,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto path_part3_pos = sen->readInt32();
                         auto res_id = sen->getStringByEmpty(part3_pos + res_id_part3_pos);
                         auto res_path = sen->getStringByEmpty(part3_pos + path_part3_pos);
+                        res_path = std::regex_replace(res_path, std::regex("\\\\"), "/");
                         auto properties_num = sen->readInt32();
                         auto ptx_info_list = PropertiesPtxInfo{};
                         if (ptx_info_part2_end_pos * ptx_info_part2_begin_pos != 0) {
@@ -114,8 +116,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             auto value = sen->getStringByEmpty(part3_pos + value_part3_pos);
                             properties_info_list.emplace(key, value);
                         }
-                        description_group[description_group_key[i]].subgroups[subgroup_keys[i]].resources.insert(std::pair{res_id, DescriptionResources{
-                            type,
+                        description_group[description_group_key[i]].subgroups[subgroup_keys[k]].resources.insert(std::pair{res_id, DescriptionResources{
+                            std::to_string(type),
                             res_path,
                             ptx_info_list,
                             properties_info_list

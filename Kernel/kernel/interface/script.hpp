@@ -3531,6 +3531,79 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 			/**
+			 * JavaScript CharacterFontWidget2 Support
+			*/
+
+			namespace Particles {
+
+				/**
+				 * ----------------------------------------
+				 * CFW2 Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+				template <auto uncompress_zlib>
+				inline static auto decode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					auto method_name = std::string_view{};
+					if constexpr (uncompress_zlib) {
+						method_name = "uncompress_and_decode_fs";
+					}
+					else {
+						method_name = "decode_fs";
+					}
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Particles::Decode::process_fs<uncompress_zlib>(source.get(), destination.get());
+						return JS::Converter::get_undefined();
+					}, method_name);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * CFW2 Encode
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encrypted file
+				 * ----------------------------------------
+				*/
+				template <auto compress_zlib>
+				inline static auto encode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					auto method_name = std::string_view{};
+					if constexpr (compress_zlib) {
+						method_name = "encode_and_compress_fs";
+					}
+					else {
+						method_name = "encode_fs";
+					}
+					M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Particles::Encode::process_fs<compress_zlib>(source.get(), destination.get());
+						return JS::Converter::get_undefined();
+					}, method_name);
+				}
+
+
+			}
+
+			/**
 			 * JavaScript Crypt-Data Support
 			*/
 

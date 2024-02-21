@@ -416,7 +416,6 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 						FileSystem::read_json(Path::Script::join(source, "definition.json"_sv)),
 						Path::Script::join(source, "embedded_audio"_sv)
 					);
-					debug(fmt::format("size: {}", encoder.sen.size()));
 					encoder.sen.out_file(destination);
 					return;
 				}

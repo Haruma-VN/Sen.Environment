@@ -1409,6 +1409,50 @@ declare namespace Sen {
                 }
 
                 /**
+                 * Particles Support
+                 */
+
+                declare namespace Particles {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Particles decode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Particles decode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: decoded file
+                     * --------------------------------------------------
+                     */
+                    export function uncompress_and_encode(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Particles encode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript Particles encode for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @returns: encoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_and_compress_fs(source: string, destination: string): void;
+                }
+
+                /**
                  * Compiled Text
                  */
 
