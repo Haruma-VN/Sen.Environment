@@ -1759,6 +1759,69 @@ declare namespace Sen {
                      */
 
                     export function convert_fs(source: string, destination: string): void;
+
+                    export type Layout = "string" | "array";
+
+                    export type Nullable<T> = null | T;
+
+                    export interface Common {
+                        type: unknown;
+                    }
+
+                    export interface Atlas extends Common {
+                        type: string;
+                        packet: Record<string, AtlasBinding>;
+                    }
+
+                    export interface AtlasBinding {
+                        type: string;
+                        path: string;
+                        dimension: {
+                            width: bigint;
+                            height: bigint;
+                        };
+                        data: Record<string, Sprite>;
+                    }
+
+                    export interface Sprite {
+                        type: string;
+                        path: string;
+                        default: {
+                            ax: bigint;
+                            ay: bigint;
+                            aw: bigint;
+                            ah: bigint;
+                            x: bigint;
+                            y: bigint;
+                            cols?: bigint;
+                            rows?: bigint;
+                        };
+                    }
+
+                    export interface Binary extends Common {
+                        type: null;
+                        packet: {
+                            type: "File";
+                            data: Record<string, CommonBinaryData>;
+                        };
+                    }
+
+                    export interface CommonBinaryData {
+                        type: string;
+                        path: string;
+                        forceOriginalVectorSymbolSize?: boolean;
+                        srcpath?: string;
+                    }
+
+                    export interface CompositeShell {
+                        is_composite: boolean;
+                        subgroup: Record<string, Common>;
+                    }
+
+                    export interface Structure {
+                        expand_path: Layout;
+                        groups: Record<string, CompositeShell>;
+                    }
                 }
             }
 

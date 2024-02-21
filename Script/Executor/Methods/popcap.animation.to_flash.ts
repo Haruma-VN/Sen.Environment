@@ -74,14 +74,14 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Methods.PopCap.Animation.ToFlash.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.xfl`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(argument, "resolution", this.configuration, Detail.resolution(), Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                Sen.Script.Executor.load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 Sen.Script.Executor.clock.start_safe();
                 Script.Support.PopCap.Animation.FromAnimation.process_fs(argument.source, argument.destination!, BigInt(argument.resolution!));
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.ToFlash.BatchArgument): void {
-                argument_load(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path) && this.filter[1].test(path));
                 files.forEach((source: string) => this.direct_forward({ source: source, resolution: BigInt(argument.resolution!) }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));

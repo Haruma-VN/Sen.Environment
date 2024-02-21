@@ -112,7 +112,7 @@ namespace Sen.Script.Executor {
      * ----------------------------------------------------------
      */
 
-    export function argument_load<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+    export function load_bigint<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
         argument: Argument,
         key: keyof Argument & keyof Configuration,
         configuration: Configuration,
@@ -135,7 +135,55 @@ namespace Sen.Script.Executor {
             } else {
                 Console.error(format(Kernel.Language.get("invalid.argument"), configuration[key]));
                 (configuration as any)[key] = "?";
-                return argument_load(argument, key, configuration, rule, title);
+                return load_bigint(argument, key, configuration, rule, title);
+            }
+        }
+        return;
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * JavaScript Executor Implement
+     * @param argument - Argument to query
+     * @param key - Key
+     * @param defined_value - If not, this val will assign to it
+     * @returns
+     * ----------------------------------------------------------
+     */
+
+    export function input_range<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+        argument: Argument,
+        key: keyof Argument & keyof Configuration,
+        configuration: Configuration,
+        rule: [bigint, bigint],
+        title: string,
+    ): void {
+        Sen.Script.Console.argument(title);
+        if ((argument as any & Argument)[key] !== undefined) {
+            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            return;
+        }
+        if ((configuration as any)[key] === "?") {
+            let input: string = undefined!;
+            while (true) {
+                input = Kernel.Console.readline();
+                if (/\d+/.test(input) && rule[0] <= BigInt(input) && rule[1] >= BigInt(input)) {
+                    break;
+                }
+                Console.error(format(Kernel.Language.get("invalid.argument"), input));
+            }
+            (argument as any)[key] = BigInt(input);
+            return;
+        }
+        if (configuration[key] !== "?") {
+            if (/\d+/.test(configuration[key] as string) && rule[0] <= BigInt(configuration[key] as string) && rule[1] >= BigInt(configuration[key] as string)) {
+                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                (argument as any & Argument)[key] = BigInt(configuration[key] as string);
+                return;
+            } else {
+                Console.error(format(Kernel.Language.get("invalid.argument"), configuration[key]));
+                (configuration as any)[key] = "?";
+                return load_bigint(argument, key, configuration, rule, title);
             }
         }
         return;
@@ -164,7 +212,7 @@ namespace Sen.Script.Executor {
             return;
         }
         if ((configuration as any)[key] === "?") {
-            (configuration as any)[key] = Kernel.Console.readline();
+            (argument as any)[key] = Kernel.Console.readline();
             return;
         }
         if (configuration[key] !== "?") {
@@ -182,6 +230,47 @@ namespace Sen.Script.Executor {
                 (configuration as any)[key] = "?";
                 return load_string(argument, key, configuration, title, rule);
             }
+        }
+        return;
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * JavaScript Executor Implement
+     * @param argument - Argument to query
+     * @param key - Key
+     * @param defined_value - If not, this val will assign to it
+     * @returns
+     * ----------------------------------------------------------
+     */
+
+    export function load_boolean<Argument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+        argument: Argument,
+        key: keyof Argument & keyof Configuration,
+        configuration: Configuration,
+        title: string,
+    ): void {
+        Sen.Script.Console.argument(title);
+        if ((argument as any & Argument)[key] !== undefined) {
+            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            return;
+        }
+        if ((configuration as any)[key] === "?") {
+            Console.send(`1. ${Kernel.Language.get("input.set_argument_to_true")}`);
+            Console.send(`2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+            const result = input_integer([1n, 2n]);
+            (argument as any)[key] = result === 1n;
+            return;
+        }
+        if (configuration[key] !== "?") {
+            if (/^(true|false)$/.test(configuration[key] as string)) {
+                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                (argument as any & Argument)[key] = Boolean(configuration[key]);
+                return;
+            }
+            Console.send(`1. ${Kernel.Language.get("input.invalid_boolean_configuration")}`);
+            (configuration as any)[key] = "?";
+            return load_boolean(argument, key, configuration, title);
         }
         return;
     }

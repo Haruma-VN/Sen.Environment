@@ -110,8 +110,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
             bool is_atlas
         ) const -> void
         {
-            auto pos = sen->readUint32() + is_atlas ? atlas_pos : 0;
-            auto size = sen->readInt32();
+            auto pos = sen->readUint32() + static_cast<uint32_t>(is_atlas ? atlas_pos : 0);
+            auto size = sen->readUint32();
             auto filePath = std::filesystem::path(packet_destination.data());
             if (filePath.has_parent_path())
             {

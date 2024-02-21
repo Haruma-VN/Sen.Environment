@@ -46,12 +46,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
     }
 
     /**
-     * Configuration file if needed
-     */
-
-    export interface Configuration extends Sen.Script.Executor.Configuration {}
-
-    /**
      * ----------------------------------------------
      * JavaScript forward method, this method need
      * to be evaluated during script loading time
@@ -72,9 +66,18 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.dirname(argument.source)}`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.argument_load(argument.size as any, "width", this.configuration.size, Detail.dimension, Kernel.Language.get("popcap.atlas.pack.width"));
-                Sen.Script.Executor.argument_load(argument.size as any, "height", this.configuration.size, Detail.dimension, Sen.Kernel.Language.get("popcap.atlas.pack.height"));
-                Sen.Script.Executor.argument_load(argument.size as any, "padding", this.configuration.size, Detail.padding, Sen.Kernel.Language.get("popcap.atlas.pack.padding"));
+                argument.size = {} as any;
+                argument.detail = {} as any;
+                Sen.Script.Executor.input_range(argument.size as any, "width", this.configuration.size, [64n, 16384n], Kernel.Language.get("popcap.atlas.pack.width"));
+                Sen.Script.Executor.input_range(argument.size as any, "height", this.configuration.size, [64n, 16384n], Sen.Kernel.Language.get("popcap.atlas.pack.height"));
+                Sen.Script.Executor.input_range(argument.size as any, "padding", this.configuration.size, [1n, 10n], Sen.Kernel.Language.get("popcap.atlas.pack.padding"));
+                Sen.Script.Executor.load_boolean(argument.detail as any, "smart", this.configuration.detail as any, Sen.Kernel.Language.get("popcap.atlas.pack.smart"));
+                Sen.Script.Executor.load_boolean(argument.detail as any, "pot", this.configuration.detail as any, Sen.Kernel.Language.get("popcap.atlas.pack.pot"));
+                Sen.Script.Executor.load_boolean(argument.detail as any, "allowRotation", this.configuration.detail as any, Sen.Kernel.Language.get("popcap.atlas.pack.allow_rotation"));
+                Sen.Script.Executor.load_boolean(argument.detail as any, "square", this.configuration.detail as any, Sen.Kernel.Language.get("popcap.atlas.pack.square"));
+                argument.size.width = Number(argument.size.width);
+                argument.size.height = Number(argument.size.height);
+                argument.size.padding = Number(argument.size.padding);
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Script.Support.PopCap.Atlas.Pack.ResourceGroup.process_fs(argument.source, argument.size, argument.detail, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();

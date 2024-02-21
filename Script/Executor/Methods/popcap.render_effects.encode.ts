@@ -82,7 +82,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.json$/gi],
+            filter: ["file", /(.+)\.popfx\.json$/gi],
         });
         return;
     }

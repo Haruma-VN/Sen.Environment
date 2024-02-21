@@ -103,8 +103,8 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
                     category.forEach((e: string) => Sen.Script.Console.obtained(e));
                     Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(json)}.sprite`);
                     Sen.Script.Console.output(argument.destination!);
-                    Sen.Script.Executor.argument_load(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
-                    Sen.Script.Executor.argument_load(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
+                    Sen.Script.Executor.load_bigint(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
+                    Sen.Script.Executor.load_bigint(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
                     Sen.Script.Executor.clock.start_safe();
                     Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(category, argument.destination!, argument.method!, argument.style!);
                     Sen.Script.Executor.clock.stop_safe();

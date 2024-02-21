@@ -317,6 +317,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.animation.from_flash.js",
             "~/Executor/Methods/popcap.cfw2.decode.js",
             "~/Executor/Methods/popcap.cfw2.encode.js",
+            "~/Executor/Methods/popcap.particles.decode.js",
+            "~/Executor/Methods/popcap.particles.encode.js",
             "~/Executor/Methods/popcap.render_effects.decode.js",
             "~/Executor/Methods/popcap.render_effects.encode.js",
             "~/Executor/Methods/wwise.soundbank.decode.js",

@@ -1,0 +1,13 @@
+{
+    "size": {
+        "width": "?",
+        "height": "?",
+        "padding": 1
+    },
+    "detail": {
+        "smart": true,
+        "pot": true,
+        "square": false,
+        "allowRotation": false
+    }
+}
