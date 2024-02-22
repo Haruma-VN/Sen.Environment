@@ -166,6 +166,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             }
             FileSystem::create_directory(packet_destination);
             uncompress_zlib(rsg_head_info);
+            packet_info->version = rsg_head_info.version;
             packet_info->compression_flags = static_cast<std::uint32_t>(rsg_head_info.flags);
             auto file_list_pos = rsg_head_info.file_list_pos;
             auto file_list_length = rsg_head_info.file_list_length;

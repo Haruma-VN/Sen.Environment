@@ -4050,9 +4050,9 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						// encode method
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Kernel::Support::PopCap::RSG::Pack::pack_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "pack_fs"_sv);
 				}

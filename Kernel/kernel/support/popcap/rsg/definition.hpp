@@ -62,6 +62,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
     struct RSG_PacketInfo
     {
     public:
+        uint32_t version;
         uint32_t compression_flags;
         std::vector<nlohmann::ordered_json> res;
 
@@ -70,7 +71,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
         ) = default;
 
         explicit RSG_PacketInfo(
-            uint32_t compression_flags) : compression_flags(compression_flags)
+            uint32_t version,
+            uint32_t compression_flags) : version(version), compression_flags(compression_flags)
         {
         }
 
