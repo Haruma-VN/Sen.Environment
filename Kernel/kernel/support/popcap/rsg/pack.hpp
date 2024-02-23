@@ -25,6 +25,9 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
     class Pack
     {
+    
+    protected:
+        using Zlib = Definition::Compression::Zlib;
 
     public:
         DataStreamView sen;
@@ -38,12 +41,33 @@ namespace Sen::Kernel::Support::PopCap::RSG
         int data_pos;
 
     protected:
+        inline auto rewrite_path_list(
+            std::vector<std::string> &path_list,
+            const std::vector<nlohmann::ordered_json> &res_info
+        ) const -> void 
+        {
+            path_list.emplace_back("");
+            for (auto i : Range<int>(res_info.size())) {
+                auto new_path = res_info[i]["path"].get<std::string>();
+                new_path = std::regex_replace(new_path, std::regex("/"), "\\");
+                std::transform(new_path.begin(), new_path.end(), new_path.begin(), ::toupper);
+                debug(new_path);
+                path_list.emplace_back(new_path);
+            }
+            return;
+        }
+
         inline auto file_list_pack(
-            std::vector<nlohmann::ordered_json> &res_info,
+            const std::vector<nlohmann::ordered_json> &res_info,
             std::vector<PathTemp> &path_temp_list) -> void
         {
-            auto blank_path = nlohmann::ordered_json{{"path", ""}};
-            res_info.insert(res_info.cbegin(), blank_path);
+            auto path_list = std::vector<std::string>{};
+            rewrite_path_list(path_list, res_info);
+            /*
+            std::sort(path_list.cbegin(), path_list.cbegin(), [](const std::string &a, const std::string &b) -> int {
+                return a.size() < b.size();
+            });
+            
             std::sort(res_info.cbegin(), res_info.cend(), [](nlohmann::ordered_json &a, nlohmann::ordered_json &b) -> bool
                       {
                 auto a_path = a["path"].get<std::string>();
@@ -53,16 +77,15 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 b_path = std::regex_replace(b_path, std::regex("/"), "\\\\");
                 std::transform(b_path.begin(), b_path.end(), b_path.begin(), ::toupper);
                 return a_path.compare(b_path); });
-            auto list_length = res_info.size() - 1;
+                */
+            auto list_length = path_list.size() - 1;
+            debug(list_length);
             auto w_pos = 0;
             for (auto i : Range(list_length))
             {
-                auto &&a_path = res_info[i]["path"].get<std::string>();
-                a_path = std::regex_replace(a_path, std::regex("/"), "\\\\");
-                std::transform(a_path.begin(), a_path.end(), a_path.begin(), ::toupper);
-                auto b_path = res_info[i + 1]["path"].get<std::string>();
-                b_path = std::regex_replace(b_path, std::regex("/"), "\\\\");
-                std::transform(b_path.begin(), b_path.end(), b_path.begin(), ::toupper);
+                auto a_path = path_list[i];
+                auto b_path = path_list[i + 1];
+                debug(b_path);
                 if (!is_ascii(b_path))
                 {
                     throw Exception("item_path_must_be_ascii");
@@ -189,15 +212,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             }
             else
             {
-                std::vector<uint8_t> zlib_bytes;
-                if (compression_flags == CompressionFlag::BEST_COMPRESSION)
-                {
-                    zlib_bytes = Definition::Compression::Zlib::compress<9>(data_bytes);
-                }
-                else
-                {
-                    zlib_bytes = Definition::Compression::Zlib::compress<6>(data_bytes);
-                }
+                auto zlib_bytes = compression_flags == CompressionFlag::BEST_COMPRESSION ? Zlib::compress<Zlib::Level::LEVEL_9>(data_bytes) : Zlib::compress<Zlib::Level::LEVEL_6>(data_bytes);
                 auto append_size = beautify_length<std::size_t, false>(zlib_bytes.size());
                 sen.writeBytes(zlib_bytes);
                 sen.writeNull(append_size);
@@ -255,15 +270,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                         write_data(std::vector<uint8_t>{}, CompressionFlag::DEFAULT_COMPRESSION, true);
                     }
                     part1_pos = sen.write_pos;
-                    std::vector<uint8_t> zlib_bytes;
-                    if (compression_flags == CompressionFlag::BEST_COMPRESSION)
-                    {
-                        zlib_bytes = Definition::Compression::Zlib::compress<9>(atlas_bytes);
-                    }
-                    else
-                    {
-                        zlib_bytes = Definition::Compression::Zlib::compress<6>(atlas_bytes);
-                    }
+                    auto zlib_bytes = compression_flags == CompressionFlag::BEST_COMPRESSION ? Zlib::compress<Zlib::Level::LEVEL_9>(atlas_bytes) : Zlib::compress<Zlib::Level::LEVEL_6>(atlas_bytes);
                     auto append_size = beautify_length(zlib_bytes.size());
                     sen.writeBytes(zlib_bytes);
                     sen.writeNull(append_size);

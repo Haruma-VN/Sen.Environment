@@ -299,4 +299,142 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
             return;
         }
     }
+
+    export namespace ResInfo {
+        /**
+         * Wrapper (Because we don't store id to the resinfo)
+         */
+
+        export type Wrapper = {
+            id: string;
+            value: Sen.Kernel.Support.PopCap.ResInfo.Atlas;
+        };
+
+        /**
+         * Atlas pack
+         * @param source - source file
+         * @param size - atlas size
+         * @param detail - packing information
+         * @param destination - destination directory
+         * @returns
+         */
+
+        export function process(
+            source: string,
+            size: Sen.Script.Support.PopCap.Atlas.Pack.Detail.SizeRange<number>,
+            detail: Sen.Script.Support.PopCap.Atlas.Pack.Detail.Data,
+        ): [Wrapper, ...Array<Sen.Kernel.Dimension.Image>] {
+            const json_source: string = Sen.Kernel.Path.resolve(Sen.Kernel.Path.join(source, "atlas.json"));
+            const media_path: string = Sen.Kernel.Path.resolve(Sen.Kernel.Path.join(source, "media"));
+            const definition: Sen.Script.Support.PopCap.Atlas.Structure.Definition = Sen.Kernel.JSON.deserialize_fs<Sen.Script.Support.PopCap.Atlas.Structure.Definition>(json_source);
+            const destination: [Wrapper, ...Array<Sen.Kernel.Dimension.Image>] = [
+                {
+                    id: definition.subgroup,
+                    value: {
+                        packet: {},
+                        type: definition.res,
+                    },
+                },
+            ];
+            const is_path: boolean = definition.method === "path";
+            const prepare: Array<Sen.Script.Support.PopCap.Atlas.Pack.Detail.MaxRectsPackableData<number>> = Sen.Script.Support.PopCap.Atlas.Pack.Algorithm.to_packable(definition);
+            const images: Map<string, Kernel.Dimension.Image> = new Map<string, Kernel.Dimension.Image>();
+            for (const data of prepare) {
+                let source_file: string = undefined!;
+                if (is_path) {
+                    source_file = Sen.Kernel.Path.resolve(Sen.Kernel.Path.join(media_path, `${data.path[data.path.length - 1]}.png`));
+                } else {
+                    source_file = Sen.Kernel.Path.resolve(Sen.Kernel.Path.join(media_path, `${data.id}.png`));
+                }
+                const image: Sen.Kernel.Dimension.Image = Sen.Kernel.Image.open(source_file);
+                images.set(source_file, image);
+                data.width = Number(image.width);
+                data.height = Number(image.height);
+                data.source = Sen.Kernel.Path.resolve(source_file);
+            }
+            const list_view: Array<Array<Detail.MaxRectsAfterData<number>>> = new Array();
+            const packer = new Sen.Script.Third.MaxRectsAlgorithm.MaxRectsPacker(size.width, size.height, size.padding, detail);
+            packer.addArray(prepare as any);
+            packer.bins.forEach((bin: Third.MaxRectsAlgorithm.Bin<Third.MaxRectsAlgorithm.Rectangle>) => list_view.push(bin.rects as any));
+            Algorithm.assert_oversize(list_view);
+            if (definition.trim) {
+                Console.output(Kernel.Language.get("popcap.atlas.pack.use_trim"));
+            }
+            const is_string_style: boolean = definition.expand_path === "string";
+            for (const i in list_view) {
+                const destination_size: Detail.MaxDimensionView<number> = definition.trim ? Detail.reducer_trim(list_view[i]) : Detail.square_trim(list_view[i]);
+                if (destination_size.width !== size.width) {
+                    Console.output(format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("width"), size.width, destination_size.width));
+                }
+                if (destination_size.height !== size.height) {
+                    Console.output(format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("height"), size.height, destination_size.height));
+                }
+                const parent_name: string = `${definition.subgroup}_${(i as unknown as number) < 10 ? `0${i}` : `${i}`}`;
+                destination[0].value.packet[parent_name] = {
+                    type: "Image",
+                    path: `atlases/${parent_name}`,
+                    dimension: {
+                        width: BigInt(destination_size.width),
+                        height: BigInt(destination_size.height),
+                    },
+                    data: {},
+                } as Kernel.Support.PopCap.ResInfo.AtlasBinding;
+                for (const j in list_view[i]) {
+                    const resource_data: Kernel.Support.PopCap.ResInfo.Sprite = {
+                        default: {
+                            ax: BigInt(list_view[i][j].x),
+                            ay: BigInt(list_view[i][j].y),
+                            aw: BigInt(list_view[i][j].width),
+                            ah: BigInt(list_view[i][j].height),
+                            x: BigInt(list_view[i][j].additional_x),
+                            y: BigInt(list_view[i][j].additional_y),
+                        },
+                        path: list_view[i][j].path.join("/"),
+                        type: "Image",
+                    };
+                    if (list_view[i][j].cols) {
+                        resource_data.default.cols = BigInt(list_view[i][j].cols!);
+                    }
+                    if (list_view[i][j].rows) {
+                        resource_data.default.rows = BigInt(list_view[i][j].rows!);
+                    }
+                    destination[0].value.packet[parent_name].data[list_view[i][j].id] = resource_data;
+                }
+                list_view[i].forEach((e: any) => {
+                    e.x = BigInt(e.x);
+                    e.y = BigInt(e.y);
+                    e.width = BigInt(e.width);
+                    e.height = BigInt(e.height);
+                });
+                const image: Kernel.Dimension.Image = Kernel.Image.join(
+                    Kernel.Dimension.instance(BigInt(destination_size.width), BigInt(destination_size.height)),
+                    list_view[i].map((e: Detail.MaxRectsAfterData<number>) => ({ ...images.get(e.source), ...e } as any)),
+                );
+                image.source_file = `${parent_name.toUpperCase()}.png`;
+                destination.push(image);
+            }
+            return destination;
+        }
+
+        /**
+         * Atlas pack
+         * @param source - source file
+         * @param size - atlas size
+         * @param detail - packing information
+         * @param destination - destination directory
+         * @returns
+         */
+
+        export function process_fs(
+            source: string,
+            size: Sen.Script.Support.PopCap.Atlas.Pack.Detail.SizeRange<number>,
+            detail: Sen.Script.Support.PopCap.Atlas.Pack.Detail.Data,
+            destination: string,
+        ): void {
+            const [wrapper, ...images]: [Wrapper, ...Array<Sen.Kernel.Dimension.Image>] = process(source, size, detail);
+            Sen.Kernel.JSON.serialize_fs<Sen.Kernel.Support.PopCap.ResInfo.Atlas>(Sen.Kernel.Path.join(destination, `${wrapper.id}.json`), wrapper.value, 1, false);
+            images.forEach((image: Sen.Kernel.Dimension.Image) => Sen.Kernel.Image.write(Sen.Kernel.Path.join(destination, image.source_file!), image));
+            return;
+        }
+    }
 }

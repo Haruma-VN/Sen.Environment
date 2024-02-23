@@ -85,6 +85,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         nlohmann::ordered_json &nlohmann_json_j,
         const RSG_PacketInfo &nlohmann_json_t) -> void
     {
+        nlohmann_json_j["version"] = nlohmann_json_t.version;
         nlohmann_json_j["compression_flags"] = nlohmann_json_t.compression_flags;
         nlohmann_json_j["res"] = nlohmann_json_t.res;
         return;
@@ -94,6 +95,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         const nlohmann::ordered_json &nlohmann_json_j,
         RSG_PacketInfo &nlohmann_json_t) -> void
     {
+        nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
         nlohmann_json_j.at("compression_flags").get_to(nlohmann_json_t.compression_flags);
         nlohmann_json_j.at("res").get_to(nlohmann_json_t.res);
         return;
