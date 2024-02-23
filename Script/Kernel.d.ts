@@ -1783,19 +1783,21 @@ declare namespace Sen {
                         data: Record<string, Sprite>;
                     }
 
+                    export interface Default {
+                        ax: bigint;
+                        ay: bigint;
+                        aw: bigint;
+                        ah: bigint;
+                        x: bigint;
+                        y: bigint;
+                        cols?: bigint;
+                        rows?: bigint;
+                    }
+
                     export interface Sprite {
                         type: string;
                         path: string;
-                        default: {
-                            ax: bigint;
-                            ay: bigint;
-                            aw: bigint;
-                            ah: bigint;
-                            x: bigint;
-                            y: bigint;
-                            cols?: bigint;
-                            rows?: bigint;
-                        };
+                        default: Default;
                     }
 
                     export interface Binary extends Common {

@@ -100,7 +100,7 @@ namespace Sen::Kernel::Support::Texture::Compression::PVRTC
 						result[current_index + 2] = static_cast<uint8_t>(((ca.blue * weights[index] + cb.blue * weights[index + 1]) >> 7));
 						result[current_index + 3] = static_cast<uint8_t>(((ca.alpha * weights[index + 2] + cb.alpha * weights[index + 3]) >> 7));
 						mod >>= 2;
-						factorindex++;
+						++factorindex;
 					}
 				}
 			}
