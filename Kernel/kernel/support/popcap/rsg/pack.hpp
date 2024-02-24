@@ -8,6 +8,23 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
     using namespace Definition;
 
+    struct PathList
+    {
+    public:
+        std::string path;
+        int res_pool;
+
+        explicit PathList(
+            const std::string &path,
+            int res_pool) : path(path), res_pool(res_pool)
+        {
+        }
+
+        ~PathList(
+
+            ) = default;
+    };
+
     struct PathPosition
     {
         int position;
@@ -19,13 +36,13 @@ namespace Sen::Kernel::Support::PopCap::RSG
         std::string path_slice;
         int key;
         bool is_atlas;
-        nlohmann::ordered_json res_info;
+        ResInfo res_info;
         std::vector<PathPosition> positions;
     };
 
     class Pack
     {
-    
+
     protected:
         using Zlib = Definition::Compression::Zlib;
 
@@ -41,54 +58,40 @@ namespace Sen::Kernel::Support::PopCap::RSG
         int data_pos;
 
     protected:
+
         inline auto rewrite_path_list(
-            std::vector<std::string> &path_list,
-            const std::vector<nlohmann::ordered_json> &res_info
-        ) const -> void 
+            std::vector<PathList> &path_list,
+            const std::vector<ResInfo> &res_info) const -> void
         {
-            path_list.emplace_back("");
-            for (auto i : Range<int>(res_info.size())) {
-                auto new_path = res_info[i]["path"].get<std::string>();
+            for (auto i : Range<int>(res_info.size()))
+            {
+                auto new_path = res_info[i].path;
                 new_path = std::regex_replace(new_path, std::regex("/"), "\\");
                 std::transform(new_path.begin(), new_path.end(), new_path.begin(), ::toupper);
-                debug(new_path);
-                path_list.emplace_back(new_path);
+                path_list.emplace_back(PathList{new_path, i});
             }
+            path_list.emplace_back(PathList{std::string{""}, 0});
+            std::sort(path_list.begin(), path_list.end(), [](const PathList &a, const PathList &b) -> int {
+                return a.path < b.path;
+            });
             return;
         }
 
         inline auto file_list_pack(
-            const std::vector<nlohmann::ordered_json> &res_info,
+            const std::vector<ResInfo> &res_info,
             std::vector<PathTemp> &path_temp_list) -> void
         {
-            auto path_list = std::vector<std::string>{};
+            auto path_list = std::vector<PathList>{};
             rewrite_path_list(path_list, res_info);
-            /*
-            std::sort(path_list.cbegin(), path_list.cbegin(), [](const std::string &a, const std::string &b) -> int {
-                return a.size() < b.size();
-            });
-            
-            std::sort(res_info.cbegin(), res_info.cend(), [](nlohmann::ordered_json &a, nlohmann::ordered_json &b) -> bool
-                      {
-                auto a_path = a["path"].get<std::string>();
-                a_path = std::regex_replace(a_path, std::regex("/"), "\\\\");
-                std::transform(a_path.begin(), a_path.end(), a_path.begin(), ::toupper);
-                auto b_path = b["path"].get<std::string>();
-                b_path = std::regex_replace(b_path, std::regex("/"), "\\\\");
-                std::transform(b_path.begin(), b_path.end(), b_path.begin(), ::toupper);
-                return a_path.compare(b_path); });
-                */
             auto list_length = path_list.size() - 1;
-            debug(list_length);
             auto w_pos = 0;
             for (auto i : Range(list_length))
             {
-                auto a_path = path_list[i];
-                auto b_path = path_list[i + 1];
-                debug(b_path);
+                auto a_path = path_list[i].path;
+                auto b_path = path_list[i + 1].path;
                 if (!is_ascii(b_path))
                 {
-                    throw Exception("item_path_must_be_ascii");
+                    throw Exception(fmt::format("{}: {}", Language::get("popcap.rsg.pack.item_path_must_be_ascii"), b_path), std::source_location::current(), "file_list_pack");
                 }
                 auto str_longest_length = a_path.size() >= b_path.size() ? a_path.size() : b_path.size();
                 for (auto k : Range<int>(str_longest_length))
@@ -111,7 +114,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                                 b_path.substr(k),
                                 k,
                                 is_atlas,
-                                res_info[i + 1]});
+                                res_info[path_list[i + 1].res_pool]});
                         break;
                     }
                 }
@@ -123,13 +126,15 @@ namespace Sen::Kernel::Support::PopCap::RSG
         inline auto write_rsg(
             const std::vector<PathTemp> &path_temp_list,
             CompressionFlag compression_flags,
-            std::string_view source) -> void
+            std::string_view source
+        ) -> void
         {
+            static_assert(use_res_folder == true || use_res_folder == false, "use_res_folder can only be true or false");
             auto path_temp_length = path_temp_list.size();
             auto file_list_begin = sen.write_pos;
             if (file_list_begin != 0x5C)
             {
-                throw Exception("invaild_file_list");
+                throw Exception(fmt::format("{} 0x{:X}", Language::get("popcap.rsg.pack.invalid_file_list"), 0x5C), std::source_location::current(), "write_rsg");
             }
             for (auto i : Range<int>(path_temp_length))
             {
@@ -144,11 +149,11 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 std::vector<uint8_t> item_data;
                 if constexpr (use_res_folder)
                 {
-                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/res/{}", source, packet_res_info["path"]));
+                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/res/{}", source, packet_res_info.path));
                 }
                 else
                 {
-                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/{}", source, packet_res_info["path"]));
+                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/{}", source, packet_res_info.path));
                 }
                 auto append_size = beautify_length<std::size_t, true>(item_data.size());
                 if (path_temp_list[i].is_atlas)
@@ -159,25 +164,26 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     sen.writeUint32(1);
                     sen.writeUint32(atlas_pos);
                     sen.writeUint32(item_data.size());
-                    sen.writeUint32(packet_res_info["ptx_info"]["id"]);
+                    sen.writeUint32(packet_res_info.ptx_info.id);
                     sen.writeNull(8);
-                    sen.writeUint32(packet_res_info["ptx_info"]["width"]);
-                    sen.writeUint32(packet_res_info["ptx_info"]["height"]);
+                    sen.writeUint32(packet_res_info.ptx_info.width);
+                    sen.writeUint32(packet_res_info.ptx_info.height);
                     atlas_pos += (item_data.size() + append_size);
                 }
                 else
                 {
-                    atlas_group.writeBytes(item_data);
-                    atlas_group.writeNull(append_size);
+                    data_group.writeBytes(item_data);
+                    data_group.writeNull(append_size);
                     sen.write_pos = backup_pos;
                     sen.writeUint32(0);
                     sen.writeUint32(data_pos);
                     sen.writeUint32(item_data.size());
-                    atlas_pos += (item_data.size() + append_size);
+                    data_pos += (item_data.size() + append_size);
                 }
             }
             auto file_list_length = sen.write_pos - file_list_begin;
-            sen.writeNull(beautify_length(sen.write_pos));
+            auto append_size = beautify_length<std::size_t, false>(sen.write_pos);
+            sen.writeNull(append_size);
             auto backup_pos = sen.write_pos;
             sen.writeUint32(sen.write_pos, 0x14ull);
             sen.writeUint32(file_list_length, 0x48ull);
@@ -189,8 +195,9 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         inline auto write_data(
             const std::vector<uint8_t> &data_bytes,
-            const CompressionFlag &compression_flags,
-            bool is_atlas) -> void
+            CompressionFlag compression_flags,
+            bool is_atlas
+        ) -> void
         {
             auto part0_pos = sen.write_pos;
             auto part0_size = data_bytes.size();
@@ -239,7 +246,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 auto part1_size = atlas_bytes.size();
                 auto data_empty = DataStreamView{};
                 data_empty.writeUint32(252536);
-                data_empty.writeUint32(1);
+                data_empty.writeUint32(16777216);
                 data_empty.writeNull(4088);
                 if (compression_flags == CompressionFlag::NO_COMPRESSION || compression_flags == CompressionFlag::ATLAS_COMPRESSION)
                 {
@@ -271,7 +278,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     }
                     part1_pos = sen.write_pos;
                     auto zlib_bytes = compression_flags == CompressionFlag::BEST_COMPRESSION ? Zlib::compress<Zlib::Level::LEVEL_9>(atlas_bytes) : Zlib::compress<Zlib::Level::LEVEL_6>(atlas_bytes);
-                    auto append_size = beautify_length(zlib_bytes.size());
+                    auto append_size = beautify_length<std::size_t, false>(zlib_bytes.size());
                     sen.writeBytes(zlib_bytes);
                     sen.writeNull(append_size);
                     auto part1_zlib = zlib_bytes.size() + append_size;
@@ -295,7 +302,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             T size) const noexcept -> T
         {
             static_assert(for_file == true || for_file == false, "for_file can only be true or false");
-            if ((size & 4096) == 0)
+            if ((size % 4096) == 0)
             {
                 if constexpr (for_file)
                 {
@@ -314,7 +321,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         {
             for (auto c : str)
             {
-                if (static_cast<uint8_t>(c) > 127)
+                if (static_cast<uint8_t>(c) > 127_byte)
                 {
                     return false;
                 }
@@ -338,12 +345,14 @@ namespace Sen::Kernel::Support::PopCap::RSG
         template <auto use_res_folder>
         inline auto process(
             std::string_view source,
-            const RSG_PacketInfo &packet_info) -> void
+            const RSG_PacketInfo &packet_info
+        ) -> void
         {
+            static_assert(use_res_folder == true || use_res_folder == false, "use_res_folder can only be true or false");
             auto version = packet_info.version;
             if (version != 3 && version != 4)
             {
-                throw Exception("invaild_rsg_version");
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.rsg.pack.invalid_rsg_version"), version), std::source_location::current(), "process");
             }
             auto compression_flags = CompressionFlag(packet_info.compression_flags);
             sen.writeString("pgsr"_sv);

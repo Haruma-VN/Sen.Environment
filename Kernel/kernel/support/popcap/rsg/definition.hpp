@@ -13,7 +13,6 @@ namespace Sen::Kernel::Support::PopCap::RSG
         BEST_COMPRESSION,
     };
 
-
 #pragma region RSG_HeadInfo
     struct RSG_HeadInfo
     {
@@ -44,9 +43,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
             ) = default;
 
         explicit NameDict(
-            const std::string & name_path,
-            uint32_t pos
-        ) : name_path(name_path), pos(pos)
+            const std::string &name_path,
+            uint32_t pos) : name_path(name_path), pos(pos)
         {
         }
 
@@ -57,6 +55,104 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
 #pragma endregion
 
+#pragma region PTXInfo
+
+    struct PTXInfo
+    {
+    public:
+        uint32_t id;
+        uint32_t width;
+        uint32_t height;
+
+        explicit PTXInfo(
+
+            ) = default;
+
+        explicit PTXInfo(
+            uint32_t id, uint32_t width, uint32_t height) : id(id), width(width), height(height)
+        {
+        }
+
+        ~PTXInfo(
+
+            ) = default;
+    };
+
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const PTXInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["id"] = nlohmann_json_t.id;
+        nlohmann_json_j["width"] = nlohmann_json_t.width;
+        nlohmann_json_j["height"] = nlohmann_json_t.height;
+        return;
+    }
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        PTXInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("id").get_to(nlohmann_json_t.id);
+        nlohmann_json_j.at("width").get_to(nlohmann_json_t.width);
+        nlohmann_json_j.at("height").get_to(nlohmann_json_t.height);
+        return;
+    }
+
+#pragma endregion
+
+#pragma region ResInfo
+
+    struct ResInfo
+    {
+    public:
+        std::string path;
+        bool use_ptx_info;
+        PTXInfo ptx_info;
+
+        explicit ResInfo(
+
+            ) = default;
+
+        explicit ResInfo(
+            const std::string &path, 
+            bool use_ptx_info) : path(path), use_ptx_info(use_ptx_info)
+        {
+        }
+
+        ~ResInfo(
+
+            ) = default;
+    };
+
+    inline auto to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const ResInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["path"] = nlohmann_json_t.path;
+        if (nlohmann_json_t.use_ptx_info)
+        {
+            nlohmann_json_j["ptx_info"] = nlohmann_json_t.ptx_info;
+        }
+        return;
+    }
+
+    inline auto from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        ResInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
+        try {
+            nlohmann_json_j.at("ptx_info").get_to(nlohmann_json_t.ptx_info);
+            nlohmann_json_t.use_ptx_info = true;
+        }
+        catch (const nlohmann::ordered_json::out_of_range& e) {
+            nlohmann_json_t.use_ptx_info = false;
+        }
+        return;
+    }
+
+#pragma endregion
+
 #pragma region RSG_PacketInfo
 
     struct RSG_PacketInfo
@@ -64,11 +160,11 @@ namespace Sen::Kernel::Support::PopCap::RSG
     public:
         uint32_t version;
         uint32_t compression_flags;
-        std::vector<nlohmann::ordered_json> res;
+        std::vector<ResInfo> res;
 
         explicit RSG_PacketInfo(
 
-        ) = default;
+            ) = default;
 
         explicit RSG_PacketInfo(
             uint32_t version,

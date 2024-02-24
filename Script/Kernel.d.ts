@@ -1618,6 +1618,47 @@ declare namespace Sen {
 
                 declare namespace RSG {
                     /**
+                     * Version
+                     */
+
+                    export type Version = 3n | 4n;
+
+                    /**
+                     * Compression flag
+                     */
+
+                    export type CompressionFlags = 0n | 1n | 2n | 3n;
+
+                    /**
+                     * PTX Info
+                     */
+
+                    export type PTXInfo = {
+                        id: bigint;
+                        width: bigint;
+                        height: bigint;
+                    };
+
+                    /**
+                     * ResInfo
+                     */
+
+                    export type ResInfo = {
+                        path: string;
+                        ptx_info?: PTXInfo;
+                    };
+
+                    /**
+                     * Definition file
+                     */
+
+                    export interface Definition {
+                        version: Version;
+                        compression_flags: CompressionFlags;
+                        res: Array<ResInfo>;
+                    }
+
+                    /**
                      * --------------------------------------------------
                      * JavaScript RSG Unpack method for file
                      * @param source : source file

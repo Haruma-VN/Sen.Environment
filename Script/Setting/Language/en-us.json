@@ -262,5 +262,8 @@
     "popcap.zlib.compress": "PopCap Zlib: Compress",
     "popcap.zlib.uncompress": "PopCap Zlib: Uncompress",
     "popcap.zlib.compress.use_64_bit_variant": "Use 64-bit variant",
-    "popcap.zlib.uncompress.mismatch_zlib_magic": "Mismatch zlib magic, should begin with"
+    "popcap.zlib.uncompress.mismatch_zlib_magic": "Mismatch zlib magic, should begin with",
+    "popcap.rsg.pack.item_path_must_be_ascii": "Item path must be ASCII, received",
+    "popcap.rsg.pack.invalid_file_list": "Invalid file list, should begins with",
+    "popcap.rsg.pack.invalid_rsg_version": "Invalid RSG version, expected version 3 or 4, received"
 }

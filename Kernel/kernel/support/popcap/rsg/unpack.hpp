@@ -28,31 +28,10 @@ namespace Sen::Kernel::Support::PopCap::RSG
             rsg_head_info->version = version;
             sen->read_pos += 8;
             auto flags = sen->readUint32();
-            switch (flags)
-            {
-            case 0:
-            {
-                rsg_head_info->flags = CompressionFlag::NO_COMPRESSION;
-                break;
-            }
-            case 1:
-            {
-                rsg_head_info->flags = CompressionFlag::DEFAULT_COMPRESSION;
-                break;
-            }
-            case 2:
-            {
-                rsg_head_info->flags = CompressionFlag::ATLAS_COMPRESSION;
-                break;
-            }
-            case 3:
-            {
-                rsg_head_info->flags = CompressionFlag::BEST_COMPRESSION;
-                break;
-            }
-            default:
+            if (flags < 0 || flags > 3) {
                 throw Exception(fmt::format("{}: {}", Kernel::Language::get("popcap.rsg.unpack.unknown_compression_flag"), flags), std::source_location::current(), "read_head");
             }
+            rsg_head_info->flags = CompressionFlag(flags);
             rsg_head_info->file_pos = sen->readUint32();
             rsg_head_info->part0_pos = sen->readUint32();
             rsg_head_info->part0_zlib = sen->readUint32();
@@ -188,16 +167,15 @@ namespace Sen::Kernel::Support::PopCap::RSG
                         });
                     }
                     auto is_atlas = sen->readUint32() == 1;
-                    auto res = nlohmann::ordered_json{{"path", name_path}};
+                    auto res = ResInfo{name_path, is_atlas};
                     write_file(fmt::format("{}/{}", packet_destination, name_path), rsg_head_info, is_atlas);
                     if (is_atlas)
                     {
                         auto id = sen->readUint32();
                         sen->read_pos += 8;
-                        res["ptx_info"] = {
-                            {"id", id},
-                            {"width", sen->readUint32()},
-                            {"height", sen->readUint32()}};
+                        res.ptx_info = PTXInfo{
+                            id, sen->readUint32(), sen->readUint32()
+                        };
                     }
                     packet_info->res.emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
