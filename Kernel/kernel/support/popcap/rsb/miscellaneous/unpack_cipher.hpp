@@ -119,9 +119,9 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			rsg_data.write_pos = 0;
 			rsg_data.writeString("pgsr"_sv);
 			rsg_data.writeUint32(4);
-			rsg_data.writeBytes(List<Byte>{8, 0x00});
+			rsg_data.writeNull(8);
 			rsg_data.writeBytes(packet_bytes);
-			rsg_data.writeBytes(List<Byte>{16, 0x00});
+			rsg_data.writeNull(16);
 			uncompress_zlib(&rsg_data);
 			rsg_data.read_pos = 72;
 			auto file_list_length = rsg_data.readUint32();
