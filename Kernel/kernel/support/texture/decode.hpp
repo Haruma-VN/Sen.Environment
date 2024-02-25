@@ -62,13 +62,13 @@ namespace Sen::Kernel::Support::Texture
 			for (auto i : Range<size_t>(color.size(), 4))
 			{
 				// red
-				data.emplace_back(color[i + 1]);
-				// green
 				data.emplace_back(color[i + 2]);
+				// green
+				data.emplace_back(color[i + 1]);
 				// blue
-				data.emplace_back(color[i + 3]);
-				// alpha
 				data.emplace_back(color[i]);
+				// alpha
+				data.emplace_back(color[i + 3]);
 			}
 			return data;
 		}

@@ -123,7 +123,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Encode {
             configuration: undefined!,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PTX.Encode.Argument): void {
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.png`);
+                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.ptx`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.load_bigint(argument, "format", this.configuration, Detail.format(), Sen.Kernel.Language.get("popcap.ptx.encode.format"));
                 Sen.Script.Executor.clock.start_safe();

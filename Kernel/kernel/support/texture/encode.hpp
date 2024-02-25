@@ -112,10 +112,10 @@ namespace Sen::Kernel::Support::Texture
 			result.reserve(color.red.size() + color.green.size() + color.blue.size() + color.alpha.size());
 			for (auto i : Range<size_t>(color.red.size()))
 			{
-				result.emplace_back(color.alpha.at(i));
-				result.emplace_back(color.red.at(i));
-				result.emplace_back(color.green.at(i));
 				result.emplace_back(color.blue.at(i));
+				result.emplace_back(color.green.at(i));
+				result.emplace_back(color.red.at(i));
+				result.emplace_back(color.alpha.at(i));
 			}
 			return result;
 		}
