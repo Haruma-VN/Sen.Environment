@@ -3070,12 +3070,12 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("argument expected {} but received {}", 5, argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						auto width = JS::Converter::get_int32(context, argv[2]);
-						auto height = JS::Converter::get_int32(context, argv[3]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto width = JS::Converter::get_bigint64(context, argv[2]);
+						auto height = JS::Converter::get_bigint64(context, argv[3]);
 						auto format = JS::Converter::get_int32(context, argv[4]);
-						Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source, destination, width, height, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+						Sen::Kernel::Support::Texture::InvokeMethod::decode_fs(source.get(), destination.get(), static_cast<int>(width), static_cast<int>(height), static_cast<Sen::Kernel::Support::Texture::Format>(format));
 						return JS::Converter::get_undefined();
 					}, "decode_fs"_sv);
 				}
@@ -3098,10 +3098,10 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("argument expected {} but received {}", 3, argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						auto format = JS::Converter::get_int32(context, argv[2]);
-						Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source, destination, static_cast<Sen::Kernel::Support::Texture::Format>(format));
+						Sen::Kernel::Support::Texture::InvokeMethod::encode_fs(source.get(), destination.get(), static_cast<Sen::Kernel::Support::Texture::Format>(format));
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}

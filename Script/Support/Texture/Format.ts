@@ -23,6 +23,6 @@ namespace Sen.Script.Support.Texture {
         L_8,
         LA_44,
         LA_88,
-        RGB_PVRTC4,
+        RGB_PVRTC_4BPP,
     }
 }

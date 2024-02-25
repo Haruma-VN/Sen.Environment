@@ -35,7 +35,17 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
         layout: string;
     }
 
+    /**
+     * Detail namespace
+     */
+
     export namespace Detail {
+        /**
+         * JS Implement
+         * @param layout - Layout to exchange
+         * @returns style
+         */
+
         export function exchange_layout(layout: string): Sen.Script.Support.PopCap.ResourceGroup.PathStyle {
             switch (layout) {
                 case "string": {

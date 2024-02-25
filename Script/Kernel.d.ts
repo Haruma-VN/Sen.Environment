@@ -1201,7 +1201,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function decode_fs(source: string, destination: string, width: number, height: number, format: Sen.Script.Support.Texture.Format): void;
+                export function decode_fs(source: string, destination: string, width: bigint, height: bigint, format: Sen.Script.Support.Texture.Format): void;
             }
 
             /**

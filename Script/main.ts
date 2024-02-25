@@ -319,6 +319,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.cfw2.encode.js",
             "~/Executor/Methods/popcap.compiled_text.decode.js",
             "~/Executor/Methods/popcap.compiled_text.encode.js",
+            "~/Executor/Methods/popcap.ptx.encode.js",
+            "~/Executor/Methods/popcap.ptx.decode.js",
             "~/Executor/Methods/popcap.zlib.compress.js",
             "~/Executor/Methods/popcap.zlib.uncompress.js",
             "~/Executor/Methods/popcap.particles.decode.js",
