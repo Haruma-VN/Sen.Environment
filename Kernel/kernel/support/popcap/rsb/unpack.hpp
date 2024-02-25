@@ -352,6 +352,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);
             manifest_info.version = rsb_head_info.version;
+            manifest_info.ptx_info_size = rsb_head_info.ptx_info_each_length;
             auto packet_folder = fmt::format("{}/{}", destination, "packet");
             FileSystem::create_directory(destination);
             FileSystem::create_directory(packet_folder);

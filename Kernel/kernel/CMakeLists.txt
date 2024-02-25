@@ -87,6 +87,7 @@ add_library(
 	./support/popcap/particles/decode.hpp
 	./support/popcap/rsb/definition.hpp
 	./support/popcap/rsb/unpack.hpp
+	./support/popcap/rsb/pack.hpp
 	./support/popcap/rsb/miscellaneous/unpack_cipher.hpp
 	./support/popcap/rsg/definition.hpp
 	./support/popcap/rsg/unpack.hpp

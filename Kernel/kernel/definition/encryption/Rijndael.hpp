@@ -12,6 +12,27 @@ namespace Sen::Kernel::Definition::Encryption
 
 	struct Rijndael {
 
+		private:
+			using CRijndael = Sen::Kernel::Dependencies::Rijndael::CRijndael;
+
+		protected:
+
+			template <typename T> requires std::is_integral<T>::value
+			inline static auto constexpr is_padded_size(
+				T size, 
+				T block_size
+			) noexcept -> bool
+			{
+    			return size % block_size == 0;
+			}
+
+			template <typename T> requires std::is_integral<T>::value
+			inline static auto constexpr is_valid_block_size(
+				T block_size
+			) noexcept -> bool {
+    			return block_size == 128 || block_size == 160 || block_size == 192 || block_size == 224 || block_size == 256;
+			}
+
 		public:
 
 			Rijndael(
@@ -24,7 +45,7 @@ namespace Sen::Kernel::Definition::Encryption
 
 			// Rijndael Mode
 
-			enum class Mode {
+			enum class Mode : uint8_t {
 				ECB,
 				CBC,
 				CFB,
@@ -38,6 +59,7 @@ namespace Sen::Kernel::Definition::Encryption
 			 * @param mode: rijndael mode
 			 * @returns: encrypted buffer
 			*/
+		
 			template <typename T, auto mode> requires std::is_integral<T>::value
 			inline static auto encrypt(
 				char const* plain,
@@ -45,8 +67,13 @@ namespace Sen::Kernel::Definition::Encryption
 				std::string_view iv,
 				T plain_size
 			) -> std::vector<unsigned char>
-			{			
-				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
+			{
+				static_assert(mode == Mode::CBC || mode == Mode::CFB || mode == Mode::ECB, "mode is invalid, expected cbc, cfb or ecb");
+				assert_conditional(is_valid_block_size<std::size_t>(key.size() * 8), fmt::format("{}", Language::get("rijndael.key_size_is_not_valid")), "encrypt");
+				assert_conditional(is_valid_block_size<std::size_t>(iv.size() * 8), fmt::format("{}", Language::get("rijndael.iv_size_is_not_valid")), "encrypt");
+				assert_conditional(is_padded_size<std::size_t>(key.size(), 32), fmt::format("{}", Language::get("rijndael.key_is_not_padded")), "encrypt");
+				assert_conditional(plain_size != 0, fmt::format("{}", Language::get("rijndael.encrypt.plain_is_empty")), "encrypt");
+				auto rijndael = std::make_shared<CRijndael>();
 				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = std::make_unique<char[]>(plain_size);
 				rijndael->Encrypt(plain, result.get(), plain_size, static_cast<int>(mode));
@@ -69,8 +96,14 @@ namespace Sen::Kernel::Definition::Encryption
 				std::string_view iv,
 				T cipher_len
 			) -> std::vector<unsigned char>
-			{			
-				auto rijndael = std::make_shared<Sen::Kernel::Dependencies::Rijndael::CRijndael>();
+			{
+				static_assert(mode == Mode::CBC || mode == Mode::CFB || mode == Mode::ECB, "mode is invalid, expected cbc, cfb or ecb");
+				assert_conditional(is_valid_block_size<std::size_t>(key.size() * 8), fmt::format("{}", Language::get("rijndael.key_size_is_not_valid")), "decrypt");
+				assert_conditional(is_valid_block_size<std::size_t>(iv.size() * 8), fmt::format("{}", Language::get("rijndael.iv_size_is_not_valid")), "decrypt");
+				assert_conditional(is_padded_size<std::size_t>(key.size(), 32), fmt::format("{}", Language::get("rijndael.key_is_not_padded")), "decrypt");
+				assert_conditional(cipher_len != 0, fmt::format("{}", Language::get("rijndael.decrypt.cipher_is_empty")), "decrypt");
+				assert_conditional((iv.size() - ((cipher_len + iv.size() - 1) % iv.size() + 1)) == 0, fmt::format("{}", Language::get("rijndael.decrypt.cipher_size_is_invalid_to_decrypt")), "decrypt");
+				auto rijndael = std::make_shared<CRijndael>();
 				rijndael->MakeKey(key.data(), iv.data(), static_cast<int>(key.size()), static_cast<int>(iv.size()));
 				auto result = std::make_unique<char[]>(cipher_len);
 				rijndael->Decrypt(cipher, result.get(), cipher_len, static_cast<int>(mode));

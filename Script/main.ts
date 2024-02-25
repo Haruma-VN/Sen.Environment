@@ -292,6 +292,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Animation/FromAnimation.js",
             "~/Support/PopCap/Animation/ToAnimation.js",
             "~/Support/PopCap/LawnStrings/Convert.js",
+            "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/Obfuscate.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Configuration.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Unpack.js",
             "~/Executor/Executor.js",
@@ -334,6 +335,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rsg.unpack.js",
             "~/Executor/Methods/popcap.rsg.pack.js",
             "~/Executor/Methods/popcap.rsb.unpack.js",
+            "~/Executor/Methods/popcap.rsb.pack.js",
             "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
             "~/Executor/Methods/popcap.atlas.pack_by_resource_group.js",
         ];

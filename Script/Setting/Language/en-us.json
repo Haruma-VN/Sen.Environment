@@ -276,5 +276,11 @@
     "popcap.ptx.decode.format": "Format",
     "popcap.ptx.encode.format": "Format",
     "popcap.rton.encrypt": "PopCap RTON: Encrypt",
-    "popcap.rton.decrypt": "PopCap RTON: Decrypt"
+    "popcap.rton.decrypt": "PopCap RTON: Decrypt",
+    "rijndael.key_size_is_not_valid": "Key size is not valid",
+    "rijndael.iv_size_is_not_valid": "IV size is not valid",
+    "rijndael.key_is_not_padded": "Key is not padded",
+    "rijndael.encrypt.plain_is_empty": "Current plain is empty. There is nothing to encrypt",
+    "rijndael.decrypt.cipher_is_empty": "Current cipher is empty. There is nothing to decrypt",
+    "rijndael.decrypt.cipher_size_is_invalid_to_decrypt": "Current cipher size is invalid to decrypt"
 }

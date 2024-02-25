@@ -1571,7 +1571,7 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + sizeof(T) > thiz.size())
                 {
-                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {}: {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
                         std::source_location::current(), "read");
                 }
                 auto value = T{0};
@@ -1587,7 +1587,7 @@ namespace Sen::Kernel::Definition
             {
                 if (thiz.read_pos + size > thiz.size())
                 {
-                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
+                    throw Exception(fmt::format("{}, {}: thiz.read_pos + sizeof(T) <= thiz.size(), {}: {} + {} <= {}", Language::get("offset_outside_bounds_of_data_stream"), Language::get("conditional"), Language::get("but_received"), thiz.read_pos, sizeof(T), thiz.size()), 
                         std::source_location::current(), "read_has");
                 }
                 auto value = T{ 0 };

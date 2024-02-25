@@ -436,6 +436,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     struct Manifest
     {
         T version;
+        T ptx_info_size;
         std::map<std::string, RSG_Group<T>> group;
     };
 
@@ -446,6 +447,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         const Manifest<T> &nlohmann_json_t) -> void
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
+        nlohmann_json_j["ptx_info_size"] = nlohmann_json_t.ptx_info_size;
         nlohmann_json_j["group"] = nlohmann_json_t.group;
         return;
     };
@@ -457,6 +459,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         Manifest<T> &info) -> void
     {
         json.at("version").get_to(info.version);
+        json.at("ptx_info_size").get_to(info.ptx_info_size);
         json.at("group").get_to(info.group);
         return;
     }

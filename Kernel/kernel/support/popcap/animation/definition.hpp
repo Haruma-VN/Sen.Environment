@@ -463,11 +463,12 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         explicit SexyAnimation(
 
-            ) = default;
+        ) = default;
 
         explicit SexyAnimation(
             int version,
-            int frame_rate) : version(version), frame_rate(frame_rate)
+            int frame_rate
+        ) : version(version), frame_rate(frame_rate)
         {
         }
 

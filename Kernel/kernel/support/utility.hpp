@@ -9,6 +9,7 @@
 #include "kernel/support/popcap/zlib/compress.hpp"
 #include "kernel/support/popcap/rsb/unpack.hpp"
 #include "kernel/support/popcap/rsb/miscellaneous/unpack_cipher.hpp"
+#include "kernel/support/popcap/rsb/pack.hpp"
 #include "kernel/support/popcap/rsg/unpack.hpp"
 #include "kernel/support/popcap/rsg/pack.hpp"
 #include "kernel/support/popcap/rton/decode.hpp"

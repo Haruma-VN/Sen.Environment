@@ -4026,10 +4026,10 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						// encode method
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Kernel::Support::PopCap::RSB::Pack::pack_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "pack_fs"_sv);
 				}
@@ -4114,10 +4114,10 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::Animation::Decode::decode_fs(source.get(), destination.get());
+						Sen::Kernel::Support::PopCap::Animation::Decode<int>::decode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "decode_fs"_sv);
 				}
@@ -6527,6 +6527,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
+				static_assert(use_big_endian == true || use_big_endian == false, "use_big_endian can only be true or false");
 				ClassID<use_big_endian>::value = JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::value, &this_class<use_big_endian>);
 				auto class_name = std::string_view{};
 				if constexpr (use_big_endian) {

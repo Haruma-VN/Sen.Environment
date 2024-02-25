@@ -412,12 +412,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
         
         std::unique_ptr<DataStreamView> sen;
 
+        // ---------------------------------------------
+
         explicit Encode(
 
         ) : sen(std::make_unique<DataStreamView>())
         {
 
         }
+
+        // ---------------------------------------------
 
         ~Encode(
 
