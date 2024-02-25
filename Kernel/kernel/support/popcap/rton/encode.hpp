@@ -15,31 +15,56 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
     struct Encode
     {
+        private:
+
+            using Rijndael = Sen::Kernel::Definition::Encryption::Rijndael;
         
         private:
 
             inline static constexpr auto RTON_head = std::string_view{"RTON"};
+
             inline static constexpr auto RTON_end = std::string_view{"DONE"};
+
             inline static constexpr auto star = std::string_view{"*"};
+
             inline static constexpr auto empty_string = std::string_view{""};
+
             inline static constexpr auto rtid_0 = std::string_view{"RTID(0)"};
+
             inline static constexpr auto rtid_begin = std::string_view{"RTID("};
+
             inline static constexpr auto rtid_close = std::string_view{")"};
+
             inline static constexpr auto rtid_seperator = std::string_view{"@"};
+
             inline static constexpr auto rtid_dot = std::string_view{"."};
+
             inline static constexpr auto binary_begin = std::string_view{"$BINARY(\""};
+
             inline static constexpr auto binary_end = std::string_view{")"};
+
             inline static constexpr auto binary_seperator = std::string_view{"\", "};
+
             inline static constexpr auto RTON_vesion = 0x01_byte;
+
             inline static constexpr auto object_begin = 0x85_byte;
+
             inline static constexpr auto object_end = 0xFF_byte;
+
             inline static constexpr auto array_begin = 0x86_byte;
+
             inline static constexpr auto array_start = 0xFD_byte;
+
             inline static constexpr auto array_end = 0xFE_byte;
+
             inline static constexpr auto null_byte = 0x84_byte;
+
             std::map<std::string_view, int> r0x90_stringpool;
+
             std::map<std::string_view, int> r0x92_stringpool;
+
             int r0x90_index;
+            
             int r0x92_index;
 
         protected:
@@ -418,16 +443,16 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         inline static auto encrypt(
             DataStreamView &source_buffer,
-            DataStreamView & destination,
+            DataStreamView* destination,
             std::string_view key,
             std::string_view iv
         ) -> void
         {
             fill_rijndael_block(source_buffer, iv);
-            destination.writeUint8(0x10);
-            destination.writeUint8(0x00);
-            destination.writeBytes(
-                Encryption::Rijndael::encrypt<std::size_t, Encryption::Rijndael::Mode::CBC>(
+            destination->writeUint8(0x10);
+            destination->writeUint8(0x00);
+            destination->writeBytes(
+                Rijndael::encrypt<std::size_t, Rijndael::Mode::CBC>(
                     reinterpret_cast<char*>(source_buffer.getBytes(0, source_buffer.size()).data()),
                     key,
                     iv,
@@ -448,8 +473,28 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             auto source_buffer = DataStreamView{ source };
             auto encrypted_data = DataStreamView{};
-            encrypt(source_buffer, encrypted_data, key, iv);
+            encrypt(source_buffer, &encrypted_data, key, iv);
             encrypted_data.out_file(destination);
+            return;
+        }
+
+        // ---------------------------------------------
+
+        inline static auto encode_and_encrypt_fs(
+            std::string_view source,
+            std::string_view destination,
+            std::string_view key,
+            std::string_view iv
+        ) -> void
+        {
+            auto source_buffer = DataStreamView{ source };
+            auto parser = ondemand::parser{};
+            auto str = padded_string::load(source);
+            auto json = static_cast<ondemand::document>(parser.iterate(str));
+            auto encoder = Encode{};
+            encoder.encode_rton(json);
+            encrypt(source_buffer, encoder.sen.get(), key, iv);
+            encoder.sen->out_file(destination);
             return;
         }
 
