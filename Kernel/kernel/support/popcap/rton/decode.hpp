@@ -8,86 +8,89 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
     class Decode
     {
-    protected:
-        inline static constexpr auto magic = std::string_view{"RTON"};
+        private:
+            using Rijndael = Sen::Kernel::Definition::Encryption::Rijndael;
 
-        inline static constexpr auto empty_string = std::string_view{""};
+        protected:
+            inline static constexpr auto magic = std::string_view{"RTON"};
 
-        inline static constexpr auto rtid_0 = std::string_view{"RTID(0)"};
+            inline static constexpr auto empty_string = std::string_view{""};
 
-        inline static constexpr auto star = std::string_view{"*"};
+            inline static constexpr auto rtid_0 = std::string_view{"RTID(0)"};
 
-        inline static const auto star_s = std::string{"*"};
+            inline static constexpr auto star = std::string_view{"*"};
 
-        inline static const auto rtid_0_s = std::string{"RTID(0)"};
+            inline static const auto star_s = std::string{"*"};
 
-        inline static constexpr auto magic_count = 4;
+            inline static const auto rtid_0_s = std::string{"RTID(0)"};
 
-        inline static constexpr auto version_count = 4;
-        
-        inline static constexpr auto position_increment = 1;
+            inline static constexpr auto magic_count = 4;
 
-        inline static constexpr auto end_bytecode = 0xFF_byte;
+            inline static constexpr auto version_count = 4;
 
-        inline static constexpr auto array_byte_start = 0xFD_byte;
+            inline static constexpr auto position_increment = 1;
 
-        inline static constexpr auto array_byte_end = 0xFE_byte;
+            inline static constexpr auto end_bytecode = 0xFF_byte;
 
-        inline static constexpr auto rtid_0_sc = 0x0_byte;
+            inline static constexpr auto array_byte_start = 0xFD_byte;
 
-        inline static constexpr auto rtid_1_sc = 0x1_byte;
+            inline static constexpr auto array_byte_end = 0xFE_byte;
 
-        inline static constexpr auto rtid_2_sc = 0x2_byte;
+            inline static constexpr auto rtid_0_sc = 0x0_byte;
 
-        inline static constexpr auto rtid_3_sc = 0x3_byte;
+            inline static constexpr auto rtid_1_sc = 0x1_byte;
 
-        inline static constexpr auto star_s_bytecode = 0x2_byte;
+            inline static constexpr auto rtid_2_sc = 0x2_byte;
 
-        inline static constexpr auto varint32_string_bytecode = 0x81_byte;
+            inline static constexpr auto rtid_3_sc = 0x3_byte;
 
-        inline static constexpr auto varint32_varint32_string_bytecode = 0x82_byte;
+            inline static constexpr auto star_s_bytecode = 0x2_byte;
 
-        inline static constexpr auto rtid_bytecode = 0x83_byte;
+            inline static constexpr auto varint32_string_bytecode = 0x81_byte;
 
-        inline static constexpr auto rtid_0_s_bytecode = 0x84_byte;
+            inline static constexpr auto varint32_varint32_string_bytecode = 0x82_byte;
 
-        inline static constexpr auto binary_bytecode = 0x87_byte;
+            inline static constexpr auto rtid_bytecode = 0x83_byte;
 
-        inline static constexpr auto varint32_temp_string_bytecode = 0x90_byte;
+            inline static constexpr auto rtid_0_s_bytecode = 0x84_byte;
 
-        inline static constexpr auto varint32_indexed_string_bytecode = 0x91_byte;
+            inline static constexpr auto binary_bytecode = 0x87_byte;
 
-        inline static constexpr auto varint32_int32_temp_string_bytecode = 0x92_byte;
+            inline static constexpr auto varint32_temp_string_bytecode = 0x90_byte;
 
-        inline static constexpr auto varint32_indexed_string2_bytecode = 0x93_byte;
+            inline static constexpr auto varint32_indexed_string_bytecode = 0x91_byte;
 
-        inline static constexpr auto k_none_size = 0;
+            inline static constexpr auto varint32_int32_temp_string_bytecode = 0x92_byte;
 
-        std::unique_ptr<DataStreamView> sen;
+            inline static constexpr auto varint32_indexed_string2_bytecode = 0x93_byte;
 
-        JsonWriter json_writer = JsonWriter{};
+            inline static constexpr auto k_none_size = 0;
 
-        std::vector<std::string> r0x90_list;
+            std::unique_ptr<DataStreamView> sen;
 
-        std::vector<std::string> r0x92_list;
+            JsonWriter json_writer = JsonWriter{};
 
-        // -----------------------------------------
+            std::vector<std::string> r0x90_list;
 
-        inline auto read_object(
+            std::vector<std::string> r0x92_list;
 
-        ) -> void
-        {
-            json_writer.WriteStartObject();
-            auto bytecode = thiz.sen->readUint8();
-            while (bytecode != end_bytecode)
+            // -----------------------------------------
+
+            inline auto read_object(
+
+                ) -> void
             {
-                const auto & property_name = thiz.read_bytecode_property(bytecode);
-                json_writer.WritePropertyName(property_name);
-                thiz.read_bytecode(thiz.sen->readUint8());
-                bytecode = thiz.sen->readUint8();
-            }
-            json_writer.WriteEndObject();
-            return;
+                json_writer.WriteStartObject();
+                auto bytecode = thiz.sen->readUint8();
+                while (bytecode != end_bytecode)
+                {
+                    const auto &property_name = thiz.read_bytecode_property(bytecode);
+                    json_writer.WritePropertyName(property_name);
+                    thiz.read_bytecode(thiz.sen->readUint8());
+                    bytecode = thiz.sen->readUint8();
+                }
+                json_writer.WriteEndObject();
+                return;
         }
 
         // -----------------------------------------
@@ -451,7 +454,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             destination.writeBytes(
-                Encryption::Rijndael::decrypt<std::uint64_t, Sen::Kernel::Definition::Encryption::Rijndael::Mode::CBC>(
+                Rijndael::decrypt<std::uint64_t, Rijndael::Mode::CBC>(
                     reinterpret_cast<char*>(source.getBytes(2, source.size()).data()),
                     key, 
                     iv, 
@@ -487,13 +490,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
-            {
-                auto source_iv = DataStreamView{};
-                source_iv.writeString(iv);
-                fill_rijndael_block(source_buffer, source_iv);
-            }
-            auto sen = DataStreamView{Encryption::Rijndael::decrypt<std::uint64_t, Sen::Kernel::Definition::Encryption::Rijndael::Mode::CBC>(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), key, iv, source_buffer.size() - 2)};
-            auto rton = std::make_unique<Decode>(sen);
+            auto dest = DataStreamView{};
+            decrypt(source_buffer, dest, key, iv);
+            auto rton = std::make_unique<Decode>(dest);
             FileSystem::write_file(destination, rton->decode_rton());
             return;
         }

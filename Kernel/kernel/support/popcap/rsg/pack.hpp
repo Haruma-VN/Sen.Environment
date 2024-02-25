@@ -146,7 +146,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 {
                     sen.writeUint24(path_temp_list[i].positions[h].position, static_cast<std::uint64_t>((begin_pos + path_temp_list[i].positions[h].offset * 4 + 1)));
                 }
-                std::vector<uint8_t> item_data;
+                auto item_data = std::vector<uint8_t>{};
                 if constexpr (use_res_folder)
                 {
                     item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/res/{}", source, packet_res_info.path));
