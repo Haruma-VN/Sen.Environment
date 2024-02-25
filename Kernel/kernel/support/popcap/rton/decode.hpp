@@ -443,6 +443,26 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
         // -----------------------------------------
 
+        inline static auto decrypt(
+            DataStreamView & source,
+            DataStreamView & destination,
+            std::string_view key,
+            std::string_view iv
+        ) -> void
+        {
+            destination.writeBytes(
+                Encryption::Rijndael::decrypt<std::uint64_t, Sen::Kernel::Definition::Encryption::Rijndael::Mode::CBC>(
+                    reinterpret_cast<char*>(source.getBytes(2, source.size()).data()),
+                    key, 
+                    iv, 
+                    source.size() - 2
+                )
+            );
+            return;
+        }
+
+        // -----------------------------------------
+
         inline static auto decrypt_fs(
             std::string_view source,
             std::string_view destination,
@@ -451,15 +471,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{source};
-            {
-                auto source_iv = DataStreamView{};
-                source_iv.writeString(iv);
-                fill_rijndael_block(source_buffer, source_iv);
-            }
-            FileSystem::write_binary<unsigned char>(destination, 
-                Encryption::Rijndael::decrypt<std::uint64_t, Sen::Kernel::Definition::Encryption::Rijndael::Mode::CBC>(reinterpret_cast<char *>(source_buffer.getBytes(2, source_buffer.size()).data()), 
-                key, iv, source_buffer.size() - 2)
-            );
+            auto result = DataStreamView{};
+            decrypt(source_buffer, result, key, iv);
+            result.out_file(destination);
             return;
         }
 

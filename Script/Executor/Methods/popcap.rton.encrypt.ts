@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
+namespace Sen.Script.Executor.Methods.PopCap.RTON.Encrypt {
     /**
      * Argument for the current method
      */
@@ -52,32 +52,31 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument,
-            Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Configuration
+            Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.Argument,
+            Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.Configuration
         >({
-            id: "popcap.compiled_text.decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.compiled_text.decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument): void {
+            id: "popcap.rton.encrypt",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rton.encrypt.json"),
+            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.Argument): void {
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument, string>(argument, "destination", `${argument.source}.bin`);
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.Argument, string>(argument, "destination", `${argument.source}.bin`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.key"));
-                Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.iv"));
-                Sen.Script.Executor.load_boolean(argument, "use_64_bit_variant", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.key"));
+                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.rton.decrypt.key"));
+                Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.rton.decrypt.iv"));
                 Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.CompiledText.decode_fs(argument.source, argument.destination!, argument.key!, argument.iv!, argument.use_64_bit_variant!);
+                Sen.Kernel.Support.PopCap.RTON.encrypt_fs(argument.source, argument.destination!, argument.key!, argument.iv!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.BatchArgument): void {
+            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.BatchArgument): void {
                 const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
                 files.forEach((source: string) => this.direct_forward({ source: source }));
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.AsyncArgument): void {
+            async_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
                 for (let i = 0n; i < BigInt(argument.parameter.length); i += Setting.setting.thread_limit_count) {
                     const current_thread: Array<[string, string]> = [
@@ -97,10 +96,10 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.txt$/gi],
+            filter: ["file", /(.+)\.rton$/gi],
         });
         return;
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.forward();
+Sen.Script.Executor.Methods.PopCap.RTON.Encrypt.forward();

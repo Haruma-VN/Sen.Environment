@@ -63,9 +63,9 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Encode {
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.CompiledText.Encode.Argument, string>(argument, "destination", `${argument.source}.bin`);
                 Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.crypt_data.decrypt.key"));
-                Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.crypt_data.decrypt.key"));
-                Sen.Script.Executor.load_boolean(argument, "use_64_bit_variant", this.configuration, Sen.Kernel.Language.get("popcap.crypt_data.decrypt.key"));
+                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.encode.key"));
+                Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.encode.iv"));
+                Sen.Script.Executor.load_boolean(argument, "use_64_bit_variant", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.encode.use_64_bit_variant"));
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.CompiledText.encode_fs(argument.source, argument.destination!, argument.key!, argument.iv!, argument.use_64_bit_variant!);
                 Sen.Script.Executor.clock.stop_safe();

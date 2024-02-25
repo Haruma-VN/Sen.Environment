@@ -414,6 +414,29 @@ namespace Sen::Kernel::Support::PopCap::RTON
             return;
         }
 
+        // -----------------------------------------
+
+        inline static auto encrypt(
+            DataStreamView &source_buffer,
+            DataStreamView & destination,
+            std::string_view key,
+            std::string_view iv
+        ) -> void
+        {
+            fill_rijndael_block(source_buffer, iv);
+            destination.writeUint8(0x10);
+            destination.writeUint8(0x00);
+            destination.writeBytes(
+                Encryption::Rijndael::encrypt<std::size_t, Encryption::Rijndael::Mode::CBC>(
+                    reinterpret_cast<char*>(source_buffer.getBytes(0, source_buffer.size()).data()),
+                    key,
+                    iv,
+                    source_buffer.size()
+                )
+            );
+            return;
+        }
+
         // ---------------------------------------------
 
         inline static auto encrypt_fs(
@@ -424,21 +447,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) -> void
         {
             auto source_buffer = DataStreamView{ source };
-            {
-                auto source_iv = DataStreamView{};
-                source_iv.writeString(iv);
-                fill_rijndael_block(source_buffer, source_iv);
-            }
             auto encrypted_data = DataStreamView{};
-            encrypted_data.append(std::array<uint8_t, 2>{ 0x10, 0x00 });
-            encrypted_data.writeBytes(
-                Encryption::Rijndael::encrypt<std::size_t, Encryption::Rijndael::Mode::CBC>(
-                    reinterpret_cast<const char*>(source_buffer.get().data()),
-                    key,
-                    iv,
-                    source_buffer.size()
-                )
-            );
+            encrypt(source_buffer, encrypted_data, key, iv);
             encrypted_data.out_file(destination);
             return;
         }

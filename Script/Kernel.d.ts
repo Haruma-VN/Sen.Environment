@@ -1235,6 +1235,17 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function decrypt_fs(source: string, destination: string, key: string, iv: string): void;
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Encrypt method for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @param iv - iv
+                     * @returns - encrypted file
+                     * --------------------------------------------------
+                     */
+                    export function encrypt_fs(source: string, destination: string, key: string, iv: string): void;
 
                     /**
                      * --------------------------------------------------

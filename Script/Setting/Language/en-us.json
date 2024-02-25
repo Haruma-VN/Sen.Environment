@@ -274,5 +274,7 @@
     "popcap.ptx.decode.width": "Width",
     "popcap.ptx.decode.height": "Height",
     "popcap.ptx.decode.format": "Format",
-    "popcap.ptx.encode.format": "Format"
+    "popcap.ptx.encode.format": "Format",
+    "popcap.rton.encrypt": "PopCap RTON: Encrypt",
+    "popcap.rton.decrypt": "PopCap RTON: Decrypt"
 }
