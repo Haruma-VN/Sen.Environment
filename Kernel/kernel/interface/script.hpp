@@ -351,6 +351,2669 @@ namespace Sen::Kernel::Interface::Script {
 
 	}
 
+
+	namespace Class {
+
+#define JS_CPPGETSET_MAGIC_DEF(c_name, fgetter, fsetter, _magic) { \
+				.name = c_name, .prop_flags = JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CGETSET_MAGIC, .magic = _magic, .u = { .getset = { .get = { .getter_magic = fgetter }, .set = { .setter_magic = fsetter } } } }
+
+#define JS_CPPFUNC_DEF(c_name, length, func1) { .name = c_name, .prop_flags = JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CFUNC, .magic = 0, .u = { .func = { length, JS_CFUNC_generic, { .generic = func1 } } } }
+
+#define JS_INSTANCE_OF_OBJ(ctx, obj, parent, name) \
+					auto obj = JS_GetPropertyStr(ctx, parent, name.data()); \
+					if (JS_IsUndefined(obj)) { \
+						obj = JS_NewObject(ctx); \
+						JS_SetPropertyStr(ctx, parent, name.data(), obj); \
+					}
+
+		namespace DataStreamView {
+
+			inline static auto constexpr BooleanConstraint = true;
+
+			template <auto T> requires BooleanConstraint
+				using Data = Definition::Buffer::Stream<T>;
+
+			template <auto use_big_endian> requires BooleanConstraint
+				struct ClassID {
+				inline static JSClassID value = 0;
+			};
+
+
+			template <auto T> requires BooleanConstraint
+				inline static auto finalizer(
+					JSRuntime* rt,
+					JSValue val
+				) -> void
+			{
+				auto s = (Data<T>*)JS_GetOpaque(val, ClassID<T>::value);
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto constructor(
+					JSContext* ctx,
+					JSValueConst new_target,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				auto s = static_cast<Data<T>*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					auto path = JS::Converter::get_c_string(ctx, argv[0]);
+					s = new Data<T>{ path.get() };
+				}
+				else if (argc == 0) {
+					s = new Data<T>{};
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto))
+					goto fail;
+				obj = JS_NewObjectProtoClass(ctx, proto, ClassID<T>::value);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj))
+					goto fail;
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto this_class = JSClassDef{
+					.class_name = "DataStreamView",
+					.finalizer = finalizer<T>,
+			};
+
+			template <auto T> requires BooleanConstraint
+				inline static auto getter(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int magic
+				) -> JSValue
+			{
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+				if (!s) {
+					return JS_EXCEPTION;
+				}
+				if (magic == 0) {
+					return JS_NewBigInt64(ctx, s->read_pos);
+				}
+				else {
+					return JS_NewBigInt64(ctx, s->write_pos);
+				}
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto setter(
+					JSContext* ctx,
+					JSValueConst this_val,
+					JSValueConst val,
+					int magic
+				) -> JSValue
+			{
+				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+				auto v = std::int64_t{};
+				if (!s) {
+					return JS_EXCEPTION;
+				}
+				if (JS_ToBigInt64(ctx, &v, val))
+					return JS_EXCEPTION;
+				if (magic == 0) {
+					s->read_pos = v;
+				}
+				else {
+					s->write_pos = v;
+				}
+				return JS_UNDEFINED;
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto size(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
+					}, "size"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto capacity(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
+					}, "capacity"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto fromString(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->fromString(JS::Converter::get_string(ctx, argv[0]));
+					return JS_UNDEFINED;
+					}, "fromString"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto reserve(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->reserve(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					return JS_UNDEFINED;
+					}, "reserve"_sv);
+			}
+
+			#pragma region convert
+
+			inline static auto to_arraybuffer(
+				JSContext* ctx,
+				const std::vector<uint8_t>& vec
+			) -> JSValue
+			{
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
+				JS_FreeValue(ctx, array_buffer);
+				return array_buffer;
+			}
+
+			inline static auto to_uint8array(
+				JSContext* ctx,
+				const std::vector<uint8_t>& vec
+			) -> JSValue
+			{
+				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto uint8array_ctor = JS_GetPropertyStr(ctx, global_obj, "Uint8Array");
+				JSValue args[] = { array_buffer };
+				auto uint8array = JS_CallConstructor(ctx, uint8array_ctor, 1, args);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, uint8array_ctor);
+				JS_FreeValue(ctx, array_buffer);
+				return uint8array;
+			}
+
+			#pragma endregion
+
+			template <auto T> requires BooleanConstraint
+				inline static auto toUint8Array(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return to_uint8array(ctx, s->toBytes());
+					}, "toUint8Array"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto toArrayBuffer(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return to_arraybuffer(ctx, s->toBytes());
+					}, "toArrayBuffer"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto getArrayBuffer(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
+					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
+					return to_arraybuffer(ctx, s->get(from, to));
+					}, "getArrayBuffer"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto getUint8Array(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
+					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
+					return to_uint8array(ctx, s->get(from, to));
+					}, "getUint8Array"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto toString(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+				try_assert(argc == 0, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_string(ctx, s->toString());
+					}, "toString"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto out_file(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->out_file(JS::Converter::get_c_string(ctx, argv[0]).get());
+					return JS_UNDEFINED;
+					}, "out_file"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint8(
+							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint8(
+							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeUint8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint16(
+							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint16(
+							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeUint16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint24(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint24(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint24(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeUint24"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint32(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint32(
+							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeUint32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeUint64(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeUint64(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeUint64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeInt8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt8(
+							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt8(
+							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeInt8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeInt16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt16(
+							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt16(
+							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeInt16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeInt24(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt24(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt24(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeInt24"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeInt64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeInt64"_sv);
+			}
+
+#pragma region convert
+
+			inline static auto from_arraybuffer(
+				JSContext* ctx,
+				JSValue array_buffer
+			) -> std::vector<uint8_t>
+			{
+				auto byte_len = size_t{};
+				auto data = JS_GetArrayBuffer(ctx, &byte_len, array_buffer);
+				return std::vector<uint8_t>(data, data + byte_len);
+			}
+
+			inline static auto from_uint8array(
+				JSContext* ctx,
+				JSValue uint8array
+			) -> std::vector<uint8_t>
+			{
+				auto array_buffer = JS_GetPropertyStr(ctx, uint8array, "buffer");
+				auto vec = from_arraybuffer(ctx, array_buffer);
+				JS_FreeValue(ctx, array_buffer);
+				return vec;
+			}
+
+#pragma endregion
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeArrayBuffer(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+					return JS_UNDEFINED;
+					}, "writeArrayBuffer"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeUint8Array(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeBytes(from_uint8array(ctx, argv[0]));
+					}
+					else {
+						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+					}
+					return JS_UNDEFINED;
+					}, "writeUint8Array"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeFloat(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeFloat(
+							static_cast<float>(JS::Converter::get_float32(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeFloat(
+							static_cast<float>(JS::Converter::get_float32(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeFloat"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeDouble(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeDouble(
+							static_cast<double>(JS::Converter::get_float64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeDouble(
+							static_cast<double>(JS::Converter::get_float64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeDouble"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeVarInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeVarInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeVarInt32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeVarInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeVarInt64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeVarInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeVarInt64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeVarInt64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeZigZag32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeZigZag32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeZigZag32(
+							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeZigZag32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeZigZag64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeZigZag64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeZigZag64(
+							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeZigZag64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeString(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeString(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeString(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeString"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringFourByte(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringFourByte(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringFourByte(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringFourByte"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeNull(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeNull(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
+						);
+					}
+					else {
+						s->writeNull(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeNull"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeBoolean(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeBoolean(
+							JS::Converter::get_bool(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeBoolean(
+							JS::Converter::get_bool(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeBoolean"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByUint8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint8(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint8(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByUint8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByUint16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint16(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint16(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByUint16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByUint32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByUint32(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByUint32(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByUint32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByInt8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt8(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt8(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByInt8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByInt16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt16(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt16(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByInt16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByInt32(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByInt32(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto writeStringByEmpty(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						s->writeStringByEmpty(
+							JS::Converter::get_string(ctx, argv[0])
+						);
+					}
+					else {
+						s->writeStringByEmpty(
+							JS::Converter::get_string(ctx, argv[0]),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS_UNDEFINED;
+					}, "writeStringByEmpty"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readUint8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint8_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint8();
+					}
+					return JS::Converter::to_bigint<uint8_t>(ctx, v);
+					}, "readUint8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readUint16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint16_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint16();
+					}
+					return JS::Converter::to_bigint<uint16_t>(ctx, v);
+					}, "readUint16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readUint24(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint24();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+					}, "readUint24"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readUint32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint32();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+					}, "readUint32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readUint64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readUint64();
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, v);
+					}, "readUint64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readInt8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int8_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt8();
+					}
+					return JS::Converter::to_bigint<int8_t>(ctx, v);
+					}, "readInt8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readInt16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int16_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt16();
+					}
+					return JS::Converter::to_bigint<int16_t>(ctx, v);
+					}, "readInt16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readInt24(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt24();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+					}, "readInt24"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+					}, "readInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readInt64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readInt64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+					}, "readInt64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readString(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readString(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readString(
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+						);
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readString"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByUint8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint8();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByUint8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByUint16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint16();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByUint16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByUint32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByUint32();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByUint32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByInt8(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt8();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByInt8"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByInt16(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt16();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByInt16"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByInt32();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByVarInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByVarInt32();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByVarInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readStringByEmpty(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = std::string{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readStringByEmpty(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readStringByEmpty();
+					}
+					return JS::Converter::to_string(ctx, v);
+					}, "readStringByEmpty"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readVarInt32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarInt32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+					}, "readVarInt32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readVarInt64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarInt64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+					}, "readVarInt64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readVarUint32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarUint32();
+					}
+					return JS::Converter::to_bigint<uint32_t>(ctx, v);
+					}, "readVarUint32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readVarUint64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = uint64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readVarUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readVarUint64();
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, v);
+					}, "readVarUint64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readZigZag32(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int32_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readZigZag32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readZigZag32();
+					}
+					return JS::Converter::to_bigint<int32_t>(ctx, v);
+					}, "readZigZag32"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readZigZag64(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = int64_t{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readZigZag64(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readZigZag64();
+					}
+					return JS::Converter::to_bigint<int64_t>(ctx, v);
+					}, "readZigZag64"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readFloat(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = float{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readFloat(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readFloat();
+					}
+					return JS::Converter::to_number(ctx, v);
+					}, "readFloat"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto readDouble(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto v = double{};
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					if (argc == 1) {
+						v = s->readDouble(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					}
+					else {
+						v = s->readDouble();
+					}
+					return JS::Converter::to_number(ctx, v);
+					}, "readDouble"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static auto close(
+					JSContext* ctx,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					s->close();
+					return JS_UNDEFINED;
+					}, "close"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
+				inline static const JSCFunctionListEntry proto_functions[] = {
+					JS_CPPGETSET_MAGIC_DEF("read_position", getter<T>, setter<T>, 0),
+					JS_CPPGETSET_MAGIC_DEF("write_position", getter<T>, setter<T>, 1),
+					JS_CPPFUNC_DEF("size", 0, size<T>),
+					JS_CPPFUNC_DEF("fromString", 1, fromString<T>),
+					JS_CPPFUNC_DEF("capacity", 0, capacity<T>),
+					JS_CPPFUNC_DEF("reserve", 1, reserve<T>),
+					JS_CPPFUNC_DEF("toArrayBuffer", 0, toArrayBuffer<T>),
+					JS_CPPFUNC_DEF("toUint8Array", 0, toUint8Array<T>),
+					JS_CPPFUNC_DEF("getArrayBuffer", 2, getArrayBuffer<T>),
+					JS_CPPFUNC_DEF("getUint8Array", 2, getUint8Array<T>),
+					JS_CPPFUNC_DEF("toString", 0, toString<T>),
+					JS_CPPFUNC_DEF("out_file", 1, out_file<T>),
+					JS_CPPFUNC_DEF("writeUint8", 2, writeUint8<T>),
+					JS_CPPFUNC_DEF("writeUint16", 2, writeUint16<T>),
+					JS_CPPFUNC_DEF("writeUint24", 2, writeUint24<T>),
+					JS_CPPFUNC_DEF("writeUint32", 2, writeUint32<T>),
+					JS_CPPFUNC_DEF("writeUint64", 2, writeUint64<T>),
+					JS_CPPFUNC_DEF("writeInt8", 2, writeInt8<T>),
+					JS_CPPFUNC_DEF("writeInt16", 2, writeInt16<T>),
+					JS_CPPFUNC_DEF("writeInt24", 2, writeInt24<T>),
+					JS_CPPFUNC_DEF("writeInt32", 2, writeInt32<T>),
+					JS_CPPFUNC_DEF("writeInt64", 2, writeInt64<T>),
+					JS_CPPFUNC_DEF("writeArrayBuffer", 2, writeArrayBuffer<T>),
+					JS_CPPFUNC_DEF("writeUint8Array", 2, writeUint8Array<T>),
+					JS_CPPFUNC_DEF("writeFloat", 2, writeFloat<T>),
+					JS_CPPFUNC_DEF("writeDouble", 2, writeDouble<T>),
+					JS_CPPFUNC_DEF("writeVarInt32", 2, writeVarInt32<T>),
+					JS_CPPFUNC_DEF("writeVarInt64", 2, writeVarInt64<T>),
+					JS_CPPFUNC_DEF("writeZigZag32", 2, writeZigZag32<T>),
+					JS_CPPFUNC_DEF("writeZigZag64", 2, writeZigZag64<T>),
+					JS_CPPFUNC_DEF("writeString", 2, writeString<T>),
+					JS_CPPFUNC_DEF("writeStringFourByte", 2, writeStringFourByte<T>),
+					JS_CPPFUNC_DEF("writeNull", 2, writeNull<T>),
+					JS_CPPFUNC_DEF("writeBoolean", 2, writeBoolean<T>),
+					JS_CPPFUNC_DEF("writeStringByUint8", 2, writeStringByUint8<T>),
+					JS_CPPFUNC_DEF("writeStringByUint16", 2, writeStringByUint16<T>),
+					JS_CPPFUNC_DEF("writeStringByUint32", 2, writeStringByUint32<T>),
+					JS_CPPFUNC_DEF("writeStringByInt8", 2, writeStringByInt8<T>),
+					JS_CPPFUNC_DEF("writeStringByInt16", 2, writeStringByInt16<T>),
+					JS_CPPFUNC_DEF("writeStringByInt32", 2, writeStringByInt32<T>),
+					JS_CPPFUNC_DEF("writeStringByEmpty", 2, writeStringByEmpty<T>),
+					JS_CPPFUNC_DEF("readUint8", 1, readUint8<T>),
+					JS_CPPFUNC_DEF("readUint16", 1, readUint16<T>),
+					JS_CPPFUNC_DEF("readUint24", 1, readUint24<T>),
+					JS_CPPFUNC_DEF("readUint32", 1, readUint32<T>),
+					JS_CPPFUNC_DEF("readUint64", 1, readUint64<T>),
+					JS_CPPFUNC_DEF("readInt8", 1, readInt8<T>),
+					JS_CPPFUNC_DEF("readInt16", 1, readInt16<T>),
+					JS_CPPFUNC_DEF("readInt24", 1, readInt24<T>),
+					JS_CPPFUNC_DEF("readInt32", 1, readInt32<T>),
+					JS_CPPFUNC_DEF("readInt64", 1, readInt64<T>),
+					JS_CPPFUNC_DEF("readString", 2, readString<T>),
+					JS_CPPFUNC_DEF("readStringByUint8", 1, readStringByUint8<T>),
+					JS_CPPFUNC_DEF("readStringByUint16", 1, readStringByUint16<T>),
+					JS_CPPFUNC_DEF("readStringByUint32", 1, readStringByUint32<T>),
+					JS_CPPFUNC_DEF("readStringByInt8", 1, readStringByInt8<T>),
+					JS_CPPFUNC_DEF("readStringByInt16", 1, readStringByInt16<T>),
+					JS_CPPFUNC_DEF("readStringByInt32", 1, readStringByInt32<T>),
+					JS_CPPFUNC_DEF("readStringByVarInt32", 1, readStringByVarInt32<T>),
+					JS_CPPFUNC_DEF("readStringByEmpty", 1, readStringByEmpty<T>),
+					JS_CPPFUNC_DEF("readVarInt32", 1, readVarInt32<T>),
+					JS_CPPFUNC_DEF("readVarInt64", 1, readVarInt64<T>),
+					JS_CPPFUNC_DEF("readVarUint32", 1, readVarUint32<T>),
+					JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64<T>),
+					JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32<T>),
+					JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64<T>),
+					JS_CPPFUNC_DEF("readFloat", 1, readFloat<T>),
+					JS_CPPFUNC_DEF("readDouble", 1, readDouble<T>),
+					JS_CPPFUNC_DEF("close", 0, close<T>),
+			};
+
+
+			template <auto use_big_endian> requires BooleanConstraint
+				inline static auto register_class(
+					JSContext* ctx
+				) -> void
+			{
+				static_assert(use_big_endian == true || use_big_endian == false, "use_big_endian can only be true or false");
+				ClassID<use_big_endian>::value = JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::value, &this_class<use_big_endian>);
+				auto class_name = std::string_view{};
+				if constexpr (use_big_endian) {
+					class_name = "DataStreamViewUseBigEndian"_sv;
+				}
+				else {
+					class_name = "DataStreamView"_sv;
+				}
+				auto point_ctor = JS_NewCFunction2(ctx, constructor<use_big_endian>, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions<use_big_endian>, countof(proto_functions<use_big_endian>));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		namespace Boolean {
+
+			struct Data {
+				bool value;
+
+				Data(
+				) = default;
+
+				Data(
+					bool value
+				) : value(value)
+				{
+
+				}
+
+				~Data(
+				) = default;
+			};
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = (Data*)JS_GetOpaque(val, class_id);
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data(JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true);
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj))
+					goto fail;
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Boolean",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (!s) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_bool(ctx, s->value);
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = JS_VALUE_GET_BOOL(val) == 0 ? false : true;
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			template <auto T>
+			inline static auto true_instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = new Data(T);
+				auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+				if (JS_IsException(proto)) {
+					js_free(ctx, s);
+					return JS_EXCEPTION;
+				}
+				auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					js_free(ctx, s);
+					return JS_EXCEPTION;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Boolean"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto default_true_func_val = JS_NewCFunction(ctx, true_instance<true>, "true", 0);
+				auto default_false_func_val = JS_NewCFunction(ctx, true_instance<false>, "false", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "true", default_true_func_val);
+				JS_SetPropertyStr(ctx, point_ctor, "false", default_false_func_val);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		// Size Support
+
+		namespace Size {
+
+			struct Data {
+
+				std::size_t value;
+
+				Data(
+				) = default;
+
+				Data(
+					std::size_t value
+				) : value(value)
+				{
+
+				}
+
+				~Data(
+				) = default;
+			};
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])) };
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Size",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_bigint(ctx, s->value);
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = JS::Converter::get_bigint64(ctx, val);
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			inline static auto instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0]))  };
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+					}, "instance");
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Size"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		// Character Support
+
+		namespace Character {
+
+			struct Data {
+
+				char value;
+
+				Data(
+				) = default;
+
+				Data(
+					char value
+				) : value(value)
+				{
+
+				}
+
+				~Data(
+
+				) = default;
+			};
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data{ static_cast<char>(JS::Converter::get_bigint64(ctx, argv[0])) };
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Character",
+				.finalizer = finalizer,
+			};
+
+			// Getter
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->value));
+			}
+
+			// Setter
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = static_cast<char>(JS::Converter::get_bigint64(ctx, val));
+				return JS_UNDEFINED;
+			}
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			// Make instance
+
+			inline static auto instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = new Data{ static_cast<char>(JS::Converter::get_bigint64(ctx, argv[0]))  };
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+				}, "instance");
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Character"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		// String Support
+
+		namespace String {
+
+			struct CData {
+				char const* value;
+				std::size_t size;
+
+				CData(
+					char const* value,
+					std::size_t size
+				) : value(value), size(size)
+				{
+
+				}
+
+				CData(
+					char const* value
+				) : value(value), size(strlen(value))
+				{
+				}
+
+				~CData() {
+					free(const_cast<char*>(value));
+				}
+
+			};
+
+			using Data = CData;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data{ strdup(JS::Converter::get_c_string(ctx, argv[0]).get())};
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				//
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "String",
+				.finalizer = finalizer,
+			};
+
+			// Getter
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_string(ctx, std::string{ s->value , s->size });
+			}
+
+			// Setter
+
+			inline static auto setter (
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = strdup(JS::Converter::get_c_string(ctx, val).get());
+				return JS_UNDEFINED;
+			}
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			// Make instance
+
+			inline static auto instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = new Data{ strdup(JS::Converter::get_c_string(ctx, argv[0]).get())};
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+				}, "instance");
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "String"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+	}
+
 	/**
 	 * JavaScript Thread
 	*/
@@ -680,7 +3343,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto byteLength = std::size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &byteLength, arrayBuffer);
 				if (!data) {
-					throw Exception("Could not get ArrayBuffer data", std::source_location::current(), "random");
+					throw Exception(fmt::format("{}", Kernel::Language::get("js.converter.failed_to_get_js_array_buffer")), std::source_location::current(), "random");
 				}
 				for (auto i : Range(byteLength)) {
 					data[i] = rand() % 256;
@@ -707,7 +3370,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto byteLength = std::size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &byteLength, arrayBuffer);
 				if (!data) {
-					throw Exception("Could not get ArrayBuffer data", std::source_location::current(), "random");
+					throw Exception(fmt::format("{}", Kernel::Language::get("js.converter.failed_to_get_js_array_buffer")), std::source_location::current(), "fill");
 				}
 				for (auto i : Range(byteLength)) {
 					data[i] = byte_c;
@@ -4607,2317 +7270,6 @@ namespace Sen::Kernel::Interface::Script {
 				Kernel::FileSystem::write_file(destination.get(), printer.CStr());
 				return JS::Converter::get_undefined();
 			}, "serialize_fs"_sv);
-		}
-
-	}
-
-	namespace Class {
-
-		#define JS_CPPGETSET_MAGIC_DEF(c_name, fgetter, fsetter, _magic) { \
-				.name = c_name, .prop_flags = JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CGETSET_MAGIC, .magic = _magic, .u = { .getset = { .get = { .getter_magic = fgetter }, .set = { .setter_magic = fsetter } } } }
-
-		#define JS_CPPFUNC_DEF(c_name, length, func1) { .name = c_name, .prop_flags = JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CFUNC, .magic = 0, .u = { .func = { length, JS_CFUNC_generic, { .generic = func1 } } } }
-
-		#define JS_INSTANCE_OF_OBJ(ctx, obj, parent, name) \
-					auto obj = JS_GetPropertyStr(ctx, parent, name.data()); \
-					if (JS_IsUndefined(obj)) { \
-						obj = JS_NewObject(ctx); \
-						JS_SetPropertyStr(ctx, parent, name.data(), obj); \
-					}
-
-		namespace DataStreamView {
-
-			inline static auto constexpr BooleanConstraint = true;
-
-			template <auto T> requires BooleanConstraint
-			using Data = Definition::Buffer::Stream<T>;
-
-			template <auto use_big_endian> requires BooleanConstraint
-			struct ClassID {
-				inline static JSClassID value = 0;
-			};
-
-
-			template <auto T> requires BooleanConstraint
-			inline static auto finalizer(
-				JSRuntime* rt, 
-				JSValue val
-			) -> void
-			{
-				auto s = (Data<T>*)JS_GetOpaque(val, ClassID<T>::value);
-				if (s) {
-					delete s;
-				}
-				return;
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto constructor(
-				JSContext* ctx, 
-				JSValueConst new_target, 
-				int argc, 
-				JSValueConst* argv
-			) -> JSValue
-			{
-				auto s = static_cast<Data<T>*>(nullptr);
-				auto obj = JS_UNDEFINED;
-				auto proto = JSValue{};
-				if (argc == 1) {
-					auto path = JS::Converter::get_c_string(ctx, argv[0]);
-					s = new Data<T>{ path.get()};
-				}
-				else if(argc == 0) {
-					s = new Data<T>{};
-				}
-				else {
-					return JS_EXCEPTION;
-				}
-				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
-				if (JS_IsException(proto))
-					goto fail;
-				obj = JS_NewObjectProtoClass(ctx, proto, ClassID<T>::value);
-				JS_FreeValue(ctx, proto);
-				if (JS_IsException(obj))
-					goto fail;
-				JS_SetOpaque(obj, s);
-				return obj;
-			fail:
-				js_free(ctx, s);
-				JS_FreeValue(ctx, obj);
-				return JS_EXCEPTION;
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto this_class = JSClassDef {
-				.class_name = "DataStreamView",
-				.finalizer = finalizer<T>,
-			};
-
-			template <auto T> requires BooleanConstraint
-			inline static auto getter(
-				JSContext* ctx, 
-				JSValueConst this_val, 
-				int magic
-			) -> JSValue
-			{
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-				if (!s) {
-					return JS_EXCEPTION;
-				}
-				if (magic == 0) {
-					return JS_NewBigInt64(ctx, s->read_pos);
-				}
-				else {
-					return JS_NewBigInt64(ctx, s->write_pos);
-				}
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto setter(
-				JSContext* ctx,
-				JSValueConst this_val,
-				JSValueConst val,
-				int magic
-			) -> JSValue
-			{
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-				auto v = std::int64_t{};
-				if (!s){
-					return JS_EXCEPTION;
-				}
-				if (JS_ToBigInt64(ctx, &v, val))
-					return JS_EXCEPTION;
-				if (magic == 0) {
-					s->read_pos = v;
-				}
-				else {
-					s->write_pos = v;
-				}
-				return JS_UNDEFINED;
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto size(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx,{
-					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
-				}, "size"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto capacity(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					return JS::Converter::to_bigint<uint64_t>(ctx, s->size());
-				}, "capacity"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto fromString(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					s->fromString(JS::Converter::get_string(ctx, argv[0]));
-					return JS_UNDEFINED;
-				}, "fromString"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto reserve(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					s->reserve(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					return JS_UNDEFINED;
-				}, "reserve"_sv);
-			}
-
-			#pragma region convert
-
-			inline static auto to_arraybuffer(
-				JSContext* ctx, 
-				const std::vector<uint8_t>& vec
-			) -> JSValue
-			{
-				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
-				JS_FreeValue(ctx, array_buffer);
-				return array_buffer;
-			}
-
-			inline static auto to_uint8array(
-				JSContext* ctx, 
-				const std::vector<uint8_t>& vec
-			) -> JSValue
-			{
-				auto array_buffer = JS_NewArrayBufferCopy(ctx, vec.data(), vec.size());
-				auto global_obj = JS_GetGlobalObject(ctx);
-				auto uint8array_ctor = JS_GetPropertyStr(ctx, global_obj, "Uint8Array");
-				JSValue args[] = { array_buffer };
-				auto uint8array = JS_CallConstructor(ctx, uint8array_ctor, 1, args);
-				JS_FreeValue(ctx, global_obj);
-				JS_FreeValue(ctx, uint8array_ctor);
-				JS_FreeValue(ctx, array_buffer);
-				return uint8array;
-			}
-
-			#pragma endregion
-
-			template <auto T> requires BooleanConstraint
-			inline static auto toUint8Array(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					return to_uint8array(ctx, s->toBytes());
-				}, "toUint8Array"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto toArrayBuffer(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					return to_arraybuffer(ctx, s->toBytes());
-				}, "toArrayBuffer"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto getArrayBuffer(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
-					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
-					return to_arraybuffer(ctx, s->get(from, to));
-				}, "getArrayBuffer"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto getUint8Array(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					auto from = JS::Converter::get_bigint64(ctx, argv[0]);
-					auto to = JS::Converter::get_bigint64(ctx, argv[1]);
-					return to_uint8array(ctx, s->get(from, to));
-				}, "getUint8Array"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto toString(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-				try_assert(argc == 0, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					return JS::Converter::to_string(ctx, s->toString());
-				}, "toString"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto out_file(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					s->out_file(JS::Converter::get_c_string(ctx, argv[0]).get());
-					return JS_UNDEFINED;
-				}, "out_file"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeUint8(
-							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeUint8(
-							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeUint8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeUint16(
-							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeUint16(
-							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeUint16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint24(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeUint24(
-							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeUint24(
-							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeUint24"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeUint32(
-							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeUint32(
-							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeUint32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeUint64(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeUint64(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeUint64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeInt8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeInt8(
-							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeInt8(
-							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeInt8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeInt16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeInt16(
-							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeInt16(
-							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeInt16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeInt24(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeInt24(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeInt24(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeInt24"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeInt32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeInt32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeInt64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeInt64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeInt64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeInt64"_sv);
-			}
-
-			#pragma region convert
-
-			inline static auto from_arraybuffer(
-				JSContext* ctx, 
-				JSValue array_buffer
-			) -> std::vector<uint8_t>
-			{
-				auto byte_len = size_t{};
-				auto data = JS_GetArrayBuffer(ctx, &byte_len, array_buffer);
-				return std::vector<uint8_t>(data, data + byte_len);
-			}
-
-			inline static auto from_uint8array(
-				JSContext* ctx, 
-				JSValue uint8array
-			) -> std::vector<uint8_t>
-			{
-				auto array_buffer = JS_GetPropertyStr(ctx, uint8array, "buffer");
-				auto vec = from_arraybuffer(ctx, array_buffer);
-				JS_FreeValue(ctx, array_buffer);
-				return vec;
-			}
-
-			#pragma endregion
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeArrayBuffer(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
-					return JS_UNDEFINED;
-				}, "writeArrayBuffer"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeUint8Array(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeBytes(from_uint8array(ctx, argv[0]));
-					}
-					else {
-						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
-					}
-					return JS_UNDEFINED;
-				}, "writeUint8Array"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeFloat(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeFloat(
-							static_cast<float>(JS::Converter::get_float32(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeFloat(
-							static_cast<float>(JS::Converter::get_float32(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeFloat"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeDouble(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeDouble(
-							static_cast<double>(JS::Converter::get_float64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeDouble(
-							static_cast<double>(JS::Converter::get_float64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeDouble"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeVarInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeVarInt32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeVarInt32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeVarInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeVarInt64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeVarInt64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeVarInt64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeVarInt64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeZigZag32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeZigZag32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeZigZag32(
-							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeZigZag32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeZigZag64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeZigZag64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeZigZag64(
-							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeZigZag64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeString(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeString(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeString(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeString"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringFourByte(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringFourByte(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringFourByte(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringFourByte"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeNull(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeNull(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0]))
-						);
-					}
-					else {
-						s->writeNull(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeNull"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeBoolean(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeBoolean(
-							JS::Converter::get_bool(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeBoolean(
-							JS::Converter::get_bool(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeBoolean"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByUint8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByUint8(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByUint8(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByUint8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByUint16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByUint16(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByUint16(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByUint16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByUint32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByUint32(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByUint32(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByUint32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByInt8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByInt8(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByInt8(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByInt8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByInt16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByInt16(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByInt16(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByInt16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByInt32(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByInt32(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto writeStringByEmpty(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						s->writeStringByEmpty(
-							JS::Converter::get_string(ctx, argv[0])
-						);
-					}
-					else {
-						s->writeStringByEmpty(
-							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS_UNDEFINED;
-				}, "writeStringByEmpty"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readUint8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint8_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readUint8();
-					}
-					return JS::Converter::to_bigint<uint8_t>(ctx, v);
-				}, "readUint8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readUint16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint16_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readUint16();
-					}
-					return JS::Converter::to_bigint<uint16_t>(ctx, v);
-				}, "readUint16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readUint24(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readUint24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readUint24();
-					}
-					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				}, "readUint24"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readUint32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readUint32();
-					}
-					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				}, "readUint32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readUint64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint64_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readUint64();
-					}
-					return JS::Converter::to_bigint<uint64_t>(ctx, v);
-				}, "readUint64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readInt8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int8_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readInt8();
-					}
-					return JS::Converter::to_bigint<int8_t>(ctx, v);
-				}, "readInt8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readInt16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int16_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readInt16();
-					}
-					return JS::Converter::to_bigint<int16_t>(ctx, v);
-				}, "readInt16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readInt24(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readInt24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readInt24();
-					}
-					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				}, "readInt24"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readInt32();
-					}
-					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				}, "readInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readInt64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int64_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readInt64();
-					}
-					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				}, "readInt64"_sv);
-			}
-			
-			template <auto T> requires BooleanConstraint
-			inline static auto readString(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readString(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readString(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
-						);
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readString"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByUint8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByUint8();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByUint8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByUint16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByUint16();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByUint16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByUint32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByUint32();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByUint32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByInt8(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByInt8();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByInt8"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByInt16(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByInt16();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByInt16"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByInt32();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByVarInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByVarInt32();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByVarInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readStringByEmpty(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = std::string{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readStringByEmpty(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readStringByEmpty();
-					}
-					return JS::Converter::to_string(ctx, v);
-				}, "readStringByEmpty"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readVarInt32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readVarInt32();
-					}
-					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				}, "readVarInt32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readVarInt64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int64_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readVarInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readVarInt64();
-					}
-					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				}, "readVarInt64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readVarUint32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readVarUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readVarUint32();
-					}
-					return JS::Converter::to_bigint<uint32_t>(ctx, v);
-				}, "readVarUint32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readVarUint64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = uint64_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readVarUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readVarUint64();
-					}
-					return JS::Converter::to_bigint<uint64_t>(ctx, v);
-				}, "readVarUint64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readZigZag32(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int32_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readZigZag32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readZigZag32();
-					}
-					return JS::Converter::to_bigint<int32_t>(ctx, v);
-				}, "readZigZag32"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readZigZag64(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = int64_t{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readZigZag64(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readZigZag64();
-					}
-					return JS::Converter::to_bigint<int64_t>(ctx, v);
-				}, "readZigZag64"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readFloat(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = float{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readFloat(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readFloat();
-					}
-					return JS::Converter::to_number(ctx, v);
-				}, "readFloat"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto readDouble(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					auto v = double{};
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					if (argc == 1) {
-						v = s->readDouble(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
-					}
-					else {
-						v = s->readDouble();
-					}
-					return JS::Converter::to_number(ctx, v);
-				}, "readDouble"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static auto close(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
-						return JS_EXCEPTION;
-					}
-					s->close();
-					return JS_UNDEFINED;
-				}, "close"_sv);
-			}
-
-			template <auto T> requires BooleanConstraint
-			inline static const JSCFunctionListEntry proto_functions[] = {
-				JS_CPPGETSET_MAGIC_DEF("read_position", getter<T>, setter<T>, 0),
-				JS_CPPGETSET_MAGIC_DEF("write_position", getter<T>, setter<T>, 1),
-				JS_CPPFUNC_DEF("size", 0, size<T>),
-				JS_CPPFUNC_DEF("fromString", 1, fromString<T>),
-				JS_CPPFUNC_DEF("capacity", 0, capacity<T>),
-				JS_CPPFUNC_DEF("reserve", 1, reserve<T>),
-				JS_CPPFUNC_DEF("toArrayBuffer", 0, toArrayBuffer<T>),
-				JS_CPPFUNC_DEF("toUint8Array", 0, toUint8Array<T>),
-				JS_CPPFUNC_DEF("getArrayBuffer", 2, getArrayBuffer<T>),
-				JS_CPPFUNC_DEF("getUint8Array", 2, getUint8Array<T>),
-				JS_CPPFUNC_DEF("toString", 0, toString<T>),
-				JS_CPPFUNC_DEF("out_file", 1, out_file<T>),
-				JS_CPPFUNC_DEF("writeUint8", 2, writeUint8<T>),
-				JS_CPPFUNC_DEF("writeUint16", 2, writeUint16<T>),
-				JS_CPPFUNC_DEF("writeUint24", 2, writeUint24<T>),
-				JS_CPPFUNC_DEF("writeUint32", 2, writeUint32<T>),
-				JS_CPPFUNC_DEF("writeUint64", 2, writeUint64<T>),
-				JS_CPPFUNC_DEF("writeInt8", 2, writeInt8<T>),
-				JS_CPPFUNC_DEF("writeInt16", 2, writeInt16<T>),
-				JS_CPPFUNC_DEF("writeInt24", 2, writeInt24<T>),
-				JS_CPPFUNC_DEF("writeInt32", 2, writeInt32<T>),
-				JS_CPPFUNC_DEF("writeInt64", 2, writeInt64<T>),
-				JS_CPPFUNC_DEF("writeArrayBuffer", 2, writeArrayBuffer<T>),
-				JS_CPPFUNC_DEF("writeUint8Array", 2, writeUint8Array<T>),
-				JS_CPPFUNC_DEF("writeFloat", 2, writeFloat<T>),
-				JS_CPPFUNC_DEF("writeDouble", 2, writeDouble<T>),
-				JS_CPPFUNC_DEF("writeVarInt32", 2, writeVarInt32<T>),
-				JS_CPPFUNC_DEF("writeVarInt64", 2, writeVarInt64<T>),
-				JS_CPPFUNC_DEF("writeZigZag32", 2, writeZigZag32<T>),
-				JS_CPPFUNC_DEF("writeZigZag64", 2, writeZigZag64<T>),
-				JS_CPPFUNC_DEF("writeString", 2, writeString<T>),
-				JS_CPPFUNC_DEF("writeStringFourByte", 2, writeStringFourByte<T>),
-				JS_CPPFUNC_DEF("writeNull", 2, writeNull<T>),
-				JS_CPPFUNC_DEF("writeBoolean", 2, writeBoolean<T>),
-				JS_CPPFUNC_DEF("writeStringByUint8", 2, writeStringByUint8<T>),
-				JS_CPPFUNC_DEF("writeStringByUint16", 2, writeStringByUint16<T>),
-				JS_CPPFUNC_DEF("writeStringByUint32", 2, writeStringByUint32<T>),
-				JS_CPPFUNC_DEF("writeStringByInt8", 2, writeStringByInt8<T>),
-				JS_CPPFUNC_DEF("writeStringByInt16", 2, writeStringByInt16<T>),
-				JS_CPPFUNC_DEF("writeStringByInt32", 2, writeStringByInt32<T>),
-				JS_CPPFUNC_DEF("writeStringByEmpty", 2, writeStringByEmpty<T>),
-				JS_CPPFUNC_DEF("readUint8", 1, readUint8<T>),
-				JS_CPPFUNC_DEF("readUint16", 1, readUint16<T>),
-				JS_CPPFUNC_DEF("readUint24", 1, readUint24<T>),
-				JS_CPPFUNC_DEF("readUint32", 1, readUint32<T>),
-				JS_CPPFUNC_DEF("readUint64", 1, readUint64<T>),
-				JS_CPPFUNC_DEF("readInt8", 1, readInt8<T>),
-				JS_CPPFUNC_DEF("readInt16", 1, readInt16<T>),
-				JS_CPPFUNC_DEF("readInt24", 1, readInt24<T>),
-				JS_CPPFUNC_DEF("readInt32", 1, readInt32<T>),
-				JS_CPPFUNC_DEF("readInt64", 1, readInt64<T>),
-				JS_CPPFUNC_DEF("readString", 2, readString<T>),
-				JS_CPPFUNC_DEF("readStringByUint8", 1, readStringByUint8<T>),
-				JS_CPPFUNC_DEF("readStringByUint16", 1, readStringByUint16<T>),
-				JS_CPPFUNC_DEF("readStringByUint32", 1, readStringByUint32<T>),
-				JS_CPPFUNC_DEF("readStringByInt8", 1, readStringByInt8<T>),
-				JS_CPPFUNC_DEF("readStringByInt16", 1, readStringByInt16<T>),
-				JS_CPPFUNC_DEF("readStringByInt32", 1, readStringByInt32<T>),
-				JS_CPPFUNC_DEF("readStringByVarInt32", 1, readStringByVarInt32<T>),
-				JS_CPPFUNC_DEF("readStringByEmpty", 1, readStringByEmpty<T>),
-				JS_CPPFUNC_DEF("readVarInt32", 1, readVarInt32<T>),
-				JS_CPPFUNC_DEF("readVarInt64", 1, readVarInt64<T>),
-				JS_CPPFUNC_DEF("readVarUint32", 1, readVarUint32<T>),
-				JS_CPPFUNC_DEF("readVarUint64", 1, readVarUint64<T>),
-				JS_CPPFUNC_DEF("readZigZag32", 1, readZigZag32<T>),
-				JS_CPPFUNC_DEF("readZigZag64", 1, readZigZag64<T>),
-				JS_CPPFUNC_DEF("readFloat", 1, readFloat<T>),
-				JS_CPPFUNC_DEF("readDouble", 1, readDouble<T>),
-				JS_CPPFUNC_DEF("close", 0, close<T>),
-			};
-
-			
-			template <auto use_big_endian> requires BooleanConstraint
-			inline static auto register_class(
-				JSContext* ctx
-			) -> void
-			{
-				static_assert(use_big_endian == true || use_big_endian == false, "use_big_endian can only be true or false");
-				ClassID<use_big_endian>::value = JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::value, &this_class<use_big_endian>);
-				auto class_name = std::string_view{};
-				if constexpr (use_big_endian) {
-					class_name = "DataStreamViewUseBigEndian"_sv;
-				}
-				else {
-					class_name = "DataStreamView"_sv;
-				}
-				auto point_ctor = JS_NewCFunction2(ctx, constructor<use_big_endian>, class_name.data(), 2, JS_CFUNC_constructor, 0);
-				auto proto = JS_NewObject(ctx);
-				JS_SetPropertyFunctionList(ctx, proto, proto_functions<use_big_endian>, countof(proto_functions<use_big_endian>));
-				JS_SetConstructor(ctx, point_ctor, proto);
-				auto global_obj = JS_GetGlobalObject(ctx);
-				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
-				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
-				JS_FreeValue(ctx, global_obj);
-				JS_FreeValue(ctx, obj1);
-				JS_FreeValue(ctx, obj2);
-				return;
-			}
-
-		}
-
-		namespace Boolean {
-
-			struct Data {
-				bool value;
-
-				Data(
-				) = default;
-
-				Data(
-					bool value
-				) : value(value)
-				{
-
-				}
-
-				~Data(
-				) = default;
-			};
-
-			inline static JSClassID class_id;
-
-			inline static auto finalizer(
-				JSRuntime* rt,
-				JSValue val
-			) -> void
-			{
-				auto s = (Data*)JS_GetOpaque(val, class_id);
-				if (s) {
-					delete s;
-				}
-				return;
-			}
-
-			inline static auto constructor(
-				JSContext* ctx,
-				JSValueConst new_target,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(nullptr);
-				auto obj = JS_UNDEFINED;
-				auto proto = JSValue{};
-				if (argc == 1) {
-					s = new Data(JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true);
-				}
-				else {
-					return JS_EXCEPTION;
-				}
-				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
-				if (JS_IsException(proto)) {
-					goto fail;
-				}
-				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
-				JS_FreeValue(ctx, proto);
-				if (JS_IsException(obj))
-					goto fail;
-				JS_SetOpaque(obj, s);
-				return obj;
-			fail:
-				js_free(ctx, s);
-				JS_FreeValue(ctx, obj);
-				return JS_EXCEPTION;
-			}
-
-			inline static auto this_class = JSClassDef{
-				.class_name = "Boolean",
-				.finalizer = finalizer,
-			};
-
-			inline static auto getter(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int magic
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				if (!s) {
-					return JS_EXCEPTION;
-				}
-				return JS::Converter::to_bool(ctx, s->value);
-			}
-
-			inline static auto setter(
-				JSContext* ctx,
-				JSValueConst this_val,
-				JSValueConst val,
-				int magic
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				auto v = bool{};
-				if (s == nullptr) {
-					return JS_EXCEPTION;
-				}
-				s->value = JS_VALUE_GET_BOOL(val) == 0 ? false : true;
-				return JS_UNDEFINED;
-			}
-
-			inline static const JSCFunctionListEntry proto_functions[] = {
-				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
-			};
-
-			template <auto T>
-			inline static auto true_instance(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				auto s = new Data(T);
-				auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
-				if (JS_IsException(proto)) {
-					js_free(ctx, s);
-					return JS_EXCEPTION;
-				}
-				auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
-				JS_FreeValue(ctx, proto);
-				if (JS_IsException(obj)) {
-					js_free(ctx, s);
-					return JS_EXCEPTION;
-				}
-				JS_SetOpaque(obj, s);
-				return obj;
-			}
-
-
-			inline static auto register_class(
-				JSContext* ctx
-			) -> void
-			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
-				auto class_name = "Boolean"_sv;
-				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
-				auto proto = JS_NewObject(ctx);
-				auto default_true_func_val = JS_NewCFunction(ctx, true_instance<true>, "true", 0);
-				auto default_false_func_val = JS_NewCFunction(ctx, true_instance<false>, "false", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "true", default_true_func_val);
-				JS_SetPropertyStr(ctx, point_ctor, "false", default_false_func_val);
-				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
-				JS_SetConstructor(ctx, point_ctor, proto);
-				auto global_obj = JS_GetGlobalObject(ctx);
-				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
-				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
-				JS_FreeValue(ctx, global_obj);
-				JS_FreeValue(ctx, obj1);
-				JS_FreeValue(ctx, obj2);
-				return;
-			}
-
-		}
-
-
-		namespace Size {
-
-			struct Data {
-
-				std::size_t value;
-
-				Data(
-				) = default;
-
-				Data(
-					std::size_t value
-				) : value(value)
-				{
-
-				}
-
-				~Data(
-				) = default;
-			};
-
-			inline static JSClassID class_id;
-
-			inline static auto finalizer(
-				JSRuntime* rt,
-				JSValue val
-			) -> void
-			{
-				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
-				if (s) {
-					delete s;
-				}
-				return;
-			}
-
-			inline static auto constructor(
-				JSContext* ctx,
-				JSValueConst new_target,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(nullptr);
-				auto obj = JS_UNDEFINED;
-				auto proto = JSValue{};
-				if (argc == 1) {
-					s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])) };
-				}
-				else {
-					return JS_EXCEPTION;
-				}
-				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
-				if (JS_IsException(proto)) {
-					goto fail;
-				}
-				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
-				JS_FreeValue(ctx, proto);
-				if (JS_IsException(obj)) {
-					goto fail;
-				}
-				JS_SetOpaque(obj, s);
-				return obj;
-			fail:
-				js_free(ctx, s);
-				JS_FreeValue(ctx, obj);
-				return JS_EXCEPTION;
-			}
-
-			/*
-				Current class
-			*/
-
-			inline static auto this_class = JSClassDef{
-				.class_name = "Size",
-				.finalizer = finalizer,
-			};
-
-			inline static auto getter(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int magic
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				if (s == nullptr) {
-					return JS_EXCEPTION;
-				}
-				return JS::Converter::to_bigint(ctx, s->value);
-			}
-
-			inline static auto setter(
-				JSContext* ctx,
-				JSValueConst this_val,
-				JSValueConst val,
-				int magic
-			) -> JSValue
-			{
-				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				auto v = bool{};
-				if (s == nullptr) {
-					return JS_EXCEPTION;
-				}
-				s->value = JS::Converter::get_bigint64(ctx, val);
-				return JS_UNDEFINED;
-			}
-
-			inline static const JSCFunctionListEntry proto_functions[] = {
-				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
-			};
-
-			inline static auto instance(
-				JSContext* ctx,
-				JSValueConst this_val,
-				int argc,
-				JSValueConst* argv
-			) -> JSValue
-			{
-				M_JS_PROXY_WRAPPER(ctx, {
-					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0]))  };
-					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
-					if (JS_IsException(proto)) {
-						js_free(ctx, s);
-						return JS_EXCEPTION;
-					}
-					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
-					JS_FreeValue(ctx, proto);
-					if (JS_IsException(obj)) {
-						js_free(ctx, s);
-						return JS_EXCEPTION;
-					}
-					JS_SetOpaque(obj, s);
-					return obj;
-					}, "instance");
-			}
-
-
-			inline static auto register_class(
-				JSContext* ctx
-			) -> void
-			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
-				auto class_name = "Size"_sv;
-				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
-				auto proto = JS_NewObject(ctx);
-				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
-				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
-				JS_SetConstructor(ctx, point_ctor, proto);
-				auto global_obj = JS_GetGlobalObject(ctx);
-				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
-				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
-				JS_FreeValue(ctx, global_obj);
-				JS_FreeValue(ctx, obj1);
-				JS_FreeValue(ctx, obj2);
-				return;
-			}
-
 		}
 
 	}

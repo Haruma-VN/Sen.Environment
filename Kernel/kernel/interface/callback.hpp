@@ -466,11 +466,15 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
 				// DataStreamViewUseBigEndian
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
-				// execute the script
 				// Boolean
 				javascript->register_object(Script::Class::Boolean::register_class);
 				// Size
 				javascript->register_object(Script::Class::Size::register_class);
+				// String
+				javascript->register_object(Script::Class::String::register_class);
+				// Character
+				javascript->register_object(Script::Class::Character::register_class);
+				// execute the script
 				javascript->evaluate_fs(script_path);
 				// call main
 				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());

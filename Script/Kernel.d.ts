@@ -2023,10 +2023,83 @@ declare namespace Sen {
         }
 
         /**
+         * Kernel String Wrapper
+         */
+
+        declare class String {
+            /**
+             * Value
+             */
+
+            private _value: string;
+
+            /**
+             * Getter
+             */
+
+            public get value(): string;
+
+            /**
+             * Setter
+             */
+
+            public set value(value: string): void;
+
+            /**
+             * JS String Constructor
+             * @param value - String value
+             */
+
+            public constructor(value: string): void;
+
+            /*
+             * JS Get instance
+             *
+             */
+
+            public instance(value: string): String;
+        }
+
+        /**
          * Size
          */
 
         declare class Size {
+            /* Value */
+
+            private _value: bigint;
+
+            /**
+             * Constructor
+             * @param value - Value
+             */
+
+            public constructor(value: bigint): void;
+
+            /**
+             * Getter
+             */
+
+            public get value(): bigint;
+
+            /**
+             * Setter
+             */
+
+            public set value(value: bigint): void;
+
+            /**
+             * Get instance
+             */
+
+            public static instance(value: bigint): Size;
+        }
+
+        /**
+         * Character
+         */
+
+        declare class Character {
             /* Value */
 
             private _value: bigint;

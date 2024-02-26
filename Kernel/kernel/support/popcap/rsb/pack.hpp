@@ -173,7 +173,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");
             sen.writeString("1bsr"_sv);
             auto version = manifest.version;
-            if (version != 3 || version != 4)
+            if (version != 3 && version != 4)
             {
                 throw Exception("invaild_rsb_version");
             }
@@ -201,10 +201,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
             for (const auto &[composite_key, composite_packet] : manifest.group)
             {
                 auto composite_name = composite_packet.is_composite ? composite_key : fmt::format("{}_CompositeShell", composite_key);
+                composite_info.writeString(composite_name);
                 std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
                 composite_list.emplace_back(PathList{composite_name, pool_index});
                 ++pool_index;
-                composite_info.writeString(composite_name);
                 composite_info.writeNull(128 - composite_name.size());
                 for (const auto &[subgroup_key, subgroup_value] : composite_packet.subgroup)
                 {
@@ -216,8 +216,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     {
                         // compare rsg and manifest packt info;
                     }
+                    auto rsg_composite = false;
                     auto ptx_number = 0;
-                    for (auto i : Range<std::size_t>(subgroup_value.packet_info.res.size()))
+                    for (auto i : Range<int>(subgroup_value.packet_info.res.size()))
                     {
                         auto item_path = subgroup_value.packet_info.res[i]["path"].get<std::string>();
                         item_path = std::regex_replace(item_path, std::regex("/"), "\\");
@@ -231,6 +232,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                                 throw Exception("invaild_packet_composite");
                             }
                             ++ptx_number;
+                            rsg_composite = true;
                             auto id = ptx_info["id"].get<uint32_t>();
                             auto ptx_pos = static_cast<uint64_t>((ptx_before_number + id) * ptx_info_size);
                             stream_ptx_info.writeUint32(ptx_info["width"].get<uint32_t>(), ptx_pos);
@@ -276,21 +278,22 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     rsg_info.writeUint32(packet_index);
                     rsg_info.writeBytes(rsg_file.getBytes(0x10, 0x48));
                     auto write_pos = rsg_info.write_pos;
-                    rsg_info.writeUint32(rsg_file.readUint32(0x20ull), static_cast<std::uint64_t>(write_pos));
+                    rsg_info.writeUint32(rsg_file.readUint32(0x20ull), static_cast<std::uint64_t>(write_pos - 36));
                     rsg_info.writeUint32(ptx_number, static_cast<std::uint64_t>(write_pos));
                     rsg_info.writeUint32(ptx_before_number);
                     ptx_before_number += ptx_number;
                     //
                     autopool_info.writeString(fmt::format("{}_AutoPool", packet_name));
-                    autopool_info.writeNull(128 - (key_size + 12));
-                    if (composite_packet.is_composite)
+                    autopool_info.writeNull(128 - (key_size + 9));
+                    if (rsg_composite)
                     {
                         autopool_info.writeUint32(rsg_file.readUint32(0x18ull));
                         autopool_info.writeUint32(rsg_file.readUint32(0x30ull));
                     }
                     else
                     {
-                        autopool_info.writeUint32(rsg_file.readUint32(0x18ull) + rsg_file.readUint32(0x20ull));
+                        auto file_size = (rsg_file.readUint32(0x18ull) + rsg_file.readUint32(0x20ull));
+                        autopool_info.writeUint32(file_size);
                         autopool_info.writeNull(4);
                     }
                     autopool_info.writeUint32(1);
@@ -317,6 +320,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             composite_list.emplace_back(PathList{std::string{""}, 0});
             std::sort(composite_list.begin(), composite_list.end(), [](const PathList &a, const PathList &b) -> int
                       { return a.path < b.path; });
+             file_list_pack(composite_list, composite_path_temp_list);
             //
             head_info.file_list_begin = file_list_begin_pos;
             for (auto i : Range<int>(item_path_temp_list.size()))
@@ -333,6 +337,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             head_info.rsg_list_length = static_cast<uint32_t>(sen.write_pos - head_info.rsg_list_begin);
             head_info.composite_number = manifest.group.size();
             head_info.composite_info_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.composite_info_each_length = 1156;
             sen.writeBytes(composite_info.toBytes());
             //
             head_info.composite_list_begin = static_cast<uint32_t>(sen.write_pos);
@@ -346,6 +351,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             head_info.rsg_number = packet_index;
             sen.writeBytes(rsg_info.toBytes());
             //
+            head_info.autopool_info_each_length = 152;
             head_info.autopool_info_begin = static_cast<uint32_t>(sen.write_pos);
             head_info.autopool_number = packet_index;
             sen.writeBytes(autopool_info.toBytes());
@@ -373,7 +379,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 sen.writeUint32((file_offset + packet_pos), rsg_info_file_pos);
             }
             head_info.version = version;
-
+            write_head(head_info);
             return;
         }
 
