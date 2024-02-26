@@ -7,7 +7,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 {
     using namespace Definition;
 
-    template <typename T = std::int32_t> requires std::is_integral<T>::value
+    template <typename T> requires std::is_integral<T>::value
     class Decode
     {
 
@@ -129,10 +129,10 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        template <typename T> requires std::is_integral<T>::value
+        template <typename U> requires std::is_integral<U>::value
         inline auto read_remove(
 
-        ) const -> T
+        ) const -> U
         {
             auto index = static_cast<std::uint32_t>(sen->readUint16());
             if (index >= 2047)

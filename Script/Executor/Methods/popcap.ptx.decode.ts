@@ -136,10 +136,13 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
                 Sen.Script.Console.obtained(argument.source);
                 Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.png`);
                 Sen.Script.Console.output(argument.destination!);
+                Sen.Script.Executor.load_bigint(argument, "format", this.configuration, Detail.format(), Sen.Kernel.Language.get("popcap.ptx.decode.format"));
                 argument.size = {} as any;
                 Sen.Script.Executor.input_range(argument.size as any, "width", this.configuration.size as Dimension, [1n, 16384n], Kernel.Language.get("popcap.ptx.decode.width"));
+                if (argument.format === "rgb_pvrtc4_a_8") {
+                    (this.configuration.size as Dimension).height = argument.size!.width;
+                }
                 Sen.Script.Executor.input_range(argument.size as any, "height", this.configuration.size as Dimension, [1n, 16384n], Sen.Kernel.Language.get("popcap.ptx.decode.height"));
-                Sen.Script.Executor.load_bigint(argument, "format", this.configuration, Detail.format(), Sen.Kernel.Language.get("popcap.ptx.decode.format"));
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.Texture.decode_fs(argument.source, argument.destination!, argument!.size!.width, argument!.size!.height, Detail.exchange_format(argument.format!));
                 Sen.Script.Executor.clock.stop_safe();

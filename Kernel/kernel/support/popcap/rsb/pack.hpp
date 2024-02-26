@@ -103,7 +103,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
         inline auto file_list_pack(
-            CONST_VTBL std::vector<PathList> &path_list,
+            const std::vector<PathList> &path_list,
             std::vector<PathTemp> &path_temp_list) -> void
         {
             auto list_length = path_list.size() - 1;
@@ -276,8 +276,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     rsg_info.writeUint32(packet_index);
                     rsg_info.writeBytes(rsg_file.getBytes(0x10, 0x48));
                     auto write_pos = rsg_info.write_pos;
-                    rsg_info.writeUint32(rsg_file.readUint32(0x20ull), write_pos);
-                    rsg_info.writeUint32(ptx_number, write_pos);
+                    rsg_info.writeUint32(rsg_file.readUint32(0x20ull), static_cast<std::uint64_t>(write_pos));
+                    rsg_info.writeUint32(ptx_number, static_cast<std::uint64_t>(write_pos));
                     rsg_info.writeUint32(ptx_before_number);
                     ptx_before_number += ptx_number;
                     //

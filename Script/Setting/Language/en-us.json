@@ -282,5 +282,16 @@
     "rijndael.key_is_not_padded": "Key is not padded",
     "rijndael.encrypt.plain_is_empty": "Current plain is empty. There is nothing to encrypt",
     "rijndael.decrypt.cipher_is_empty": "Current cipher is empty. There is nothing to decrypt",
-    "rijndael.decrypt.cipher_size_is_invalid_to_decrypt": "Current cipher size is invalid to decrypt"
+    "rijndael.decrypt.cipher_size_is_invalid_to_decrypt": "Current cipher size is invalid to decrypt",
+    "popcap.pvz2.lawnstrings.convert.source_type": "Source type",
+    "popcap.pvz2.lawnstrings.convert.destination_type": "Destination type",
+    "popcap.pvz2.lawnstrings.convert.text": "Raw text (version 6.8 and below)",
+    "popcap.pvz2.lawnstrings.convert.map": "JSON Map (version 6.8 to version 8.9)",
+    "popcap.pvz2.lawnstrings.convert.array": "JSON Map (version 8.9 to now)",
+    "popcap.pvz2.lawnstrings.convert.cn_text": "Chinese text (Select this for Chinese version)",
+    "popcap.rsb.unpack_by_loose_constraints": "PopCap RSB: Unpack by Loose Constraints",
+    "popcap.rsb.pack_resource": "PopCap RSB: Pack Resource",
+    "popcap.rsb.obfuscate": "PopCap RSB: Obfuscate",
+    "popcap.rsb.unpack_cipher": "PopCap RSB: Unpack Cipher",
+    "popcap.rsb.unpack_cipher.key": "Key"
 }
