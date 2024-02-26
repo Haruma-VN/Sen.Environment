@@ -33,7 +33,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate
 
     // -----------------------------------------------------------------
 
-    export function read_head(sen: Kernel.DataStreamView) {
+    export function read_head(sen: Kernel.DataStreamView): RSBHead {
         sen.read_position = 16n;
         const file_list_length = sen.readUint32();
         const file_list_begin = sen.readUint32();
@@ -96,7 +96,9 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate
 
     export function disturb_header(sen: Kernel.DataStreamView): void {
         sen.write_position = 4n;
-        sen.writeUint8(make_random());
+        const version: bigint = make_random();
+        Console.send(`${Kernel.Language.get("popcap.rsb.obfuscate.version_number")}: 0x${version.toString(16)}`, Definition.Console.Color.GREEN);
+        sen.writeUint8(version);
         return;
     }
 
@@ -106,14 +108,21 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate
         const rsb_head_info = read_head(sen);
         disturb_header(sen);
         sen.read_position = rsb_head_info.rsg_info_begin;
+        const subgroup_section = new ArrayBuffer(128);
+        Kernel.ArrayBuffer.random(subgroup_section);
+        const packet_section = new ArrayBuffer(16);
+        Kernel.ArrayBuffer.random(packet_section);
+        const rsg_section = new ArrayBuffer(64);
+        Kernel.ArrayBuffer.random(rsg_section);
+        Console.send(`${Kernel.Language.get("popcap.rsb.obfuscate.modify_count")}: ${rsb_head_info.rsg_number}`, Definition.Console.Color.GREEN);
         for (let i = 0n; i < rsb_head_info.rsg_number; ++i) {
             const start_index = sen.read_position;
-            const autopoolstart_index = rsb_head_info.autopool_info_begin + i * 152n;
-            sen.writeNull(128n, start_index);
-            sen.writeNull(128n, autopoolstart_index);
-            sen.writeNull(4n, start_index + 132n);
-            const packetOffset = sen.readUint32(start_index + 128n);
-            sen.writeNull(64n, packetOffset);
+            const autopool_start_index = rsb_head_info.autopool_info_begin + i * 152n;
+            sen.writeArrayBuffer(subgroup_section, start_index);
+            sen.writeArrayBuffer(subgroup_section, autopool_start_index);
+            sen.writeArrayBuffer(packet_section, start_index + 132n);
+            const packet_offset = sen.readUint32(start_index + 128n);
+            sen.writeArrayBuffer(rsg_section, packet_offset);
             sen.read_position = start_index + rsb_head_info.rsg_info_each_length;
         }
         return;

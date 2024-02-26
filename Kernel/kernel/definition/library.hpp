@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <regex>
+#include <stdlib.h>
 #include <source_location>
 #include <functional>
 #include <thread>

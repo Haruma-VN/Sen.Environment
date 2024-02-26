@@ -151,6 +151,21 @@ declare namespace Sen {
              */
 
             export function out(destination: string, data: ArrayBuffer): void;
+
+            /**
+             * Random bytes in ArrayBuffer
+             * @param value - ArrayBuffer
+             */
+
+            export function random(value: ArrayBuffer): void;
+
+            /**
+             * Fill bytes in ArrayBuffer
+             * @param array - ArrayBuffer
+             * @param value - Value to fill
+             */
+
+            export function fill(array: ArrayBuffer, value: bigint): void;
         }
 
         /**
@@ -2005,6 +2020,41 @@ declare namespace Sen {
              */
 
             public static false(): Boolean;
+        }
+
+        /**
+         * Size
+         */
+
+        declare class Size {
+            /* Value */
+
+            private _value: bigint;
+
+            /**
+             * Constructor
+             * @param value - Value
+             */
+
+            public constructor(value: bigint): void;
+
+            /**
+             * Getter
+             */
+
+            public get value(): bigint;
+
+            /**
+             * Setter
+             */
+
+            public set value(value: bigint): void;
+
+            /**
+             * Get instance
+             */
+
+            public static instance(value: bigint): Size;
         }
 
         /**

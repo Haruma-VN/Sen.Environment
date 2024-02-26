@@ -217,7 +217,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         // compare rsg and manifest packt info;
                     }
                     auto ptx_number = 0;
-                    for (auto i : Range<int>(subgroup_value.packet_info.res.size()))
+                    for (auto i : Range<std::size_t>(subgroup_value.packet_info.res.size()))
                     {
                         auto item_path = subgroup_value.packet_info.res[i]["path"].get<std::string>();
                         item_path = std::regex_replace(item_path, std::regex("/"), "\\");

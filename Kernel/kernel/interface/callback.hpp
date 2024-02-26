@@ -191,6 +191,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::ArrayBuffer::open, "Sen"_sv, "Kernel"_sv, "ArrayBuffer"_sv, "open"_sv);
 					// out
 					javascript->add_proxy(Script::ArrayBuffer::out, "Sen"_sv, "Kernel"_sv, "ArrayBuffer"_sv, "out"_sv);
+					// random
+					javascript->add_proxy(Script::ArrayBuffer::random, "Sen"_sv, "Kernel"_sv, "ArrayBuffer"_sv, "random"_sv);
+					// fill
+					javascript->add_proxy(Script::ArrayBuffer::fill, "Sen"_sv, "Kernel"_sv, "ArrayBuffer"_sv, "fill"_sv);
 				}
 				// operating system
 				{
@@ -462,9 +466,11 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
 				// DataStreamViewUseBigEndian
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
+				// execute the script
 				// Boolean
 				javascript->register_object(Script::Class::Boolean::register_class);
-				// execute the script
+				// Size
+				javascript->register_object(Script::Class::Size::register_class);
 				javascript->evaluate_fs(script_path);
 				// call main
 				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());

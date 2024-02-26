@@ -663,6 +663,59 @@ namespace Sen::Kernel::Interface::Script {
 			}, "out"_sv);
 		}
 
+		/*
+			Random bytes in ArrayBuffer
+		*/
+
+		inline static auto random(
+			JSContext* ctx, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(ctx, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto arrayBuffer = argv[0];
+				auto byteLength = std::size_t{};
+				auto data = JS_GetArrayBuffer(ctx, &byteLength, arrayBuffer);
+				if (!data) {
+					throw Exception("Could not get ArrayBuffer data", std::source_location::current(), "random");
+				}
+				for (auto i : Range(byteLength)) {
+					data[i] = rand() % 256;
+				}
+				return JS_UNDEFINED;
+			}, "random");
+		}
+
+		/*
+			Random bytes in ArrayBuffer
+		*/
+
+		inline static auto fill(
+			JSContext* ctx,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(ctx, {
+				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto arrayBuffer = argv[0];
+				auto byte_c = static_cast<std::uint8_t>(JS::Converter::get_bigint64(ctx, argv[0]));
+				auto byteLength = std::size_t{};
+				auto data = JS_GetArrayBuffer(ctx, &byteLength, arrayBuffer);
+				if (!data) {
+					throw Exception("Could not get ArrayBuffer data", std::source_location::current(), "random");
+				}
+				for (auto i : Range(byteLength)) {
+					data[i] = byte_c;
+				}
+				return JS_UNDEFINED;
+			}, "fill");
+		}
+
 	}
 
 	/**
@@ -2439,7 +2492,7 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto result = Sen::Kernel::Definition::Encryption::Sha224::hash(source);
 					return JS::Converter::to_string(context, result);
@@ -6553,7 +6606,7 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 		namespace Boolean {
-			
+
 			struct Data {
 				bool value;
 
@@ -6579,7 +6632,7 @@ namespace Sen::Kernel::Interface::Script {
 			) -> void
 			{
 				auto s = (Data*)JS_GetOpaque(val, class_id);
-				if (s != nullptr) {
+				if (s) {
 					delete s;
 				}
 				return;
@@ -6596,7 +6649,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto obj = JS_UNDEFINED;
 				auto proto = JSValue{};
 				if (argc == 1) {
-					s = new Data{JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true};
+					s = new Data(JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true);
 				}
 				else {
 					return JS_EXCEPTION;
@@ -6663,7 +6716,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValueConst* argv
 			) -> JSValue
 			{
-				auto s = new Data{ T };
+				auto s = new Data(T);
 				auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
 				if (JS_IsException(proto)) {
 					js_free(ctx, s);
@@ -6705,6 +6758,168 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 		}
+
+
+		namespace Size {
+
+			struct Data {
+
+				std::size_t value;
+
+				Data(
+				) = default;
+
+				Data(
+					std::size_t value
+				) : value(value)
+				{
+
+				}
+
+				~Data(
+				) = default;
+			};
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSValue{};
+				if (argc == 1) {
+					s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])) };
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Size",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				return JS::Converter::to_bigint(ctx, s->value);
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSValue
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				s->value = JS::Converter::get_bigint64(ctx, val);
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("value", getter, setter, 0),
+			};
+
+			inline static auto instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0]))  };
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+					}, "instance");
+			}
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Size"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
 	}
 
 }
