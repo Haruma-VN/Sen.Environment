@@ -297,6 +297,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Compression::Zlib::uncompress_fs, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "uncompress_fs"_sv);
 					// uncompress method
 					javascript->add_proxy(Script::Compression::Zlib::uncompress, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "uncompress"_sv);
+					// compress method
+					javascript->add_proxy(Script::Compression::Zlib::compress, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "compress"_sv);
 				}
 				// gzip
 				{
@@ -463,6 +465,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Miscellaneous::cast_ArrayBuffer_to_JS_String, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_ArrayBuffer_to_JS_String"_sv);
 					// cast_ArrayBuffer_to_JS_WideString
 					javascript->add_proxy(Script::Miscellaneous::cast_ArrayBuffer_to_JS_WideString, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_ArrayBuffer_to_JS_WideString"_sv);
+					// cast_ArrayBuffer_to_JS_WideString
+					javascript->add_proxy(Script::Miscellaneous::cast_movable_String_to_ArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_movable_String_to_ArrayBuffer"_sv);
 				}
 				// DataStreamView
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);

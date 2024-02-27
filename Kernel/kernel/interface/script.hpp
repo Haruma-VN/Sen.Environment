@@ -4224,8 +4224,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "read_file");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_file(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_file(source.get());
 				return JS::Converter::to_string(context, result);
 			}, "read_file"_sv);
 		}
@@ -4276,9 +4276,9 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "write_file");
 				assert_conditional(JS_IsString(argv[1]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "write_file");
-				auto destination = JS::Converter::get_string(context, argv[0]);
-				auto data = JS::Converter::get_string(context, argv[1]);
-				Sen::Kernel::FileSystem::write_file(destination, data);
+				auto destination = JS::Converter::get_c_string(context, argv[0]);
+				auto data = JS::Converter::get_c_string(context, argv[1]);
+				Sen::Kernel::FileSystem::write_file(destination.get(), data.get());
 				return JS::Converter::get_undefined();
 			}, "write_file"_sv);
 		}
@@ -4330,8 +4330,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "read_current_directory");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_directory(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_directory(source.get());
 				return JS::Converter::to_array(context, result);
 			}, "read_current_directory"_sv);
 		}
@@ -4354,8 +4354,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "read_directory_only_file");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_directory_only_file(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_directory_only_file(source.get());
 				return JS::Converter::to_array(context, result);
 			}, "read_directory_only_file"_sv);
 		}
@@ -4378,8 +4378,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "read_directory_only_directory");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_directory_only_directory(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_directory_only_directory(source.get());
 				return JS::Converter::to_array(context, result);
 			}, "read_directory_only_directory"_sv);
 		}
@@ -4402,8 +4402,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "read_directory");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = Sen::Kernel::FileSystem::read_whole_directory(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = Sen::Kernel::FileSystem::read_whole_directory(source.get());
 				return JS::Converter::to_array(context, result);
 			}, "read_directory"_sv);
 		}
@@ -4426,8 +4426,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "create_directory");
-				auto destination = JS::Converter::get_string(context, argv[0]);
-				Sen::Kernel::FileSystem::create_directory(destination);
+				auto destination = JS::Converter::get_c_string(context, argv[0]);
+				Sen::Kernel::FileSystem::create_directory(destination.get());
 				return JS::Converter::get_undefined();
 			}, "create_directory"_sv);
 		}
@@ -4450,8 +4450,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "is_file");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = std::filesystem::is_regular_file(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = std::filesystem::is_regular_file(source.get());
 				return JS::Converter::to_bool(context, result);
 			}, "is_file"_sv);
 		}
@@ -4474,8 +4474,8 @@ namespace Sen::Kernel::Interface::Script {
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "is_directory");
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto result = std::filesystem::is_directory(source);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto result = std::filesystem::is_directory(source.get());
 				return JS::Converter::to_bool(context, result);
 			}, "is_directory"_sv);
 		}
@@ -4501,9 +4501,9 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
-				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
+					assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
@@ -4750,10 +4750,10 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
 				auto destination = JS::Converter::get_string(context, argv[1]);
 				auto percentage = JS::Converter::get_float32(context, argv[2]);
-				Sen::Kernel::Definition::ImageIO::scale_png(source, destination, percentage);
+				Sen::Kernel::Definition::ImageIO::scale_png(source.get(), destination, percentage);
 				return JS::Converter::get_undefined();
 			}, "scale_fs"_sv);
 		}
@@ -4775,10 +4775,10 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto destination = JS::Converter::get_string(context, argv[0]);
+				auto destination = JS::Converter::get_c_string(context, argv[0]);
 				auto width = JS::Converter::get_int32(context, argv[1]);
 				auto height = JS::Converter::get_int32(context, argv[2]);
-				Sen::Kernel::Definition::ImageIO::transparent_png(destination, width, height);
+				Sen::Kernel::Definition::ImageIO::transparent_png(destination.get(), width, height);
 				return JS::Converter::get_undefined();
 			}, "transparent_fs"_sv);
 		}
@@ -4961,10 +4961,10 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto destination = JS::Converter::get_string(context, argv[1]);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto destination = JS::Converter::get_c_string(context, argv[1]);
 				auto percentage = JS::Converter::get_float32(context, argv[2]);
-				Sen::Kernel::Definition::ImageIO::resize_png(source, destination, percentage);
+				Sen::Kernel::Definition::ImageIO::resize_png(source.get(), destination.get(), percentage);
 				return JS::Converter::get_undefined();
 			}, "resize_fs"_sv);
 		}
@@ -4988,10 +4988,10 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
-				auto destination = JS::Converter::get_string(context, argv[1]);
+				auto source = JS::Converter::get_c_string(context, argv[0]);
+				auto destination = JS::Converter::get_c_string(context, argv[1]);
 				auto percentage = JS::Converter::get_float64(context, argv[2]);
-				Sen::Kernel::Definition::ImageIO::rotate_png(source, destination, percentage);
+				Sen::Kernel::Definition::ImageIO::rotate_png(source.get(), destination.get(), percentage);
 				return JS::Converter::get_undefined();
 			}, "rotate_fs"_sv);
 		}
@@ -5975,6 +5975,105 @@ namespace Sen::Kernel::Interface::Script {
 					JS_FreeValue(context, binary_ctor);
 					return obj;
 				}, "uncompress"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Zlib Compress
+			 * @param argv[0]: BinaryView
+			 * @param argv[1]: level
+			 * @returns: Uncompressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto compress (
+				JSContext* context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				using Data = Class::BinaryView::Data;
+				using Level = Definition::Compression::Zlib::Level;
+				using Zlib = Definition::Compression::Zlib;
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(context, argv[0], Class::BinaryView::class_id));
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto sub = static_cast<Data*>(nullptr);
+					switch (static_cast<Level>(JS::Converter::get_int32(context, argv[1]))) {
+						case Level::DEFAULT:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_6>(s->value));
+							break;
+						}
+						case Level::LEVEL_0:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_0>(s->value));
+							break;
+						}
+						case Level::LEVEL_1:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_1>(s->value));
+							break;
+						}
+						case Level::LEVEL_2:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_2>(s->value));
+							break;
+						}
+						case Level::LEVEL_3:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_3>(s->value));
+							break;
+						}
+						case Level::LEVEL_4:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_4>(s->value));
+							break;
+						}
+						case Level::LEVEL_5:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_5>(s->value));
+							break;
+						}
+						case Level::LEVEL_6:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_6>(s->value));
+							break;
+						}
+						case Level::LEVEL_7:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_7>(s->value));
+							break;
+						}
+						case Level::LEVEL_8:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_8>(s->value));
+							break;
+						}
+						case Level::LEVEL_9:{
+							sub = new Data(Zlib::compress_deflate<Level::LEVEL_9>(s->value));
+							break;
+						}
+						default:{
+							throw Exception(fmt::format("{}", Kernel::Language::get("zlib.compress.invalid_level")), std::source_location::current(), "compress");
+						}
+					}
+					auto global_obj = JS_GetGlobalObject(context);
+					auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
+					auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");
+					auto binary_ctor = JS_GetPropertyStr(context, kernel_obj, "BinaryView");
+					auto proto = JS_GetPropertyStr(context, binary_ctor, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(context, sub);
+						throw Exception("not a constructor");
+					}
+					auto obj = JS_NewObjectProtoClass(context, proto, Class::BinaryView::class_id);
+					JS_FreeValue(context, proto);
+					if (JS_IsException(obj)) {
+						js_free(context, sub);
+						throw Exception("can't define class");
+					}
+					JS_SetOpaque(obj, sub);
+					JS_FreeValue(context, global_obj);
+					JS_FreeValue(context, sen_obj);
+					JS_FreeValue(context, kernel_obj);
+					JS_FreeValue(context, binary_ctor);
+					return obj;
+				}, "compress"_sv);
 			}
 			
 		}
@@ -7005,9 +7104,9 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source, destination);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::RTON::Encode::encode_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}
@@ -7036,7 +7135,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto iv = JS::Converter::get_c_string(context, argv[3]);
 						Sen::Kernel::Support::PopCap::RTON::Encode::encrypt_fs(source.get(), destination.get(), key.get(), iv.get());
 						return JS::Converter::get_undefined();
-						}, "encrypt_fs"_sv);
+					}, "encrypt_fs"_sv);
 				}
 
 				/**
@@ -7144,7 +7243,7 @@ namespace Sen::Kernel::Interface::Script {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);
 						auto destination = JS::Converter::get_c_string(context, argv[1]);
-						Kernel::Support::PopCap::RSB::Pack::pack_fs(source.get(), destination.get());
+						Kernel::Support::PopCap::RSB::Pack::pack_fs<true>(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "pack_fs"_sv);
 				}
@@ -7439,6 +7538,24 @@ namespace Sen::Kernel::Interface::Script {
 				auto str = JS_NewStringLen(context, reinterpret_cast<const char*>(buf), len);
 				return str;
 			}, "cast_ArrayBuffer_to_JS_String"_sv);
+		}
+
+		/*
+			UTF8 Support
+		*/
+
+		inline static auto cast_movable_String_to_ArrayBuffer(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto buf = JS::Converter::get_string(context, argv[0]);
+				return JS_NewArrayBufferCopy(context, reinterpret_cast<uint8_t*>(buf.data()), buf.size());
+			}, "cast_movable_String_to_ArrayBuffer"_sv);
 		}
 
 		/*

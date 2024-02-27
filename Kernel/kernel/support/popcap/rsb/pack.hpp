@@ -7,6 +7,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
 {
     using namespace Definition;
 
+    template <typename T>
+    concept BooleanArgument = true;
+
     struct PathList
     {
     public:
@@ -21,7 +24,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         ~PathList(
 
-            ) = default;
+         ) = default;
     };
 
     struct PathPosition
@@ -41,13 +44,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
         explicit PathTemp(
             const std::string &path_slice,
             int key,
-            int pool_index) : path_slice(path_slice), key(key), pool_index(pool_index)
+            int pool_index
+        ) : path_slice(path_slice), key(key), pool_index(pool_index)
         {
         }
 
         ~PathTemp(
 
-            ) = default;
+        ) = default;
     };
 
     class Pack
@@ -88,14 +92,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
         inline auto write_file_list(
-            const PathTemp &path_temp) -> void
+            const PathTemp &path_temp
+        ) -> void
         {
             auto begin_pos = sen.write_pos;
             sen.writeStringFourByte(path_temp.path_slice);
             auto backup_pos = sen.write_pos;
             for (auto i : Range<int>(path_temp.positions.size()))
             {
-                sen.writeUint24(path_temp.positions[i].position, begin_pos + static_cast<uint64_t>(path_temp.positions[i].offset * 4 + 1));
+                sen.writeUint24(path_temp.positions[i].position, begin_pos + static_cast<std::uint64_t>(path_temp.positions[i].offset * 4 + 1));
             }
             sen.write_pos = backup_pos;
             sen.writeUint32(path_temp.pool_index);
@@ -104,14 +109,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto file_list_pack(
             const std::vector<PathList> &path_list,
-            std::vector<PathTemp> &path_temp_list) -> void
+            std::vector<PathTemp> &path_temp_list
+        ) -> void
         {
             auto list_length = path_list.size() - 1;
             auto w_pos = 0;
             for (auto i : Range(list_length))
             {
-                auto a_path = path_list[i].path;
-                auto b_path = path_list[i + 1].path;
+                auto& a_path = path_list[i].path;
+                auto& b_path = path_list[i + 1].path;
                 if (!is_ascii(b_path))
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("popcap.rsg.pack.item_path_must_be_ascii"), b_path), std::source_location::current(), "file_list_pack");
@@ -141,7 +147,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
         inline auto constexpr is_ascii(
-            std::string_view str) noexcept -> bool
+            std::string_view str
+        ) noexcept -> bool
         {
             for (auto c : str)
             {
@@ -153,17 +160,20 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return true;
         }
 
-        inline auto beautify_length(
-            uint32_t size) -> uint32_t
+        template <typename T> requires std::is_integral<T>::value
+        inline auto constexpr beautify_length (
+            T size
+        ) -> T
         {
             if ((size % 4096) == 0)
             {
-                return 4096;
+                return static_cast<T>(4096);
             }
-            return (4096 - (size % 4096));
+            return static_cast<T>((4096 - (size % 4096)));
         }
 
     public:
+
         template <auto check_packet>
         inline auto process(
             std::string_view source,
@@ -175,16 +185,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto version = manifest.version;
             if (version != 3 && version != 4)
             {
-                throw Exception("invaild_rsb_version");
+                throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_rsb_version"), version), std::source_location::current(), "process");
             }
             auto file_list_begin_pos = version == 4 ? 0x70 : 0x6C;
             sen.writeUint32(version);
-            sen.writeNull(file_list_begin_pos - 8);
+            sen.writeNull(static_cast<std::size_t>(file_list_begin_pos - 8));
             auto head_info = RSB_HeadInfo<uint32_t>{};
             auto ptx_info_size = manifest.ptx_info_size;
-            if (ptx_info_size != 0x10 && ptx_info_size != 0x14 && ptx_info_size != 0x18)
+            if (ptx_info_size != 0x10 and ptx_info_size != 0x14 and ptx_info_size != 0x18)
             {
-                throw Exception("invaild_ptx_info_size");
+                throw Exception(fmt::format("{}: {:02x}", Language::get("popcap.rsb.pack.invalid_ptx_info_size"), ptx_info_size), std::source_location::current(), "process");
             }
             head_info.ptx_info_each_length = ptx_info_size;
             auto item_list = std::vector<PathList>{};
@@ -218,7 +228,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     }
                     auto rsg_composite = false;
                     auto ptx_number = 0;
-                    for (auto i : Range<int>(subgroup_value.packet_info.res.size()))
+                    for (auto i : Range<std::size_t>(subgroup_value.packet_info.res.size()))
                     {
                         auto item_path = subgroup_value.packet_info.res[i]["path"].get<std::string>();
                         item_path = std::regex_replace(item_path, std::regex("/"), "\\");
@@ -226,10 +236,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         item_list.emplace_back(PathList{item_path, packet_index});
                         try
                         {
-                            auto ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
+                            auto& ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
                             if (!composite_packet.is_composite)
                             {
-                                throw Exception("invaild_packet_composite");
+                                throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_packet_composite"), packet_name), std::source_location::current(), "process");
                             }
                             ++ptx_number;
                             rsg_composite = true;
@@ -259,7 +269,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     {
                         if (subgroup_value.category[1].size() != 4)
                         {
-                            throw Exception("invaild_category_string");
+                            throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), subgroup_value.category[1].size(), 
+                                Language::get("but_received"), subgroup_value.category[1]), std::source_location::current(), "process");
                         }
                         composite_info.writeString(subgroup_value.category[1].get<std::string>());
                     }
@@ -364,7 +375,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             {
                 // write_resources_description
             }
-            sen.writeNull(beautify_length(static_cast<uint32_t>(sen.write_pos)));
+            sen.writeNull(beautify_length<std::uint32_t>(static_cast<std::uint32_t>(sen.write_pos)));
             //
             auto file_offset = static_cast<uint32_t>(sen.write_pos);
             head_info.file_offset = file_offset;
@@ -383,14 +394,25 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
+        template <auto check_packet, typename ...Args> requires (std::is_same<Args, std::string_view>::value && ...)
         inline static auto pack_fs(
             std::string_view source,
-            std::string_view destination
+            std::string_view destination,
+            Args... path
         ) -> void
         {
+            static_assert(check_packet == true or check_packet == false, "check_packet must be boolean value");
+            static_assert(sizeof...(Args) == 1 or sizeof...(Args) == 0, "manifest_path can only have one");
             auto pack = Pack{};
-            auto manifest = FileSystem::read_json(fmt::format("{}/manifest.json", source));
-            pack.process<false>(source, manifest);
+            auto manifest_path = std::string_view{};
+            if constexpr (sizeof...(Args) == 1) {
+                manifest_path = std::get<0>(std::make_tuple(path...));
+            }
+            if constexpr (sizeof...(Args) == 0) {
+                manifest_path = String::view(fmt::format("{}/manifest.json", source));
+            }
+            auto manifest = FileSystem::read_json(manifest_path);
+            pack.process<check_packet>(source, manifest);
             pack.sen.out_file(destination);
             return;
         }

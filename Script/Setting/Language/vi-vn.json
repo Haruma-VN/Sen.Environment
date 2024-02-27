@@ -275,8 +275,8 @@
     "popcap.ptx.decode.height": "Chiều cao",
     "popcap.ptx.decode.format": "Định dạng",
     "popcap.ptx.encode.format": "Định dạng",
-    "popcap.rton.encrypt": "PopCap RTON: Mã hoá bằng mật mã",
-    "popcap.rton.decrypt": "PopCap RTON: Giải mã bằng mật mã",
+    "popcap.rton.encrypt": "PopCap RTON: Mã hoá bảo mật",
+    "popcap.rton.decrypt": "PopCap RTON: Giải mã bảo mật",
     "rijndael.key_size_is_not_valid": "Kích thước khóa không hợp lệ",
     "rijndael.iv_size_is_not_valid": "Kích thước IV không hợp lệ",
     "rijndael.key_is_not_padded": "Key không được đệm",
@@ -297,5 +297,15 @@
     "popcap.rsb.obfuscate.version_number": "Đã thay đổi số phiên bản",
     "popcap.rsb.obfuscate.modify_count": "Sửa đổi số lượng nhóm con",
     "popcap.rsb_patch.decode": "PopCap RSB-Patch: Giải mã",
-    "popcap.rsb_patch.encode": "PopCap RSB-Patch: Mã hoá"
+    "popcap.rsb_patch.encode": "PopCap RSB-Patch: Mã hoá",
+    "popcap.rsb.unpack_by_loose_constraints.skip_category": "Bỏ qua",
+    "popcap.rsb.pack.invalid_rsb_version": "Phiên bản RSB không hợp lệ, chỉ hỗ trợ phiên bản 3 hoặc 4, nhận",
+    "popcap.rsb.pack.invalid_ptx_info_size": "Kích thước thông tin RSB PTX không hợp lệ, cần 0x10 hoặc 0x14 hoặc 0x18, nhận",
+    "popcap.rsb.pack.invalid_packet_composite": "Gói không hợp lệ, gói phải là composite, tuy nhiên giá trị của nó là \"false\", nên là \"true\" trong subgroup",
+    "popcap.rsb.pack.invalid_category_string": "Chuỗi danh mục không hợp lệ, yêu cầu là 4, nhận",
+    "popcap.rton.decrypt_and_decode": "PopCap RTON: Giải mã bảo mật và giải mã dữ liệu",
+    "popcap.rton.encode_and_encrypt": "PopCap RTON: Mã hóa dữ liệu và mã hoá bảo mật",
+    "filesystem.reached_end_of_file": "Đã đến cuối tệp, không thể đọc ký tự nữa",
+    "filesystem.total_of_bytes_need_to_smaller_than_current_file_size": "Tổng số byte để đọc cần phải nhỏ hơn kích thước tệp hiện tại",
+    "stack": "Ngăn xếp cho truy xuất lỗi"
 }

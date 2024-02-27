@@ -1118,7 +1118,16 @@ declare namespace Sen {
                  * @returns Stream
                  */
 
-                export function uncompress(view: BinaryView): BinaryView;
+                export function uncompress(data: BinaryView): BinaryView;
+
+                /**
+                 *
+                 * @param view - StreamView
+                 * @param level - level
+                 * @returns Stream
+                 */
+
+                export function compress(data: BinaryView, level: Script.Definition.Zlib.Level): BinaryView;
             }
 
             /**
@@ -1281,6 +1290,18 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function decrypt_and_decode_fs(source: string, destination: string, key: string, iv: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RTON Decrypt method for file
+                     * @param source - source file
+                     * @param destination - destination file
+                     * @param key - key
+                     * @param iv - iv
+                     * @returns - decoded file
+                     * --------------------------------------------------
+                     */
+                    export function encode_and_encrypt_fs(source: string, destination: string, key: string, iv: string): void;
                     /**
                      * --------------------------------------------------
                      * JavaScript RTON Decode method as async
@@ -4161,6 +4182,13 @@ declare namespace Sen {
              */
 
             export function cast_ArrayBuffer_to_JS_String(value: ArrayBuffer): string;
+
+            /**
+             *
+             * @param value - JS String
+             */
+
+            export function cast_movable_String_to_ArrayBuffer(value: string): ArrayBuffer;
         }
     }
 }

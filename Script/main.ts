@@ -199,12 +199,26 @@ namespace Sen.Script {
          * @returns error with stack
          */
 
-        export function make_exception(e: Error): string {
-            let result: string = e.message;
-            result += "\n";
+        export function make_exception_cli(e: Error): string {
+            let result: string = `\n    ${e.message}`;
+            result += `\n● ${Kernel.Language.get("stack")}:\n`;
             result += Exception.make_stack(e.stack!);
             result = result.replace(/\n$/, "");
             return result;
+        }
+
+        /**
+         *
+         * @param e - Error
+         * @returns
+         */
+
+        export function make_exception(e: Error): string {
+            if (Shell.is_gui) {
+                // todo
+                return undefined!;
+            }
+            return make_exception_cli(e);
         }
     }
 
@@ -305,6 +319,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rton.encode.js",
             "~/Executor/Methods/popcap.rton.decrypt.js",
             "~/Executor/Methods/popcap.rton.encrypt.js",
+            "~/Executor/Methods/popcap.rton.decrypt_and_decode.js",
+            "~/Executor/Methods/popcap.rton.encode_and_encrypt.js",
             "~/Executor/Methods/popcap.resource_group.split.js",
             "~/Executor/Methods/popcap.resource_group.merge.js",
             "~/Executor/Methods/popcap.resource_group.convert.js",

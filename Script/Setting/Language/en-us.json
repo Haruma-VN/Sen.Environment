@@ -298,5 +298,14 @@
     "popcap.rsb.obfuscate.modify_count": "Modify subgroup count",
     "popcap.rsb_patch.decode": "PopCap RSB-Patch: Decode",
     "popcap.rsb_patch.encode": "PopCap RSB-Patch: Encode",
-    "popcap.rsb.unpack_by_loose_constraints.skip_category": "Skip"
+    "popcap.rsb.unpack_by_loose_constraints.skip_category": "Skip",
+    "popcap.rsb.pack.invalid_rsb_version": "Invalid RSB version, expected version 3 or 4, received",
+    "popcap.rsb.pack.invalid_ptx_info_size": "Invalid RSB PTX Info Size, expected 0x10 or 0x14 or 0x18, received",
+    "popcap.rsb.pack.invalid_packet_composite": "Invalid packet, the packet should be composite, however it's value is \"false\", expected \"true\" in subgroup",
+    "popcap.rsb.pack.invalid_category_string": "Invalid category string, expected size is 4, received",
+    "popcap.rton.decrypt_and_decode": "PopCap RTON: Decrypt & Decode",
+    "popcap.rton.encode_and_encrypt": "PopCap RTON: Encode & Encrypt",
+    "filesystem.reached_end_of_file": "Reached end of file, can't read character anymore",
+    "filesystem.total_of_bytes_need_to_smaller_than_current_file_size": "Total bytes to read need to be smaller than current file size",
+    "stack": "Stack for traceback error"
 }
