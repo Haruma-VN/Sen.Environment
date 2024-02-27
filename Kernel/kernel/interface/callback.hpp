@@ -295,6 +295,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Compression::Zlib::compress_fs, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "compress_fs"_sv);
 					// uncompress file method
 					javascript->add_proxy(Script::Compression::Zlib::uncompress_fs, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "uncompress_fs"_sv);
+					// uncompress method
+					javascript->add_proxy(Script::Compression::Zlib::uncompress, "Sen"_sv, "Kernel"_sv, "Compression"_sv, "Zlib"_sv, "uncompress"_sv);
 				}
 				// gzip
 				{

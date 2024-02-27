@@ -2632,7 +2632,7 @@ namespace Sen::Kernel::Interface::Script {
 					}
 					JS_SetOpaque(obj, s);
 					return obj;
-					}, "instance");
+				}, "instance");
 			}
 
 
@@ -5893,7 +5893,7 @@ namespace Sen::Kernel::Interface::Script {
 					auto level = JS::Converter::get_int32(context, argv[2]);
 					if (!(static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::DEFAULT) <= level or level <= static_cast<int>(Sen::Kernel::Definition::Compression::Zlib::Level::LEVEL_9)))
 					{
-						throw std::invalid_argument(fmt::format("{}, {} {}", Kernel::Language::get("zlib.compress.invalid_level"), Kernel::Language::get("but_received"), level));
+						throw Exception(fmt::format("{}, {} {}", Kernel::Language::get("zlib.compress.invalid_level"), Kernel::Language::get("but_received"), level), std::source_location::current(), "compress_fs");
 					}
 					Sen::Kernel::Definition::Compression::Zlib::compress_fs(source, destination, static_cast<Sen::Kernel::Definition::Compression::Zlib::Level>(level));
 					return JS::Converter::get_undefined();
@@ -5923,6 +5923,53 @@ namespace Sen::Kernel::Interface::Script {
 					Sen::Kernel::Definition::Compression::Zlib::uncompress_fs(source, destination);
 					return JS::Converter::get_undefined();
 				}, "uncompress_fs"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Zlib Uncompression
+			 * @param argv[0]: BinaryView
+			 * @returns: Uncompressed file
+			 * ----------------------------------------
+			*/
+
+			inline static auto uncompress(
+				JSContext* context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				using Data = Class::BinaryView::Data;
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(context, argv[0], Class::BinaryView::class_id));
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto sub = new Data(Sen::Kernel::Definition::Compression::Zlib::uncompress(s->value));
+					auto global_obj = JS_GetGlobalObject(context);
+					auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
+					auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");
+					auto binary_ctor = JS_GetPropertyStr(context, kernel_obj, "BinaryView");
+					auto proto = JS_GetPropertyStr(context, binary_ctor, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(context, sub);
+						throw Exception("not a constructor");
+					}
+					auto obj = JS_NewObjectProtoClass(context, proto, Class::BinaryView::class_id);
+					JS_FreeValue(context, proto);
+					if (JS_IsException(obj)) {
+						js_free(context, sub);
+						throw Exception("can't define class");
+					}
+					JS_SetOpaque(obj, sub);
+					JS_FreeValue(context, global_obj);
+					JS_FreeValue(context, sen_obj);
+					JS_FreeValue(context, kernel_obj);
+					JS_FreeValue(context, binary_ctor);
+					return obj;
+				}, "uncompress"_sv);
 			}
 			
 		}

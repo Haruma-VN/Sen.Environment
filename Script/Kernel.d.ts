@@ -1111,6 +1111,14 @@ declare namespace Sen {
                  */
 
                 export function uncompress_fs(source: string, destination: string): void;
+
+                /**
+                 *
+                 * @param view - StreamView
+                 * @returns Stream
+                 */
+
+                export function uncompress(view: BinaryView): BinaryView;
             }
 
             /**
@@ -3026,6 +3034,34 @@ declare namespace Sen {
              */
 
             public readStringByInt32(position: bigint): string;
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByVarInt32(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByVarInt32(position: bigint): string;
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByEmpty(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByEmpty(position: bigint): string;
 
             /**
              * DataStreamView reader
@@ -3962,6 +3998,28 @@ declare namespace Sen {
              */
 
             public readStringByInt32(position: bigint): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByVarInt32(position: bigint): string;
+            /**
+             * DataStreamView reader
+             * @returns Value after read
+             */
+
+            public readStringByEmpty(): string;
+
+            /**
+             * DataStreamView reader
+             * @param position - Position to read
+             * @returns Value after read
+             */
+
+            public readStringByEmpty(position: bigint): string;
 
             /**
              * DataStreamView reader
