@@ -3,19 +3,11 @@
 using namespace Sen::Kernel;
 
 M_EXPORT_API
-int version(
-
-)
-{
-    return Sen::Kernel::version;
-}
-
-M_EXPORT_API
-int execute(
+auto execute(
     Interface::StringView* script,
     Interface::StringList* argument,
     Interface::ShellCallback m_callback
-)
+) -> int
 {
     try{
         auto script_path = Interface::make_standard_string(script);

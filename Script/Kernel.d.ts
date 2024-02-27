@@ -2127,7 +2127,81 @@ declare namespace Sen {
              * Get instance
              */
 
-            public static instance(value: bigint): Size;
+            public static instance(value: bigint): Character;
+        }
+
+        /**
+         * BinaryView
+         */
+
+        declare class BinaryView {
+            /* Value */
+
+            private _value: ArrayBuffer;
+
+            /**
+             * Constructor
+             * @param value - Value
+             */
+
+            public constructor(value: ArrayBuffer): void;
+
+            /**
+             * Getter
+             */
+
+            public get value(): ArrayBuffer;
+
+            /**
+             * Setter
+             */
+
+            public set value(value: ArrayBuffer): void;
+
+            /**
+             * Get instance
+             */
+
+            public static instance(): BinaryView;
+
+            /***
+             * Get size
+             */
+
+            public size(): bigint;
+
+            /***
+             * Get capacity
+             */
+
+            public capacity(): bigint;
+
+            /**
+             * Make ArrayBuffer
+             * @param from - from value
+             * @param to - to value
+             */
+
+            public sub(from: bigint, to: bigint): ArrayBuffer;
+
+            /**
+             * Allocating memory
+             * @param value - amount to allocate
+             */
+
+            public allocate(value: bigint): void;
+
+            /**
+             * convert BinaryView to DataStreamView
+             */
+
+            public stream_view(): DataStreamView;
+
+            /**
+             * convert BinaryView to DataStreamViewUseBigEndian
+             */
+
+            public big_stream_view(): DataStreamViewUseBigEndian;
         }
 
         /**

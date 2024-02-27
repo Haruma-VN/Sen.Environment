@@ -474,6 +474,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::String::register_class);
 				// Character
 				javascript->register_object(Script::Class::Character::register_class);
+				// BinaryView
+				javascript->register_object(Script::Class::BinaryView::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				// call main

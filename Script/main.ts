@@ -245,8 +245,6 @@ namespace Sen.Script {
             Sen.Script.Module.load();
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
-            let s = new Kernel.String("dsdsdsdsdsdsds");
-            Console.send(s.value);
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
             Executor.forward({ source: Kernel.arguments });
         } catch (e: any) {
