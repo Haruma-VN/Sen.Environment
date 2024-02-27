@@ -1008,12 +1008,12 @@ namespace Sen::Kernel::Interface::Script {
 			#pragma endregion
 
 			template <auto T> requires BooleanConstraint
-				inline static auto writeArrayBuffer(
-					JSContext* ctx,
-					JSValueConst this_val,
-					int argc,
-					JSValueConst* argv
-				) -> JSValue
+			inline static auto writeArrayBuffer(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
@@ -1052,7 +1052,7 @@ namespace Sen::Kernel::Interface::Script {
 						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
 					}
 					return JS_UNDEFINED;
-					}, "writeUint8Array"_sv);
+				}, "writeUint8Array"_sv);
 			}
 
 			template <auto T> requires BooleanConstraint

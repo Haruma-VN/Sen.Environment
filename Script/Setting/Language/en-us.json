@@ -297,5 +297,6 @@
     "popcap.rsb.obfuscate.version_number": "Changed version number",
     "popcap.rsb.obfuscate.modify_count": "Modify subgroup count",
     "popcap.rsb_patch.decode": "PopCap RSB-Patch: Decode",
-    "popcap.rsb_patch.encode": "PopCap RSB-Patch: Encode"
+    "popcap.rsb_patch.encode": "PopCap RSB-Patch: Encode",
+    "popcap.rsb.unpack_by_loose_constraints.skip_category": "Skip"
 }
