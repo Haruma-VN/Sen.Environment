@@ -287,7 +287,7 @@
     "popcap.pvz2.lawnstrings.convert.destination_type": "Destination type",
     "popcap.pvz2.lawnstrings.convert.text": "Raw text (version 6.8 and below)",
     "popcap.pvz2.lawnstrings.convert.map": "JSON Map (version 6.8 to version 8.9)",
-    "popcap.pvz2.lawnstrings.convert.array": "JSON Map (version 8.9 to now)",
+    "popcap.pvz2.lawnstrings.convert.array": "JSON Array (version 8.9 to now)",
     "popcap.pvz2.lawnstrings.convert.cn_text": "Chinese text (Select this for Chinese version)",
     "popcap.rsb.unpack_by_loose_constraints": "PopCap RSB: Unpack by Loose Constraints",
     "popcap.rsb.pack_resource": "PopCap RSB: Pack Resource",

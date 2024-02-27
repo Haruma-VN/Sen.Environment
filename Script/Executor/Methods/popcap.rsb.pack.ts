@@ -82,7 +82,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Pack {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.*)\.bundle$/gi],
+            filter: ["directory", /(.*)\.bundle$/gi],
         });
         return;
     }

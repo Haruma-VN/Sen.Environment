@@ -114,6 +114,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate
         Kernel.ArrayBuffer.random(packet_section);
         const rsg_section = new ArrayBuffer(64);
         Kernel.ArrayBuffer.random(rsg_section);
+        Console.send(`${Kernel.Language.get("popcap.rsb.obfuscate.modify_count")}: ${rsb_head_info.rsg_number}`, Definition.Console.Color.GREEN);
         for (let i = 0n; i < rsb_head_info.rsg_number; ++i) {
             const start_index = sen.read_position;
             const autopool_start_index = rsb_head_info.autopool_info_begin + i * 152n;
