@@ -1005,7 +1005,7 @@ namespace Sen::Kernel::Interface::Script {
 				return vec;
 			}
 
-#pragma endregion
+			#pragma endregion
 
 			template <auto T> requires BooleanConstraint
 				inline static auto writeArrayBuffer(
@@ -1021,9 +1021,14 @@ namespace Sen::Kernel::Interface::Script {
 					if (!s) {
 						return JS_EXCEPTION;
 					}
-					s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+					if (argc == 2) {
+						s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+					}
+					else {
+						s->writeBytes(from_arraybuffer(ctx, argv[0]));
+					}
 					return JS_UNDEFINED;
-					}, "writeArrayBuffer"_sv);
+				}, "writeArrayBuffer"_sv);
 			}
 
 			template <auto T> requires BooleanConstraint
