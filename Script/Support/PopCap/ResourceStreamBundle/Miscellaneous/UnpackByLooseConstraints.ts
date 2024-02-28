@@ -302,7 +302,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
                     ptx_before_number,
                 };
                 const rsg_file_list_pos: bigint = sen.readUint32(rsg_pos + 0x4cn);
-                if (rsg_file_list_pos !== 0x5cn && rsg_file_list_pos !== 0x1000n) {
+                if (rsg_file_list_pos !== 0x5cn && rsg_file_list_pos !== 0x1000n && rsg_file_list_pos !== 0xecn) {
                     Console.send(`${Kernel.Language.get("popcap.rsb.unpack_by_loose_constraints.skip_category")}: ${rsg_name}`, Definition.Console.Color.RED);
                     continue;
                 }
