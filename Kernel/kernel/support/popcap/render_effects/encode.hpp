@@ -85,7 +85,7 @@ namespace Sen::Kernel::Support::PopCap::RenderEffects {
 
 			explicit Encode(
 				std::string_view source
-			) : data(FileSystem::read_json(source))
+			) : data(*FileSystem::read_json(source))
 			{
 
 			}

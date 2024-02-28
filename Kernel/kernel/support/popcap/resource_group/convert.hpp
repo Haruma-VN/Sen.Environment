@@ -272,7 +272,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> void 
 			{
 				auto view = std::make_unique<ResourceGroup::Convert>(style);
-				FileSystem::write_json(destination, view->convert_whole(FileSystem::read_json(source)));
+				FileSystem::write_json(destination, view->convert_whole(*FileSystem::read_json(source)));
 				return;
 			}
 

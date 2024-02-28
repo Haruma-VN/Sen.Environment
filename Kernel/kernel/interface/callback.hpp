@@ -24,13 +24,15 @@ namespace Sen::Kernel::Interface {
 
 			std::vector<std::string> arguments;
 
+			std::unique_ptr<JS::Runtime> javascript;
+
 		public:
 
 			explicit Callback(
 				std::string_view argument,
 				ShellCallback callback,
 				const std::vector<std::string> & arguments
-			) : argument(argument), callback(callback), arguments(std::move(arguments))
+			) : argument(argument), callback(callback), arguments(std::move(arguments)), javascript(std::make_unique<JS::Runtime>())
 			{
 
 			}
@@ -44,14 +46,13 @@ namespace Sen::Kernel::Interface {
 			) = default;
 
 			/**
-			 * Execute method
+			 * Prepare the script
 			*/
 
-			inline auto execute(
+			inline auto prepare(
 
 			) -> void
 			{
-				auto javascript = std::make_unique<JS::Runtime>();
 				auto script_path = thiz.argument;
 				// shell callback
 				{
@@ -484,6 +485,16 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::BinaryView::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
+			}
+
+			/**
+			 * Execute method
+			*/
+
+			inline auto execute(
+
+			) -> void
+			{
 				// call main
 				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());
 				return;

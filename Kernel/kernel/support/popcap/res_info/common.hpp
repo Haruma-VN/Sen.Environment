@@ -134,7 +134,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				std::string_view destination
 			) -> void override final
 			{
-				auto res_info = FileSystem::read_json(source);
+				auto res_info = *FileSystem::read_json(source);
 				auto info = thiz.convert_info(res_info);
 				auto group_directory = Path::normalize(fmt::format("{}/{}", destination, "groups"));
 				FileSystem::create_directory(group_directory);
@@ -161,7 +161,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				std::string_view destination
 			) -> void override final
 			{
-				auto info = FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "info.json")));
+				auto info = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "info.json")));
 				auto res_info = nlohmann::ordered_json{
 					{"expand_path", info["information"]["expand_path"]}
 				};
@@ -170,7 +170,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"is_composite", group_value["is_composite"]}
 					};
 					for(auto & subgroup_name : group_value["subgroups"]) {
-						subgroups["subgroup"][subgroup_name.get<std::string>()] = FileSystem::read_json(Path::normalize(fmt::format("{}/{}/{}.json", source, "groups", subgroup_name)));
+						subgroups["subgroup"][subgroup_name.get<std::string>()] = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}/{}.json", source, "groups", subgroup_name)));
 					}
 					res_info["groups"][group_name] = subgroups;
 				}

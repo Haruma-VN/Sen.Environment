@@ -52,7 +52,7 @@ namespace Sen::Kernel::FileSystem
 
 	inline static auto read_json(
 		std::string_view source
-	) -> nlohmann::ordered_json const 
+	) -> std::shared_ptr<nlohmann::ordered_json> const 
 	{
 		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 			String::to_windows_style(source.data()))).data());
@@ -61,7 +61,7 @@ namespace Sen::Kernel::FileSystem
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();
-		return nlohmann::ordered_json::parse(buffer.str());
+		return std::make_shared<nlohmann::ordered_json>(nlohmann::ordered_json::parse(buffer.str()));
 	}
 
 	// Provide file path to write
@@ -83,7 +83,7 @@ namespace Sen::Kernel::FileSystem
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, '\t');
-		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
+		std::fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -460,9 +460,9 @@ namespace Sen::Kernel::FileSystem
 
 	inline static auto read_xml(
 		std::string_view source
-	) -> std::unique_ptr<tinyxml2::XMLDocument>
+	) -> std::shared_ptr<tinyxml2::XMLDocument>
 	{
-		auto xml = std::make_unique<tinyxml2::XMLDocument>();
+		auto xml = std::make_shared<tinyxml2::XMLDocument>();
 		auto data = FileSystem::read_file(source);
 		auto eResult = xml->Parse(data.data(), data.size());
 		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), source), "read_xml");

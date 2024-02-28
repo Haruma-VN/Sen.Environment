@@ -379,7 +379,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             std::string_view destination) -> void
         {
             auto pack = Pack{};
-            auto packet_info = FileSystem::read_json(fmt::format("{}/packet.json", source));
+            auto packet_info = *FileSystem::read_json(fmt::format("{}/packet.json", source));
             pack.process<true>(source, packet_info);
             pack.sen.out_file(destination);
             return;

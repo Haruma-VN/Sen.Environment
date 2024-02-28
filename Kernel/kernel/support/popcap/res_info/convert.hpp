@@ -335,7 +335,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					{"slot_count", 0},
 					{"groups", nlohmann::ordered_json::array()}
 				};
-				Convert::convert(FileSystem::read_json(source), result);
+				Convert::convert(*FileSystem::read_json(source), result);
 				FileSystem::write_json(destination, result);
 				return;
 			}

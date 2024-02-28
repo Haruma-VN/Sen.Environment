@@ -13,8 +13,9 @@ auto execute(
         auto script_path = Interface::make_standard_string(script);
         auto arguments = Interface::destruct_string_list(argument);
         Interface::Shell::callback = m_callback;
-        auto callback = std::make_unique<Interface::Callback>(script_path, m_callback, std::move(arguments));
-        callback->execute();
+        auto kernel = std::make_unique<Interface::Callback>(script_path, m_callback, std::move(arguments));
+        kernel->prepare();
+        kernel->execute();
     }
     catch(...)
     {

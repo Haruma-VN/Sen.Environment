@@ -151,7 +151,7 @@ namespace Sen::Kernel::Support::PopCap::CFW2
 			) -> void
 			{
 				auto& view = Encode::instance();
-				view.process(FileSystem::read_json(source));
+				view.process(*FileSystem::read_json(source));
 				view.sen->out_file(destination);
 				return;
 			}

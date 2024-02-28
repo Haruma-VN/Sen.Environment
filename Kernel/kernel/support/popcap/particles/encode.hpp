@@ -251,7 +251,7 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 
 			Encode(
 				std::string_view source
-			) : particle(FileSystem::read_json(source)), sen(std::make_unique<DataStreamView>())
+			) : particle(*FileSystem::read_json(source)), sen(std::make_unique<DataStreamView>())
 			{
 
 			}

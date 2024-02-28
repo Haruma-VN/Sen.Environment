@@ -61,7 +61,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			explicit Encode(
 				std::string_view source
-			) : resource(FileSystem::read_json(source)), sen(std::make_unique<DataStreamView>())
+			) : resource(*FileSystem::read_json(source)), sen(std::make_unique<DataStreamView>())
 			{
 			}
 

@@ -411,7 +411,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 				{
 					auto encoder = Encode{};
 					encoder.process(
-						FileSystem::read_json(Path::Script::join(source, "definition.json"_sv)),
+						*FileSystem::read_json(Path::Script::join(source, "definition.json"_sv)),
 						Path::Script::join(source, "embedded_audio"_sv)
 					);
 					encoder.sen.out_file(destination);

@@ -168,7 +168,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				auto source = JS::Converter::get_c_string(context, argv[0]);
 				auto json = Sen::Kernel::FileSystem::read_json(source.get());
-				auto js_obj = json_to_js_value(context, json);
+				auto js_obj = json_to_js_value(context, *json);
 				return js_obj;
 			}, "deserialize_fs"_sv);
 		}

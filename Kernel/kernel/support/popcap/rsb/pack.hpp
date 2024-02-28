@@ -509,7 +509,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             if (version == 3)
             {
                 auto description = FileSystem::read_json(fmt::format("{}/description.json", source));
-                write_resources_description(head_info, description);
+                write_resources_description(head_info, *description);
             }
             sen->writeNull(beautify_length<std::uint32_t>(static_cast<std::uint32_t>(sen->write_pos)));
             //
@@ -548,7 +548,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 manifest_path = String::view(fmt::format("{}/manifest.json", source));
             }
             auto manifest = FileSystem::read_json(manifest_path);
-            pack.process<check_packet>(source, manifest);
+            pack.process<check_packet>(source, *manifest);
             pack.sen->out_file(destination);
             return;
         }
