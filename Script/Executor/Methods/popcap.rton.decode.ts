@@ -82,7 +82,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.rton$/gi],
+            filter: ["file", /(.+)(\.rton|pp\.dat)$/gi],
         });
         return;
     }

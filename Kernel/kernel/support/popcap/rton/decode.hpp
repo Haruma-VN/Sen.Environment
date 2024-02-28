@@ -398,8 +398,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         // -----------------------------------------
 
         explicit Decode(
-            DataStreamView & it
-        ) : sen(&it)
+            const std::vector<uint8_t> & data
+        ) : sen(std::make_unique<DataStreamView>(data))
         {
 
         }
@@ -492,8 +492,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto source_buffer = DataStreamView{source};
             auto dest = DataStreamView{};
             decrypt(source_buffer, dest, key, iv);
-            auto rton = std::make_unique<Decode>(dest);
-            FileSystem::write_file(destination, rton->decode_rton());
+            auto rton = Decode(dest.toBytes());
+            FileSystem::write_file(destination, rton.decode_rton());
             return;
         }
 

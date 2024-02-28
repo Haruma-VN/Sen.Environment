@@ -497,8 +497,9 @@ namespace Sen::Kernel::Support::PopCap::RTON
             auto json = static_cast<ondemand::document>(parser.iterate(str));
             auto encoder = Encode{};
             encoder.encode_rton(json);
-            encrypt(source_buffer, encoder.sen.get(), key, iv);
-            encoder.sen->out_file(destination);
+            auto view = DataStreamView{};
+            encrypt(*encoder.sen, &view, key, iv);
+            view.out_file(destination);
             return;
         }
 
