@@ -83,7 +83,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             sen.writeUint32(head_info.ptx_info_each_length);
             sen.writeUint32(head_info.part1_begin);
             sen.writeUint32(head_info.part2_begin);
-            sen.writeUint32(head_info.part2_begin);
+            sen.writeUint32(head_info.part3_begin);
             if (head_info.version == 4)
             {
                 sen.writeUint32(head_info.file_offset);
@@ -145,6 +145,108 @@ namespace Sen::Kernel::Support::PopCap::RSB
             }
             return;
         }
+
+        inline auto throw_in_pool(
+            DataStreamView &part3_data,
+            std::map<std::string, int> &string_pool,
+            const std::string &pool_key) -> int
+        {
+            if (!string_pool.contains(pool_key)) {
+                string_pool.emplace(pool_key, static_cast<int>(part3_data.write_pos));
+                part3_data.writeStringByEmpty(pool_key);
+            }
+            return string_pool[pool_key];
+        }
+
+        inline auto write_resources_description(
+            RSB_HeadInfo<uint32_t> &head_info,
+            const Description &description) -> void
+        {
+            auto part1_data = DataStreamView{};
+            auto part2_data = DataStreamView{};
+            auto part3_data = DataStreamView{};
+            auto string_pool = std::map<std::string, int>{};
+            part3_data.writeNull(1);
+            string_pool.emplace("", 0);
+            for (const auto &[group_key, group_value] : description.groups) {
+                auto id_part3_pos = throw_in_pool(part3_data, string_pool, group_key);
+                part1_data.writeInt32(id_part3_pos);
+                part1_data.writeInt32(group_value.subgroups.size());
+                part1_data.writeInt32(0x10);
+                for (const auto &[subgroup_key, subgroup_value] : group_value.subgroups) {
+                    part1_data.writeInt32(subgroup_value.res);
+                    auto language = subgroup_value.language;
+                    if (language.empty()) {
+                        part1_data.writeInt32(0x0);
+                    }
+                    else {
+                        if (language.size() != 4) {
+                            throw Exception("invaild_language");
+                        }
+                        part1_data.writeString(fmt::format("{}", language));
+                    }
+                    auto rsg_id_part3_pos = throw_in_pool(part3_data, string_pool, subgroup_key);
+                    part1_data.writeInt32(rsg_id_part3_pos);
+                    part1_data.writeInt32(subgroup_value.resources.size());
+                    for (const auto &[resources_key, resources_value] : subgroup_value.resources) {
+                        auto id_part2_pos = static_cast<int>(part2_data.write_pos);
+                        part1_data.writeInt32(id_part2_pos);
+                        //
+                        part2_data.writeInt32(0x0);
+                        auto type = static_cast<uint16_t>(resources_value.type);
+                        part2_data.writeUint16(type);
+                        part2_data.writeUint16(0x1C);
+                        auto backup_pos = part2_data.write_pos;
+                        part2_data.write_pos += 0x8;
+                        auto new_id_part3_pos = throw_in_pool(part3_data, string_pool, resources_key);
+                        auto item_path = resources_value.path;
+                        item_path = std::regex_replace(item_path, std::regex("/"), "\\");
+                        auto path_part3_pos = throw_in_pool(part3_data, string_pool, item_path);
+                        part2_data.writeInt32(new_id_part3_pos);
+                        part2_data.writeInt32(path_part3_pos);
+                        auto properties = resources_value.properties;
+                        part2_data.writeInt32(properties.size());
+                        if (type == 0) {
+                            auto ptx_info_begin_pos = static_cast<int>(part2_data.write_pos);
+                            auto ptx_info = resources_value.ptx_info;
+                            part2_data.writeUint16(ptx_info.imagetype);
+                            part2_data.writeUint16(ptx_info.aflags);
+                            part2_data.writeUint16(ptx_info.x);
+                            part2_data.writeUint16(ptx_info.y);
+                            part2_data.writeUint16(ptx_info.ax);
+                            part2_data.writeUint16(ptx_info.ay);
+                            part2_data.writeUint16(ptx_info.aw);
+                            part2_data.writeUint16(ptx_info.ah);
+                            part2_data.writeUint16(ptx_info.rows);
+                            part2_data.writeUint16(ptx_info.cols);
+                            auto parent_part3_pos = throw_in_pool(part3_data, string_pool, ptx_info.parent);
+                            part2_data.writeInt32(parent_part3_pos);
+                            //
+                            auto ptx_info_end_pos = static_cast<int>(part2_data.write_pos);
+                            part2_data.write_pos = backup_pos;
+                            part2_data.writeInt32(ptx_info_end_pos);
+                            part2_data.writeInt32(ptx_info_begin_pos);
+                            part2_data.write_pos = ptx_info_end_pos;
+                        }
+                        for (const auto &[properties_key, properties_value] : properties) {
+                            auto key_pos = throw_in_pool(part3_data, string_pool, properties_key);
+                            auto value_pos = throw_in_pool(part3_data, string_pool, properties_value);
+                            part2_data.writeInt32(key_pos);
+                            part2_data.writeInt32(0x0);
+                            part2_data.writeInt32(value_pos);
+                        }
+                    }
+                }
+            }
+            head_info.part1_begin = static_cast<uint32_t>(sen.write_pos);
+            sen.writeBytes(part1_data.toBytes());
+            head_info.part2_begin = static_cast<uint32_t>(sen.write_pos);
+            sen.writeBytes(part2_data.toBytes());
+            head_info.part3_begin = static_cast<uint32_t>(sen.write_pos);
+            sen.writeBytes(part3_data.toBytes());
+            return;
+        }
+
 
         inline auto constexpr is_ascii(
             std::string_view str
@@ -267,12 +369,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     composite_info.writeUint32(subgroup_value.category[0]);
                     if (subgroup_value.category[1].is_string())
                     {
-                        if (subgroup_value.category[1].size() != 4)
+                        auto str = subgroup_value.category[1].get<std::string>();
+                        if (str.size() != 4)
                         {
-                            throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), subgroup_value.category[1].size(), 
-                                Language::get("but_received"), subgroup_value.category[1]), std::source_location::current(), "process");
+                            throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), str.size(), 
+                                Language::get("but_received"), str), std::source_location::current(), "process");
                         }
-                        composite_info.writeString(subgroup_value.category[1].get<std::string>());
+                        composite_info.writeString(str);
                     }
                     else
                     {
@@ -373,7 +476,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             //
             if (version == 3)
             {
-                // write_resources_description
+                auto description = FileSystem::read_json(fmt::format("{}/description.json", source));
+                write_resources_description(head_info, description);
             }
             sen.writeNull(beautify_length<std::uint32_t>(static_cast<std::uint32_t>(sen.write_pos)));
             //

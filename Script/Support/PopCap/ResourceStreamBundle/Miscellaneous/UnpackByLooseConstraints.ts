@@ -173,25 +173,28 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
         const part0_length: bigint = rsg_info.part0_pos + rsg_info.part0_size;
         const part0_zlib_length: bigint = rsg_info.part0_pos + rsg_info.part0_zlib;
         let compression_flags = 3n;
+        const rsg_pos: bigint = pos + rsg_info.size;
         if (part0_length > 0n || part0_zlib_length > 0n) {
             if (check_no_zlib_head(sen, rsg_info.part0_pos + pos)) {
                 compression_flags = 1n;
                 raw_data.writeArrayBuffer(sen.getArrayBuffer(rsg_info.part0_pos + pos, part0_length + pos));
             } else {
-                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, part0_zlib_length + pos)));
-                raw_data.writeArrayBuffer(uncompress.stream_view().toArrayBuffer());
+                const end_pos: bigint = part0_zlib_length + pos;
+                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos)));
+                raw_data.writeArrayBuffer(uncompress.value);
             }
         }
-        const use_atlas: boolean = rsg_info.part1_pos !== 0n && rsg_info.part1_size !== 0n && rsg_info.part1_zlib !== 0n;
+        //const use_atlas: boolean = rsg_info.part1_pos !== 0n && rsg_info.part1_size !== 0n && rsg_info.part1_zlib !== 0n;
         let atlas_pos = 0n;
-        if (use_atlas || rsg_info.ptx_number !== 0n) {
+        if (rsg_info.ptx_number !== 0n) {
             atlas_pos = raw_data.write_position;
             if (check_no_zlib_head(sen, rsg_info.part1_pos + pos)) {
                 compression_flags = 0n;
                 raw_data.writeArrayBuffer(sen.getArrayBuffer(rsg_info.part1_pos + pos, rsg_info.part1_pos + rsg_info.part1_size + pos));
             } else {
-                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part1_pos + pos, rsg_info.part1_pos + rsg_info.part1_zlib + pos)));
-                raw_data.writeArrayBuffer(uncompress.stream_view().toArrayBuffer());
+                const end_pos: bigint = rsg_info.part1_pos + rsg_info.part1_zlib + pos;
+                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part1_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos)));
+                raw_data.writeArrayBuffer(uncompress.value);
             }
         }
         return [atlas_pos, compression_flags];
@@ -298,8 +301,9 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
                     ptx_number,
                     ptx_before_number,
                 };
-                if (sen.readUint32(rsg_pos + 0x4cn) !== 0x5cn) {
-                    Console.error(`${Kernel.Language.get("popcap.rsb.unpack_by_loose_constraints.skip_category")}: ${rsg_name}`);
+                const rsg_file_list_pos: bigint = sen.readUint32(rsg_pos + 0x4cn);
+                if (rsg_file_list_pos !== 0x5cn && rsg_file_list_pos !== 0x1000n) {
+                    Console.send(`${Kernel.Language.get("popcap.rsb.unpack_by_loose_constraints.skip_category")}: ${rsg_name}`, Definition.Console.Color.RED);
                     continue;
                 }
                 const packet_info: PacketInfo = unpack_rsg(sen, rsb_head_info, composite_rsg_info, destination);

@@ -888,7 +888,7 @@ namespace Sen::Kernel::Definition
                     return;
                 }
                 thiz.writeString(str);
-                thiz.readUint8(static_cast<std::uint64_t>(0));
+                thiz.writeUint8(static_cast<std::uint64_t>(0));
                 return;
             }
 

@@ -50,7 +50,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         resources_info_list.emplace_back(resources_info);
                     }
                     auto rsg_id = sen->getStringByEmpty(part3_pos + rsg_id_part3_pos);
-                    auto des_subgroup = DescriptionSubGroup{ std::to_string(resolution_ratio), language};
+                    auto des_subgroup = DescriptionSubGroup{ resolution_ratio, language};
                     subgroup.emplace(rsg_id, des_subgroup);
                     subgroup_keys.emplace_back(rsg_id);
                     auto res_rsg_info = ResourcesRsgInfo{
@@ -93,16 +93,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto properties_num = sen->readInt32();
                         auto ptx_info_list = PropertiesPtxInfo{};
                         if (ptx_info_part2_end_pos * ptx_info_part2_begin_pos != 0) {
-                            ptx_info_list.imagetype = std::to_string(sen->readUint16());
-                            ptx_info_list.aflags = std::to_string(sen->readUint16());
-                            ptx_info_list.x = std::to_string(sen->readUint16());
-                            ptx_info_list.y = std::to_string(sen->readUint16());
-                            ptx_info_list.ax = std::to_string(sen->readUint16());
-                            ptx_info_list.ay = std::to_string(sen->readUint16());
-                            ptx_info_list.aw = std::to_string(sen->readUint16());
-                            ptx_info_list.ah = std::to_string(sen->readUint16());
-                            ptx_info_list.rows = std::to_string(sen->readUint16());
-                            ptx_info_list.cols = std::to_string(sen->readUint16());
+                            ptx_info_list.imagetype = sen->readUint16();
+                            ptx_info_list.aflags = sen->readUint16();
+                            ptx_info_list.x = sen->readUint16();
+                            ptx_info_list.y = sen->readUint16();
+                            ptx_info_list.ax = sen->readUint16();
+                            ptx_info_list.ay = sen->readUint16();
+                            ptx_info_list.aw = sen->readUint16();
+                            ptx_info_list.ah = sen->readUint16();
+                            ptx_info_list.rows = sen->readUint16();
+                            ptx_info_list.cols = sen->readUint16();
                             ptx_info_list.parent = sen->getStringByEmpty(part3_pos + sen->readInt32());
                         }
                         auto properties_info_list = std::map<string, string>{};
@@ -117,7 +117,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             properties_info_list.emplace(std::move(key), std::move(value));
                         }
                         it->groups[description_group_key[i]].subgroups[subgroup_keys[k]].resources.insert(std::pair{res_id, DescriptionResources{
-                            std::move(std::to_string(type)),
+                            type,
                             std::move(res_path),
                             std::move(ptx_info_list),
                             std::move(properties_info_list),
@@ -376,6 +376,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
+                std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
                 auto rsg_group = RSG_Group<T>{!is_composite};
                 for (auto k : Range(sen->readUint32(static_cast<std::uint64_t>(composite_start_pos + 0x480))))
                 {
@@ -384,6 +385,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(static_cast<std::uint64_t>(rsg_info_pos));
+                    std::transform(rsg_name.begin(), rsg_name.end(), rsg_name.begin(), ::toupper);
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     rsg_group.subgroup.insert(std::pair{std::move(rsg_name), std::move(rsg_info)});
                 }

@@ -469,16 +469,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
 #pragma region PropertiesPtxInfo
     struct PropertiesPtxInfo
     {
-        std::string imagetype;
-        std::string aflags;
-        std::string x;
-        std::string y;
-        std::string ax;
-        std::string ay;
-        std::string aw;
-        std::string ah;
-        std::string rows;
-        std::string cols;
+        uint16_t imagetype;
+        uint16_t aflags;
+        uint16_t x;
+        uint16_t y;
+        uint16_t ax;
+        uint16_t ay;
+        uint16_t aw;
+        uint16_t ah;
+        uint16_t rows;
+        uint16_t cols;
         std::string parent;
 
         PropertiesPtxInfo(
@@ -532,7 +532,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     struct DescriptionResources
     {
     public:
-        std::string type;
+        int type;
         std::string path;
         PropertiesPtxInfo ptx_info;
         std::map<std::string, std::string> properties;
@@ -542,7 +542,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit DescriptionResources(
-            const std::string& type,
+            int type,
             const std::string& path,
             const PropertiesPtxInfo& ptx_info,
             const std::map<std::string, std::string>& properties
@@ -583,7 +583,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     struct DescriptionSubGroup
     {
     public:
-        std::string res;
+        int res;
         std::string language;
         std::map<std::string, DescriptionResources> resources;
 
@@ -592,7 +592,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             ) = default;
 
         explicit DescriptionSubGroup(
-            const std::string & res,
+            int res,
             const std::string & language
         ) : res(res), language(language)
         {
