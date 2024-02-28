@@ -325,7 +325,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
     export function process_fs(source: string, destination: string): void {
         const sen = new Kernel.DataStreamView(source);
         const manifest: Manifest = process(sen, destination);
-        Kernel.JSON.serialize_fs(`${destination}/mainfest.json`, manifest, 1, true);
+        Kernel.JSON.serialize_fs(`${destination}/manifest.json`, manifest, 1, true);
         return;
     }
 }

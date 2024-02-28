@@ -53,14 +53,14 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
                 [2n, "rgba_8888", "rgba_8888 (0, Android)"],
                 [3n, "rgba_4444", "rgba_4444 (1, Android & iOS)"],
                 [4n, "rgb_565", "rgb_565 (2, Android)"],
-                [5n, "rgba_5551", "(3, Android & iOS)"],
-                [6n, "rgba_4444_tiled", "(21, Android & iOS)"],
-                [7n, "rgb_565_tiled", "(22, Android)"],
-                [8n, "rgba_5551_tiled", "(23, Android & iOS)"],
-                [9n, "rgba_pvrtc4", "(30, iOS)"],
-                [10n, "rgb_etc1_a_8", "(147, Android)"],
-                [11n, "rgb_etc1_a_palette", `(147, ${Kernel.Language.get("pvz2_android_cn")})`],
-                [12n, "rgb_pvrtc4_a_8", "(148, iOS)"],
+                [5n, "rgba_5551", "rgba_5551 (3, Android & iOS)"],
+                [6n, "rgba_4444_tiled", "rgba_4444_tiled (21, Android & iOS)"],
+                [7n, "rgb_565_tiled", "rgb_565_tiled (22, Android)"],
+                [8n, "rgba_5551_tiled", "rgba_5551_tiled (23, Android & iOS)"],
+                [9n, "rgba_pvrtc4", "rgba_pvrtc4 (30, iOS)"],
+                [10n, "rgb_etc1_a_8", "rgb_etc1_a_8 (147, Android)"],
+                [11n, "rgb_etc1_a_palette", `rgb_etc1_a_palette (147, ${Kernel.Language.get("pvz2_android_cn")})`],
+                [12n, "rgb_pvrtc4_a_8", "rgb_pvrtc4_a_8 (148, iOS)"],
             ];
         }
 
