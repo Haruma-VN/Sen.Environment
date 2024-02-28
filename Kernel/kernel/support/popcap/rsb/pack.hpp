@@ -56,37 +56,68 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     class Pack
     {
-        DataStreamView sen;
+    public:
+
+        Pack(
+
+        ) : sen(std::make_shared<DataStreamView>())
+        {
+
+        }
+
+        Pack(
+            DataStreamView& that
+        ) : sen(&that)
+        {
+
+        }
+
+        ~Pack(
+
+        ) = default;
+
+        Pack(
+            Pack&& that
+        ) = delete;
+
+        auto operator =(
+            Pack&& that
+        )->Pack & = delete;
+
+    private:
+
+        std::shared_ptr<DataStreamView> sen;
 
     protected:
         inline auto write_head(
-            const RSB_HeadInfo<uint32_t> &head_info) -> void
+            const RSB_HeadInfo<uint32_t> &head_info
+        ) const -> void
         {
-            sen.writeUint32(head_info.file_offset, 12ull);
-            sen.writeUint32(head_info.file_list_length);
-            sen.writeUint32(head_info.file_list_begin);
-            sen.writeUint32(head_info.rsg_list_length, 32ull);
-            sen.writeUint32(head_info.rsg_list_begin);
-            sen.writeUint32(head_info.rsg_number);
-            sen.writeUint32(head_info.rsg_info_begin);
-            sen.writeUint32(head_info.rsg_info_each_length);
-            sen.writeUint32(head_info.composite_number);
-            sen.writeUint32(head_info.composite_info_begin);
-            sen.writeUint32(head_info.composite_info_each_length);
-            sen.writeUint32(head_info.composite_list_length);
-            sen.writeUint32(head_info.composite_list_begin);
-            sen.writeUint32(head_info.autopool_number);
-            sen.writeUint32(head_info.autopool_info_begin);
-            sen.writeUint32(head_info.autopool_info_each_length);
-            sen.writeUint32(head_info.ptx_number);
-            sen.writeUint32(head_info.ptx_info_begin);
-            sen.writeUint32(head_info.ptx_info_each_length);
-            sen.writeUint32(head_info.part1_begin);
-            sen.writeUint32(head_info.part2_begin);
-            sen.writeUint32(head_info.part3_begin);
+            sen->writeUint32(head_info.file_offset, 12ull);
+            sen->writeUint32(head_info.file_list_length);
+            sen->writeUint32(head_info.file_list_begin);
+            sen->writeUint32(head_info.rsg_list_length, 32ull);
+            sen->writeUint32(head_info.rsg_list_begin);
+            sen->writeUint32(head_info.rsg_number);
+            sen->writeUint32(head_info.rsg_info_begin);
+            sen->writeUint32(head_info.rsg_info_each_length);
+            sen->writeUint32(head_info.composite_number);
+            sen->writeUint32(head_info.composite_info_begin);
+            sen->writeUint32(head_info.composite_info_each_length);
+            sen->writeUint32(head_info.composite_list_length);
+            sen->writeUint32(head_info.composite_list_begin);
+            sen->writeUint32(head_info.autopool_number);
+            sen->writeUint32(head_info.autopool_info_begin);
+            sen->writeUint32(head_info.autopool_info_each_length);
+            sen->writeUint32(head_info.ptx_number);
+            sen->writeUint32(head_info.ptx_info_begin);
+            sen->writeUint32(head_info.ptx_info_each_length);
+            sen->writeUint32(head_info.part1_begin);
+            sen->writeUint32(head_info.part2_begin);
+            sen->writeUint32(head_info.part3_begin);
             if (head_info.version == 4)
             {
-                sen.writeUint32(head_info.file_offset);
+                sen->writeUint32(head_info.file_offset);
             }
             return;
         }
@@ -95,15 +126,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
             const PathTemp &path_temp
         ) -> void
         {
-            auto begin_pos = sen.write_pos;
-            sen.writeStringFourByte(path_temp.path_slice);
-            auto backup_pos = sen.write_pos;
+            auto begin_pos = sen->write_pos;
+            sen->writeStringFourByte(path_temp.path_slice);
+            auto backup_pos = sen->write_pos;
             for (auto i : Range<int>(path_temp.positions.size()))
             {
-                sen.writeUint24(path_temp.positions[i].position, begin_pos + static_cast<std::uint64_t>(path_temp.positions[i].offset * 4 + 1));
+                sen->writeUint24(path_temp.positions[i].position, begin_pos + static_cast<std::uint64_t>(path_temp.positions[i].offset * 4 + 1));
             }
-            sen.write_pos = backup_pos;
-            sen.writeUint32(path_temp.pool_index);
+            sen->write_pos = backup_pos;
+            sen->writeUint32(path_temp.pool_index);
             return;
         }
 
@@ -149,7 +180,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto throw_in_pool(
             DataStreamView &part3_data,
             std::map<std::string, int> &string_pool,
-            const std::string &pool_key) -> int
+            const std::string &pool_key
+        ) const -> int
         {
             if (!string_pool.contains(pool_key)) {
                 string_pool.emplace(pool_key, static_cast<int>(part3_data.write_pos));
@@ -160,7 +192,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto write_resources_description(
             RSB_HeadInfo<uint32_t> &head_info,
-            const Description &description) -> void
+            const Description &description
+        ) const -> void
         {
             auto part1_data = DataStreamView{};
             auto part2_data = DataStreamView{};
@@ -175,20 +208,20 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 part1_data.writeInt32(0x10);
                 for (const auto &[subgroup_key, subgroup_value] : group_value.subgroups) {
                     part1_data.writeInt32(subgroup_value.res);
-                    auto language = subgroup_value.language;
+                    auto& language = subgroup_value.language;
                     if (language.empty()) {
                         part1_data.writeInt32(0x0);
                     }
                     else {
                         if (language.size() != 4) {
-                            throw Exception("invaild_language");
+                            throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_language"), language.size()), std::source_location::current(), "write_resources_description");
                         }
                         part1_data.writeString(fmt::format("{}", language));
                     }
                     auto rsg_id_part3_pos = throw_in_pool(part3_data, string_pool, subgroup_key);
                     part1_data.writeInt32(rsg_id_part3_pos);
                     part1_data.writeInt32(subgroup_value.resources.size());
-                    for (const auto &[resources_key, resources_value] : subgroup_value.resources) {
+                    for (auto &[resources_key, resources_value] : subgroup_value.resources) {
                         auto id_part2_pos = static_cast<int>(part2_data.write_pos);
                         part1_data.writeInt32(id_part2_pos);
                         //
@@ -199,16 +232,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto backup_pos = part2_data.write_pos;
                         part2_data.write_pos += 0x8;
                         auto new_id_part3_pos = throw_in_pool(part3_data, string_pool, resources_key);
-                        auto item_path = resources_value.path;
-                        item_path = std::regex_replace(item_path, std::regex("/"), "\\");
+                        auto item_path = std::regex_replace(resources_value.path, std::regex("/"), "\\");
                         auto path_part3_pos = throw_in_pool(part3_data, string_pool, item_path);
                         part2_data.writeInt32(new_id_part3_pos);
                         part2_data.writeInt32(path_part3_pos);
-                        auto properties = resources_value.properties;
-                        part2_data.writeInt32(properties.size());
+                        auto& properties = resources_value.properties;
+                        part2_data.writeInt32(static_cast<std::int32_t>(properties.size()));
                         if (type == 0) {
                             auto ptx_info_begin_pos = static_cast<int>(part2_data.write_pos);
-                            auto ptx_info = resources_value.ptx_info;
+                            auto &ptx_info = resources_value.ptx_info;
                             part2_data.writeUint16(ptx_info.imagetype);
                             part2_data.writeUint16(ptx_info.aflags);
                             part2_data.writeUint16(ptx_info.x);
@@ -226,7 +258,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             part2_data.write_pos = backup_pos;
                             part2_data.writeInt32(ptx_info_end_pos);
                             part2_data.writeInt32(ptx_info_begin_pos);
-                            part2_data.write_pos = ptx_info_end_pos;
+                            part2_data.write_pos = static_cast<std::size_t>(ptx_info_end_pos);
                         }
                         for (const auto &[properties_key, properties_value] : properties) {
                             auto key_pos = throw_in_pool(part3_data, string_pool, properties_key);
@@ -238,12 +270,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     }
                 }
             }
-            head_info.part1_begin = static_cast<uint32_t>(sen.write_pos);
-            sen.writeBytes(part1_data.toBytes());
-            head_info.part2_begin = static_cast<uint32_t>(sen.write_pos);
-            sen.writeBytes(part2_data.toBytes());
-            head_info.part3_begin = static_cast<uint32_t>(sen.write_pos);
-            sen.writeBytes(part3_data.toBytes());
+            head_info.part1_begin = static_cast<uint32_t>(sen->write_pos);
+            sen->writeBytes(part1_data.toBytes());
+            head_info.part2_begin = static_cast<uint32_t>(sen->write_pos);
+            sen->writeBytes(part2_data.toBytes());
+            head_info.part3_begin = static_cast<uint32_t>(sen->write_pos);
+            sen->writeBytes(part3_data.toBytes());
             return;
         }
 
@@ -283,15 +315,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
         ) -> void
         {
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");
-            sen.writeString("1bsr"_sv);
+            sen->writeString("1bsr"_sv);
             auto version = manifest.version;
-            if (version != 3 && version != 4)
+            if (version != 3 and version != 4)
             {
                 throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_rsb_version"), version), std::source_location::current(), "process");
             }
             auto file_list_begin_pos = version == 4 ? 0x70 : 0x6C;
-            sen.writeUint32(version);
-            sen.writeNull(static_cast<std::size_t>(file_list_begin_pos - 8));
+            sen->writeUint32(version);
+            sen->writeNull(static_cast<std::size_t>(file_list_begin_pos - 8));
             auto head_info = RSB_HeadInfo<uint32_t>{};
             auto ptx_info_size = manifest.ptx_info_size;
             if (ptx_info_size != 0x10 and ptx_info_size != 0x14 and ptx_info_size != 0x18)
@@ -441,57 +473,57 @@ namespace Sen::Kernel::Support::PopCap::RSB
             {
                 write_file_list(item_path_temp_list[i]);
             }
-            head_info.file_list_length = static_cast<uint32_t>(sen.write_pos - file_list_begin_pos);
+            head_info.file_list_length = static_cast<uint32_t>(sen->write_pos - file_list_begin_pos);
             //
-            head_info.rsg_list_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.rsg_list_begin = static_cast<uint32_t>(sen->write_pos);
             for (auto i : Range<int>(packet_path_temp_list.size()))
             {
                 write_file_list(packet_path_temp_list[i]);
             }
-            head_info.rsg_list_length = static_cast<uint32_t>(sen.write_pos - head_info.rsg_list_begin);
+            head_info.rsg_list_length = static_cast<uint32_t>(sen->write_pos - head_info.rsg_list_begin);
             head_info.composite_number = manifest.group.size();
-            head_info.composite_info_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.composite_info_begin = static_cast<uint32_t>(sen->write_pos);
             head_info.composite_info_each_length = 1156;
-            sen.writeBytes(composite_info.toBytes());
+            sen->writeBytes(composite_info.toBytes());
             //
-            head_info.composite_list_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.composite_list_begin = static_cast<uint32_t>(sen->write_pos);
             for (auto i : Range<int>(composite_path_temp_list.size()))
             {
                 write_file_list(composite_path_temp_list[i]);
             }
-            head_info.composite_list_length = static_cast<uint32_t>(sen.write_pos - head_info.composite_list_begin);
+            head_info.composite_list_length = static_cast<uint32_t>(sen->write_pos - head_info.composite_list_begin);
             //
-            head_info.rsg_info_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.rsg_info_begin = static_cast<uint32_t>(sen->write_pos);
             head_info.rsg_number = packet_index;
-            sen.writeBytes(rsg_info.toBytes());
+            sen->writeBytes(rsg_info.toBytes());
             //
             head_info.autopool_info_each_length = 152;
-            head_info.autopool_info_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.autopool_info_begin = static_cast<uint32_t>(sen->write_pos);
             head_info.autopool_number = packet_index;
-            sen.writeBytes(autopool_info.toBytes());
+            sen->writeBytes(autopool_info.toBytes());
             //
-            head_info.ptx_info_begin = static_cast<uint32_t>(sen.write_pos);
+            head_info.ptx_info_begin = static_cast<uint32_t>(sen->write_pos);
             head_info.ptx_number = ptx_before_number;
-            sen.writeBytes(stream_ptx_info.toBytes());
+            sen->writeBytes(stream_ptx_info.toBytes());
             //
             if (version == 3)
             {
                 auto description = FileSystem::read_json(fmt::format("{}/description.json", source));
                 write_resources_description(head_info, description);
             }
-            sen.writeNull(beautify_length<std::uint32_t>(static_cast<std::uint32_t>(sen.write_pos)));
+            sen->writeNull(beautify_length<std::uint32_t>(static_cast<std::uint32_t>(sen->write_pos)));
             //
-            auto file_offset = static_cast<uint32_t>(sen.write_pos);
+            auto file_offset = static_cast<uint32_t>(sen->write_pos);
             head_info.file_offset = file_offset;
-            sen.writeBytes(packet_data.toBytes());
+            sen->writeBytes(packet_data.toBytes());
             //
-            sen.read_pos = head_info.rsg_info_begin;
+            sen->read_pos = head_info.rsg_info_begin;
             head_info.rsg_info_each_length = 0xCC;
             for (auto i : Range<int>(packet_index))
             {
                 auto rsg_info_file_pos = static_cast<uint64_t>((head_info.rsg_info_begin + i * head_info.rsg_info_each_length) + 128);
-                auto packet_pos = sen.readUint32(rsg_info_file_pos);
-                sen.writeUint32((file_offset + packet_pos), rsg_info_file_pos);
+                auto packet_pos = sen->readUint32(rsg_info_file_pos);
+                sen->writeUint32((file_offset + packet_pos), rsg_info_file_pos);
             }
             head_info.version = version;
             write_head(head_info);
@@ -517,7 +549,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             }
             auto manifest = FileSystem::read_json(manifest_path);
             pack.process<check_packet>(source, manifest);
-            pack.sen.out_file(destination);
+            pack.sen->out_file(destination);
             return;
         }
     };
