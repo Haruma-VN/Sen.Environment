@@ -56,8 +56,8 @@ namespace Sen::Kernel::Interface {
 				auto script_path = thiz.argument;
 				// shell callback
 				{
-					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}));
-					auto shell_version = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}));
+					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}), nullptr);
+					auto shell_version = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}), nullptr);
 					javascript->add_constant<int>(Kernel::version, "Sen"_sv, "Kernel"_sv, "version"_sv);
 					javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen"_sv, "Shell"_sv, "version"_sv);
 					javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen"_sv, "Shell"_sv, "is_gui"_sv);

@@ -61,7 +61,7 @@ using CStringView = StringView;
 
 using CStringList = StringList;
 
-typedef CStringView(*ShellCallback)(CStringList list);
+typedef CStringView(*ShellCallback)(CStringList list, void* proxy);
 
 namespace Sen::Shell {
 

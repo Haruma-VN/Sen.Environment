@@ -28,6 +28,12 @@ target_include_directories(
 	..
 )
 
+if(NOT (CMAKE_SYSTEM_NAME MATCHES "iOS" OR CMAKE_SYSTEM_NAME MATCHES "Android"))
+    add_subdirectory(./deps/tinyfiledialogs)
+    target_link_libraries(${PROJECT_NAME} PRIVATE tinyfiledialogs)
+endif()
+
+
 add_subdirectory(./deps/cpp-httplib)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

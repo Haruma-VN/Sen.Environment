@@ -77,7 +77,8 @@ inline static auto convert_color(
 }
 
 inline static auto callback(
-    CStringList list
+    CStringList list,
+    void* proxy
 ) -> CStringView
 {
     auto result = StringList::to_vector(list);

@@ -7,10 +7,10 @@ import 'package:winshell/components/model/page_view.dart';
 import 'package:winshell/components/model/text.dart';
 import 'package:winshell/components/model/theme.dart';
 import 'package:winshell/interface/shell.dart';
+//import 'package:winshell/interface/shell.dart';
+import 'package:winshell/interface/test.dart';
 
 void main() {
-  var kernel = Kernel();
-  kernel.execute();
   runApp(const MyApp());
 }
 
@@ -65,6 +65,8 @@ class _MyAppState extends State<MyApp> {
 
   int topIndex = 0;
 
+  Kernel kernel = Kernel();
+
   @override
   Widget build(BuildContext context) {
     return FluentApp(
@@ -72,9 +74,8 @@ class _MyAppState extends State<MyApp> {
       themeMode: ThemeMode.system,
       darkTheme: WinShellTheme.darkTheme,
       theme: WinShellTheme.lightTheme,
-      home: WinShell(
-        topIndex: this.topIndex,
-        items: this.items,
+      home: CView(
+        kernel: this.kernel,
       ),
     );
   }

@@ -19,18 +19,22 @@ final class StringList extends Struct {
 
 typedef ShellCallbackCView = StringView Function(
   StringList list,
+  Pointer<Void> proxy,
 );
 
 typedef ShellCallbackDartView = StringView Function(
   StringList list,
+  Pointer<Never> proxy,
 );
 
 typedef KernelExecuteCAPI = Int32 Function(
-  Pointer<StringView> argument,
+  Pointer<StringView> script,
+  Pointer<StringList> arguments,
   Pointer<NativeFunction<ShellCallbackCView>> mCallback,
 );
 
 typedef KernelExecuteDartAPI = int Function(
-  Pointer<StringView> argument,
-  Pointer<NativeFunction<ShellCallbackDartView>> mCallback,
+  Pointer<StringView> script,
+  Pointer<StringList> arguments,
+  Pointer<NativeFunction<ShellCallbackCView>> mCallback,
 );
