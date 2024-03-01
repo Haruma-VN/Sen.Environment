@@ -71,6 +71,18 @@ namespace Sen::Kernel::Interface::Script {
 		}, "callback"_sv);
 	}
 
+	inline static auto test(
+		JSContext* context,
+		JSValueConst this_val,
+		int argc,
+		JSValueConst* argv
+	) -> JSValue
+	{
+		auto t = Kernel::Support::PopCap::Animation::Convert::ToFlash{*Kernel::FileSystem::read_json(JS::Converter::get_string(context, argv[0]))};
+		t.process(JS::Converter::get_string(context, argv[1]), 1200);
+		return JS_UNDEFINED;
+	}
+
 	/**
 	 * JavaScript Custom JSON Serializer
 	*/

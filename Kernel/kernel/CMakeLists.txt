@@ -97,6 +97,9 @@ add_library(
 	./support/popcap/animation/definition.hpp
 	./support/popcap/animation/decode.hpp
 	./support/popcap/animation/encode.hpp
+	./support/popcap/animation/convert/definition.hpp
+	./support/popcap/animation/convert/to_flash.hpp
+	./support/popcap/animation/convert/from_flash.hpp
 	./support/popcap/crypt_data/definition.hpp
 	./support/popcap/crypt_data/encrypt.hpp
 	./support/popcap/crypt_data/decrypt.hpp

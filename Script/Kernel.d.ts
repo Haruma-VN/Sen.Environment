@@ -46,6 +46,12 @@ declare namespace Sen {
         declare const arguments: Array<string>;
 
         /**
+         * Test method
+         */
+
+        export function test(...params: Array<string>): void;
+
+        /**
          * JS XML Support
          */
 

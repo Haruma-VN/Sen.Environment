@@ -260,6 +260,10 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
+            Kernel.test(
+                "D:/test/test/ipad3_11.0.1_main.rsb.bundle/packet/ALWAYSLOADED_COMMON.packet/res/IMAGES/1536/INITIAL/EFFECTS/LOAD_ICON_BACK/LOAD_ICON_BACK.PAM.json",
+                "D:/test/test/ipad3_11.0.1_main.rsb.bundle/packet/ALWAYSLOADED_COMMON.packet/res/IMAGES/1536/INITIAL/EFFECTS/LOAD_ICON_BACK/LOAD_ICON_BACK.PAM.xfl",
+            );
             Executor.forward({ source: Kernel.arguments });
         } catch (e: any) {
             result = Exception.make_exception(e);

@@ -54,6 +54,8 @@ namespace Sen::Kernel::Interface {
 			) -> void
 			{
 				auto script_path = thiz.argument;
+				// test
+				javascript->add_proxy(Script::test, "Sen"_sv, "Kernel"_sv, "test"_sv);
 				// shell callback
 				{
 					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}), nullptr);

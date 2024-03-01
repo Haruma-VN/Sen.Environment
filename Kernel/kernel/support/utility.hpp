@@ -28,6 +28,8 @@
 #include "kernel/support/popcap/cfw2/encode.hpp"
 #include "kernel/support/popcap/animation/decode.hpp"
 #include "kernel/support/popcap/animation/encode.hpp"
+#include "kernel/support/popcap/animation/convert/from_flash.hpp"
+#include "kernel/support/popcap/animation/convert/to_flash.hpp"
 #include "kernel/support/wwise/sound_bank/encode.hpp"
 #include "kernel/support/wwise/sound_bank/decode.hpp"
 
