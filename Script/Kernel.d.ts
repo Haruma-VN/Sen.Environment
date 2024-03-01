@@ -1586,7 +1586,7 @@ declare namespace Sen {
                      * Res-Info
                      */
 
-                    export interface ResourceStreamGroupResInfo {
+                    export interface ResourceStreamGroupResInfo extends Record<string, unknown> {
                         id: bigint;
                         format: bigint;
                         width: bigint;
@@ -1594,10 +1594,9 @@ declare namespace Sen {
                         pitch: bigint;
                         alpha_size?: bigint;
                         alpha_format?: bigint;
-                        [Symbol.iterator]: () => Iterator<this>;
                     }
 
-                    export interface PTXInfo {
+                    export interface PTXInfo extends Record<string, unknown> {
                         path: string;
                         ptx_info?: ResourceStreamGroupResInfo;
                     }
@@ -1606,40 +1605,36 @@ declare namespace Sen {
                      * RSG Packet info
                      */
 
-                    export interface ResourceStreamGroupPacketInfo {
+                    export interface ResourceStreamGroupPacketInfo extends Record<string, unknown> {
                         compression_flags: flag;
                         res: Array<ResourceStreamGroupResInfo>;
-                        [Symbol.iterator]: () => Iterator<this>;
                     }
 
                     /**
                      * Group-Info
                      */
 
-                    export interface ResourceStreamGroupInfo {
+                    export interface ResourceStreamGroupInfo extends Record<string, unknown> {
                         category: null | bigint;
                         packet_info: ResourceStreamGroupPacketInfo;
-                        [Symbol.iterator]: () => Iterator<this>;
                     }
 
                     /**
                      * Group-Pool
                      */
 
-                    export interface ResourceStreamGroupPool {
+                    export interface ResourceStreamGroupPool extends Record<string, unknown> {
                         is_composite: boolean;
                         subgroup: Record<string, ResourceStreamGroupInfo>;
-                        [Symbol.iterator]: () => Iterator<this>;
                     }
 
                     /**
                      * Manifest
                      */
 
-                    export interface Manifest {
+                    export interface Manifest extends Record<string, unknown> {
                         version: bigint;
                         group: Record<string, ResourceStreamGroupPool>;
-                        [Symbol.iterator]: () => Iterator<this>;
                     }
 
                     /**
@@ -1728,6 +1723,16 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSG Unpack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: unpacked file
+                     * --------------------------------------------------
+                     */
+                    export function unpack_modding(source: string, destination: string): Definition;
 
                     /**
                      * --------------------------------------------------

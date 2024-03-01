@@ -210,20 +210,31 @@ namespace Sen::Kernel::Support::PopCap::RSG
             return;
         }
 
-        template <auto write_info>
+        template <auto write_info, auto use_res, typename return_type> requires std::is_same<return_type, void>::value or 
+            std::is_same<return_type, std::shared_ptr<RSG_PacketInfo>>::value
         inline static auto unpack_fs(
             std::string_view source,
             std::string_view destination
-        ) -> void
+        ) -> return_type
         {
             static_assert(write_info == true || write_info == false, "write_info must be true or false");
+            static_assert(use_res == true || use_res == false, "write_info must be true or false");
             auto unpack = Unpack{source};
-            auto packet_info = RSG_PacketInfo{};
-            unpack.process<true>(destination, &packet_info);
+            auto packet_info = std::make_unique<RSG_PacketInfo>();
+            unpack.process<use_res>(destination, packet_info.get());
             if constexpr (write_info) {
-                FileSystem::write_json(fmt::format("{}/packet.json", destination), packet_info);
+                FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
             }
-            return;
+            if constexpr (std::is_same<return_type, std::shared_ptr<RSG_PacketInfo>>::value) {
+                return packet_info;
+            }
+            else {
+                return;
+            }
         }
+
+        inline static auto constexpr regular_unpack = unpack_fs<true, true, void>;
+
+        inline static auto constexpr unpack_modding = unpack_fs<false, false, std::shared_ptr<RSG_PacketInfo>>;
     };
 }

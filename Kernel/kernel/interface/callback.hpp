@@ -426,7 +426,11 @@ namespace Sen::Kernel::Interface {
 				}
 				// rsg
 				{
+					// unpack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "unpack_fs"_sv);
+					// unpack_modding
+					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_modding, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "unpack_modding"_sv);
+					// pack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSG::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "pack_fs"_sv);
 				}
 				// pam

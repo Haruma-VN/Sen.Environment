@@ -28,7 +28,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         ) const -> void
         {
             static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "index can only be 0 or 1");
-            auto sprite_name = std::string{};
+            [[maybe_unused]] auto sprite_name = std::string{};
             if constexpr (sizeof...(Args) == 1) {
                 sprite_name = version >= 4 ? sen->readStringByUint16() : "*" + std::to_string(std::get<0>(std::make_tuple(index...)));
             }

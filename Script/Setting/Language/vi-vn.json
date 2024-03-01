@@ -308,5 +308,6 @@
     "filesystem.reached_end_of_file": "Đã đến cuối tệp, không thể đọc ký tự nữa",
     "filesystem.total_of_bytes_need_to_smaller_than_current_file_size": "Tổng số byte để đọc cần phải nhỏ hơn kích thước tệp hiện tại",
     "stack": "Ngăn xếp cho truy xuất lỗi",
-    "popcap.rsb.pack.invalid_language": "Kích thước ngôn ngữ không hợp lệ, cần kích thước là 4, nhận"
+    "popcap.rsb.pack.invalid_language": "Kích thước ngôn ngữ không hợp lệ, cần kích thước là 4, nhận",
+    "execution_warning": "Cảnh báo thực thi"
 }

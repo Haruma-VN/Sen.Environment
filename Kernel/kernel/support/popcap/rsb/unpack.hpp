@@ -28,7 +28,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto id_part3_pos = sen->readInt32();
                 auto id = sen->getStringByEmpty(part3_pos + id_part3_pos);
                 auto rsg_number = sen->readInt32();
-                auto subgroup = std::map<std::string, DescriptionSubGroup>{};
+                auto subgroup = std::unordered_map<std::string, DescriptionSubGroup>{};
                 auto subgroup_keys = std::vector<std::string>{};
                 if (sen->readInt32() != 0x10) {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsg_number")), std::source_location::current(), "read_description");
@@ -105,7 +105,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             ptx_info_list.cols = sen->readUint16();
                             ptx_info_list.parent = sen->getStringByEmpty(part3_pos + sen->readInt32());
                         }
-                        auto properties_info_list = std::map<string, string>{};
+                        auto properties_info_list = std::unordered_map<string, string>{};
                         for (auto l : Range<T>(properties_num)) {
                             auto key_part3_pos = sen->readInt32();
                             if (sen->readInt32() != 0x0) {
@@ -342,13 +342,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         ) = default;
 
-        template <typename T, auto write_info = false>
+        template <typename T, auto write_info = false, auto uppercase_group = false>
             requires std::is_integral<T>::value
         inline auto process(
             std::string_view destination,
             Manifest<T> &manifest_info
         ) const -> void
         {
+            static_assert(write_info == false || write_info == true, "write_info must be true or false");
+            static_assert(uppercase_group == false || uppercase_group == true, "uppercase_group must be true or false");
             auto rsb_head_info = RSB_HeadInfo<T>{};
             read_head(&rsb_head_info);
             manifest_info.version = rsb_head_info.version;
@@ -376,7 +378,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
-                std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
+                if constexpr (uppercase_group) {
+                    std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
+                }
                 auto rsg_group = RSG_Group<T>{!is_composite};
                 for (auto k : Range(sen->readUint32(static_cast<std::uint64_t>(composite_start_pos + 0x480))))
                 {
@@ -385,11 +389,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
                     auto rsg_name = sen->readStringByEmpty(static_cast<std::uint64_t>(rsg_info_pos));
-                    std::transform(rsg_name.begin(), rsg_name.end(), rsg_name.begin(), ::toupper);
+                    if constexpr (uppercase_group) {
+                        std::transform(rsg_name.begin(), rsg_name.end(), rsg_name.begin(), ::toupper);
+                    }
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     rsg_group.subgroup.insert(std::pair{std::move(rsg_name), std::move(rsg_info)});
                 }
-                manifest_info.group.insert(std::pair{std::move(composite_name), std::move(rsg_group)});
+                manifest_info.group[composite_name] = (nlohmann::ordered_json(rsg_group));
             }
             if constexpr (write_info)
             {
