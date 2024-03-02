@@ -229,6 +229,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 return packet_info;
             }
             else {
+                // might change ?
+                static_assert(std::is_same<return_type, void>::value, "return_type must be void");
                 return;
             }
         }

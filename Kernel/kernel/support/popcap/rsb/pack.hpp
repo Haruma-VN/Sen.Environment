@@ -342,15 +342,15 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto packet_index = 0;
             auto ptx_before_number = 0;
             auto pool_index = 0;
-            for (auto &[composite_key, composite_packet] : manifest.group.items())
+            for (const auto &[composite_key, composite_packet] : manifest.group)
             {
-                auto composite_name = composite_packet["is_composite"].get<bool>() ? composite_key : fmt::format("{}_CompositeShell", composite_key);
+                auto composite_name = composite_packet.is_composite ? composite_key : fmt::format("{}_CompositeShell", composite_key);
                 composite_info.writeString(composite_name);
                 std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
                 composite_list.emplace_back(PathList{composite_name, pool_index});
                 ++pool_index;
                 composite_info.writeNull(128 - composite_name.size());
-                for (const auto &[subgroup_key, subgroup_value] : composite_packet["subgroup"].items())
+                for (const auto &[subgroup_key, subgroup_value] : composite_packet.subgroup)
                 {
                     auto packet_name = subgroup_key;
                     std::transform(packet_name.begin(), packet_name.end(), packet_name.begin(), ::toupper);
@@ -362,16 +362,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     }
                     auto rsg_composite = false;
                     auto ptx_number = 0;
-                    for (auto i : Range<std::size_t>(subgroup_value["packet_info"]["res"].size()))
+                    for (auto i : Range<std::size_t>(subgroup_value.packet_info.res.size()))
                     {
-                        auto item_path = subgroup_value["packet_info"]["res"][i]["path"].get<std::string>();
+                        auto item_path = subgroup_value.packet_info.res[i]["path"].get<std::string>();
                         item_path = std::regex_replace(item_path, std::regex("/"), "\\");
                         std::transform(item_path.begin(), item_path.end(), item_path.begin(), ::toupper);
                         item_list.emplace_back(PathList{item_path, packet_index});
                         try
                         {
-                            auto& ptx_info = subgroup_value["packet_info"]["res"][i]["ptx_info"];
-                            if (!composite_packet["is_composite"].get<bool>())
+                            auto& ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
+                            if (!composite_packet.is_composite)
                             {
                                 throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_packet_composite"), packet_name), std::source_location::current(), "process");
                             }
@@ -398,22 +398,20 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         }
                     }
                     composite_info.writeUint32(packet_index);
-                    composite_info.writeUint32(subgroup_value["category"].at(0).get<std::uint32_t>());
-                    auto element = subgroup_value["category"].get<std::vector<nlohmann::ordered_json>>();
-                    debug(element[1]);
-                    if (element[1].is_null())
+                    composite_info.writeUint32(subgroup_value.category[0]);
+                    if (subgroup_value.category[1].is_string())
                     {
-                        composite_info.writeNull(4);
-                    }
-                    else
-                    {
-                        auto str = element[1].get<std::string>();
+                        auto str = subgroup_value.category[1].get<std::string>();
                         if (str.size() != 4)
                         {
                             throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), str.size(), 
                                 Language::get("but_received"), str), std::source_location::current(), "process");
                         }
                         composite_info.writeString(str);
+                    }
+                    else
+                    {
+                        composite_info.writeNull(4);
                     }
                     composite_info.writeNull(4);
                     //
@@ -450,7 +448,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     ++packet_index;
                     rsg_file.read_pos = 0ull;
                 }
-                auto subgroup_size = composite_packet["subgroup"].size();
+                auto subgroup_size = composite_packet.subgroup.size();
                 composite_info.writeNull(1024 - (subgroup_size * 16));
                 composite_info.writeUint32(subgroup_size);
             }

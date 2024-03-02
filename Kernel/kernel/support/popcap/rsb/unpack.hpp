@@ -28,7 +28,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 auto id_part3_pos = sen->readInt32();
                 auto id = sen->getStringByEmpty(part3_pos + id_part3_pos);
                 auto rsg_number = sen->readInt32();
-                auto subgroup = std::unordered_map<std::string, DescriptionSubGroup>{};
+                auto subgroup = std::map<std::string, DescriptionSubGroup>{};
                 auto subgroup_keys = std::vector<std::string>{};
                 if (sen->readInt32() != 0x10) {
                     throw Exception(fmt::format("{}", Kernel::Language::get("popcap.rsb.unpack.invalid_rsg_number")), std::source_location::current(), "read_description");
@@ -105,7 +105,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             ptx_info_list.cols = sen->readUint16();
                             ptx_info_list.parent = sen->getStringByEmpty(part3_pos + sen->readInt32());
                         }
-                        auto properties_info_list = std::unordered_map<string, string>{};
+                        auto properties_info_list = std::map<string, string>{};
                         for (auto l : Range<T>(properties_num)) {
                             auto key_part3_pos = sen->readInt32();
                             if (sen->readInt32() != 0x0) {
@@ -240,8 +240,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             {"width", packet_sen.readUint32()},
                             {"height", packet_sen.readUint32()}};
                         auto pitch_pos = (rsb_head_info.ptx_info_begin + (ptx_before - id) * rsb_head_info.ptx_info_each_length) + 0x08;
-                        res["ptx_info"]["pitch"] = sen->readUint32(static_cast<std::uint64_t>(pitch_pos));
-                        res["ptx_info"]["format"] = sen->readUint32();
+                        auto pitch = sen->readUint32(static_cast<std::uint64_t>(pitch_pos));
+                        auto format = sen->readUint32();
+                        res["ptx_info"]["format"] = format;
+                        res["ptx_info"]["pitch"] = pitch;
                         if (rsb_head_info.ptx_info_each_length >= 0x14) {
                             res["ptx_info"]["alpha_size"] = sen->readUint32();
                             res["ptx_info"]["alpha_format"] = rsb_head_info.ptx_info_each_length == 0x18 ? sen->readUint32() : (res["ptx_info"]["alpha_size"] == 0 ? 0 : 0x64);
@@ -395,7 +397,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     read_rsg_info<std::int32_t, T, true>(rsg_index, rsb_head_info, rsg_info_pos, rsg_info, rsg_name, packet_folder);
                     rsg_group.subgroup.insert(std::pair{std::move(rsg_name), std::move(rsg_info)});
                 }
-                manifest_info.group[composite_name] = (nlohmann::ordered_json(rsg_group));
+                manifest_info.group.insert(std::pair{std::move(composite_name), std::move(rsg_group)});
             }
             if constexpr (write_info)
             {

@@ -138,4 +138,28 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		int resource;
 		bool sprite;
 	};
+
+	
+
+	struct FrameList {
+		
+		std::map<int, std::vector<FrameNode>> frame_node_list;
+		std::map<std::string, Action> action_list;
+
+		FrameList(
+
+		) = default;
+
+		~FrameList(
+
+		) = default;
+
+		FrameList(
+			FrameList&& that
+		) = delete;
+
+		auto operator =(
+			FrameList&& that
+		) -> FrameList& = delete;
+	};
 }

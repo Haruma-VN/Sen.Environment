@@ -10,6 +10,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	{
 
 	private:
+
 		using XMLDocument = tinyxml2::XMLDocument;
 
 		using XMLElement = tinyxml2::XMLElement;
@@ -19,6 +20,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		using Common = Common;
 
 		using Animation = SexyAnimation;
+
+		using FrameList = FrameList;
 
 	protected:
 		template <auto point, typename T>
@@ -138,10 +141,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			auto sprite_model = std::map<int, Model>{};
 			auto frame_length = animation_sprite["frame"].size();
-			// frame_node_list.emplace(
-			// 	0, std::vector<FrameNode>{}.emplace_back(FrameNode{
-			// 		   0, static_cast<int>(frame_length),
-			// 		   -1, false, -1}));
+			frame_node_list.emplace(
+				0, std::vector<FrameNode>{FrameNode{
+					   0, static_cast<int>(frame_length),
+					   -1, false, -1}});
 			auto main_label = std::string{};
 			for (auto i : Range<int>(frame_length))
 			{
@@ -240,6 +243,52 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			return;
 		}
 
+		template <auto is_action>
+		auto write_sprite(
+			std::map<int, std::vector<FrameNode>>& frame_node_list, 
+			std::vector<std::string>& animation_sprite_name_list, 
+			std::vector<std::string>& animation_image_id_list, 
+			std::string &name,
+			XMLDocument* document
+		) -> void
+		{
+			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
+			auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
+			DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+			DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
+			if constexpr (is_action) {
+				DOMSymbolItem->SetAttribute("name", fmt::format("action/{}", name).data());
+			}
+			else {
+				DOMSymbolItem->SetAttribute("name", fmt::format("sprite/{}", name).data());
+			}
+			DOMSymbolItem->SetAttribute("symbolType", "graphic");
+			auto timeline = document->NewElement("timeline");
+			auto DOMTimeline = document->NewElement("DOMTimeline");
+			DOMTimeline->SetAttribute("name", name.data());
+			auto layers = document->NewElement("layers");
+			auto keys = Map::keys<int, FrameNode>(frame_node_list);
+			for (auto i = keys.size(); i > 0; --i)
+			{
+				for (auto & node : frame_node_list[keys[i]])
+				{
+					auto& transform = node.transform;
+                    auto& base_color = node.color;
+                    auto& resource = node.resource;
+					auto sprite_dom_frame = document->NewElement("DOMFrame");
+					sprite_dom_frame->SetAttribute("index", node.index);
+					sprite_dom_frame->SetAttribute("duration", node.duration);
+					auto elements = document->NewElement("elements");
+					auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
+				}
+			}
+			DOMTimeline->InsertEndChild(layers);
+			timeline->InsertEndChild(DOMTimeline);
+			DOMSymbolItem->InsertEndChild(timeline);
+			document->InsertEndChild(DOMSymbolItem);
+			return;
+		}
+
 	public:
 		explicit ToFlash(
 			const SexyAnimation &that) : animation(that)
@@ -258,7 +307,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		auto process(
 			std::string_view destination,
-			int resolution) -> void
+			int resolution
+		) -> void
 		{
 			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
 			auto extra_info = ExtraInfo{
@@ -280,8 +330,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				write_image(&image_document, key, value, scale_ratio);
 				FileSystem::write_xml(fmt::format("{}/library/image/{}.xml", destination, key), &image_document);
 			}
+			auto keys = Object::keys(animation.sprite);
 			for (auto &[sprite_name, sprite_value] : animation.sprite.items())
 			{
+				auto frame_list = FrameList{};
+				decode_frame_list(sprite_value, animation.sprite, keys, frame_list.frame_node_list, frame_list.action_list);
 			}
 			return;
 		}

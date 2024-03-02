@@ -388,7 +388,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     {
     public:
         bool is_composite;
-        std::unordered_map<std::string, RSG_Info<T>> subgroup;
+        std::map<std::string, RSG_Info<T>> subgroup;
 
         explicit RSG_Group(
 
@@ -437,7 +437,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     {
         T version;
         T ptx_info_size;
-        nlohmann::ordered_json group;
+        std::map<std::string, RSG_Group<T>> group;
     };
 
     template <typename T>
@@ -535,7 +535,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         int type;
         std::string path;
         PropertiesPtxInfo ptx_info;
-        std::unordered_map<std::string, std::string> properties;
+        std::map<std::string, std::string> properties;
 
         explicit DescriptionResources(
 
@@ -545,7 +545,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             int type,
             const std::string& path,
             const PropertiesPtxInfo& ptx_info,
-            const std::unordered_map<std::string, std::string>& properties
+            const std::map<std::string, std::string>& properties
         ) : type(type), path(path), ptx_info(ptx_info), properties(properties)
         {
         }
@@ -585,7 +585,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     public:
         int res;
         std::string language;
-        std::unordered_map<std::string, DescriptionResources> resources;
+        std::map<std::string, DescriptionResources> resources;
 
         explicit DescriptionSubGroup(
 
@@ -630,7 +630,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     {
     public:
         bool composite;
-        std::unordered_map<std::string, DescriptionSubGroup> subgroups;
+        std::map<std::string, DescriptionSubGroup> subgroups;
 
         explicit DescriptionGroup(
 
@@ -638,7 +638,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         explicit DescriptionGroup(
             int composite,
-            const std::unordered_map<std::string, DescriptionSubGroup> & subgroups
+            const std::map<std::string, DescriptionSubGroup> & subgroups
         ) : composite(composite), subgroups(subgroups)
         {
         }
@@ -672,14 +672,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
     struct Description
     {
     public:
-        std::unordered_map<std::string, DescriptionGroup> groups;
+        std::map<std::string, DescriptionGroup> groups;
 
         explicit Description(
 
             ) = default;
 
         explicit Description(
-            const std::unordered_map<std::string, DescriptionGroup> & groups
+            const std::map<std::string, DescriptionGroup> & groups
         ) : groups(groups)
         {
         }
@@ -716,7 +716,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         std::string id;
         std::string path;
         PropertiesPtxInfo ptx_info;
-        std::unordered_map<std::string, std::string> properties_info;
+        std::map<std::string, std::string> properties_info;
 
         explicit ResourcesInfo(
 
