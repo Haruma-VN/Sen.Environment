@@ -17,10 +17,12 @@ endif()
 # Add source to this project's executable.
 add_executable (
     ${PROJECT_NAME} 
-    ./interactive/color.hpp
-    ./String.hpp
-    ./Shell.h
-    ./Shell.cpp 
+    ./library/color.hpp
+    ./library/dialog.hpp
+    ./library/string.hpp
+    ./library/macro.hpp
+    ./library/callback.hpp
+    ./shell.cpp 
 )
 
 target_include_directories(

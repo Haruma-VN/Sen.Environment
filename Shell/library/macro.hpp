@@ -1,12 +1,31 @@
-﻿#pragma once
+#pragma once
 
 #include <iostream>
-#include <string.h>
-#include <string>
-#include <stdio.h>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <math.h>
+#include <stdexcept>
 #include <filesystem>
-#include "interactive/color.hpp"
+#include <fstream>
+#include <cstdint>
+#include <regex>
+#include <version>
+#include <stdio.h>
+#include <future>
+#include <map>
+#include <stack>
+#include <list>
+#include <stdlib.h>
+#include <string.h>
+#include <array>
+#include <cstdio>
+#include <cstring>
+#include <exception>
+#include <span>
+#include "library/color.hpp"
 #include "String.hpp"
 #include "deps/cpp-httplib/httplib.h"
 
