@@ -177,11 +177,15 @@ namespace Sen::Shell {
 					copy = new char[strlen(raw_selection) + 1];
 					std::memcpy(copy, raw_selection, strlen(raw_selection));
 				}
-				return CStringView{
-					.size = strlen(raw_selection),
-					.value = copy,
-				}
 			#endif
+			return CStringView{
+				#if WINDOWS
+					.size = raw_selection[0].size(),
+				#elif LINUX || MACINTOSH
+					.size = strlen(raw_selection),
+				#endif
+					.value = copy,
+			};
 		}
 		if (result[0] == "pick_directory") {
 			delete[] copy;
@@ -198,11 +202,15 @@ namespace Sen::Shell {
 				copy = new char[strlen(raw_selection) + 1];
 				std::memcpy(copy, raw_selection, strlen(raw_selection));
 			}
-			return CStringView{
-				.size = strlen(raw_selection),
-				.value = copy,
-			}
 			#endif
+			return CStringView{
+			#if WINDOWS
+				.size = raw_selection[0].size(),
+			#elif LINUX || MACINTOSH
+				.size = strlen(raw_selection),
+			#endif
+				.value = copy,
+			};
 		}
 		if (result[0] == "push_notification") {
 			assert_conditional(result.size() >= 3, "argument must be greater than 3");
