@@ -41,7 +41,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
          */
 
         export function is_sprite_container(resource: Sen.Kernel.Support.PopCap.ResourceGroup.ResourceContainsImage): resource is Sen.Kernel.Support.PopCap.ResourceGroup.ResourceContainsSprite {
-            if ((resource as ImageRes).ax && (resource as ImageRes).ay && (resource as ImageRes).ah && (resource as ImageRes).aw && (resource as ImageRes).path) {
+            if ((resource as ImageRes).ax !== undefined && (resource as ImageRes).ay !== undefined && (resource as ImageRes).ah !== undefined && (resource as ImageRes).aw !== undefined) {
                 return true;
             }
             return false;
@@ -176,7 +176,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
          */
 
         export function is_sprite_container(resource: unknown): resource is Kernel.Support.PopCap.ResInfo.Default {
-            if ((resource as ImageRes).ax && (resource as ImageRes).ay && (resource as ImageRes).ah && (resource as ImageRes).aw && (resource as ImageRes).path) {
+            if ((resource as ImageRes).ax !== undefined && (resource as ImageRes).ay !== undefined && (resource as ImageRes).ah !== undefined && (resource as ImageRes).aw !== undefined) {
                 return true;
             }
             return false;

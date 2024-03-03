@@ -301,6 +301,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Atlas/Structure.js",
             "~/Support/PopCap/Atlas/Split.js",
             "~/Support/PopCap/Atlas/Pack.js",
+            "~/Support/PopCap/Atlas/MultiResolution.js",
             "~/Support/PopCap/Animation/Definition.js",
             "~/Support/PopCap/Animation/Structure.js",
             "~/Support/PopCap/Animation/FromAnimation.js",

@@ -76,7 +76,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             const definition: Kernel.Support.PopCap.RSG.Definition = Kernel.Support.PopCap.RSG.unpack_modding(`${destination}/packet/${packages}.rsg`, resource_destination);
             if (category.decode_rton) {
                 definition.res.forEach((e) => {
-                    Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, `${resource_destination}/${e.path.replace(/\.RTON$/gi, ".json")}`);
+                    Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`);
                 });
             }
         } while (false);
