@@ -12,8 +12,6 @@ namespace Sen::Shell::Dialog {
 
 	#if WINDOWS
 
-		#pragma warning disable
-
 		inline auto pick_path (
 			bool is_directory,
 			bool is_multiply
@@ -62,11 +60,7 @@ namespace Sen::Shell::Dialog {
 			}
 			dialog->Release();
 			for (auto & path : result) {
-				for (auto & character : path) {
-					if (character == '\\') {
-						character = '/';
-					}
-				}
+				std::replace(path.begin(), path.end(), '\\', '/');
 			}
 			return result;
 		}

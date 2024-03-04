@@ -36,8 +36,8 @@ namespace Sen.Script.Helper.PvZ2.Permanent.ErasePlantLevels {
 
     /**
      *
-     * @param file_in - Pass file input
-     * @param file_out - Pass file output
+     * @param source - input
+     * @param ripe - output
      * @returns Erased
      */
     export function process(source: string, ripe: string): void {

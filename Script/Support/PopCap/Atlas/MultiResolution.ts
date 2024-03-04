@@ -102,14 +102,10 @@ namespace Sen.Script.Support.PopCap.Atlas.MultiResolution {
             call = scale_fs;
         }
         Kernel.FileSystem.create_directory(destination);
-        const media = `${destination}/media`;
+        const media: string = `${destination}/media`;
         Kernel.FileSystem.create_directory(media);
-        Kernel.JSON.serialize_fs<Definition>(
-            `${destination}/atlas.json`,
-            generator(Kernel.JSON.deserialize_fs<Definition>(`${source}/atlas.json`), new RegExp(`${before}`, "i"), `${after}` as Resolution),
-            1,
-            false,
-        );
+        const definition: Definition = generator(Kernel.JSON.deserialize_fs<Definition>(`${source}/atlas.json`), new RegExp(`${before}`, "i"), `${after}` as Resolution);
+        Kernel.JSON.serialize_fs<Definition>(`${destination}/atlas.json`, definition, 1, false);
         call(
             Kernel.FileSystem.read_directory_only_file(`${source}/media`).filter((e) => /((\.png))$/i.test(e)),
             media,
@@ -118,25 +114,55 @@ namespace Sen.Script.Support.PopCap.Atlas.MultiResolution {
         return;
     }
 
+    // Callback
+
+    export type XCallback = (
+        source: string,
+        size: Sen.Script.Support.PopCap.Atlas.Pack.Detail.SizeRange<number>,
+        detail: Sen.Script.Support.PopCap.Atlas.Pack.Detail.Data,
+        destination: string,
+    ) => void;
+
     /**
      * Process method
      * @param view - List of process
      * @returns
      */
-
-    export function process(view: Array<Category>): void {
-        view.forEach((e) => generalization(e.source, e.destination, BigInt(e.before), BigInt(e.after)));
+    export function process(
+        category: Array<Sen.Script.Support.PopCap.Atlas.MultiResolution.Category>,
+        size: Sen.Script.Support.PopCap.Atlas.Pack.Detail.SizeRange<number>,
+        detail: Sen.Script.Support.PopCap.Atlas.Pack.Detail.Data,
+        callback: XCallback,
+    ): void {
+        for (const e of category) {
+            if (e.before === e.after) {
+                callback(e.source, size, detail, e.destination);
+                continue;
+            }
+            generalization(e.source, e.destination, BigInt(e.before), BigInt(e.after));
+            const distance: number = Number(e.after) / Number(e.before);
+            callback(e.source, { padding: size.padding, width: size.width * distance, height: size.height * distance }, { ...detail }, e.destination);
+        }
         return;
     }
-
     /**
      * Process method
      * @param category - List of process
      * @returns
      */
-
-    export function process_fs(category: Array<Category>): void {
-        process(category);
+    export function process_fs(
+        category: Array<Sen.Script.Support.PopCap.Atlas.MultiResolution.Category>,
+        size: Sen.Script.Support.PopCap.Atlas.Pack.Detail.SizeRange<number>,
+        detail: Sen.Script.Support.PopCap.Atlas.Pack.Detail.Data,
+        use_res_info: boolean,
+    ): void {
+        let callback: XCallback = undefined!;
+        if (use_res_info) {
+            callback = Pack.ResInfo.process_fs;
+        } else {
+            callback = Pack.ResourceGroup.process_fs;
+        }
+        process(category, size, detail, callback);
         return;
     }
 }

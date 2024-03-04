@@ -309,5 +309,7 @@
     "filesystem.total_of_bytes_need_to_smaller_than_current_file_size": "Total bytes to read need to be smaller than current file size",
     "stack": "Stack for traceback error",
     "popcap.rsb.pack.invalid_language": "Invalid language size, expected size is 4, received",
-    "execution_warning": "Execution Warning"
+    "execution_warning": "Execution Warning",
+    "object_cannot_be_null_in_worldmap_data": "\"objects\" property cannot be null in worldmap data",
+    "map_name_is_duplicated": "Map name is duplicated"
 }
