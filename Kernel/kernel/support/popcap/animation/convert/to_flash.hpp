@@ -27,16 +27,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		template <auto point, typename T>
 			requires std::is_integral<T>::value or std::is_floating_point<T>::value
 		inline static auto to_fixed(
-			T number) -> std::string
+			T number
+		) -> std::string
 		{
 			auto stream = std::ostringstream{};
-			stream << std::fixed << std::setprecision(point) << number;
+			stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
 			return stream.str();
 		}
-
-		template <typename T>
-			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		inline static auto constexpr to_fixed_6 = to_fixed<6, T>;
 
 		inline static auto variant_to_standard(
 			std::array<double, 6> &transform,
@@ -111,12 +108,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			DOMBitmapInstance->SetAttribute("libraryItemName", fmt::format("media/{}", image["name"].get<std::string>()).data());
 			auto matrix = document->NewElement("matrix");
 			auto Matrix = document->NewElement("Matrix");
-			Matrix->SetAttribute("a", to_fixed_6<double>(image["transform"][0].get<double>() * scale).data());
-			Matrix->SetAttribute("b", to_fixed_6<double>(image["transform"][1].get<double>()).data());
-			Matrix->SetAttribute("c", to_fixed_6<double>(image["transform"][2].get<double>()).data());
-			Matrix->SetAttribute("d", to_fixed_6<double>(image["transform"][3].get<double>() * scale).data());
-			Matrix->SetAttribute("tx", to_fixed_6<double>(image["transform"][4].get<double>()).data());
-			Matrix->SetAttribute("ty", to_fixed_6<double>(image["transform"][5].get<double>()).data());
+			Matrix->SetAttribute("a", to_fixed<6, double>(image["transform"][0].get<double>() * scale).c_str());
+			Matrix->SetAttribute("b", to_fixed<6, double>(image["transform"][1].get<double>()).data());
+			Matrix->SetAttribute("c", to_fixed<6, double>(image["transform"][2].get<double>()).data());
+			Matrix->SetAttribute("d", to_fixed<6, double>(image["transform"][3].get<double>() * scale).data());
+			Matrix->SetAttribute("tx", to_fixed<6, double>(image["transform"][4].get<double>()).data());
+			Matrix->SetAttribute("ty", to_fixed<6, double>(image["transform"][5].get<double>()).data());
 			matrix->InsertEndChild(Matrix);
 			DOMBitmapInstance->InsertEndChild(matrix);
 			elements->InsertEndChild(DOMBitmapInstance);

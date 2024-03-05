@@ -311,5 +311,17 @@
     "popcap.rsb.pack.invalid_language": "Invalid language size, expected size is 4, received",
     "execution_warning": "Execution Warning",
     "object_cannot_be_null_in_worldmap_data": "\"objects\" property cannot be null in worldmap data",
-    "map_name_is_duplicated": "Map name is duplicated"
+    "map_name_is_duplicated": "Map name is duplicated",
+    "directory_not_found": "Directory {} not found",
+    "file_not_found": "File {} not found",
+    "script.compare_language.input_original_language_file": "Input original language file",
+    "script.compare_language.input_modified_language_file": "Input modified language file",
+    "script.compare_language.missing_key": "Missing key",
+    "script.sort_language_file.input_language_file": "Input language file",
+    "script.erase_plant_level.source_file": "Input source file",
+    "script.merge_worldmap_data.input_source_directory": "Input source directory",
+    "script.split_worldmap_data.input_source_file": "Input source file",
+    "popcap.rsb.unpack_for_modding.decode_newton_file": "Found Newton file, decode Newton file",
+    "popcap.rsb.unpack_for_modding.decode_rton_file": "Found RTON file, decode RTON file",
+    "popcap.rsb.unpack_for_modding.make_setting": "Setting was generated, to change the packing logic please change the information inside it"
 }

@@ -104,6 +104,7 @@ namespace Sen.Script {
 
         export function obtained(source: string): void {
             Sen.Script.Console.display(Sen.Kernel.Language.get("input_argument"), source, Definition.Console.Color.CYAN);
+            return;
         }
 
         /**
@@ -116,6 +117,7 @@ namespace Sen.Script {
 
         export function output(source: string): void {
             Sen.Script.Console.display(Sen.Kernel.Language.get("output_argument"), source, Definition.Console.Color.GREEN);
+            return;
         }
 
         /**
@@ -128,6 +130,53 @@ namespace Sen.Script {
 
         export function warning(source: string): void {
             Sen.Script.Console.display(Sen.Kernel.Language.get("execution_warning"), source, Definition.Console.Color.YELLOW);
+            return;
+        }
+
+        // Path type
+
+        export type Path = "file" | "directory";
+
+        /**
+         * Path input
+         * @param source - Message
+         * @param type - Type of input
+         * @returns
+         */
+
+        export function path(source: string, type: Path): string {
+            Console.argument(source);
+            let destination: string = undefined!;
+            loop: do {
+                destination = Kernel.Console.readline();
+                switch (destination) {
+                    case ":p": {
+                        if (type === "file") {
+                            destination = Shell.callback(["pick_file"]);
+                        }
+                        if (type === "directory") {
+                            destination = Shell.callback(["pick_directory"]);
+                        }
+                        Console.obtained(destination);
+                        break loop;
+                    }
+                    default: {
+                        if (type === "file") {
+                            if (Kernel.FileSystem.is_file(destination)) {
+                                break loop;
+                            }
+                            Console.warning(format(Kernel.Language.get("file_not_found"), destination));
+                        }
+                        if (type === "directory") {
+                            if (Kernel.FileSystem.is_directory(destination)) {
+                                break loop;
+                            }
+                            Console.warning(format(Kernel.Language.get("directory_not_found"), destination));
+                        }
+                    }
+                }
+            } while (true);
+            return destination;
         }
     }
 

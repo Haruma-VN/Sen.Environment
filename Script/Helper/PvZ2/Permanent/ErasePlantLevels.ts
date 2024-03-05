@@ -59,8 +59,7 @@ namespace Sen.Script.Helper.PvZ2.Permanent.ErasePlantLevels {
      */
 
     export function execute(): void {
-        // todo: add
-        const source: string = "D:/test/ZombieSkycityZombossGroup_1536.sprite/ipad3_10.8.1_main.rsb.bundle/resource/PLANTLEVELS.json";
+        const source: string = Console.path(Kernel.Language.get("script.erase_plant_level.source_file"), "file");
         process(source, source.replace(/((\.json))?$/i, ".patch.json"));
         return;
     }

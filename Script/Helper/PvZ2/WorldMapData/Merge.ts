@@ -27,8 +27,7 @@ namespace Sen.Script.Helper.PvZ2.WorldMapData.Merge {
      */
 
     export function execute(): void {
-        // todo
-        const source: string = "";
+        const source: string = Console.path(Kernel.Language.get("script.merge_worldmap_data.input_source_directory"), "directory");
         Kernel.JSON.serialize_fs<Split.WorldMapData>(`${source}/WorldMapData.json`, process(source), 1, false);
         return;
     }

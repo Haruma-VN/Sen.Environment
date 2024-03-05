@@ -3,38 +3,38 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-final class StringView extends Struct {
+final class CStringView extends Struct {
   @Uint64()
   external int size;
 
   external Pointer<Utf8> value;
 }
 
-final class StringList extends Struct {
-  external Pointer<StringView> value;
+final class CStringList extends Struct {
+  external Pointer<CStringView> value;
 
   @Uint64()
   external int size;
 }
 
-typedef ShellCallbackCView = StringView Function(
-  StringList list,
+typedef ShellCallbackCView = CStringView Function(
+  CStringList list,
   Pointer<Void> proxy,
 );
 
-typedef ShellCallbackDartView = StringView Function(
-  StringList list,
+typedef ShellCallbackDartView = CStringView Function(
+  CStringList list,
   Pointer<Never> proxy,
 );
 
 typedef KernelExecuteCAPI = Int32 Function(
-  Pointer<StringView> script,
-  Pointer<StringList> arguments,
+  Pointer<CStringView> script,
+  Pointer<CStringList> arguments,
   Pointer<NativeFunction<ShellCallbackCView>> mCallback,
 );
 
 typedef KernelExecuteDartAPI = int Function(
-  Pointer<StringView> script,
-  Pointer<StringList> arguments,
+  Pointer<CStringView> script,
+  Pointer<CStringList> arguments,
   Pointer<NativeFunction<ShellCallbackCView>> mCallback,
 );

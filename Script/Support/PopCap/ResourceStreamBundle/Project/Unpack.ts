@@ -120,14 +120,14 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                 if (/\.newton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.newton$/gi, ".json")}`;
                     Kernel.Support.PopCap.Newton.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
-                    Console.send("Catch newton first, decode newton file");
+                    Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_newton_file"));
                     config.has_newton = true;
                     break;
                 }
                 if (/\.rton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`;
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
-                    Console.send("Catch rton first, decode rton file");
+                    Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_rton_file"));
                     break;
                 }
             }
@@ -144,7 +144,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             false,
         );
         remake_manifest(manifest);
-        Console.send("Setting were made, edit setting.json for your own purpose");
+        Console.output(Kernel.Language.get("popcap.rsb.unpack_for_modding.make_setting"));
         Kernel.JSON.serialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${destination}/manifest.json`, manifest, 1, false);
         return;
     }

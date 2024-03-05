@@ -155,8 +155,7 @@ namespace Sen.Script.Helper.PvZ2.WorldMapData.Split {
      */
 
     export function execute(): void {
-        // to do
-        const source: string = "";
+        const source: string = Console.path(Kernel.Language.get("script.split_worldmap_data.input_source_file"), "file");
         process(Kernel.JSON.deserialize_fs<WorldMapData>(source), `${Kernel.Path.except_extension(source)}.map_list`);
         return;
     }

@@ -25,7 +25,7 @@ namespace Sen.Script.Helper.Debugger.SortLanguageFile {
      */
 
     export function execute(): void {
-        const source: string = "D:/Code/Sen.Environment/Script/Setting/Language/en-us.json";
+        const source: string = Console.path(Kernel.Language.get("script.sort_language_file.input_language_file"), "file");
         Sen.Kernel.JSON.serialize_fs(source, process(Kernel.JSON.deserialize_fs<LanguageFile>(source)), 1, false);
         return;
     }

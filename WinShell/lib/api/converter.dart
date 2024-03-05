@@ -2,31 +2,34 @@
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
-import 'package:winshell/api/define.dart';
+import 'package:winshell/api/interface.dart';
 
 class CStringConverter {
-  static String toDartString(Pointer<StringView> stringview) {
+  /// Convert C String to Dart String
+
+  static String toDartString(Pointer<CStringView> stringview) {
     var charCodes =
         stringview.ref.value.cast<Uint8>().asTypedList(stringview.ref.size);
     return String.fromCharCodes(charCodes);
   }
 
-  static List<String> toList(StringList list) {
+  /// Convert CStringList to DartList
+
+  static List<String> toList(CStringList list) {
     var result = <String>[];
-    for (var i = 0; i < list.size; i++) {
+    for (var i = 0; i < list.size; ++i) {
       result.add(list.value.elementAt(i).ref.value.toDartString());
     }
     return result;
   }
 
-  static Pointer<StringView> toStringView(String str) {
-    var units = str.toNativeUtf8();
-    var size = str.length;
-    var stringView = calloc<StringView>();
-    stringView.ref
-      ..value = units
-      ..size = size;
+  /// Convert Dart String to CStringView
 
+  static Pointer<CStringView> toStringView(String str) {
+    var stringView = calloc<CStringView>();
+    stringView.ref
+      ..value = str.toNativeUtf8()
+      ..size = str.length;
     return stringView;
   }
 }

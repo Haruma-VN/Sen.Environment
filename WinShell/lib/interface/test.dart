@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:winshell/api/kernel.dart';
+import 'package:winshell/api/shell.dart';
 
 class CView extends StatefulWidget {
   CView({
@@ -12,10 +13,10 @@ class CView extends StatefulWidget {
   final Kernel kernel;
 
   @override
-  State<CView> createState() => CViewStage();
+  State<CView> createState() => _CViewStage();
 }
 
-class CViewStage extends State<CView> {
+class _CViewStage extends State<CView> implements Shell {
   @override
   Widget build(BuildContext context) {
     Kernel.gui = this;
@@ -36,6 +37,7 @@ class CViewStage extends State<CView> {
     );
   }
 
+  @override
   void sendMessage(String message) {
     setState(() {
       widget.list.add(message);

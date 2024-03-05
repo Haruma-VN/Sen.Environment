@@ -4,17 +4,18 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:winshell/api/define.dart';
+import 'package:winshell/api/interface.dart';
 import 'package:winshell/api/converter.dart';
+import 'package:winshell/api/shell.dart';
 import 'package:winshell/interface/test.dart';
 
 class Kernel {
   late DynamicLibrary dylib;
 
-  static late CViewStage gui;
+  static late Shell gui;
 
-  static StringView debug(
-    StringList list,
+  static CStringView debug(
+    CStringList list,
     Pointer<Never> proxy,
   ) {
     var result = CStringConverter.toList(list);
@@ -99,25 +100,25 @@ class Kernel {
     final KernelExecuteDartAPI executeMethod = this
         .dylib
         .lookupFunction<KernelExecuteCAPI, KernelExecuteDartAPI>('execute');
-    Pointer<StringView> script = calloc<StringView>(1);
+    var script = calloc<CStringView>(1);
     script.ref
       ..value = scriptPath.toNativeUtf8()
       ..size = scriptPath.length;
-    int result = 0;
-    List<String> view = [
+    var result = 0;
+    var view = [
       './test.exe',
       kernelPath,
       scriptPath,
       "D:/test/ZombieSkycityZombossGroup_1536.sprite/ipad3_10.8.1_main.rsb.bundle/packet/__MANIFESTGROUP__.rsg",
     ];
-    Pointer<StringView> argument = calloc<StringView>(view.length);
+    var argument = calloc<CStringView>(view.length);
     for (var i = 0; i < view.length; ++i) {
       var e = view[i];
       argument.elementAt(i).ref
         ..size = e.length
         ..value = e.toNativeUtf8();
     }
-    Pointer<StringList> arguments = calloc<StringList>(1);
+    var arguments = calloc<CStringList>(1);
     arguments.ref
       ..size = view.length
       ..value = argument;
