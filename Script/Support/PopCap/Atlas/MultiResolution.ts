@@ -14,6 +14,7 @@ namespace Sen.Script.Support.PopCap.Atlas.MultiResolution {
         after: Resolution;
         source: string;
         destination: string;
+        atlas_destination: string;
     }
 
     /**
@@ -136,12 +137,12 @@ namespace Sen.Script.Support.PopCap.Atlas.MultiResolution {
     ): void {
         for (const e of category) {
             if (e.before === e.after) {
-                callback(e.source, size, detail, e.destination);
+                callback(e.source, size, detail, e.atlas_destination);
                 continue;
             }
             generalization(e.source, e.destination, BigInt(e.before), BigInt(e.after));
             const distance: number = Number(e.after) / Number(e.before);
-            callback(e.source, { padding: size.padding, width: size.width * distance, height: size.height * distance }, { ...detail }, e.destination);
+            callback(e.destination, { padding: size.padding, width: size.width * distance, height: size.height * distance }, detail, e.atlas_destination);
         }
         return;
     }
