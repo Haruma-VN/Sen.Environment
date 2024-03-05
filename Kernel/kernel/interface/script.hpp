@@ -7301,6 +7301,61 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 
+		/**
+		 * RSBPatch
+		*/
+
+			namespace RSBPatch {
+
+				/**
+				 * Encode RSB-Patch
+				*/
+
+				inline static auto encode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSElement::undefined
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "encode_fs");
+						assert_conditional(JS_IsString(argv[1]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "encode_fs");
+						assert_conditional(JS_IsString(argv[2]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 2, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "encode_fs");
+						auto before_file = JS::Converter::get_c_string(context, argv[0]);
+						auto after_file = JS::Converter::get_c_string(context, argv[1]);
+						auto patch_file = JS::Converter::get_c_string(context, argv[2]);
+						auto flag = JS::Converter::get_int32(context, argv[3]);
+						return JS::Converter::get_undefined();
+					}, "encode_fs"_sv);
+				}
+
+				/**
+				 * Decode RSB-Patch
+				*/
+
+				inline static auto decode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSElement::undefined
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "decode_fs");
+						assert_conditional(JS_IsString(argv[1]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "decode_fs");
+						assert_conditional(JS_IsString(argv[2]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 2, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "decode_fs");
+						auto before_file = JS::Converter::get_c_string(context, argv[0]);
+						auto patch_file = JS::Converter::get_c_string(context, argv[1]);
+						auto after_file = JS::Converter::get_c_string(context, argv[2]);
+						return JS::Converter::get_undefined();
+					}, "decode_fs"_sv);
+				}
+
+			}
+
 			/**
 			 * JavaScript RSB Support
 			*/

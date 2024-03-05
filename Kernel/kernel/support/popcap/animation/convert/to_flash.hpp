@@ -243,51 +243,51 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			return;
 		}
 
-		template <auto is_action>
-		auto write_sprite(
-			std::map<int, std::vector<FrameNode>>& frame_node_list, 
-			std::vector<std::string>& animation_sprite_name_list, 
-			std::vector<std::string>& animation_image_id_list, 
-			std::string &name,
-			XMLDocument* document
-		) -> void
-		{
-			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
-			auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
-			DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-			DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
-			if constexpr (is_action) {
-				DOMSymbolItem->SetAttribute("name", fmt::format("action/{}", name).data());
-			}
-			else {
-				DOMSymbolItem->SetAttribute("name", fmt::format("sprite/{}", name).data());
-			}
-			DOMSymbolItem->SetAttribute("symbolType", "graphic");
-			auto timeline = document->NewElement("timeline");
-			auto DOMTimeline = document->NewElement("DOMTimeline");
-			DOMTimeline->SetAttribute("name", name.data());
-			auto layers = document->NewElement("layers");
-			auto keys = Map::keys<int, FrameNode>(frame_node_list);
-			for (auto i = keys.size(); i > 0; --i)
-			{
-				for (auto & node : frame_node_list[keys[i]])
-				{
-					auto& transform = node.transform;
-                    auto& base_color = node.color;
-                    auto& resource = node.resource;
-					auto sprite_dom_frame = document->NewElement("DOMFrame");
-					sprite_dom_frame->SetAttribute("index", node.index);
-					sprite_dom_frame->SetAttribute("duration", node.duration);
-					auto elements = document->NewElement("elements");
-					auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
-				}
-			}
-			DOMTimeline->InsertEndChild(layers);
-			timeline->InsertEndChild(DOMTimeline);
-			DOMSymbolItem->InsertEndChild(timeline);
-			document->InsertEndChild(DOMSymbolItem);
-			return;
-		}
+		// template <auto is_action>
+		// auto write_sprite(
+		// 	std::map<int, std::vector<FrameNode>>& frame_node_list, 
+		// 	std::vector<std::string>& animation_sprite_name_list, 
+		// 	std::vector<std::string>& animation_image_id_list, 
+		// 	std::string &name,
+		// 	XMLDocument* document
+		// ) -> void
+		// {
+		// 	static_assert(is_action == true or is_action == false, "is_action is a boolean value");
+		// 	auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
+		// 	DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+		// 	DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
+		// 	if constexpr (is_action) {
+		// 		DOMSymbolItem->SetAttribute("name", fmt::format("action/{}", name).data());
+		// 	}
+		// 	else {
+		// 		DOMSymbolItem->SetAttribute("name", fmt::format("sprite/{}", name).data());
+		// 	}
+		// 	DOMSymbolItem->SetAttribute("symbolType", "graphic");
+		// 	auto timeline = document->NewElement("timeline");
+		// 	auto DOMTimeline = document->NewElement("DOMTimeline");
+		// 	DOMTimeline->SetAttribute("name", name.data());
+		// 	auto layers = document->NewElement("layers");
+		// 	auto keys = Map::keys<int, FrameNode>(frame_node_list);
+		// 	for (auto i = keys.size(); i > 0; --i)
+		// 	{
+		// 		for (auto & node : frame_node_list[keys[i]])
+		// 		{
+		// 			auto& transform = node.transform;
+        //             auto& base_color = node.color;
+        //             auto& resource = node.resource;
+		// 			auto sprite_dom_frame = document->NewElement("DOMFrame");
+		// 			sprite_dom_frame->SetAttribute("index", node.index);
+		// 			sprite_dom_frame->SetAttribute("duration", node.duration);
+		// 			auto elements = document->NewElement("elements");
+		// 			auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
+		// 		}
+		// 	}
+		// 	DOMTimeline->InsertEndChild(layers);
+		// 	timeline->InsertEndChild(DOMTimeline);
+		// 	DOMSymbolItem->InsertEndChild(timeline);
+		// 	document->InsertEndChild(DOMSymbolItem);
+		// 	return;
+		// }
 
 	public:
 		explicit ToFlash(
@@ -331,10 +331,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				FileSystem::write_xml(fmt::format("{}/library/image/{}.xml", destination, key), &image_document);
 			}
 			auto keys = Object::keys(animation.sprite);
+			auto images = Object::keys(animation.image);
 			for (auto &[sprite_name, sprite_value] : animation.sprite.items())
 			{
 				auto frame_list = FrameList{};
 				decode_frame_list(sprite_value, animation.sprite, keys, frame_list.frame_node_list, frame_list.action_list);
+				auto sprite_document = XMLDocument{};
 			}
 			return;
 		}

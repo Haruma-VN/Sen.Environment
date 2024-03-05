@@ -14,6 +14,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
             encode_rton: Questionable<boolean>;
             encrypt_rton: Questionable<boolean>;
             key: Questionable<string>;
+            iv: Questionable<string>;
         };
         ptx: {
             generic: Generic;

@@ -48,13 +48,14 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
             configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb.unpack_for_modding.json"),
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument): void {
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument, string>(argument, "destination", `${argument.source}.bundle`);
+                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
                 Support.PopCap.ResourceStreamBundle.Project.Unpack.process_fs(argument.source, argument.destination!, {
                     decode_rton: false,
                     decrypt_rton: false,
                     layout: Support.PopCap.ResourceGroup.PathStyle.WindowStyle,
+                    generic: "ios",
                 });
                 Sen.Script.Executor.clock.stop_safe();
                 return;

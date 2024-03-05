@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+	<assemblyIdentity 
+			type="win32" 
+			name="Sen.Environment" 
+			version="1.0.0.0" 
+			processorArchitecture="x86" 
+			description="Sen.Environment is a project that help you with multiple tasks"/>
+	<application xmlns="urn:schemas-microsoft-com:asm.v3">
+		<windowsSettings xmlns="urn:schemas-microsoft-com:asm.v3">
+			<longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
+		</windowsSettings>
+	</application>
+</assembly>

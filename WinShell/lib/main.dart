@@ -6,7 +6,7 @@ import 'package:winshell/api/kernel.dart';
 import 'package:winshell/components/model/page_view.dart';
 import 'package:winshell/components/model/text.dart';
 import 'package:winshell/components/model/theme.dart';
-import 'package:winshell/interface/shell.dart';
+//import 'package:winshell/interface/shell.dart';
 //import 'package:winshell/interface/shell.dart';
 import 'package:winshell/interface/test.dart';
 

@@ -420,9 +420,19 @@ namespace Sen::Kernel::Interface {
 				}
 				// rsb
 				{
+					// unpack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_fs"_sv);
+					// unpack_for_modding
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_for_modding_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSB"_sv, "unpack_for_modding_fs"_sv);
+					// pack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_fs"_sv);
+				}
+				// rsb-patch
+				{
+					// decode_fs
+					javascript->add_proxy(Script::Support::PopCap::RSBPatch::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSBPatch"_sv, "decode_fs"_sv);
+					// encode_fs
+					javascript->add_proxy(Script::Support::PopCap::RSBPatch::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSBPatch"_sv, "encode_fs"_sv);
 				}
 				// rsg
 				{

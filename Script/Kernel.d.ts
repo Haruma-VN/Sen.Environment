@@ -1571,6 +1571,12 @@ declare namespace Sen {
                     export function encode_fs(source: string, destination: string): void;
                 }
 
+                declare namespace RSBPatch {
+                    export function encode_fs(before: string, after: string, patch: string): void;
+
+                    export function decode_fs(before: string, patch: string, after: string): void;
+                }
+
                 /**
                  * PopCap Resource Stream Bundle Support
                  */
@@ -1586,7 +1592,7 @@ declare namespace Sen {
                      * Res-Info
                      */
 
-                    export interface ResourceStreamGroupResInfo extends Record<string, unknown> {
+                    export interface PTXInfo extends Record<string, unknown> {
                         id: bigint;
                         format: bigint;
                         width: bigint;
@@ -1596,9 +1602,9 @@ declare namespace Sen {
                         alpha_format?: bigint;
                     }
 
-                    export interface PTXInfo extends Record<string, unknown> {
+                    export interface ResourceStreamGroupResInfo extends Record<string, unknown> {
                         path: string;
-                        ptx_info?: ResourceStreamGroupResInfo;
+                        ptx_info?: PTXInfo;
                     }
 
                     /**
@@ -1634,6 +1640,7 @@ declare namespace Sen {
 
                     export interface Manifest extends Record<string, unknown> {
                         version: bigint;
+                        ptx_info_size: bigint;
                         group: Record<string, ResourceStreamGroupPool>;
                     }
 

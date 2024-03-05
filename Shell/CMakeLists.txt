@@ -13,8 +13,12 @@ else()
     add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
 endif()
 
+add_definitions(-w)
 
-# Add source to this project's executable.
+if (WIN32)
+  add_compile_options(/w)
+endif()
+
 add_executable (
     ${PROJECT_NAME} 
     ./library/color.hpp
@@ -23,7 +27,14 @@ add_executable (
     ./library/macro.hpp
     ./library/callback.hpp
     ./shell.cpp 
+    $<$<PLATFORM_ID:Windows>:./shell.rc>
 )
+
+
+if (WIN32)
+  set(MY_MANIFEST_FILE ./resource/windows/application.manifest)
+  set(CMAKE_SHARED_LINKER_FLAGS "/MANIFEST:NO")
+endif()
 
 target_include_directories(
 	${PROJECT_NAME} PRIVATE

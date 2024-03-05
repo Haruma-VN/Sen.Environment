@@ -1,25 +1,32 @@
 namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
+    export type Generic = Configuration.Generic;
+
+    export type Setting = Configuration.Setting;
+
     export interface Category {
         decrypt_rton: boolean;
         decode_rton: boolean;
         layout: ResourceGroup.PathStyle;
+        generic: Generic;
     }
 
     export function make_setting(category: {
-        ptx: Configuration.Generic;
+        ptx: Generic;
         rsb: {
             has_newton: boolean;
             has_rton: boolean;
         };
         rton: {
             encryption_key?: string;
+            iv?: string;
         };
-    }): Configuration.Setting {
+    }): Setting {
         return {
             rton: {
                 encode_rton: true,
                 encrypt_rton: false,
                 key: category.rton.encryption_key ?? "",
+                iv: category.rton.iv ?? "",
             },
             ptx: {
                 generic: category.ptx,
@@ -48,6 +55,24 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                 automatic_merge_before_encode: false,
             },
         };
+    }
+
+    export function remake_manifest(manifest: Kernel.Support.PopCap.RSB.Manifest): void {
+        // default is version 4
+        delete (manifest as any).version;
+        // remove pitch
+        const groups: Array<string> = Object.keys(manifest.group);
+        for (const group of groups) {
+            const subgroups: Array<string> = Object.keys(manifest.group[group].subgroup);
+            subgroups.forEach((subgroup: string) =>
+                manifest.group[group].subgroup[subgroup].packet_info.res.forEach((e) => {
+                    if (e.ptx_info) {
+                        delete (e as any).ptx_info.pitch;
+                    }
+                }),
+            );
+        }
+        return;
     }
 
     export function process(source: string, destination: string, category: Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack.Category): void {
@@ -80,6 +105,10 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                 });
             }
         } while (false);
+        const config = {
+            has_rton: true,
+            has_newton: false,
+        };
         do {
             if (manifest_group === undefined) {
                 Console.warning(Kernel.Language.get("popcap.rsb.unpack_for_modding.manifest_group_not_found"));
@@ -92,6 +121,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.newton$/gi, ".json")}`;
                     Kernel.Support.PopCap.Newton.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.send("Catch newton first, decode newton file");
+                    config.has_newton = true;
                     break;
                 }
                 if (/\.rton$/gi.test(e.path)) {
@@ -103,7 +133,19 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             }
             Kernel.Support.PopCap.ResourceGroup.convert_fs(ripe_json, `${destination}/res.json`, category.layout);
         } while (false);
+        Kernel.JSON.serialize_fs<Setting>(
+            `${destination}/setting.json`,
+            make_setting({
+                ptx: category.generic,
+                rsb: { has_newton: config.has_newton, has_rton: config.has_rton },
+                rton: { encryption_key: "65bd1b2305f46eb2806b935aab7630bb", iv: "1b2305f46eb2806b935aab76" },
+            }),
+            1,
+            false,
+        );
+        remake_manifest(manifest);
         Console.send("Setting were made, edit setting.json for your own purpose");
+        Kernel.JSON.serialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${destination}/manifest.json`, manifest, 1, false);
         return;
     }
 

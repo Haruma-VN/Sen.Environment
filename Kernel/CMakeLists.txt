@@ -10,7 +10,7 @@ project (
 add_definitions(-w)
 
 if (WIN32)
-add_compile_options(/w)
+  add_compile_options(/w)
 endif()
 
 

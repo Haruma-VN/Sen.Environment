@@ -57,15 +57,16 @@ namespace Sen::Kernel::Definition::Diff {
 				T before_size,
 				const char* after,
 				T after_size
-			) -> std::vector<char>
+			) -> std::vector<unsigned char>
 			{
+				static_assert(flag == open_vcdiff::VCDiffFormatExtensionFlagValues::VCD_FORMAT_CHECKSUM or flag == open_vcdiff::VCDiffFormatExtensionFlagValues::VCD_FORMAT_INTERLEAVED or open_vcdiff::VCDiffFormatExtensionFlagValues::VCD_FORMAT_JSON or open_vcdiff::VCDiffFormatExtensionFlagValues::VCD_STANDARD_FORMAT, "flag must be one of vcdiff supported format");
 				auto encoding = std::string{};
 				auto encoder = std::make_unique<open_vcdiff::VCDiffEncoder>(before, before_size);
 				encoder->SetFormatFlags(static_cast<open_vcdiff::VCDiffFormatExtensionFlags>(flag));
 				if (!encoder->Encode(after, after_size, &encoding)) {
 					throw Exception(fmt::format("{}", Language::get("vcdiff.encode.failed")), std::source_location::current(), "encode");
 				}
-				return std::vector<char>(encoding.begin(), encoding.end());
+				return std::vector<unsigned char>(encoding.begin(), encoding.end());
 			}
 
 			/**
@@ -84,7 +85,7 @@ namespace Sen::Kernel::Definition::Diff {
 				T before_size,
 				const char* patch,
 				T patch_size
-			) -> std::vector<char>
+			) -> std::vector<unsigned char>
 			{
 				auto decoded_data = std::string{};
 				auto decoder = std::make_unique<open_vcdiff::VCDiffStreamingDecoder>();
@@ -92,7 +93,7 @@ namespace Sen::Kernel::Definition::Diff {
 				if (!decoder->DecodeChunk(patch, patch_size, &decoded_data)) {
 					throw Exception(fmt::format("{}", Language::get("vcdiff.decode.failed")), std::source_location::current(), "decode");
 				}
-				return std::vector<char>(decoded_data.data(), decoded_data.data() + decoded_data.size());
+				return std::vector<unsigned char>(decoded_data.data(), decoded_data.data() + decoded_data.size());
 			}
 
 			/**
@@ -114,19 +115,19 @@ namespace Sen::Kernel::Definition::Diff {
 				auto after = FileSystem::read_binary<char>(after_file);
 				switch (flag) {
 					case Flag::VCD_FORMAT_CHECKSUM:{
-						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_CHECKSUM>(before.data(), before.size(), after.data(), after.size()));
+						FileSystem::write_binary<unsigned char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_CHECKSUM>(before.data(), before.size(), after.data(), after.size()));
 						break;
 					}
 					case Flag::VCD_FORMAT_INTERLEAVED:{
-						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t,Flag::VCD_FORMAT_INTERLEAVED>(before.data(), before.size(), after.data(), after.size()));
+						FileSystem::write_binary<unsigned char>(patch_file, VCDiff::encode<std::size_t,Flag::VCD_FORMAT_INTERLEAVED>(before.data(), before.size(), after.data(), after.size()));
 						break;
 					}
 					case Flag::VCD_FORMAT_JSON:{
-						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_JSON>(before.data(), before.size(), after.data(), after.size()));
+						FileSystem::write_binary<unsigned char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_FORMAT_JSON>(before.data(), before.size(), after.data(), after.size()));
 						break;
 					}
 					case Flag::VCD_STANDARD_FORMAT:{
-						FileSystem::write_binary<char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_STANDARD_FORMAT>(before.data(), before.size(), after.data(), after.size()));
+						FileSystem::write_binary<unsigned char>(patch_file, VCDiff::encode<std::size_t, Flag::VCD_STANDARD_FORMAT>(before.data(), before.size(), after.data(), after.size()));
 						break;
 					}
 					default:{
@@ -151,7 +152,7 @@ namespace Sen::Kernel::Definition::Diff {
 			{
 				auto before = FileSystem::read_binary<char>(before_file);
 				auto patch = FileSystem::read_binary<char>(patch_file);
-				FileSystem::write_binary<char>(after_file, VCDiff::decode(before.data(), before.size(), patch.data(), patch.size()));
+				FileSystem::write_binary<unsigned char>(after_file, VCDiff::decode(before.data(), before.size(), patch.data(), patch.size()));
 				return;
 			}
 	};

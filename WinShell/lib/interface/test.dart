@@ -31,7 +31,7 @@ class CViewStage extends State<CView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => widget.kernel.execute(),
-        child: Icon(Icons.message),
+        child: const Icon(Icons.message),
       ),
     );
   }
