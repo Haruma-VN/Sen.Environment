@@ -155,14 +155,15 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 
 			/**
 			 * C++ String to JS String
+			 * Because StringView is cheap
 			*/
 
 			inline static auto to_string(
 				JSContext* context,
-				const std::string & content
+				std::string_view content
 			) -> JSValue
 			{
-				return JS_NewStringLen(context, content.c_str(), content.size());
+				return JS_NewStringLen(context, content.data(), content.size());
 			}
 
 			/**

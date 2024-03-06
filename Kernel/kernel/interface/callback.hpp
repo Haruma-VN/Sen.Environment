@@ -58,12 +58,19 @@ namespace Sen::Kernel::Interface {
 				javascript->add_proxy(Script::test, "Sen"_sv, "Kernel"_sv, "test"_sv);
 				// shell callback
 				{
-					auto is_gui = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}), nullptr);
-					auto shell_version = thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}), nullptr);
+					auto is_gui = std::make_unique<CStringView>();
+					thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}).get(), is_gui.get(), nullptr);
+					auto shell_version = std::make_unique<CStringView>();
+					thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}).get(), shell_version.get(), nullptr);
+					// version
 					javascript->add_constant<int>(Kernel::version, "Sen"_sv, "Kernel"_sv, "version"_sv);
-					javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version.value, shell_version.size})), "Sen"_sv, "Shell"_sv, "version"_sv);
-					javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui.value, is_gui.size})), "Sen"_sv, "Shell"_sv, "is_gui"_sv);
+					// shell version
+					javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version->value, static_cast<std::size_t>(shell_version->size)})), "Sen"_sv, "Shell"_sv, "version"_sv);
+					// is_gui
+					javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui->value, static_cast<std::size_t>(is_gui->size)})), "Sen"_sv, "Shell"_sv, "is_gui"_sv);
+					// callback
 					javascript->add_proxy(Script::callback, "Sen"_sv, "Shell"_sv, "callback"_sv);
+					// arguments
 					javascript->add_constant(thiz.arguments, "Sen"_sv, "Kernel"_sv, "arguments"_sv);
 				}
 				// xml

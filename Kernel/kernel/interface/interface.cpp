@@ -10,6 +10,7 @@ auto execute(
 ) -> int
 {
     try{
+        std::setlocale(LC_ALL, "C");
         auto script_path = Interface::make_standard_string(script);
         auto arguments = Interface::destruct_string_list(argument);
         Interface::Shell::callback = m_callback;
@@ -19,7 +20,7 @@ auto execute(
     }
     catch(...)
     {
-        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Runtime Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}), nullptr);
+        Interface::Shell::callback(Interface::construct_string_list(std::vector{std::string{"display"}, fmt::format("Runtime Exception found: {}", parse_exception().what()), std::string{""}, std::string{"red"}}).get(), nullptr, nullptr);
         return 1;
     }
     return 0;

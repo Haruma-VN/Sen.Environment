@@ -130,7 +130,8 @@ namespace Sen::Kernel::Support::Texture
 		inline static auto argb_8888(
 			const std::vector<unsigned char> &color,
 			int width,
-			int height) -> Image<int>
+			int height
+		) -> Image<int>
 		{
 			return rgba_8888(argb_to_rgba(color), width, height);
 		}
@@ -145,7 +146,8 @@ namespace Sen::Kernel::Support::Texture
 		inline static auto rgba_4444(
 			const std::vector<unsigned char> &color,
 			int width,
-			int height) -> Image<int>
+			int height
+		) -> Image<int>
 		{
 			auto sen = DataStreamView{color};
 			auto area = pixel_area_rgba(width, height);
@@ -701,7 +703,8 @@ namespace Sen::Kernel::Support::Texture
 		inline static auto la_88(
 			const std::vector<unsigned char> &color,
 			int width,
-			int height) -> Image<int>
+			int height
+		) -> Image<int>
 		{
 			auto sen = DataStreamView{color};
 			auto area = pixel_area_rgba(width, height);

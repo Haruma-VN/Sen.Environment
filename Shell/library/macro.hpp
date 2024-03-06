@@ -55,13 +55,13 @@ using namespace httplib;
 #define MAIN_FUNCTION int main(int size, char** argc)
 #endif
 struct StringView {
-	size_t size;
+	int size;
 	const char* value;
 };
 
 struct StringList {
 	StringView* value;
-	size_t size;
+	int size;
 
 	static auto to_vector(
 		const StringList& that
@@ -70,7 +70,7 @@ struct StringList {
 		auto destination = std::vector<std::string>{};
 		for (auto i = 0; i < that.size; ++i)
 		{
-			destination.emplace_back(std::string{ that.value[i].value, that.value[i].size });
+			destination.emplace_back(std::string{ that.value[i].value, static_cast<std::size_t>(that.value[i].size)});
 		}
 		return destination;
 	}
@@ -80,7 +80,7 @@ using CStringView = StringView;
 
 using CStringList = StringList;
 
-typedef CStringView(*ShellCallback)(CStringList list, void* proxy);
+typedef void(*ShellCallback)(CStringList* list, CStringView* destination, void* proxy);
 
 namespace Sen::Shell {
 

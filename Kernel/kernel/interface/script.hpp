@@ -110,8 +110,9 @@ namespace Sen::Kernel::Interface::Script {
 		M_JS_PROXY_WRAPPER(context, {
 			try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 			assert_conditional(JS_IsArray(context, argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_array")), "callback");
-			auto result = Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])), nullptr);
-			return JS::Converter::to_string(context, construct_standard_string(result));
+			auto destination = std::make_unique<CStringView>();
+			Shell::callback(construct_string_list(JS::Converter::get_vector<std::string>(context, argv[0])).get(), destination.get() , nullptr);
+			return JS::Converter::to_string(context, construct_standard_string(*destination));
 		}, "callback"_sv);
 	}
 
@@ -3996,17 +3997,17 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					case 1:
 					{
-						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0])}), nullptr);
+						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0])}).get(), nullptr, nullptr);
 						break;
 					}
 					case 2:
 					{
-						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1])}), nullptr);
+						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1])}).get(), nullptr, nullptr);
 						break;
 					}
 					default:
 					{
-						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}), nullptr);
+						Shell::callback(construct_string_list(std::vector<std::string>{std::string{"display"}, JS::Converter::get_string(context, argv[0]), JS::Converter::get_string(context, argv[1]), exchange_color(static_cast<Sen::Kernel::Interface::Color>(JS::Converter::get_int32(context, argv[2])))}).get(), nullptr, nullptr);
 						break;
 					}
 				}
@@ -4030,9 +4031,10 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				Shell::callback(construct_string_list(std::vector<std::string>{std::string{"wait"}}), nullptr);
-				auto result = Shell::callback(construct_string_list(std::vector<std::string>{std::string{"input"}}), nullptr);
-				return JS::Converter::to_string(context, std::string{result.value, result.size});
+				Shell::callback(construct_string_list(std::vector<std::string>{std::string{"wait"}}).get(), nullptr, nullptr);
+				auto destination = std::make_unique<CStringView>();
+				Shell::callback(construct_string_list(std::vector<std::string>{std::string{"input"}}).get(), destination.get(), nullptr);
+				return JS::Converter::to_string(context, std::string{destination->value, static_cast<std::size_t>(destination->size)});
 			}, "readline"_sv);
 		}
 	}

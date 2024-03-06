@@ -84,11 +84,12 @@ namespace Sen::Shell {
 	}
 
 	inline static auto callback(
-		CStringList list,
+		CStringList* list,
+		CStringView* destination,
 		void* proxy
-	) -> CStringView
+	) -> void
 	{
-		auto result = StringList::to_vector(list);
+		auto result = StringList::to_vector(*list);
 		assert_conditional(result.size() >= 1, "argument must be greater than 1");
 		if (result[0] == "display") {
 			assert_conditional(result.size() >= 2, "argument must be greater than 2");
@@ -106,7 +107,7 @@ namespace Sen::Shell {
 					break;
 				}
 			}
-			return EMPTY_STRING_VIEW;
+			return;
 		}
 		if (result[0] == "input") {
 			delete[] copy;
@@ -114,16 +115,14 @@ namespace Sen::Shell {
 			auto c = Console::input();
 			copy = new char[c.size() + 1];
 			std::memcpy(copy, c.c_str(), c.size());
-			return CStringView{
-				.size = c.size(),
-				.value = copy,
-			};
+			destination->size = static_cast<int>(c.size());
+			destination->value = copy;
+			return;
 		}
 		if (result[0] == "is_gui") {
-			return CStringView{ 
-				.size = 1, 
-				.value = "0" ,
-			};
+			destination->size = 1;
+			destination->value = "0";
+			return;
 		}
 		if (result[0] == "wait") {
 			#if WINDOWS
@@ -133,14 +132,14 @@ namespace Sen::Shell {
 			#else
 					std::cout << "\033[36m● \033[0m";
 			#endif
-			return EMPTY_STRING_VIEW;
+			return;
 		}
 		if (result[0] == "clear") {
 			#if WINDOWS
 					auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 					SetConsoleTextAttribute(hConsole, Sen::Shell::Interactive::Color::DEFAULT);
 			#endif
-			return EMPTY_STRING_VIEW;
+			return;
 		}
 		if (result[0] == "version") {
 			delete[] copy;
@@ -148,10 +147,9 @@ namespace Sen::Shell {
 			auto version = std::to_string(Sen::Shell::version);
 			copy = new char[version.size() + 1];
 			std::memcpy(copy, version.c_str(), version.size());
-			return CStringView{ 
-				.size = version.size(), 
-				.value = copy,
-			};
+			destination->size = static_cast<int>(version.size());
+			destination->value = copy;
+			return;
 		}
 		if (result[0] == "host") {
 			assert_conditional(result.size() >= 5, "argument must be greater than 5");
@@ -160,7 +158,7 @@ namespace Sen::Shell {
 				res.set_content(result[2], "text/html");
 			});
 			svr.listen(result[3], std::stoi(result[4]));
-			return EMPTY_STRING_VIEW;
+			return;
 		}
 		if (result[0] == "pick_file") {
 			delete[] copy;
@@ -177,15 +175,16 @@ namespace Sen::Shell {
 					copy = new char[strlen(raw_selection) + 1];
 					std::memcpy(copy, raw_selection, strlen(raw_selection));
 				}
+			#else
+				throw std::runtime_error{ "invalid method" };
 			#endif
-			return CStringView{
-				#if WINDOWS
-					.size = raw_selection[0].size(),
-				#elif LINUX || MACINTOSH
-					.size = strlen(raw_selection),
-				#endif
-					.value = copy,
-			};
+			#if WINDOWS
+			destination->size = static_cast<int>(raw_selection[0].size()),
+			#elif LINUX || MACINTOSH
+			destination->size = std::strlen(raw_selection),
+			#endif
+			destination->value = copy;
+			return;
 		}
 		if (result[0] == "pick_directory") {
 			delete[] copy;
@@ -203,20 +202,20 @@ namespace Sen::Shell {
 				std::memcpy(copy, raw_selection, strlen(raw_selection));
 			}
 			#endif
-			return CStringView{
 			#if WINDOWS
-				.size = raw_selection[0].size(),
+			destination->size = raw_selection[0].size(),
 			#elif LINUX || MACINTOSH
-				.size = strlen(raw_selection),
+			destination->size = std::strlen(raw_selection),
 			#endif
-				.value = copy,
-			};
+			destination->value = copy;
+			return;
 		}
 		if (result[0] == "push_notification") {
 			assert_conditional(result.size() >= 3, "argument must be greater than 3");
 			tinyfd_notifyPopup(result[1].data(), result[2].data(), "info");
+			return;
 		}
-		return EMPTY_STRING_VIEW;
+		return;
 	}
 
 }

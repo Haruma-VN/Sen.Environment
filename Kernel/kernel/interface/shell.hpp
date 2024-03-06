@@ -10,14 +10,14 @@ namespace Sen::Kernel::Interface {
 
 	struct StringView {
 		public:
-			size_t size;
+			int size;
 			const char* value;
 	};
 
 	struct StringList {
 		public:
 			StringView* value;
-			size_t size;
+			int size;
 
 			~StringList(
 
@@ -31,7 +31,7 @@ namespace Sen::Kernel::Interface {
 	
 	using CStringList = StringList;
 
-	typedef CStringView (*ShellCallback)(CStringList list, void* proxy_call);
+	typedef void (*ShellCallback)(CStringList* list, StringView* destination, void* proxy_call);
 
 	// Construct CStringView from standard String
 
@@ -39,9 +39,9 @@ namespace Sen::Kernel::Interface {
 		const std::string & that
 	) -> CStringView
 	{
-		return CStringView{
-			.size = that.size(),
-			.value = that.c_str()
+		return CStringView {
+			.size = static_cast<int>(that.size()),
+			.value = that.c_str(),
 		};
 	}
 
@@ -51,26 +51,23 @@ namespace Sen::Kernel::Interface {
 		CStringView* that
 	) -> std::string
 	{
-		return std::string{that->value, that->size};
+		return std::string{that->value, static_cast<std::size_t>(that->size)};
 	}
 
 	inline static auto construct_standard_string(
 		const CStringView & that
 	) -> std::string
 	{
-		return std::string{that.value, that.size};
+		return std::string{that.value, static_cast<std::size_t>(that.size)};
 	}
 
 	inline static auto construct_string_list(
 		const std::vector<std::string> & that
-	) -> CStringList
+	) -> std::shared_ptr<CStringList>
 	{
-		auto destination = CStringList{
-			.value = new StringView[that.size()],
-			.size = that.size()
-		};
-		for	(auto i : Range<size_t>(that.size())){
-			destination.value[i] = construct_string(that.at(i));
+		auto destination = std::make_shared<CStringList>(new StringView[that.size()], static_cast<int>(that.size()));
+		for	(auto i : Range<std::size_t>(that.size())){
+			destination->value[i] = construct_string(that.at(i));
 		}
 		return destination;
 	}
@@ -80,9 +77,9 @@ namespace Sen::Kernel::Interface {
 	) -> std::vector<std::string>
 	{
 		auto destination = std::vector<std::string>{};
-		for (auto i : Range(that->size))
+		for (auto i : Range(static_cast<std::size_t>(that->size)))
 		{
-			destination.emplace_back(std::string{ that->value[i].value, that->value[i].size });
+			destination.emplace_back(std::string{ that->value[i].value, static_cast<std::size_t>(that->value[i].size) });
 		}
 		return destination;
 	}
@@ -91,11 +88,12 @@ namespace Sen::Kernel::Interface {
 		private:
 
 			inline static auto shell_cb(
-				CStringList list,
+				CStringList* list,
+				CStringView* destination,
 				void* proxy
-			) -> CStringView
+			) -> void
 			{
-				return CStringView{0, ""};
+				return;
 			}
 
 		public:
