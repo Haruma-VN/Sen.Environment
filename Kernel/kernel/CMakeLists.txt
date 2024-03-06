@@ -106,6 +106,9 @@ add_library(
 	./support/popcap/cfw2/definition.hpp
 	./support/popcap/cfw2/decode.hpp
 	./support/popcap/cfw2/encode.hpp
+	./support/popcap/rsb_patch/common.hpp
+	./support/popcap/rsb_patch/decode.hpp
+	./support/popcap/rsb_patch/encode.hpp
 	./support/texture/compression/pvrtc/color.hpp
 	./support/texture/compression/pvrtc/packet.hpp
 	./support/texture/compression/pvrtc/pvrtc.hpp

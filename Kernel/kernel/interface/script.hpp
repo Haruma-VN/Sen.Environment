@@ -7326,7 +7326,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto before_file = JS::Converter::get_c_string(context, argv[0]);
 						auto after_file = JS::Converter::get_c_string(context, argv[1]);
 						auto patch_file = JS::Converter::get_c_string(context, argv[2]);
-						auto flag = JS::Converter::get_int32(context, argv[3]);
+						Kernel::Support::PopCap::RSBPatch::Encode::process_fs(before_file.get(), after_file.get(), patch_file.get());
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}
@@ -7350,6 +7350,7 @@ namespace Sen::Kernel::Interface::Script {
 						auto before_file = JS::Converter::get_c_string(context, argv[0]);
 						auto patch_file = JS::Converter::get_c_string(context, argv[1]);
 						auto after_file = JS::Converter::get_c_string(context, argv[2]);
+						Kernel::Support::PopCap::RSBPatch::Decode::process_fs(before_file.get(), patch_file.get(), after_file.get());
 						return JS::Converter::get_undefined();
 					}, "decode_fs"_sv);
 				}

@@ -404,6 +404,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rsb.unpack.js",
             "~/Executor/Methods/popcap.rsb.pack.js",
             "~/Executor/Methods/popcap.rsb.obfuscate.js",
+            "~/Executor/Methods/popcap.rsb_patch.decode.js",
+            "~/Executor/Methods/popcap.rsb_patch.encode.js",
             "~/Executor/Methods/popcap.rsb.unpack_by_loose_constraints.js",
             "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
             "~/Executor/Methods/popcap.rsb.unpack_for_modding.js",

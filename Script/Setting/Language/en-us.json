@@ -323,5 +323,12 @@
     "script.split_worldmap_data.input_source_file": "Input source file",
     "popcap.rsb.unpack_for_modding.decode_newton_file": "Found Newton file, decode Newton file",
     "popcap.rsb.unpack_for_modding.decode_rton_file": "Found RTON file, decode RTON file",
-    "popcap.rsb.unpack_for_modding.make_setting": "Setting was generated, to change the packing logic please change the information inside it"
+    "popcap.rsb.unpack_for_modding.make_setting": "Setting was generated, to change the packing logic please change the information inside it",
+    "popcap.rsb_patch.encode.only_support_pvz2": "RSB-Patch is PvZ 2 exclusive feature",
+    "popcap.rsb_patch.decode.invalid_magic": "Invalid RSB-Patch magic, should begins with \"PBSR\"",
+    "popcap.rsb_patch.decode.invalid_rsg_number": "Invalid RSG Number section",
+    "popcap.rsb_patch.decode.invalid_packet_name": "Invalid Packet name",
+    "popcap.rsb_patch.decode.unable_to_decode": "Unable to decode the patch",
+    "popcap.rsb_patch.encode.after_file": "After file",
+    "popcap.rsb_patch.decode.patch_file": "Patch file"
 }
