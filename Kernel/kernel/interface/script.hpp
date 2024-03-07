@@ -78,6 +78,8 @@ namespace Sen::Kernel::Interface::Script {
 
 		using Prototype = JSValue;
 
+		using any = JSValue;
+
 	};
 
 	namespace JSDefine {
@@ -93,6 +95,8 @@ namespace Sen::Kernel::Interface::Script {
 		using Size = JSValue;
 
 		using BinaryView = JSValue;
+
+		using ImageView = JSValue;
 
 	}
 
@@ -3500,6 +3504,704 @@ namespace Sen::Kernel::Interface::Script {
 		
 		}
 
+		// Because Image is duplicated with the namespace
+
+		namespace DimensionView {
+
+			using Data = Kernel::Definition::Dimension<int>;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			enum Magic {
+				width,
+				height,
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSDefine::ImageView{};
+				if (argc == 1) {
+					auto width_val = JS_GetPropertyStr(ctx, argv[0], "width");
+					auto height_val = JS_GetPropertyStr(ctx, argv[0], "height");
+					auto width = int64_t{};
+					auto height = int64_t{};
+					JS_ToBigInt64(ctx, &width, width_val);
+					JS_ToBigInt64(ctx, &height, height_val);
+					s = new Data(
+						static_cast<int>(width),
+						static_cast<int>(height)
+					);
+					JS_FreeValue(ctx, width_val);
+					JS_FreeValue(ctx, height_val);
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "DimensionView",
+				.finalizer = finalizer,
+			};
+
+
+			// Getter
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<DimensionView::Magic>(magic)) {
+					case DimensionView::Magic::width: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->width));
+					}
+					case DimensionView::Magic::height: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->height));
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+			}
+
+			// Setter
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<DimensionView::Magic>(magic)) {
+					case DimensionView::Magic::width: {
+						s->width = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case DimensionView::Magic::height: {
+						s->height = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("width", getter, setter, DimensionView::Magic::width),
+				JS_CPPGETSET_MAGIC_DEF("height", getter, setter, DimensionView::Magic::height),
+			};
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "DimensionView"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		// Rectangle class
+
+		namespace Rectangle {
+
+			using Data = Kernel::Definition::Rectangle<int>;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			enum Magic {
+				x,
+				y,
+				width,
+				height,
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSDefine::ImageView{};
+				if (argc == 1) {
+					auto width_val = JS_GetPropertyStr(ctx, argv[0], "width");
+					auto height_val = JS_GetPropertyStr(ctx, argv[0], "height");
+					auto x_val = JS_GetPropertyStr(ctx, argv[0], "x");
+					auto y_val = JS_GetPropertyStr(ctx, argv[0], "y");
+					auto width = int64_t{};
+					auto height = int64_t{};
+					auto x = int64_t{};
+					auto y = int64_t{};
+					JS_ToBigInt64(ctx, &width, width_val);
+					JS_ToBigInt64(ctx, &height, height_val);
+					JS_ToBigInt64(ctx, &x, x_val);
+					JS_ToBigInt64(ctx, &y, y_val);
+					s = new Data(
+						x,
+						y,
+						static_cast<int>(width),
+						static_cast<int>(height)
+					);
+					JS_FreeValue(ctx, width_val);
+					JS_FreeValue(ctx, height_val);
+					JS_FreeValue(ctx, x_val);
+					JS_FreeValue(ctx, y_val);
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Rectangle",
+				.finalizer = finalizer,
+			};
+
+
+			// Getter
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Rectangle::Magic>(magic)) {
+					case Rectangle::Magic::x: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->x));
+					}
+					case Rectangle::Magic::y: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->y));
+					}
+					case Rectangle::Magic::width: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->width));
+					}
+					case Rectangle::Magic::height: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->height));
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+			}
+
+			// Setter
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Rectangle::Magic>(magic)) {
+					case Rectangle::Magic::x: {
+						s->x = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case Rectangle::Magic::y: {
+						s->y = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case Rectangle::Magic::width: {
+						s->width = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case Rectangle::Magic::height: {
+						s->height = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("x", getter, setter, Rectangle::Magic::x),
+				JS_CPPGETSET_MAGIC_DEF("y", getter, setter, Rectangle::Magic::y),
+				JS_CPPGETSET_MAGIC_DEF("width", getter, setter, Rectangle::Magic::width),
+				JS_CPPGETSET_MAGIC_DEF("height", getter, setter, Rectangle::Magic::height),
+			};
+
+			// Adapter
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "Rectangle"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		// Because Image is duplicated with the namespace
+
+		namespace ImageView {
+		
+			using Data = Kernel::Definition::Image<int>;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			enum Magic {
+				bit_depth,
+				color_type,
+				interlace_type,
+				channels,
+				rowbytes,
+				data,
+				width,
+				height,
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSDefine::ImageView{};
+				if (argc == 1) {
+					auto width_val = JS_GetPropertyStr(ctx, argv[0], "width");
+					auto height_val = JS_GetPropertyStr(ctx, argv[0], "height");
+					auto bit_depth_val = JS_GetPropertyStr(ctx, argv[0], "bit_depth");
+					auto color_type_val = JS_GetPropertyStr(ctx, argv[0], "color_type");
+					auto interlace_type_val = JS_GetPropertyStr(ctx, argv[0], "interlace_type");
+					auto channels_val = JS_GetPropertyStr(ctx, argv[0], "channels");
+					auto rowbytes_val = JS_GetPropertyStr(ctx, argv[0], "rowbytes");
+					auto data_val = JS_GetPropertyStr(ctx, argv[0], "data");
+					auto width = int64_t{};
+					auto height = int64_t{};
+					auto bit_depth = int64_t{};
+					auto color_type = int64_t{};
+					auto interlace_type = int64_t{};
+					auto channels = int64_t{};
+					auto rowbytes = int64_t{};
+					auto data_len = size_t{};
+					JS_ToBigInt64(ctx, &width, width_val);
+					JS_ToBigInt64(ctx, &height, height_val);
+					JS_ToBigInt64(ctx, &bit_depth, bit_depth_val);
+					JS_ToBigInt64(ctx, &color_type, color_type_val);
+					JS_ToBigInt64(ctx, &interlace_type, interlace_type_val);
+					JS_ToBigInt64(ctx, &channels, channels_val);
+					JS_ToBigInt64(ctx, &rowbytes, rowbytes_val);
+					auto data = JS_GetArrayBuffer(ctx, &data_len, data_val);
+					s = new Data(
+						static_cast<int>(width),
+						static_cast<int>(height),
+						static_cast<int>(bit_depth),
+						static_cast<int>(color_type),
+						static_cast<int>(interlace_type),
+						static_cast<int>(channels),
+						static_cast<int>(rowbytes),
+						std::move(std::vector<uint8_t>(data, data + data_len))
+					);
+					JS_FreeValue(ctx, width_val);
+					JS_FreeValue(ctx, height_val);
+					JS_FreeValue(ctx, bit_depth_val);
+					JS_FreeValue(ctx, color_type_val);
+					JS_FreeValue(ctx, interlace_type_val);
+					JS_FreeValue(ctx, channels_val);
+					JS_FreeValue(ctx, rowbytes_val);
+					JS_FreeValue(ctx, data_val);
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "ImageView",
+				.finalizer = finalizer,
+			};
+
+
+			// Getter
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<ImageView::Magic>(magic)) {
+					case ImageView::Magic::bit_depth: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->bit_depth));
+					}
+					case ImageView::Magic::channels: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->channels));
+					}
+					case ImageView::Magic::color_type: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->color_type));
+					}
+					case ImageView::Magic::interlace_type: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->interlace_type));
+					}
+					case ImageView::Magic::rowbytes: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->rowbytes));
+					}
+					case ImageView::Magic::width: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->width));
+					}
+					case ImageView::Magic::height: {
+						return JS::Converter::to_bigint(ctx, static_cast<std::int64_t>(s->height));
+					}
+					case ImageView::Magic::data: {
+						return JS_NewArrayBufferCopy(ctx, s->data().data(), s->data().size());
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+			}
+
+			// Setter
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				auto v = bool{};
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<ImageView::Magic>(magic)) {
+					case ImageView::Magic::bit_depth: {
+						s->bit_depth = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::channels: {
+						s->channels = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::color_type: {
+						s->color_type = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::interlace_type: {
+						s->interlace_type = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::rowbytes: {
+						s->rowbytes = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::width: {
+						s->width = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::height: {
+						s->height = static_cast<int>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case ImageView::Magic::data: {
+						auto size = std::size_t{};
+						auto data = JS_GetArrayBuffer(ctx, &size, val);
+						if (!data) {
+							throw Exception(fmt::format("{}", Kernel::Language::get("js.converter.failed_to_get_js_array_buffer")), std::source_location::current(), "random");
+						}
+						s->set_data(std::vector<std::uint8_t>{data, data + size});
+						break;
+					}
+					default: {
+						return JS_UNDEFINED;
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+			/*
+				Get area
+			*/
+
+			inline static auto area(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::bigint
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->area());
+				}, "area"_sv);
+			}
+
+			/*
+				Get circumference
+			*/
+
+			inline static auto circumference(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::bigint
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bigint<uint64_t>(ctx, s->circumference());
+				}, "circumference"_sv);
+			}
+
+			// Cut
+
+			inline static auto cut(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::ImageView
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[0], class_id));
+					if (!s) {
+						return JS_EXCEPTION;
+					}
+					auto x = JS_GetPropertyStr(ctx, argv[1], "x");
+					auto y = JS_GetPropertyStr(ctx, argv[1], "y");
+					auto width = JS_GetPropertyStr(ctx, argv[1], "width");
+					auto height = JS_GetPropertyStr(ctx, argv[1], "height");
+					auto data = new Data(std::move(Data::cut(*s, Kernel::Definition::Rectangle<int>(static_cast<int>(JS::Converter::get_bigint64(ctx, x)), static_cast<int>(JS::Converter::get_bigint64(ctx, y)), static_cast<int>(JS::Converter::get_bigint64(ctx, width)), static_cast<int>(JS::Converter::get_bigint64(ctx, height))))));
+					JS_FreeValue(ctx, x);
+					JS_FreeValue(ctx, y);
+					JS_FreeValue(ctx, width);
+					JS_FreeValue(ctx, height);
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, data);
+					return obj;
+				}, "cut"_sv);
+			}
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("bit_depth", getter, setter, ImageView::Magic::bit_depth),
+				JS_CPPGETSET_MAGIC_DEF("channels", getter, setter, ImageView::Magic::channels),
+				JS_CPPGETSET_MAGIC_DEF("color_type", getter, setter, ImageView::Magic::color_type),
+				JS_CPPGETSET_MAGIC_DEF("interlace_type", getter, setter, ImageView::Magic::interlace_type),
+				JS_CPPGETSET_MAGIC_DEF("rowbytes", getter, setter, ImageView::Magic::rowbytes),
+				JS_CPPGETSET_MAGIC_DEF("width", getter, setter, ImageView::Magic::width),
+				JS_CPPGETSET_MAGIC_DEF("height", getter, setter, ImageView::Magic::height),
+				JS_CPPGETSET_MAGIC_DEF("data", getter, setter, ImageView::Magic::data),
+				JS_CPPFUNC_DEF("area", 0, area),
+				JS_CPPFUNC_DEF("circumference", 0, circumference),
+			};
+
+			// Adapter
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				auto class_name = "ImageView"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				auto default_cut = JS_NewCFunction(ctx, cut, "cut", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "cut", default_cut);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+		
+		}
+
 	}
 
 	/**
@@ -5143,7 +5845,7 @@ namespace Sen::Kernel::Interface::Script {
 		 * ----------------------------------------
 		*/
 
-		inline static auto composite_fs(
+		inline static auto cut_fs(
 			JSContext *context, 
 			JSValueConst this_val, 
 			int argc, 
@@ -5158,11 +5860,11 @@ namespace Sen::Kernel::Interface::Script {
 				auto rectangle_height = JS_GetPropertyStr(context, argv[2], "height");
 				auto rectangle_x = JS_GetPropertyStr(context, argv[2], "x");
 				auto rectangle_y = JS_GetPropertyStr(context, argv[2], "y");
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_fs"_sv);
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_fs"_sv);
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_fs"_sv);
-				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_fs"_sv);
-				Sen::Kernel::Definition::ImageIO::composite_png(
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "cut_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "cut_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "cut_fs"_sv);
+				M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "cut_fs"_sv);
+				Sen::Kernel::Definition::ImageIO::cut_fs(
 					source.get(), 
 					destination.get(), 
 					Sen::Kernel::Definition::Rectangle<int>(
@@ -5177,7 +5879,7 @@ namespace Sen::Kernel::Interface::Script {
 				JS_FreeValue(context, rectangle_x);
 				JS_FreeValue(context, rectangle_y);
 				return JS::Converter::get_undefined();
-			}, "composite_fs"_sv);
+			}, "cut_fs"_sv);
 		}
 
 		/**
@@ -5190,7 +5892,7 @@ namespace Sen::Kernel::Interface::Script {
 		 * ----------------------------------------
 		*/
 
-		inline static auto composite_multiple_fs(
+		inline static auto cut_multiple_fs(
 			JSContext *context, 
 			JSValueConst this_val, 
 			int argc, 
@@ -5211,11 +5913,11 @@ namespace Sen::Kernel::Interface::Script {
 						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
 						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
 						auto destination = JS_GetPropertyStr(context, current_object, "destination");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_multiple_fs"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_multiple_fs"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_multiple_fs"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_multiple_fs"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "composite_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "cut_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "cut_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "cut_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "cut_multiple_fs"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "cut_multiple_fs"_sv);
 						data.emplace_back(
 							Sen::Kernel::Definition::RectangleFileIO<int>(
 								JS::Converter::get_int32(context, rectangle_x),
@@ -5235,9 +5937,9 @@ namespace Sen::Kernel::Interface::Script {
 				} else {
 					throw Exception("Cannot read property \"length\" of undefined");
 				}
-				Sen::Kernel::Definition::ImageIO::composite_pngs(source.get(), data);
+				Sen::Kernel::Definition::ImageIO::cut_pngs(source.get(), data);
 				return JS::Converter::get_undefined();
-			}, "composite_multiple_fs"_sv);
+			}, "cut_multiple_fs"_sv);
 		}
 
 		/**
@@ -5250,7 +5952,7 @@ namespace Sen::Kernel::Interface::Script {
 		 * ----------------------------------------
 		*/
 
-		inline static auto composite_multiple_fs_asynchronous(
+		inline static auto cut_multiple_fs_asynchronous(
 			JSContext *context, 
 			JSValueConst this_val, 
 			int argc, 
@@ -5271,11 +5973,11 @@ namespace Sen::Kernel::Interface::Script {
 						auto rectangle_x = JS_GetPropertyStr(context, current_object, "x");
 						auto rectangle_y = JS_GetPropertyStr(context, current_object, "y");
 						auto destination = JS_GetPropertyStr(context, current_object, "destination");
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "composite_multiple_fs_asynchronous"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "composite_multiple_fs_asynchronous"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "composite_multiple_fs_asynchronous"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "composite_multiple_fs_asynchronous"_sv);
-						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "composite_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_width, "width", "cut_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_height, "height", "cut_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_x, "x", "cut_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, rectangle_y, "y", "cut_multiple_fs_asynchronous"_sv);
+						M_JS_UNDEFINED_BEHAVIOR(context, destination, "destination", "cut_multiple_fs_asynchronous"_sv);
 						data.emplace_back(
 							Sen::Kernel::Definition::RectangleFileIO<int>(
 								JS::Converter::get_int32(context, rectangle_x),
@@ -5295,9 +5997,9 @@ namespace Sen::Kernel::Interface::Script {
 				} else {
 					throw Exception("Cannot read property \"length\" of undefined");
 				}
-				Sen::Kernel::Definition::ImageIO::composite_pngs_asynchronous(source.get(), data);
+				Sen::Kernel::Definition::ImageIO::cut_pngs_asynchronous(source.get(), data);
 				return JS::Converter::get_undefined();
-			}, "composite_multiple_fs_asynchronous"_sv);
+			}, "cut_multiple_fs_asynchronous"_sv);
 		}
 
 

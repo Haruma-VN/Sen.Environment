@@ -309,6 +309,8 @@ namespace Sen.Script {
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${Script.version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Sen.Script.Setting.load();
             Sen.Script.Console.finished(Sen.Kernel.Language.get("current_status"), format(Sen.Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
+            let image = new Kernel.ImageView(Kernel.Image.open("D:/test/ZombieSkycityZombossGroup_1536.sprite/ZOMBIESKYCITYZOMBOSSGROUP_1536_00.png"));
+            Console.send(Kernel.ImageView.cut(image, { x: 0n, y: 0n, width: 100n, height: 100n }) instanceof Kernel.ImageView);
             Executor.forward({ source: Kernel.arguments });
         } catch (e: any) {
             result = Exception.make_exception(e);
@@ -351,6 +353,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Atlas/Split.js",
             "~/Support/PopCap/Atlas/Pack.js",
             "~/Support/PopCap/Atlas/MultiResolution.js",
+            "~/Support/PopCap/Animation/Miscellaneous/GenerateAnimation.js",
             "~/Support/PopCap/Animation/Definition.js",
             "~/Support/PopCap/Animation/Structure.js",
             "~/Support/PopCap/Animation/FromAnimation.js",

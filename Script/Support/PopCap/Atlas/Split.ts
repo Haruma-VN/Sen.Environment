@@ -140,9 +140,9 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                 }
             }
             if (by_path) {
-                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.composite_multiple_fs(source, data));
+                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.cut_multiple_fs(source, data));
             } else {
-                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.composite_multiple_fs_asynchronous(source, data));
+                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.cut_multiple_fs_asynchronous(source, data));
             }
             return make_definition(resources_used, method, style);
         }
@@ -285,9 +285,9 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                 }
             }
             if (by_path) {
-                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.composite_multiple_fs(source, data));
+                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.cut_multiple_fs(source, data));
             } else {
-                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.composite_multiple_fs_asynchronous(source, data));
+                image_wrapper.forEach((data: Array<Sen.Kernel.Image.RectangleFileIO>, source: string) => Sen.Kernel.Image.cut_multiple_fs_asynchronous(source, data));
             }
             return make_definition(resources_used, method, id, style);
         }

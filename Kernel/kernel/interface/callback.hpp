@@ -228,11 +228,11 @@ namespace Sen::Kernel::Interface {
 					// rotate_fs
 					javascript->add_proxy(Script::Image::rotate_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "rotate_fs"_sv);
 					// composite_fs
-					javascript->add_proxy(Script::Image::composite_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "composite_fs"_sv);
+					javascript->add_proxy(Script::Image::cut_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "cut_fs"_sv);
 					// composite_multiple_fs
-					javascript->add_proxy(Script::Image::composite_multiple_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "composite_multiple_fs"_sv);
+					javascript->add_proxy(Script::Image::cut_multiple_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "cut_multiple_fs"_sv);
 					// composite_multiple_fs_asynchronous
-					javascript->add_proxy(Script::Image::composite_multiple_fs_asynchronous, "Sen"_sv, "Kernel"_sv, "Image"_sv, "composite_multiple_fs_asynchronous"_sv);
+					javascript->add_proxy(Script::Image::cut_multiple_fs_asynchronous, "Sen"_sv, "Kernel"_sv, "Image"_sv, "cut_multiple_fs_asynchronous"_sv);
 				}
 				// javascript
 				{
@@ -506,6 +506,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Character::register_class);
 				// BinaryView
 				javascript->register_object(Script::Class::BinaryView::register_class);
+				// ImageView
+				javascript->register_object(Script::Class::ImageView::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 			}

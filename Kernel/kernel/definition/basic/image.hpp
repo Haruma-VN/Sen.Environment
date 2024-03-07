@@ -368,7 +368,7 @@ namespace Sen::Kernel::Definition {
 			 * return: newly struct with other data 
 			*/
 
-			inline static auto composite(
+			inline static auto cut(
 				const Image<int>& image,
 				Rectangle<int> rectangle
 			) -> Image<int>
@@ -729,17 +729,17 @@ namespace Sen::Kernel::Definition {
 			 * Should use to split one image
 			 * source: source file
 			 * destination: destination file
-			 * rectangle: the area to composite
+			 * rectangle: the area to cut
 			 * return: the new image
 			*/
 
-			inline static auto composite_png(
+			inline static auto cut_fs(
 				std::string_view source,
 				std::string_view destination,
 				const Rectangle<int> & rectangle
 			) -> void
 			{
-				ImageIO::write_png(destination, Image<int>::composite(ImageIO::read_png(source), rectangle));
+				ImageIO::write_png(destination, Image<int>::cut(ImageIO::read_png(source), rectangle));
 				return;
 			}
 
@@ -747,10 +747,10 @@ namespace Sen::Kernel::Definition {
 			 * Should be used to split images
 			 * source: source file
 			 * data: list of rectangle file
-			 * return: the composite 
+			 * return: the cut 
 			*/
 
-			inline static auto composite_pngs(
+			inline static auto cut_pngs(
 				std::string_view source,
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
@@ -758,7 +758,7 @@ namespace Sen::Kernel::Definition {
 				auto image = ImageIO::read_png(source);
 				std::for_each(data.begin(), data.end(), [&](auto c)
 				{ 
-					ImageIO::write_png(c.destination, Image<int>::composite(image, c));
+					ImageIO::write_png(c.destination, Image<int>::cut(image, c));
 				});
 				return;
 			}
@@ -767,10 +767,10 @@ namespace Sen::Kernel::Definition {
 			 * Should be used to split images if id are unique
 			 * source: source file
 			 * data: list of rectangle file
-			 * return: the composite 
+			 * return: the cut 
 			*/
 
-			inline static auto composite_pngs_asynchronous(
+			inline static auto cut_pngs_asynchronous(
 				std::string_view source,
 				const std::vector<RectangleFileIO<int>> & data
 			) -> void
@@ -779,7 +779,7 @@ namespace Sen::Kernel::Definition {
 				auto process = std::vector<std::future<void>>{};
 				for (auto &c : data) {
 					process.push_back(std::async(std::launch::async, [&]{
-						ImageIO::write_png(c.destination, Image<int>::composite(image, c));
+						ImageIO::write_png(c.destination, Image<int>::cut(image, c));
 					}));
 				}
 				for(auto &f : process) {

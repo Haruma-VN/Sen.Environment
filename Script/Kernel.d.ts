@@ -286,34 +286,34 @@ declare namespace Sen {
             }
             /**
              * --------------------------------------------------
-             * JavaScript Composite Image Method
+             * JavaScript Cut Image Method
              * @param source - source file
              * @param destination - destination file
              * @param rectangle - rectangle
              * --------------------------------------------------
              */
 
-            export function composite_fs(source: string, destination: string, rectangle: Rectangle): void;
+            export function cut_fs(source: string, destination: string, rectangle: Rectangle): void;
 
             /**
              * --------------------------------------------------
-             * JavaScript Composite Images Method
+             * JavaScript Cut Images Method
              * @param source - source file
              * @param data - rectangle
              * --------------------------------------------------
              */
 
-            export function composite_multiple_fs(source: string, data: Array<RectangleFileIO>): void;
+            export function cut_multiple_fs(source: string, data: Array<RectangleFileIO>): void;
 
             /**
              * --------------------------------------------------
-             * JavaScript Composite Images Method ASYNC
+             * JavaScript Cut Images Method ASYNC
              * @param source - source file
              * @param data - rectangle
              * --------------------------------------------------
              */
 
-            export function composite_multiple_fs_asynchronous(source: string, data: Array<RectangleFileIO>): void;
+            export function cut_multiple_fs_asynchronous(source: string, data: Array<RectangleFileIO>): void;
             /**
              * --------------------------------------------------
              * JavaScript Open Image Method
@@ -1979,11 +1979,7 @@ declare namespace Sen {
          */
 
         declare namespace Dimension {
-            /**
-             * Dimension struct
-             */
-
-            export interface Structure {
+            export interface BasicView extends Record<string, unknown> {
                 /**
                  * Width of the image
                  */
@@ -1992,6 +1988,13 @@ declare namespace Sen {
                  * Height of the image
                  */
                 height: bigint;
+            }
+
+            /**
+             * Dimension struct
+             */
+
+            export interface Structure extends BasicView {
                 /**
                  * Calculate the area
                  */
@@ -2024,6 +2027,59 @@ declare namespace Sen {
                 data: ArrayBuffer;
                 [Symbol.iterator]: () => Iterator<this>;
             }
+        }
+
+        /**
+         * Image View for cut
+         */
+
+        declare interface IView extends Record<string, unknown> {
+            x: bigint;
+            y: bigint;
+            width: bigint;
+            height: bigint;
+        }
+
+        /**
+         * ImageView
+         */
+
+        declare class ImageView {
+            public constructor(value: Kernel.Dimension.Image): void;
+
+            public get bit_depth(): bigint;
+
+            public set bit_depth(value: bigint): void;
+
+            public get channels(): bigint;
+
+            public set channels(value: bigint): void;
+
+            public get color_type(): bigint;
+
+            public set color_type(value: bigint): void;
+
+            public get interlace_type(): bigint;
+
+            public set interlace_type(value: bigint): void;
+
+            public get rowbytes(): bigint;
+
+            public set rowbytes(value: bigint): void;
+
+            public get width(): bigint;
+
+            public set width(value: bigint): void;
+
+            public get height(): bigint;
+
+            public set height(value: bigint): void;
+
+            public area(): bigint;
+
+            public circumference(): bigint;
+
+            public static cut(image: Kernel.Image, area: Kernel.IView): Kernel.ImageView;
         }
 
         /**

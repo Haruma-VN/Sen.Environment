@@ -590,7 +590,7 @@ namespace Sen::Kernel::Support::Texture
 			auto image_data = PVRTC::decode_4bpp(packets, newWidth);
 			auto image = Image<int>{0, 0, newWidth, newHeight, image_data};
 			if (newWidth != width || newHeight != height) {
-				auto new_image = Image<int>::composite(image, Rectangle{0, 0, width, height});
+				auto new_image = Image<int>::cut(image, Rectangle{0, 0, width, height});
 				return new_image;
 			}
 			return image;
