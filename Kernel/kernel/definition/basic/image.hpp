@@ -350,6 +350,8 @@ namespace Sen::Kernel::Definition {
 
 			) = default;
 
+			using ZList = std::vector<uint8_t>;
+
 			/**
 			 * get the image dimension
 			*/
@@ -370,11 +372,11 @@ namespace Sen::Kernel::Definition {
 
 			inline static auto cut(
 				const Image<int>& image,
-				Rectangle<int> rectangle
+				const Rectangle<int>& rectangle
 			) -> Image<int>
 			{
-				auto data = std::vector<unsigned char>{};
-				data.reserve(static_cast<std::vector<uint8_t, std::allocator<uint8_t>>::size_type>(rectangle.area()) * 4);
+				auto data = ZList{};
+				data.reserve(static_cast<ZList::size_type>(rectangle.area()) * 4);
 				for (auto j : Range<int>(rectangle.y, rectangle.y + rectangle.height, 1)) {
 					for (auto i : Range<int>(rectangle.x, rectangle.x + rectangle.width, 1)) {
 						auto index = (j * image.width + i) * 4;
@@ -410,7 +412,7 @@ namespace Sen::Kernel::Definition {
 			{
 				auto source_data = source.data();
 				for (const auto& img : data) {
-					if (!(img.width + img.x <= source.width && img.height + img.y <= source.height)) {
+					if (!(img.width + img.x <= source.width and img.height + img.y <= source.height)) {
 						throw Exception(fmt::format("{}", Language::get("image.does_not_fit_current_image")), std::source_location::current(), "join");
 					}
 					auto& image_data = img.data();

@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_this
+
 import 'package:flutter/material.dart';
 import 'package:winshell/api/kernel.dart';
 import 'package:winshell/api/shell.dart';
@@ -41,6 +43,13 @@ class _CViewStage extends State<CView> implements Shell {
   void sendMessage(String message) {
     setState(() {
       widget.list.add(message);
+    });
+  }
+
+  @override
+  void clearMessage() {
+    setState(() {
+      this.widget.list.clear();
     });
   }
 }

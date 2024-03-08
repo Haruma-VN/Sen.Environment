@@ -2045,41 +2045,176 @@ declare namespace Sen {
          */
 
         declare class ImageView {
+            // Empty
+
+            private _ImageView;
+
+            /**
+             * Open an ImageView
+             * @param value - Image value
+             */
+
             public constructor(value: Kernel.Dimension.Image): void;
+
+            /**
+             * Getter
+             */
 
             public get bit_depth(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set bit_depth(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get channels(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set channels(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get color_type(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set color_type(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get interlace_type(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set interlace_type(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get rowbytes(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set rowbytes(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get width(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set width(value: bigint): void;
+
+            /**
+             * Getter
+             */
 
             public get height(): bigint;
 
+            /**
+             * Setter
+             */
+
             public set height(value: bigint): void;
+
+            /**
+             * Getter
+             */
+
+            public get data(): ArrayBuffer;
+
+            /**
+             * Setter
+             */
+
+            public set data(value: ArrayBuffer): void;
+
+            /**
+             * Calculate area
+             */
 
             public area(): bigint;
 
+            /**
+             * Calculate circumference
+             */
+
             public circumference(): bigint;
 
-            public static cut(image: Kernel.Image, area: Kernel.IView): Kernel.ImageView;
+            /**
+             * Cut method
+             * @param image - Image to cut
+             * @param area - Area to cut
+             * @returns image after cut
+             */
+
+            public static cut(image: ImageView, area: IView): ImageView;
+
+            /**
+             * Scale method
+             * @param image - Image to scale
+             * @param percentage - Percentage to scale
+             * @returns image after scale
+             */
+
+            public static scale(image: ImageView, percentage: number): ImageView;
+
+            /**
+             * Resize method
+             * @param image - Image to resize
+             * @param percentage - Percentage to resize
+             * @returns image after resize
+             */
+
+            public static resize(image: ImageView, percentage: number): ImageView;
+
+            /**
+             * Rotate method
+             * @param image - Image to rotate
+             * @param percentage - Percentage to rotate
+             * @returns image after rotate
+             */
+
+            public static rotate(image: ImageView, percentage: number): ImageView;
+
+            /**
+             * read method
+             * @param source - source file to read
+             * @returns image after read
+             */
+
+            public static read_fs(source: string): ImageView;
+
+            /**
+             * write method
+             * @param destination - destination file to write
+             * @param image - image file
+             */
+
+            public static write_fs(destination: string, image: ImageView): void;
         }
 
         /**

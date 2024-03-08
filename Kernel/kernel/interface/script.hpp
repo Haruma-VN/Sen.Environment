@@ -4121,6 +4121,9 @@ namespace Sen::Kernel::Interface::Script {
 				}, "circumference"_sv);
 			}
 
+			template <typename T> requires std::is_integral<T>::value
+			using Rectangle = Kernel::Definition::Rectangle<T>;
+
 			// Cut
 
 			inline static auto cut(
@@ -4133,14 +4136,14 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[0], class_id));
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					auto x = JS_GetPropertyStr(ctx, argv[1], "x");
 					auto y = JS_GetPropertyStr(ctx, argv[1], "y");
 					auto width = JS_GetPropertyStr(ctx, argv[1], "width");
 					auto height = JS_GetPropertyStr(ctx, argv[1], "height");
-					auto data = new Data(std::move(Data::cut(*s, Kernel::Definition::Rectangle<int>(static_cast<int>(JS::Converter::get_bigint64(ctx, x)), static_cast<int>(JS::Converter::get_bigint64(ctx, y)), static_cast<int>(JS::Converter::get_bigint64(ctx, width)), static_cast<int>(JS::Converter::get_bigint64(ctx, height))))));
+					auto data = new Data(std::move(Data::cut(*s, Rectangle<int>(static_cast<int>(JS::Converter::get_bigint64(ctx, x)), static_cast<int>(JS::Converter::get_bigint64(ctx, y)), static_cast<int>(JS::Converter::get_bigint64(ctx, width)), static_cast<int>(JS::Converter::get_bigint64(ctx, height))))));
 					JS_FreeValue(ctx, x);
 					JS_FreeValue(ctx, y);
 					JS_FreeValue(ctx, width);
@@ -4159,6 +4162,150 @@ namespace Sen::Kernel::Interface::Script {
 					JS_SetOpaque(obj, data);
 					return obj;
 				}, "cut"_sv);
+			}
+
+			// Resize
+
+			inline static auto resize(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::ImageView
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[0], class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto data = new Data(std::move(Data::resize(*s, JS::Converter::get_float32(ctx, argv[1]))));
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, data);
+					return obj;
+				}, "resize"_sv);
+			}
+
+			// Scale
+
+			inline static auto scale(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::ImageView
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[0], class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto data = new Data(std::move(Data::scale(*s, JS::Converter::get_float64(ctx, argv[1]))));
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, data);
+					return obj;
+				}, "scale"_sv);
+			}
+
+			// Rotate
+
+			inline static auto rotate(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::ImageView
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[0], class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto data = new Data(std::move(Data::rotate(*s, JS::Converter::get_float64(ctx, argv[1]))));
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, data);
+					return obj;
+				}, "rotate"_sv);
+			}
+
+			// Write
+
+			inline static auto write_fs(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, argv[1], class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					Kernel::Definition::ImageIO::write_png(JS::Converter::get_c_string(ctx, argv[0]).get(), *s);
+					return JS_UNDEFINED;
+				}, "write_fs"_sv);
+			}
+
+			// Read
+
+			inline static auto read_fs(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::ImageView
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto data = new Data(std::move(Kernel::Definition::ImageIO::read_png(JS::Converter::get_c_string(ctx, argv[0]).get())));
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, data);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, data);
+					return obj;
+				}, "read_fs"_sv);
 			}
 
 			// Function
@@ -4187,7 +4334,17 @@ namespace Sen::Kernel::Interface::Script {
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto default_cut = JS_NewCFunction(ctx, cut, "cut", 0);
+				auto default_resize = JS_NewCFunction(ctx, resize, "resize", 0);
+				auto default_scale = JS_NewCFunction(ctx, scale, "scale", 0);
+				auto default_rotate = JS_NewCFunction(ctx, rotate, "rotate", 0);
+				auto default_read_fs = JS_NewCFunction(ctx, read_fs, "read_fs", 0);
+				auto default_write_fs = JS_NewCFunction(ctx, write_fs, "write_fs", 0);
 				JS_SetPropertyStr(ctx, point_ctor, "cut", default_cut);
+				JS_SetPropertyStr(ctx, point_ctor, "resize", default_resize);
+				JS_SetPropertyStr(ctx, point_ctor, "scale", default_scale);
+				JS_SetPropertyStr(ctx, point_ctor, "rotate", default_rotate);
+				JS_SetPropertyStr(ctx, point_ctor, "read_fs", default_read_fs);
+				JS_SetPropertyStr(ctx, point_ctor, "write_fs", default_write_fs);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);

@@ -13,17 +13,19 @@ final class CStringView extends Struct {
 final class CStringList extends Struct {
   external Pointer<CStringView> value;
 
-  @Uint64()
+  @Int32()
   external int size;
 }
 
-typedef ShellCallbackCView = CStringView Function(
-  CStringList list,
+typedef ShellCallbackCView = Void Function(
+  Pointer<CStringList> list,
+  Pointer<CStringView> destination,
   Pointer<Void> proxy,
 );
 
-typedef ShellCallbackDartView = CStringView Function(
-  CStringList list,
+typedef ShellCallbackDartView = void Function(
+  Pointer<CStringList> list,
+  Pointer<CStringView> destination,
   Pointer<Never> proxy,
 );
 

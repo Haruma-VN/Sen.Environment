@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import, unnecessary_this, prefer_is_empty, avoid_print
+// ignore_for_file: unused_import, unnecessary_this, prefer_is_empty, avoid_print, no_leading_underscores_for_local_identifiers, constant_identifier_names, non_constant_identifier_names
 
 import 'dart:convert';
 import 'dart:ffi';
@@ -10,15 +10,18 @@ import 'package:winshell/api/shell.dart';
 import 'package:winshell/interface/test.dart';
 
 class Kernel {
+  static const version = 1;
+
   late DynamicLibrary dylib;
 
   static late Shell gui;
 
-  static CStringView debug(
-    CStringList list,
+  static void debug(
+    Pointer<CStringList> list,
+    Pointer<CStringView> destination,
     Pointer<Never> proxy,
   ) {
-    var result = CStringConverter.toList(list);
+    var result = CStringConverter.toList(list.ref);
     debugPrint(result.toString());
     assert(result.length >= 1, "result must be greater or equals 1");
     switch (result[0]) {
@@ -58,26 +61,22 @@ class Kernel {
         }
       case 'version':
         {
-          var versionPointer = CStringConverter.toStringView('1');
-          var reference = versionPointer.ref;
-          calloc.free(versionPointer);
-          versionPointer = nullptr;
-          return reference;
+          var _version = version.toString();
+          destination.ref
+            ..size = _version.length
+            ..value = _version.toNativeUtf8();
+          return;
         }
       case 'is_gui':
         {
-          var guiPointer = CStringConverter.toStringView('1');
-          var reference = guiPointer.ref;
-          calloc.free(guiPointer);
-          guiPointer = nullptr;
-          return reference;
+          var _is_gui = 1.toString();
+          destination.ref
+            ..size = _is_gui.length
+            ..value = _is_gui.toNativeUtf8();
+          return;
         }
     }
-    var unknownPointer = CStringConverter.toStringView('');
-    var reference = unknownPointer.ref;
-    calloc.free(unknownPointer);
-    unknownPointer = nullptr;
-    return reference;
+    return;
   }
 
   static void test() {}
@@ -96,6 +95,7 @@ class Kernel {
   }
 
   int execute() {
+    gui.clearMessage();
     const String scriptPath = 'D:/Code/Sen.Environment/Script/build/main.js';
     final KernelExecuteDartAPI executeMethod = this
         .dylib
@@ -109,7 +109,7 @@ class Kernel {
       './test.exe',
       kernelPath,
       scriptPath,
-      "D:/test/ZombieSkycityZombossGroup_1536.sprite/ipad3_10.8.1_main.rsb.bundle/packet/__MANIFESTGROUP__.rsg",
+      "D:/TwinStar/script/utility/Console.js",
     ];
     var argument = calloc<CStringView>(view.length);
     for (var i = 0; i < view.length; ++i) {
