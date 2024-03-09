@@ -433,6 +433,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_for_modding_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSB"_sv, "unpack_for_modding_fs"_sv);
 					// pack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_fs"_sv);
+					// pack
+					javascript->add_proxy(Script::Support::PopCap::RSB::pack, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSB"_sv, "pack"_sv);
 				}
 				// rsb-patch
 				{
@@ -449,6 +451,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::RSG::unpack_modding, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "unpack_modding"_sv);
 					// pack_fs
 					javascript->add_proxy(Script::Support::PopCap::RSG::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "pack_fs"_sv);
+					// pack
+					javascript->add_proxy(Script::Support::PopCap::RSG::pack, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSG"_sv, "pack"_sv);
 				}
 				// pam
 				{

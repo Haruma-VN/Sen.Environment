@@ -1571,8 +1571,30 @@ declare namespace Sen {
                     export function encode_fs(source: string, destination: string): void;
                 }
 
+                /**
+                 * RSB-Patch Support
+                 */
+
                 declare namespace RSBPatch {
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript encode fs for RSB-Patch
+                     * @param before - Before file
+                     * @param after - After file
+                     * @param patch - Patch file
+                     * --------------------------------------------------
+                     */
+
                     export function encode_fs(before: string, after: string, patch: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript decode fs for RSB-Patch
+                     * @param before - Before file
+                     * @param patch - Patch file
+                     * @param after - After file
+                     * --------------------------------------------------
+                     */
 
                     export function decode_fs(before: string, patch: string, after: string): void;
                 }
@@ -1673,6 +1695,16 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function pack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSB Pack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @returns: packed file
+                     * --------------------------------------------------
+                     */
+                    export function pack(source: string, destination: string, manifest: Manifest): void;
                 }
 
                 /**
@@ -1750,6 +1782,17 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function pack_fs(source: string, destination: string): void;
+
+                    /**
+                     * --------------------------------------------------
+                     * JavaScript RSG Pack method for file
+                     * @param source : source file
+                     * @param destination : destination file
+                     * @param packet_info : destination file
+                     * @returns: packed file
+                     * --------------------------------------------------
+                     */
+                    export function pack(source: string, destination: string, packet_info: Definition): void;
                 }
 
                 /**

@@ -42,9 +42,9 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
         {
             static_assert(use_raw_packet == true or use_raw_packet == false, "use_raw_packet is a boolean value");
             auto rsb_before_head_infomation = RSB_HeadInfo<T>{};
-            Common::read_head<T>(&rsb_before_head_infomation, rsb_before);
+            Common::read_head<T>(&rsb_before_head_infomation, rsb_before.get());
             auto rsb_after_head_infomation = RSB_HeadInfo<T>{};
-            Common::read_head<T>(&rsb_after_head_infomation, rsb_after);
+            Common::read_head<T>(&rsb_after_head_infomation, rsb_after.get());
             if (rsb_before_head_infomation.version != 4 || rsb_after_head_infomation.version != 4)
             {
                 throw Exception(fmt::format("{}", Language::get("popcap.rsb_patch.encode.only_support_pvz2")), std::source_location::current(), "process");
@@ -76,8 +76,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             }
             auto rsb_before_rsg_info_list = std::vector<Common::RSGInfo<D>>{};
             auto rsb_after_rsg_info_list = std::vector<Common::RSGInfo<D>>{};
-            Common::read_rsg_info<T, D>(rsb_before, &rsb_before_head_infomation, &rsb_before_rsg_info_list);
-            Common::read_rsg_info<T, D>(rsb_after, &rsb_after_head_infomation, &rsb_after_rsg_info_list);
+            Common::read_rsg_info<T, D>(rsb_before.get(), &rsb_before_head_infomation, &rsb_before_rsg_info_list);
+            Common::read_rsg_info<T, D>(rsb_after.get(), &rsb_after_head_infomation, &rsb_after_rsg_info_list);
             auto packet_before_subgroup_indexing = std::map<std::string, int>{};
             for (auto i : Range<int>(rsb_before_rsg_info_list.size()))
             {

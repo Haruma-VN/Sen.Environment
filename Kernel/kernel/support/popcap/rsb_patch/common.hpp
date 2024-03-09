@@ -53,7 +53,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             requires std::is_integral<T>::value && std::is_unsigned<T>::value
         auto static read_head(
             RSB_HeadInfo<T> *rsb_headinfo,
-            const std::unique_ptr<DataStreamView> &data_stream)
+            DataStreamView* data_stream
+        ) -> void
         {
             {
                 auto magic = data_stream->readString(4);
@@ -97,9 +98,10 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
         template <typename T, typename D>
             requires std::is_integral<T>::value && std::is_unsigned<T>::value && std::is_integral<D>::value
          auto static read_rsg_info(
-            const std::unique_ptr<DataStreamView> &data_stream,
-            RSB_HeadInfo<T> *rsb_head,
-            std::vector<RSGInfo<D>> *info)
+            DataStreamView* data_stream,
+            RSB_HeadInfo<T>* rsb_head,
+            std::vector<RSGInfo<D>> *info
+        ) -> void
         {
             data_stream->read_pos = rsb_head->rsg_info_begin;
             for (auto i : Range<int>(rsb_head->rsg_number))
@@ -112,39 +114,37 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                 auto rsg_index = data_stream->readInt32();
                 auto ptx_number = data_stream->readInt32(static_cast<std::uint64_t>(start_pos + rsb_head->rsg_info_each_length));
                 auto ptx_before_number = data_stream->readInt32();
-                info->emplace_back(RSGInfo<D>{
-                    packet_name, rsg_pos, rsg_length, rsg_index, ptx_number, ptx_before_number});
+                info->emplace_back(RSGInfo<D>{packet_name, rsg_pos, rsg_length, rsg_index, ptx_number, ptx_before_number});
             }
             return;
         }
 
         inline auto static test_hash(
             const std::vector<uint8_t> &bytes_test,
-            const std::string &md5_str)
+            const std::string &md5_str
+        ) -> void
         {
             auto md5_rsb_new = Encryption::MD5::hash(bytes_test);
-            if (md5_rsb_new != md5_str)
-            {
-                throw Exception("invaild_md5");
-            }
+            assert_conditional(md5_rsb_new == md5_str, fmt::format("{}", Language::get("popcap.rsb_patch.invalid_md5")), "test_hash");
             return;
         }
 
         inline auto static to_bytes(
-            const std::string &md5)
+            const std::string &md5
+        ) -> std::vector<std::uint8_t>
         {
             auto byte_array = std::vector<uint8_t>{};
             for (auto i : Range<int>(0, md5.size(), 2))
             {
                 auto byte_str = md5.substr(i, 2);
-                auto byte_value = static_cast<uint8_t>(std::stoi(byte_str, nullptr, 16));
-                byte_array.push_back(byte_value);
+                byte_array.push_back(static_cast<std::uint8_t>(std::stoi(byte_str, nullptr, 16)));
             }
-            return (byte_array);
+            return byte_array;
         }
 
         inline auto static to_string(
-            const std::vector<uint8_t> &byte_array)
+            const std::vector<uint8_t> &byte_array
+        ) -> std::string
         {
             auto ss = std::stringstream{};
             ss << std::hex << std::setfill('0');

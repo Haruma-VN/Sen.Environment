@@ -330,5 +330,9 @@
     "popcap.rsb_patch.decode.invalid_packet_name": "Tên gói không hợp lệ",
     "popcap.rsb_patch.decode.unable_to_decode": "Không thể giải mã bản vá",
     "popcap.rsb_patch.encode.after_file": "Tệp tin sau",
-    "popcap.rsb_patch.decode.patch_file": "Tệp tin vá"
+    "popcap.rsb_patch.decode.patch_file": "Tệp tin vá",
+    "popcap.atlas.split_by_res_info.source_file_must_be_json": "Các tệp nguồn phải chứa JSON",
+    "popcap.atlas.split_by_res_info": "PopCap Atlas: Tách theo Res-Info",
+    "popcap.atlas.pack_by_res_info": "PopCap Atlas: Đóng gói theo Res-Info",
+    "popcap.rsb_patch.invalid_md5": "MD5 không hợp lệ"
 }

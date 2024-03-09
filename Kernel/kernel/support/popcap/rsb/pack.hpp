@@ -84,7 +84,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             Pack&& that
         )->Pack & = delete;
 
-    private:
+    public:
 
         std::shared_ptr<DataStreamView> sen;
 
@@ -311,7 +311,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         template <auto check_packet>
         inline auto process(
             std::string_view source,
-            const Manifest<uint32_t> &manifest
+            const Manifest<std::uint32_t> &manifest
         ) -> void
         {
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");

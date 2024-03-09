@@ -331,5 +331,8 @@
     "popcap.rsb_patch.decode.unable_to_decode": "Unable to decode the patch",
     "popcap.rsb_patch.encode.after_file": "After file",
     "popcap.rsb_patch.decode.patch_file": "Patch file",
-    "popcap.atlas.split_by_res_info.source_file_must_be_json": "Source file must contains JSON"
+    "popcap.atlas.split_by_res_info.source_file_must_be_json": "Source file must contains JSON",
+    "popcap.atlas.split_by_res_info": "PopCap Atlas: Split by Res-Info",
+    "popcap.atlas.pack_by_res_info": "PopCap Atlas: Pack by Res-Info",
+    "popcap.rsb_patch.invalid_md5": "Invalid MD5"
 }

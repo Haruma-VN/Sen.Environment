@@ -73,7 +73,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
         template <typename T>
             requires std::is_integral<T>::value
         auto read_rsb_patch_head(
-            RSBPatchHeadExpand<T> *rsg_patch_head_info)
+            RSBPatchHeadExpand<T> *rsg_patch_head_info
+        ) -> void
         {
             auto magic = rsb_patch->readString(4);
             if (magic != "PBSR"_sv)
@@ -113,11 +114,13 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
 
         template <typename T, typename D, auto use_raw_packet = false>
         requires std::is_integral<T>::value && std::is_unsigned<T>::value && std::is_integral<D>::value
-        auto process()
+        auto process(
+
+        ) -> void
         {
             static_assert(use_raw_packet == true or use_raw_packet == false, "use_raw_packet is a boolean value");
             auto rsb_before_head_infomation = RSB_HeadInfo<T>{};
-            Common::read_head<T>(&rsb_before_head_infomation, rsb_before);
+            Common::read_head<T>(&rsb_before_head_infomation, rsb_before.get());
             auto rsg_patch_head_info = RSBPatchHeadExpand<D>{};
             read_rsb_patch_head<D>(&rsg_patch_head_info);
             auto rsb_before_head_section_byte = rsb_before->readBytes(rsb_before_head_infomation.file_offset, 0ull);
@@ -135,15 +138,15 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             }
             result->writeBytes(rsb_after_head_section_byte);
             auto rsb_after_head_infomation = RSB_HeadInfo<T>{};
-            Common::read_head<T>(&rsb_after_head_infomation, result);
+            Common::read_head<T>(&rsb_after_head_infomation, result.get());
             if (rsb_after_head_infomation.rsg_number != rsg_patch_head_info.rsg_number)
             {
                 throw Exception(fmt::format("{}", Language::get("popcap.rsb_patch.decode.invalid_rsg_number")), std::source_location::current(), "process");
             }
             auto rsb_before_rsg_info_list = std::vector<Common::RSGInfo<D>>{};
             auto rsb_after_rsg_info_list = std::vector<Common::RSGInfo<D>>{};
-            Common::read_rsg_info<T, D>(rsb_before, &rsb_before_head_infomation, &rsb_before_rsg_info_list);
-            Common::read_rsg_info<T, D>(result, &rsb_after_head_infomation, &rsb_after_rsg_info_list);
+            Common::read_rsg_info<T, D>(rsb_before.get(), &rsb_before_head_infomation, &rsb_before_rsg_info_list);
+            Common::read_rsg_info<T, D>(result.get(), &rsb_after_head_infomation, &rsb_after_rsg_info_list);
             auto packet_before_subgroup_indexing = std::map<std::string, int>{};
             for (auto i : Range<int>(rsb_before_rsg_info_list.size()))
             {

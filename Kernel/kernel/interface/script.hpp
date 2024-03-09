@@ -8299,6 +8299,34 @@ namespace Sen::Kernel::Interface::Script {
 						return JS::Converter::get_undefined();
 					}, "pack_fs"_sv);
 				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RSB Pack
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @param argv[2]: packet info
+				 * @returns: Packed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto pack(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					return JS::Converter::get_undefined();
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto pack = Kernel::Support::PopCap::RSB::Pack{};
+						pack.process<true>(source.get(), JSON::js_object_to_json(context, argv[2]));
+						pack.sen->out_file(destination.get());
+					}, "pack"_sv);
+				}
 			}
 
 			/**
@@ -8380,6 +8408,34 @@ namespace Sen::Kernel::Interface::Script {
 						Kernel::Support::PopCap::RSG::Pack::pack_fs(source.get(), destination.get());
 						return JS::Converter::get_undefined();
 					}, "pack_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript RSG Pack File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Packed
+				 *  file
+				 * ----------------------------------------
+				*/
+
+				inline static auto pack(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto pack = Kernel::Support::PopCap::RSG::Pack{};
+						pack.process<false>(source.get(), JSON::js_object_to_json(context, argv[2]));
+						pack.sen.out_file(destination.get());
+						return JS::Converter::get_undefined();
+					}, "pack"_sv);
 				}
 			}
 

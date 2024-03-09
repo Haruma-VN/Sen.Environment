@@ -376,7 +376,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         inline static auto pack_fs(
             std::string_view source,
-            std::string_view destination) -> void
+            std::string_view destination
+        ) -> void
         {
             auto pack = Pack{};
             auto packet_info = *FileSystem::read_json(fmt::format("{}/packet.json", source));
