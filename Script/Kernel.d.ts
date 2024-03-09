@@ -2047,7 +2047,7 @@ declare namespace Sen {
         declare class ImageView {
             // Empty
 
-            private _ImageView;
+            private _ImageView: ImageView;
 
             /**
              * Open an ImageView

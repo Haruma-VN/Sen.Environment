@@ -25,26 +25,26 @@ namespace Sen::Shell {
 			#if WINDOWS
 				auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 				SetConsoleTextAttribute(hConsole, color);
-				std::cout << title << std::endl << std::flush;
+				std::cout << title << '\n' << std::flush;
 			#else
 				switch (color) {
 					case Sen::Shell::Interactive::Color::RED: {
-						std::cout << "\033[31m" << title << "\033[0m" << std::endl << std::flush;
+						std::cout << "\033[31m" << title << "\033[0m" << '\n' << std::flush;
 						break;
 					}
 					case Sen::Shell::Interactive::Color::GREEN: {
-						std::cout << "\033[32m" << title << "\033[0m" << std::endl << std::flush;
+						std::cout << "\033[32m" << title << "\033[0m" << '\n' << std::flush;
 						break;
 					}
 					case Sen::Shell::Interactive::Color::CYAN: {
-						std::cout << "\033[36m" << title << "\033[0m" << std::endl << std::flush;
+						std::cout << "\033[36m" << title << "\033[0m" << '\n' << std::flush;
 						break;
 					}
 					case Sen::Shell::Interactive::Color::YELLOW: {
-						std::cout << "\033[33m" << title << "\033[0m" << std::endl << std::flush;
+						std::cout << "\033[33m" << title << "\033[0m" << '\n' << std::flush;
 						break;
 					case Sen::Shell::Interactive::Color::DEFAULT: {
-						std::cout << title << std::endl << std::flush;
+						std::cout << title << '\n' << std::flush;
 						break;
 					}
 					default: {
@@ -61,7 +61,6 @@ namespace Sen::Shell {
 				return;
 			}
 
-		#define EMPTY_STRING_VIEW CStringView{.size = 0, .value = ""};
 
 		inline static auto convert_color(
 			const std::string& that

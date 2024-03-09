@@ -330,5 +330,6 @@
     "popcap.rsb_patch.decode.invalid_packet_name": "Invalid Packet name",
     "popcap.rsb_patch.decode.unable_to_decode": "Unable to decode the patch",
     "popcap.rsb_patch.encode.after_file": "After file",
-    "popcap.rsb_patch.decode.patch_file": "Patch file"
+    "popcap.rsb_patch.decode.patch_file": "Patch file",
+    "popcap.atlas.split_by_res_info.source_file_must_be_json": "Source file must contains JSON"
 }

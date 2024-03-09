@@ -498,7 +498,8 @@ namespace Sen.Script.Executor {
             Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
             Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("js.process_in_script")}`);
             Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
-            const input: bigint = input_integer([1n, 2n, 3n, 4n]);
+            Kernel.Console.print(`    ${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+            const input: bigint = input_integer([1n, 2n, 3n, 4n, 5n]);
             switch (input) {
                 case 1n: {
                     // to do
@@ -516,6 +517,10 @@ namespace Sen.Script.Executor {
                 }
                 case 4n: {
                     execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT);
+                    break;
+                }
+                case 5n: {
+                    execute<Argument>(argument, "popcap.atlas.split_by_res_info", Forward.DIRECT);
                     break;
                 }
             }

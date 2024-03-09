@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
+namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo {
     /**
      * Argument for the current method
      */
@@ -78,18 +78,18 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument,
-            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Configuration
+            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.Argument,
+            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.Configuration
         >({
-            id: "popcap.atlas.split_by_resource_group",
-            configuration_file: Home.query("~/Executor/Configuration/popcap.atlas.split_by_resource_group.json"),
+            id: "popcap.atlas.split_by_res_info",
+            configuration_file: Home.query("~/Executor/Configuration/popcap.atlas.split_by_res_info.json"),
             configuration: undefined!,
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.Argument): void {
+            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.Argument): void {
                 const jsons: Array<string> = argument.source.filter((e) => /\.json$/gi.test(e));
                 if (jsons.length === 0) {
-                    throw new Error(Kernel.Language.get("popcap.atlas.split_by_resource_group.source_file_must_be_json"));
+                    throw new Error(Kernel.Language.get("popcap.atlas.split_by_res_info.source_file_must_be_json"));
                 }
                 const pngs: Array<string> = argument.source.filter((e) => /\.png$/gi.test(e));
                 jsons.forEach((json: string) => {
@@ -98,9 +98,8 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
                     Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(json)}.sprite`);
                     Sen.Script.Console.output(argument.destination!);
                     Sen.Script.Executor.load_bigint(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
-                    Sen.Script.Executor.load_bigint(argument, "style", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
                     Sen.Script.Executor.clock.start_safe();
-                    Sen.Script.Support.PopCap.Atlas.Split.ResourceGroup.process_fs(category, argument.destination!, argument.method!, argument.style!);
+                    Sen.Script.Support.PopCap.Atlas.Split.ResInfo.process_fs(category, argument.destination!, argument.method!);
                     Sen.Script.Executor.clock.stop_safe();
                 });
                 return;
@@ -113,4 +112,4 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup {
         return;
     }
 }
-Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResourceGroup.forward();
+Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo.forward();

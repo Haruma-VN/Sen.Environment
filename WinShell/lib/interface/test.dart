@@ -44,6 +44,7 @@ class _CViewStage extends State<CView> implements Shell {
     setState(() {
       widget.list.add(message);
     });
+    return;
   }
 
   @override
@@ -51,5 +52,6 @@ class _CViewStage extends State<CView> implements Shell {
     setState(() {
       this.widget.list.clear();
     });
+    return;
   }
 }

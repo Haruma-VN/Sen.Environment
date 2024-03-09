@@ -300,6 +300,10 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
         }
     }
 
+    /**
+     * ResInfo Support
+     */
+
     export namespace ResInfo {
         /**
          * Wrapper (Because we don't store id to the resinfo)
@@ -360,7 +364,6 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
             if (definition.trim) {
                 Console.output(Kernel.Language.get("popcap.atlas.pack.use_trim"));
             }
-            const is_string_style: boolean = definition.expand_path === "string";
             for (const i in list_view) {
                 const destination_size: Detail.MaxDimensionView<number> = definition.trim ? Detail.reducer_trim(list_view[i]) : Detail.square_trim(list_view[i]);
                 if (destination_size.width !== size.width) {
@@ -370,7 +373,8 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
                     Console.output(format(Kernel.Language.get("popcap.atlas.pack_property_change"), Kernel.Language.get("height"), size.height, destination_size.height));
                 }
                 const parent_name: string = `${definition.subgroup}_${(i as unknown as number) < 10 ? `0${i}` : `${i}`}`;
-                destination[0].value.packet[parent_name] = {
+                const packet_name: string = `ATLASIMAGE_ATLAS_${parent_name.toUpperCase()}`;
+                destination[0].value.packet[packet_name] = {
                     type: "Image",
                     path: `atlases/${parent_name}`,
                     dimension: {
@@ -398,7 +402,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
                     if (list_view[i][j].rows) {
                         resource_data.default.rows = BigInt(list_view[i][j].rows!);
                     }
-                    destination[0].value.packet[parent_name].data[list_view[i][j].id] = resource_data;
+                    destination[0].value.packet[packet_name].data[list_view[i][j].id] = resource_data;
                 }
                 list_view[i].forEach((e: any) => {
                     e.x = BigInt(e.x);

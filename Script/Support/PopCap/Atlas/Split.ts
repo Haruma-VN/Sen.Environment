@@ -263,7 +263,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                     const default_subinfo = resource.packet[parent].data[id].default;
                     if (is_sprite_container(default_subinfo)) {
                         for (const png of images) {
-                            const current_parent = png.replaceAll(/\.png$/i, "");
+                            const current_parent = png.replaceAll(/\.png$/gi, "");
                             if (current_parent.endsWith(parent.replace("ATLASIMAGE_ATLAS_", ""))) {
                                 image_wrapper.get(png)!.push({
                                     x: Number(default_subinfo.ax),
