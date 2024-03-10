@@ -105,8 +105,29 @@ declare namespace Sen {
             export function serialize_fs<T extends XMLDocument>(destination: string, xml: T): void;
         }
 
+        /**
+         *
+         * Kernel language support
+         */
+
         declare namespace Language {
+            /**
+             * --------------------------------------------------
+             * Kernel language load
+             * @param source - Source file to load
+             * This method need to be called when program launch
+             * --------------------------------------------------
+             */
+
             export function load_language(source: string): void;
+
+            /**
+             * --------------------------------------------------
+             * Kernel language get
+             * @param key - Key to get
+             * @returns String if found key otherwise key
+             * --------------------------------------------------
+             */
 
             export function get(key: string): string;
         }
@@ -1569,6 +1590,24 @@ declare namespace Sen {
                      * --------------------------------------------------
                      */
                     export function encode_fs(source: string, destination: string): void;
+
+                    /**
+                     * To Flash Convert
+                     */
+
+                    declare namespace ToFlash {
+                        /**
+                         * --------------------------------------------------
+                         * JavaScript XFL convert method for file
+                         * @param source : source file
+                         * @param destination : destination directory
+                         * @param resolution : resolution
+                         * @returns: converted files
+                         * --------------------------------------------------
+                         */
+
+                        export function convert_fs(source: string, destination: string, resolution: bigint): void;
+                    }
                 }
 
                 /**

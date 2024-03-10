@@ -89,8 +89,9 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             return;
         }
 
-        auto read_subgroup_info(
-            RSBPatchSubgroupInfo *rsg_patch_subgroup_info)
+        inline auto read_subgroup_info(
+            RSBPatchSubgroupInfo *rsg_patch_subgroup_info
+        ) -> void
         {
             auto start_pos = rsb_patch->read_pos;
             rsg_patch_subgroup_info->packet_patch_size = rsb_patch->readInt32(start_pos + 4ull);

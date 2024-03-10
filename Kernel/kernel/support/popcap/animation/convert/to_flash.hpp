@@ -337,5 +337,16 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			return;
 		}
+
+		inline static auto process_fs(
+			std::string_view source,
+			std::string_view destination,
+			int resolution
+		) -> void
+		{
+			auto convert = ToFlash{*FileSystem::read_json(source)};
+			convert.process(destination, resolution);
+			return;
+		}
 	};
 }

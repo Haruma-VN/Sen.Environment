@@ -38,7 +38,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
         requires std::is_integral<T>::value && std::is_unsigned<T>::value && std::is_integral<D>::value
         auto process(
 
-        )
+        ) -> void
         {
             static_assert(use_raw_packet == true or use_raw_packet == false, "use_raw_packet is a boolean value");
             auto rsb_before_head_infomation = RSB_HeadInfo<T>{};
