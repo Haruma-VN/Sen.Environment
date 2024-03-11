@@ -80,6 +80,12 @@ namespace Sen::Kernel::Interface::Script {
 
 		using any = JSValue;
 
+		using ParameterList = JSValue *;
+
+		using ParameterCount = int;
+
+		using Context = JSContext;
+
 	};
 
 	namespace JSDefine {
@@ -8750,7 +8756,12 @@ namespace Sen::Kernel::Interface::Script {
 
 	namespace XML {
 
-		inline static auto xml2json(const tinyxml2::XMLNode* node) -> nlohmann::ordered_json {
+		using XMLDocument = tinyxml2::XMLDocument;
+
+		inline static auto xml2json(
+			const tinyxml2::XMLNode* node
+		) -> nlohmann::ordered_json 
+		{
 			auto j = nlohmann::ordered_json{};
 			auto element = node->ToElement();
 			if (element) {
@@ -8867,7 +8878,6 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 
-
 		inline static auto deserialize(
 			JSContext* context,
 			JSValueConst this_val,
@@ -8928,16 +8938,23 @@ namespace Sen::Kernel::Interface::Script {
 			}, "serialize"_sv);
 		}
 
-		inline static auto serialize_fs(
-			JSContext* context,
-			JSValueConst this_val,
-			int argc,
-			JSValueConst* argv
-		) -> JSValue
+		/**
+		 * JavaScript XML Serializer Adapter
+		 * @param argv[0] : Destination file
+		 * @param argv[1] : XMLDocument
+		 * @returns JS Undefined
+		*/
+
+		inline static auto serialize_fs (
+			JSElement::Context* context,
+			JSElement::any this_value,
+			JSElement::ParameterCount argc,
+			JSElement::ParameterList argv
+		) -> JSElement::undefined
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto doc = tinyxml2::XMLDocument{};
+				auto doc = XMLDocument{};
 				auto source = JSON::js_object_to_json(context, argv[0]);
 				convert(source, doc);
 				auto printer = tinyxml2::XMLPrinter{};
