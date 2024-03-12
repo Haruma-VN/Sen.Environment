@@ -65,6 +65,7 @@ add_library(
 	./dependencies/simdjson.hpp
 	./dependencies/compile-time-regular-expressions.hpp
 	./dependencies/canvas_ity.hpp
+	./dependencies/fifo_map.hpp
 
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
@@ -201,6 +202,7 @@ target_link_libraries(
 	simdjson
 	compile-time-regular-expressions
 	canvas_ity
+	fifo_map
 )
 
 

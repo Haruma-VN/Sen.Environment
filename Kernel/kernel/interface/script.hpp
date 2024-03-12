@@ -8475,7 +8475,43 @@ namespace Sen::Kernel::Interface::Script {
 					}, "decode_fs"_sv);
 				}
 
+				/**
+				 * ToFlash convert support
+				*/
+
 				namespace ToFlash {
+					/**
+					 * ----------------------------------------
+					 * JavaScript PAM Convert File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: scale
+					 * @returns: Converted file
+					 * ----------------------------------------
+					*/
+
+					inline static auto convert_fs(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_c_string(context, argv[0]);
+							auto destination = JS::Converter::get_c_string(context, argv[1]);
+							Sen::Kernel::Support::PopCap::Animation::Convert::ToFlash::process_fs(source.get(), destination.get(), static_cast<int>(JS::Converter::get_bigint64(context, argv[2])));
+							return JS::Converter::get_undefined();
+						}, "convert_fs"_sv);
+					}
+				}
+
+				/**
+				 * FromFlash convert support
+				*/
+
+				namespace FromFlash {
 					/**
 					 * ----------------------------------------
 					 * JavaScript PAM Convert File
@@ -8493,10 +8529,10 @@ namespace Sen::Kernel::Interface::Script {
 					) -> JSValue
 					{
 						M_JS_PROXY_WRAPPER(context, {
-							try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 							auto source = JS::Converter::get_c_string(context, argv[0]);
 							auto destination = JS::Converter::get_c_string(context, argv[1]);
-							Sen::Kernel::Support::PopCap::Animation::Convert::ToFlash::process_fs(source.get(), destination.get(), static_cast<int>(JS::Converter::get_bigint64(context, argv[2])));
+							Sen::Kernel::Support::PopCap::Animation::Convert::FromFlash::process_fs(source.get(), destination.get());
 							return JS::Converter::get_undefined();
 						}, "convert_fs"_sv);
 					}

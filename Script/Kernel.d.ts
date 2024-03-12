@@ -1608,6 +1608,22 @@ declare namespace Sen {
 
                         export function convert_fs(source: string, destination: string, resolution: bigint): void;
                     }
+                    /**
+                     * From Flash Convert
+                     */
+
+                    declare namespace FromFlash {
+                        /**
+                         * --------------------------------------------------
+                         * JavaScript XFL convert method for file
+                         * @param source : source directory
+                         * @param destination : destination file
+                         * @returns: converted file
+                         * --------------------------------------------------
+                         */
+
+                        export function convert_fs(source: string, destination: string): void;
+                    }
                 }
 
                 /**
