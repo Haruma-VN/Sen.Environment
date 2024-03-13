@@ -8323,7 +8323,6 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst* argv
 				) -> JSValue
 				{
-					return JS::Converter::get_undefined();
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_c_string(context, argv[0]);

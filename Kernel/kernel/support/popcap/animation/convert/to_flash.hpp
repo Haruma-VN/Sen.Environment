@@ -658,7 +658,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				debug(sprite_name);
 				decode_frame_list<false>(animation_sprite, animation.sprite, animation_sprite_name_list, frame_list);
 				auto sprite_document = XMLDocument{};
-				write_sprite<false>(frame_list.frame_node_list, animation_sprite_name_list, animation_image_name_list, sprite_name, &sprite_document);
+				//write_sprite<false>(frame_list.frame_node_list, animation_sprite_name_list, animation_image_name_list, sprite_name, &sprite_document);
 				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), &sprite_document);
 			}
 			auto frame_list = FrameList{};
@@ -671,7 +671,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				FileSystem::write_xml(fmt::format("{}/library/action/{}.xml", destination, label), &action_documet);
 			}
 			auto dom_document = XMLDocument{};
-			write_document(frame_list.action_list, animation_sprite_name_list, animation_image_name_list, &dom_document);
+			//write_document(frame_list.action_list, animation_sprite_name_list, animation_image_name_list, &dom_document);
 			FileSystem::write_xml(fmt::format("{}/DomDocument.xml", destination), &dom_document);
 			FileSystem::write_file(fmt::format("{}/main.xfl", destination), "PROXY-CS5");
 			FileSystem::write_json(fmt::format("{}/extra.json", destination), extra_info);

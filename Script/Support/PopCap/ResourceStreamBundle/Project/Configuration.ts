@@ -9,19 +9,19 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
 
     // -----------------------------------------------------
 
+    export type Forward = "async" | "direct" | "batch";
+
+    // -----------------------------------------------------
+
+    export interface ZCommand extends Record<string, unknown> {
+        command: string;
+        forward: Forward;
+    }
+
     export interface Setting extends Record<string, unknown> {
         rton: {
-            encode_rton: Questionable<boolean>;
-            encrypt_rton: Questionable<boolean>;
-            key: Questionable<string>;
-            iv: Questionable<string>;
-        };
-        ptx: {
-            generic: Generic;
-        };
-        rsg: {
-            rewrite: Questionable<boolean>;
-            pack_everything_still_exists: Questionable<boolean>;
+            key: string;
+            iv: string;
         };
         rsb: {
             specialization: {
@@ -33,14 +33,6 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
                 "1200": Questionable<boolean>;
             };
         };
-        resource_group: {
-            encode_rton: Questionable<boolean>;
-            encode_newton: Questionable<boolean>;
-            automatic_merge_before_encode: Questionable<boolean>;
-        };
-        res_info: {
-            convert: Questionable<boolean>;
-            automatic_merge_before_encode: Questionable<boolean>;
-        };
+        commands: Array<ZCommand>;
     }
 }

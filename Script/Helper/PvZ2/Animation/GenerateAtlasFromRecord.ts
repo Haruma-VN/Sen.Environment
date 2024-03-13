@@ -26,19 +26,23 @@ namespace Sen.Script.Helper.PvZ2.Animation.GenerateAtlasFromRecord {
         const record = Console.path("input path of record.json", "file");
         Console.send("input subgroup name", Definition.Console.Color.CYAN);
         const subgroup = Kernel.Console.readline();
-        const resolution = get_resolution();
-        if (resolution.length === 0) {
+        const resolutions = get_resolution();
+        if (resolutions.length === 0) {
             throw new Error(`resolution not found, should match: ${allowance}`);
         }
-        const atlas: Support.PopCap.Atlas.Structure.Definition = {
-            expand_path: "array",
-            method: "id",
-            trim: false,
-            subgroup: subgroup,
-            res: resolution[0],
-            groups: {},
-        };
-        process(atlas, Kernel.JSON.deserialize_fs<Support.PopCap.Animation.ExtraInfo>(record));
+        const destination = Kernel.Path.dirname(subgroup);
+        resolutions.forEach((resolution) => {
+            const atlas: Support.PopCap.Atlas.Structure.Definition = {
+                expand_path: "array",
+                method: "id",
+                trim: false,
+                subgroup: `${subgroup}_${resolution}`,
+                res: resolution,
+                groups: {},
+            };
+            process(atlas, Kernel.JSON.deserialize_fs<Support.PopCap.Animation.ExtraInfo>(record));
+            Kernel.JSON.serialize_fs(`${destination}/${subgroup}_${resolution}.json`, atlas, 1, false);
+        });
         return;
     }
 }

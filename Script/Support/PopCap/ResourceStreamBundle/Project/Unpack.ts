@@ -7,15 +7,10 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
         decrypt_rton: boolean;
         decode_rton: boolean;
         layout: ResourceGroup.PathStyle;
-        generic: Generic;
+        use_res_info: boolean;
     }
 
     export function make_setting(category: {
-        ptx: Generic;
-        rsb: {
-            has_newton: boolean;
-            has_rton: boolean;
-        };
         rton: {
             encryption_key?: string;
             iv?: string;
@@ -23,17 +18,8 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
     }): Setting {
         return {
             rton: {
-                encode_rton: true,
-                encrypt_rton: false,
                 key: category.rton.encryption_key ?? "",
                 iv: category.rton.iv ?? "",
-            },
-            ptx: {
-                generic: category.ptx,
-            },
-            rsg: {
-                rewrite: false,
-                pack_everything_still_exists: false,
             },
             rsb: {
                 specialization: {
@@ -45,15 +31,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                     "640": false,
                 },
             },
-            resource_group: {
-                encode_newton: category.rsb.has_newton,
-                encode_rton: category.rsb.has_rton,
-                automatic_merge_before_encode: false,
-            },
-            res_info: {
-                convert: "?",
-                automatic_merge_before_encode: false,
-            },
+            commands: [],
         };
     }
 
@@ -80,6 +58,9 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
         const keys: Array<string> = Object.keys(manifest.group);
         let packages: string = undefined!;
         let manifest_group: string = undefined!;
+        const setting: Setting = make_setting({
+            rton: { encryption_key: "65bd1b2305f46eb2806b935aab7630bb", iv: "1b2305f46eb2806b935aab76" },
+        });
         for (const key of keys) {
             if (/^PACKAGES$/gi.test(key)) {
                 packages = key;
@@ -100,49 +81,81 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             }
             const definition: Kernel.Support.PopCap.RSG.Definition = Kernel.Support.PopCap.RSG.unpack_modding(`${destination}/packet/${packages}.rsg`, resource_destination);
             if (category.decode_rton) {
-                definition.res.forEach((e) => {
+                definition.res.forEach((e: Kernel.Support.PopCap.RSG.ResInfo) => {
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`);
                 });
             }
+            setting.commands.push({
+                command: "popcap.rton.encode",
+                forward: "batch",
+                source: "./resource/PACKAGES",
+            });
         } while (false);
-        const config = {
-            has_rton: true,
-            has_newton: false,
-        };
         do {
             if (manifest_group === undefined) {
                 Console.warning(Kernel.Language.get("popcap.rsb.unpack_for_modding.manifest_group_not_found"));
                 break;
             }
+            const current_command: Configuration.ZCommand & { source: string; destination: string } = {
+                command: undefined!,
+                forward: "direct",
+                source: undefined!,
+                destination: undefined!,
+            };
+            if (category.use_res_info) {
+                current_command.command = "popcap.res_info.convert";
+                current_command.source = "./res.json";
+            } else {
+                current_command.command = "popcap.resource_group.convert";
+                current_command.destination = "./res.json";
+            }
+            setting.commands.push(current_command);
             const definition: Kernel.Support.PopCap.RSG.Definition = Kernel.Support.PopCap.RSG.unpack_modding(`${destination}/packet/${manifest_group}.rsg`, resource_destination);
             let ripe_json: string = undefined!;
             for (const e of definition.res) {
                 if (/\.newton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.newton$/gi, ".json")}`;
+                    const json_ripe: string = `./${e.path.replace(/\.newton$/gi, ".json")}`;
+                    if (category.use_res_info) {
+                        current_command.destination = json_ripe;
+                    } else {
+                        current_command.source = json_ripe;
+                    }
                     Kernel.Support.PopCap.Newton.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_newton_file"));
-                    config.has_newton = true;
+                    setting.commands.push({
+                        command: "popcap.newton.encode",
+                        forward: "direct",
+                        source: json_ripe,
+                    });
                     break;
                 }
                 if (/\.rton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`;
+                    const json_ripe: string = `./${e.path.replace(/\.rton$/gi, ".json")}`;
+                    if (category.use_res_info) {
+                        current_command.destination = json_ripe;
+                    } else {
+                        current_command.source = json_ripe;
+                    }
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_rton_file"));
+                    setting.commands.push({
+                        command: "popcap.rton.encode",
+                        forward: "direct",
+                        source: json_ripe,
+                    });
                     break;
                 }
             }
             Kernel.Support.PopCap.ResourceGroup.convert_fs(ripe_json, `${destination}/res.json`, category.layout);
         } while (false);
-        Kernel.JSON.serialize_fs<Setting>(
-            `${destination}/setting.json`,
-            make_setting({
-                ptx: category.generic,
-                rsb: { has_newton: config.has_newton, has_rton: config.has_rton },
-                rton: { encryption_key: "65bd1b2305f46eb2806b935aab7630bb", iv: "1b2305f46eb2806b935aab76" },
-            }),
-            1,
-            false,
-        );
+        setting.commands.push({
+            command: "popcap.rsb.pack",
+            forward: "direct",
+            source: "./",
+        });
+        Kernel.JSON.serialize_fs<Setting>(`${destination}/setting.json`, setting, 1, false);
         remake_manifest(manifest);
         Console.output(Kernel.Language.get("popcap.rsb.unpack_for_modding.make_setting"));
         Kernel.JSON.serialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${destination}/manifest.json`, manifest, 1, false);
