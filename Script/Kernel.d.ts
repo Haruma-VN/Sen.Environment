@@ -1698,7 +1698,7 @@ declare namespace Sen {
                      */
 
                     export interface ResourceStreamGroupInfo extends Record<string, unknown> {
-                        category: null | bigint;
+                        category: [null | bigint, null | bigint];
                         packet_info: ResourceStreamGroupPacketInfo;
                     }
 

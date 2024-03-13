@@ -22,7 +22,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                 iv: category.rton.iv ?? "",
             },
             rsb: {
-                specialization: {
+                distribution: {
                     all: true,
                     "1536": false,
                     "768": false,
@@ -96,7 +96,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                 Console.warning(Kernel.Language.get("popcap.rsb.unpack_for_modding.manifest_group_not_found"));
                 break;
             }
-            const current_command: Configuration.ZCommand & { source: string; destination: string } = {
+            const current_command: Configuration.BasicCommand & { source: string; destination: string } = {
                 command: undefined!,
                 forward: "direct",
                 source: undefined!,

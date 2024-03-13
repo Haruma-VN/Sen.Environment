@@ -307,7 +307,7 @@ namespace Sen.Script.Executor {
         if ((argument as any & Argument)[key] === undefined) {
             if (typeof rule[0] === "object") {
                 const new_rule: Array<bigint> = [];
-                rule.forEach((e: [bigint, string] & any) => {
+                rule.forEach(function make_rule(e: [bigint, string] & any): void {
                     Sen.Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
                     new_rule.push(e[0]);
                 });
@@ -356,18 +356,29 @@ namespace Sen.Script.Executor {
         let is_valid: boolean = true;
         switch (type) {
             case "file": {
-                is_valid = source.every((e) => Kernel.FileSystem.is_file(e));
+                is_valid = source.every(function make_assert(e: string): boolean {
+                    return Kernel.FileSystem.is_file(e);
+                });
                 break;
             }
             case "directory": {
-                is_valid = source.every((e) => Kernel.FileSystem.is_directory(e));
+                is_valid = source.every(function make_assert(e: string): boolean {
+                    return Kernel.FileSystem.is_directory(e);
+                });
                 break;
             }
             case "any": {
                 is_valid = true;
             }
         }
-        return is_valid && method.every((e) => source.some((i) => e.test(i)));
+        return (
+            is_valid &&
+            method.every(function make_assert(e: RegExp): boolean {
+                return source.some(function make_some(i: string): boolean {
+                    return e.test(i);
+                });
+            })
+        );
     }
 
     /**
@@ -452,7 +463,7 @@ namespace Sen.Script.Executor {
             }
             return;
         };
-        methods.forEach((worker, method_name) => {
+        methods.forEach(function process_module(worker, method_name): void {
             if (!worker.is_enabled) {
                 return;
             }

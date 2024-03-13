@@ -55,7 +55,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
                     decode_rton: false,
                     decrypt_rton: false,
                     layout: Support.PopCap.ResourceGroup.PathStyle.WindowStyle,
-                    generic: "ios",
+                    use_res_info: false,
                 });
                 Sen.Script.Executor.clock.stop_safe();
                 return;

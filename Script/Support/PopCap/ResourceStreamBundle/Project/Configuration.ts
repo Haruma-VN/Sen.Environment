@@ -13,10 +13,12 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
 
     // -----------------------------------------------------
 
-    export interface ZCommand extends Record<string, unknown> {
+    export interface BasicCommand extends Record<string, unknown> {
         command: string;
         forward: Forward;
     }
+
+    // -----------------------------------------------------
 
     export interface Setting extends Record<string, unknown> {
         rton: {
@@ -24,15 +26,15 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
             iv: string;
         };
         rsb: {
-            specialization: {
-                all: Questionable<boolean>;
-                "1536": Questionable<boolean>;
-                "768": Questionable<boolean>;
-                "384": Questionable<boolean>;
-                "640": Questionable<boolean>;
-                "1200": Questionable<boolean>;
+            distribution: {
+                all: boolean;
+                "1536": boolean;
+                "768": boolean;
+                "384": boolean;
+                "640": boolean;
+                "1200": boolean;
             };
         };
-        commands: Array<ZCommand>;
+        commands: Array<BasicCommand>;
     }
 }
