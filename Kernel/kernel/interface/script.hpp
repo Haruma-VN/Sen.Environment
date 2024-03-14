@@ -6719,11 +6719,11 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto plain = JS::Converter::get_string(context, argv[0]);
-					auto key = JS::Converter::get_string(context, argv[1]);
-					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key.c_str());
-					return JS::Converter::to_string(context, result);
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto plain = JS::Converter::get_c_string(context, argv[0]);
+					auto key = JS::Converter::get_c_string(context, argv[1]);
+					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(std::vector<std::uint8_t>(plain.get(), plain.get() + std::strlen(plain.get())), std::vector<std::uint8_t>(key.get(), key.get() + std::strlen(key.get())));
+					return JS_NewArrayBufferCopy(context, result.data(), result.size());
 				}, "encrypt"_sv);
 			}
 
@@ -6746,10 +6746,10 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto destination = JS::Converter::get_string(context, argv[1]);
-					auto key = JS::Converter::get_string(context, argv[2]);
-					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source, destination, key.c_str());
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto destination = JS::Converter::get_c_string(context, argv[1]);
+					auto key = JS::Converter::get_c_string(context, argv[2]);
+					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source.get(), destination.get(), std::vector<std::uint8_t>(key.get(), key.get() + std::strlen(key.get())));
 					return JS::Converter::get_undefined();
 				}, "encrypt_fs"_sv);
 			}

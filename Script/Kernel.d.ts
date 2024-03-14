@@ -973,7 +973,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function encrypt(str: string, key: string): string;
+                export function encrypt(str: string, key: string): ArrayBuffer;
 
                 /**
                  * --------------------------------------------------
@@ -985,7 +985,7 @@ declare namespace Sen {
                  * --------------------------------------------------
                  */
 
-                export function encrypt_fs(source: string, destination: string, key: string): string;
+                export function encrypt_fs(source: string, destination: string, key: string): void;
             }
 
             /**

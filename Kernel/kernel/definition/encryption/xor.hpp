@@ -12,15 +12,14 @@ namespace Sen::Kernel::Definition::Encryption::XOR
 	 * return: cipher text
 	*/
 
-	inline static auto encrypt(
-		const std::string & plain,
-		const char* key
-	) -> std::string
+	inline static auto encrypt (
+		const std::vector<std::uint8_t> & plain,
+		const std::vector<std::uint8_t> & key
+	) -> std::vector<std::uint8_t>
 	{
-		auto result = plain;
-		for (auto i = 0; i < plain.size(); i++)
-		{
-			result[i] = plain[i] ^ key[i % (sizeof(key) / sizeof(char))];
+		auto result = std::vector<std::uint8_t>(plain.size(), 0x00_byte);
+		for (auto i : Range(plain.size())) {
+			result[i] = plain[i] ^ key[i % key.size()];
 		}
 		return result;
 	}
@@ -33,12 +32,12 @@ namespace Sen::Kernel::Definition::Encryption::XOR
 	*/
 
 	inline static auto encrypt_fs(
-		const std::string & source,
-		const std::string & destination,
-		const char* key
+		std::string_view source,
+		std::string_view destination,
+		const std::vector<std::uint8_t> & key
 	) -> void
 	{
-		FileSystem::write_file(destination, XOR::encrypt(FileSystem::read_file(source), key));
+		FileSystem::write_binary(destination, XOR::encrypt(FileSystem::read_binary<std::uint8_t>(source), std::vector<std::uint8_t>{key.begin(), key.end()}));
 		return;
 	}
 	
