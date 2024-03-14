@@ -1,19 +1,20 @@
 project(
-	fifo_map
-	VERSION 0 # Unknown
-	HOMEPAGE_URL https://github.com/nlohmann/fifo_map
+	tsl
+	VERSION 1.1.0
+	HOMEPAGE_URL https://github.com/Tessil/ordered-map/
 	LANGUAGES CXX
 )
 
 add_library(
 	${PROJECT_NAME} INTERFACE
-	./fifo_map.hpp
+	./include/tsl/ordered_hash.h
+	./include/tsl/ordered_map.h
+	./include/tsl/ordered_set.h
 )
 
 # Set Kind
 
 set(CMAKE_CXX_STANDARD 20)
-
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # UTF8 Support

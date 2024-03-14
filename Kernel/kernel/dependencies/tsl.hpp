@@ -10,8 +10,9 @@
 #pragma clang diagnostic ignored "-Wreserved-macro-identifier"
 #endif
 
-
-#include "dependencies/fifo_map/fifo_map.hpp"
+#include "dependencies/tsl/include/tsl/ordered_hash.h"
+#include "dependencies/tsl/include/tsl/ordered_map.h"
+#include "dependencies/tsl/include/tsl/ordered_set.h"
 
 #if defined MSVC_COMPILER
 #pragma warning(pop)
@@ -20,6 +21,6 @@
 #pragma clang diagnostic pop
 #endif
 
-namespace Sen::Kernel::Dependencies::fifo_map {
+namespace Sen::Kernel::Dependencies::tsl {
 	
 }

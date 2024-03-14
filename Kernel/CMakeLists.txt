@@ -39,7 +39,7 @@ add_subdirectory("./dependencies/open_vcdiff")
 add_subdirectory("./dependencies/zip")
 add_subdirectory("./dependencies/simdjson")
 add_subdirectory("./dependencies/canvas_ity")
-add_subdirectory("./dependencies/fifo_map")
+add_subdirectory("./dependencies/tsl")
 add_subdirectory("./dependencies/compile-time-regular-expressions")
 
 if (MSVC)
