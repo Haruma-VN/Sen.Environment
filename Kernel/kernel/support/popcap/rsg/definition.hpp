@@ -155,31 +155,31 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
 #pragma region RSG_PacketInfo
 
-    struct RSG_PacketInfo
+    struct PacketInfo
     {
     public:
         uint32_t version;
         uint32_t compression_flags;
         std::vector<ResInfo> res;
 
-        explicit RSG_PacketInfo(
+        explicit PacketInfo(
 
             ) = default;
 
-        explicit RSG_PacketInfo(
+        explicit PacketInfo(
             uint32_t version,
             uint32_t compression_flags) : version(version), compression_flags(compression_flags)
         {
         }
 
-        ~RSG_PacketInfo(
+        ~PacketInfo(
 
             ) = default;
     };
 
     inline auto to_json(
         nlohmann::ordered_json &nlohmann_json_j,
-        const RSG_PacketInfo &nlohmann_json_t) -> void
+        const PacketInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
         nlohmann_json_j["compression_flags"] = nlohmann_json_t.compression_flags;
@@ -189,7 +189,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
     inline auto from_json(
         const nlohmann::ordered_json &nlohmann_json_j,
-        RSG_PacketInfo &nlohmann_json_t) -> void
+        PacketInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
         nlohmann_json_j.at("compression_flags").get_to(nlohmann_json_t.compression_flags);

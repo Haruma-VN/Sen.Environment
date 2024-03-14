@@ -39,18 +39,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             auto& image = json.image;
             sen->writeUint16(image.size());
-            for (auto & [key, value] : image.items())
-            {
-                auto image_name = fmt::format("{}|{}", value["name"], key);
+            for (const auto &image_value : image) {
+                auto image_name = fmt::format("{}|{}", image_value.name, image_value.id);
                 sen->writeStringByUint16(image_name);
-                write_image(value);
+                write_image(image_value);
             }
             auto& sprite = json.sprite;
             sen->writeUint16(sprite.size());
-            for (auto & [key, value] : sprite.items()) {
+            for (const auto &sprite_value: sprite) {
                 if (version >= 4) {
-                    sen->writeStringByUint16(key);
-                    write_sprite(value);
+                    sen->writeStringByUint16(sprite_value.name);
+                    write_sprite(sprite_value);
                 }
             }
             if (version <= 3) {
@@ -290,7 +289,9 @@ namespace Sen::Kernel::Support::PopCap::Animation
         }
 
 
-        inline auto write_image(const AnimationImage & image) const -> void
+        inline auto write_image(
+            const AnimationImage & image
+            ) const -> void
         {
             if (version >= 4)
             {

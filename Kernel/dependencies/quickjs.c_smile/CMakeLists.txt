@@ -33,6 +33,7 @@ target_compile_definitions(
 	JS_STRICT_NAN_BOXING
 	CONFIG_BIGNUM
 )
+
 target_compile_options(
 	${PROJECT_NAME} PRIVATE
 	/Oi-

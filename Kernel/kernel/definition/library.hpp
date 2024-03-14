@@ -29,6 +29,7 @@
 #include <codecvt>
 #include <cstdint>
 #include <future>
+#include <set>
 #include "kernel/definition/assert.hpp"
 #include "kernel/definition/basic/language.hpp"
 #include "kernel/definition/range.hpp"

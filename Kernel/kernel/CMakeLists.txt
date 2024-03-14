@@ -238,6 +238,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wno-gnu-line-marker 
 )
 
+if (MSVC)
+    add_compile_options(/bigobj)
+else ()
+    add_compile_options(-Wa,-mbig-obj)
+endif ()
+
 endif()
 
 set(CMAKE_CXX_STANDARD 23)

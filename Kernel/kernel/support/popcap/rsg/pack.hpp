@@ -345,7 +345,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         template <auto use_res_folder>
         inline auto process(
             std::string_view source,
-            const RSG_PacketInfo &packet_info
+            const PacketInfo &packet_info
         ) -> void
         {
             static_assert(use_res_folder == true || use_res_folder == false, "use_res_folder can only be true or false");

@@ -2,9 +2,11 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/popcap/rsb/definition.hpp"
+#include "kernel/support/popcap/rsg/definition.hpp"
 
 namespace Sen::Kernel::Support::PopCap::RSB
 {
+    using namespace Sen::Kernel::Support::PopCap::RSG;
     using namespace Definition;
 
     template <typename T>
@@ -24,7 +26,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         ~PathList(
 
-         ) = default;
+            ) = default;
     };
 
     struct PathPosition
@@ -44,54 +46,45 @@ namespace Sen::Kernel::Support::PopCap::RSB
         explicit PathTemp(
             const std::string &path_slice,
             int key,
-            int pool_index
-        ) : path_slice(path_slice), key(key), pool_index(pool_index)
+            int pool_index) : path_slice(path_slice), key(key), pool_index(pool_index)
         {
         }
 
         ~PathTemp(
 
-        ) = default;
+            ) = default;
     };
 
     class Pack
     {
     public:
-
         Pack(
 
-        ) : sen(std::make_shared<DataStreamView>())
+            ) : sen(std::make_shared<DataStreamView>())
         {
-
         }
 
         Pack(
-            DataStreamView& that
-        ) : sen(&that)
+            DataStreamView &that) : sen(&that)
         {
-
         }
 
         ~Pack(
 
-        ) = default;
+            ) = default;
 
         Pack(
-            Pack&& that
-        ) = delete;
+            Pack &&that) = delete;
 
-        auto operator =(
-            Pack&& that
-        )->Pack & = delete;
+        auto operator=(
+            Pack &&that) -> Pack & = delete;
 
     public:
-
         std::shared_ptr<DataStreamView> sen;
 
     protected:
         inline auto write_head(
-            const RSB_HeadInfo<uint32_t> &head_info
-        ) const -> void
+            const RSB_HeadInfo<uint32_t> &head_info) const -> void
         {
             sen->writeUint32(head_info.file_offset, 12ull);
             sen->writeUint32(head_info.file_list_length);
@@ -123,8 +116,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
         inline auto write_file_list(
-            const PathTemp &path_temp
-        ) -> void
+            const PathTemp &path_temp) -> void
         {
             auto begin_pos = sen->write_pos;
             sen->writeStringFourByte(path_temp.path_slice);
@@ -140,15 +132,14 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto file_list_pack(
             const std::vector<PathList> &path_list,
-            std::vector<PathTemp> &path_temp_list
-        ) -> void
+            std::vector<PathTemp> &path_temp_list) -> void
         {
             auto list_length = path_list.size() - 1;
             auto w_pos = 0;
             for (auto i : Range(list_length))
             {
-                auto& a_path = path_list[i].path;
-                auto& b_path = path_list[i + 1].path;
+                auto &a_path = path_list[i].path;
+                auto &b_path = path_list[i + 1].path;
                 if (!is_ascii(b_path))
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("popcap.rsg.pack.item_path_must_be_ascii"), b_path), std::source_location::current(), "file_list_pack");
@@ -180,10 +171,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto throw_in_pool(
             DataStreamView &part3_data,
             std::map<std::string, int> &string_pool,
-            const std::string &pool_key
-        ) const -> int
+            const std::string &pool_key) const -> int
         {
-            if (!string_pool.contains(pool_key)) {
+            if (!string_pool.contains(pool_key))
+            {
                 string_pool.emplace(pool_key, static_cast<int>(part3_data.write_pos));
                 part3_data.writeStringByEmpty(pool_key);
             }
@@ -192,8 +183,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto write_resources_description(
             RSB_HeadInfo<uint32_t> &head_info,
-            const Description &description
-        ) const -> void
+            const Description &description) const -> void
         {
             auto part1_data = DataStreamView{};
             auto part2_data = DataStreamView{};
@@ -201,19 +191,24 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto string_pool = std::map<std::string, int>{};
             part3_data.writeNull(1);
             string_pool.emplace("", 0);
-            for (const auto &[group_key, group_value] : description.groups) {
+            for (const auto &[group_key, group_value] : description.groups)
+            {
                 auto id_part3_pos = throw_in_pool(part3_data, string_pool, group_key);
                 part1_data.writeInt32(id_part3_pos);
                 part1_data.writeInt32(group_value.subgroups.size());
                 part1_data.writeInt32(0x10);
-                for (const auto &[subgroup_key, subgroup_value] : group_value.subgroups) {
+                for (const auto &[subgroup_key, subgroup_value] : group_value.subgroups)
+                {
                     part1_data.writeInt32(subgroup_value.res);
-                    auto& language = subgroup_value.language;
-                    if (language.empty()) {
+                    auto &language = subgroup_value.language;
+                    if (language.empty())
+                    {
                         part1_data.writeInt32(0x0);
                     }
-                    else {
-                        if (language.size() != 4) {
+                    else
+                    {
+                        if (language.size() != 4)
+                        {
                             throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_language"), language.size()), std::source_location::current(), "write_resources_description");
                         }
                         part1_data.writeString(fmt::format("{}", language));
@@ -221,7 +216,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_id_part3_pos = throw_in_pool(part3_data, string_pool, subgroup_key);
                     part1_data.writeInt32(rsg_id_part3_pos);
                     part1_data.writeInt32(subgroup_value.resources.size());
-                    for (auto &[resources_key, resources_value] : subgroup_value.resources) {
+                    for (auto &[resources_key, resources_value] : subgroup_value.resources)
+                    {
                         auto id_part2_pos = static_cast<int>(part2_data.write_pos);
                         part1_data.writeInt32(id_part2_pos);
                         //
@@ -236,9 +232,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto path_part3_pos = throw_in_pool(part3_data, string_pool, item_path);
                         part2_data.writeInt32(new_id_part3_pos);
                         part2_data.writeInt32(path_part3_pos);
-                        auto& properties = resources_value.properties;
+                        auto &properties = resources_value.properties;
                         part2_data.writeInt32(static_cast<std::int32_t>(properties.size()));
-                        if (type == 0) {
+                        if (type == 0)
+                        {
                             auto ptx_info_begin_pos = static_cast<int>(part2_data.write_pos);
                             auto &ptx_info = resources_value.ptx_info;
                             part2_data.writeUint16(ptx_info.imagetype);
@@ -260,7 +257,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             part2_data.writeInt32(ptx_info_begin_pos);
                             part2_data.write_pos = static_cast<std::size_t>(ptx_info_end_pos);
                         }
-                        for (const auto &[properties_key, properties_value] : properties) {
+                        for (const auto &[properties_key, properties_value] : properties)
+                        {
                             auto key_pos = throw_in_pool(part3_data, string_pool, properties_key);
                             auto value_pos = throw_in_pool(part3_data, string_pool, properties_value);
                             part2_data.writeInt32(key_pos);
@@ -279,10 +277,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
-
         inline auto constexpr is_ascii(
-            std::string_view str
-        ) noexcept -> bool
+            std::string_view str) noexcept -> bool
         {
             for (auto c : str)
             {
@@ -294,10 +290,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return true;
         }
 
-        template <typename T> requires std::is_integral<T>::value
-        inline auto constexpr beautify_length (
-            T size
-        ) -> T
+        template <typename T>
+            requires std::is_integral<T>::value
+        inline auto constexpr beautify_length(
+            T size) -> T
         {
             if ((size % 4096) == 0)
             {
@@ -306,13 +302,112 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return static_cast<T>((4096 - (size % 4096)));
         }
 
-    public:
+        inline auto get_packet_info(
+            DataStreamView &rsg_file,
+            PacketInfo &packet_info)
+        {
+            packet_info.compression_flags = rsg_file.readUint32(0x10ull);
+            auto file_list_length = rsg_file.readUint32(0x48ull);
+            auto file_list_pos = rsg_file.readUint32();
+            auto parent_string = std::map<int, std::string>{};
+            while (rsg_file.read_pos < (file_list_pos + file_list_length))
+            {
+                auto key = std::string{};
+                auto position = static_cast<int>(rsg_file.read_pos + file_list_length);
+                if (!parent_string.contains(position))
+                {
+                    key += parent_string[position];
+                    parent_string.erase(position);
+                }
+                while (true)
+                {
+                    auto current_character = rsg_file.readUint8();
+                    auto child_string_offset = rsg_file.readUint24();
+                    if (child_string_offset != 0)
+                    {
+                        parent_string[child_string_offset] = key;
+                    }
+                    if (child_string_offset == 0)
+                        break;
+                    if (current_character == 0x5C)
+                        current_character = 0x2F;
+                    key += static_cast<char>(current_character);
+                }
+                if (key.empty())
+                    break;
+                auto is_atlas = rsg_file.readUint32() == 1;
 
+                auto res = RSG::ResInfo{key, is_atlas};
+                if (is_atlas)
+                {
+                    auto id = rsg_file.readUint32();
+                    rsg_file.read_pos += 8;
+                    res.ptx_info = RSG::PTXInfo{id, rsg_file.readUint32(), rsg_file.readUint32()};
+                }
+
+                packet_info.res.emplace_back(res);
+            }
+            rsg_file.read_pos = 0;
+            return;
+        }
+
+        template <typename T>
+        inline auto throw_packet_error(
+            const std::string &type,
+            const T &modify,
+            const T &rsg)
+        {
+            throw Exception(fmt::format("invaild_{}. manifest: {}. rsg: {}", type, modify, rsg));
+        }
+
+        inline auto compare_packet_info(
+            const RSG_PacketInfo<uint32_t> &modify_packet_info,
+            PacketInfo &rsg_packet_info)
+        {
+            if (modify_packet_info.compression_flags != rsg_packet_info.compression_flags)
+            {
+                throw_packet_error("compression_flag", modify_packet_info.compression_flags, rsg_packet_info.compression_flags);
+            }
+            if (modify_packet_info.res.size() != rsg_packet_info.res.size())
+            {
+                throw_packet_error("res_length", modify_packet_info.res.size(), rsg_packet_info.res.size());
+            }
+            auto modify_res = modify_packet_info.res;
+            std::sort(modify_res.begin(), modify_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
+                      { return a.path < b.path; });
+            auto &rsg_original_res = rsg_packet_info.res;
+            std::sort(rsg_original_res.begin(), rsg_original_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
+                      { return a.path < b.path; });
+            for (auto i : Range<int>(modify_res.size()))
+            {
+                if (modify_res[i]["path"].get<std::string>() != rsg_original_res[i].path)
+                {
+                    throw_packet_error("item_path", modify_res[i]["path"].get<std::string>(), rsg_original_res[i].path);
+                }
+                if (rsg_original_res[i].use_ptx_info)
+                {
+                    if (modify_res[i]["ptx_info"]["id"].get<uint32_t>() != rsg_original_res[i].ptx_info.id)
+                    {
+                        throw_packet_error("item_id", modify_res[i]["ptx_info"]["id"].get<uint32_t>(), rsg_original_res[i].ptx_info.id);
+                    }
+                    if (modify_res[i]["ptx_info"]["width"].get<uint32_t>() != rsg_original_res[i].ptx_info.width)
+                    {
+                        throw_packet_error("item_width", modify_res[i]["ptx_info"]["width"].get<uint32_t>(), rsg_original_res[i].ptx_info.width);
+                    }
+                    if (modify_res[i]["ptx_info"]["height"].get<uint32_t>() != rsg_original_res[i].ptx_info.height)
+                    {
+                        throw_packet_error("item_height", modify_res[i]["ptx_info"]["height"].get<uint32_t>(), rsg_original_res[i].ptx_info.height);
+                    }
+                }
+            }
+            return;
+        }
+
+    public:
         template <auto check_packet>
         inline auto process(
             std::string_view source,
-            const Manifest<std::uint32_t> &manifest
-        ) -> void
+            const Manifest<std::uint32_t> &manifest) -> void
         {
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");
             sen->writeString("1bsr"_sv);
@@ -358,7 +453,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto rsg_file = DataStreamView{fmt::format("{}/packet/{}.rsg", source, packet_name)};
                     if constexpr (check_packet)
                     {
-                        // compare rsg and manifest packt info;
+                        auto rsg_packet_info = PacketInfo{};
+                        get_packet_info(rsg_file, rsg_packet_info);
+                        compare_packet_info(subgroup_value.packet_info, rsg_packet_info);
                     }
                     auto rsg_composite = false;
                     auto ptx_number = 0;
@@ -370,7 +467,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         item_list.emplace_back(PathList{item_path, packet_index});
                         try
                         {
-                            auto& ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
+                            auto &ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
                             if (!composite_packet.is_composite)
                             {
                                 throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_packet_composite"), packet_name), std::source_location::current(), "process");
@@ -404,8 +501,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         auto str = subgroup_value.category[1].get<std::string>();
                         if (str.size() != 4)
                         {
-                            throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), str.size(), 
-                                Language::get("but_received"), str), std::source_location::current(), "process");
+                            throw Exception(fmt::format("{}: {}, {}: {}", Language::get("popcap.rsb.pack.invalid_category_string"), str.size(),
+                                                        Language::get("but_received"), str),
+                                            std::source_location::current(), "process");
                         }
                         composite_info.writeString(str);
                     }
@@ -466,7 +564,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             composite_list.emplace_back(PathList{std::string{""}, 0});
             std::sort(composite_list.begin(), composite_list.end(), [](const PathList &a, const PathList &b) -> int
                       { return a.path < b.path; });
-             file_list_pack(composite_list, composite_path_temp_list);
+            file_list_pack(composite_list, composite_path_temp_list);
             //
             head_info.file_list_begin = file_list_begin_pos;
             for (auto i : Range<int>(item_path_temp_list.size()))
@@ -530,21 +628,23 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
-        template <auto check_packet, typename ...Args> requires (std::is_same<Args, std::string_view>::value && ...)
+        template <auto check_packet, typename... Args>
+            requires(std::is_same<Args, std::string_view>::value && ...)
         inline static auto pack_fs(
             std::string_view source,
             std::string_view destination,
-            Args... path
-        ) -> void
+            Args... path) -> void
         {
             static_assert(check_packet == true or check_packet == false, "check_packet must be boolean value");
             static_assert(sizeof...(Args) == 1 or sizeof...(Args) == 0, "manifest_path can only have one");
             auto pack = Pack{};
             auto manifest_path = std::string_view{};
-            if constexpr (sizeof...(Args) == 1) {
+            if constexpr (sizeof...(Args) == 1)
+            {
                 manifest_path = std::get<0>(std::make_tuple(path...));
             }
-            if constexpr (sizeof...(Args) == 0) {
+            if constexpr (sizeof...(Args) == 0)
+            {
                 manifest_path = String::view(fmt::format("{}/manifest.json", source));
             }
             auto manifest = FileSystem::read_json(manifest_path);

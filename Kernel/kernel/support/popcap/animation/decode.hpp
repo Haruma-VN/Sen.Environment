@@ -12,27 +12,26 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
 
     public:
-        
         SexyAnimation mutable json{};
 
     protected:
-
         T mutable version;
-        
+
         std::unique_ptr<DataStreamView> sen;
 
         template <typename ...Args> requires (std::is_integral<Args>::value && ...)
         inline auto read_sprite(
             AnimationSprite &sprite,
-            Args... index
-        ) const -> void
+            Args... index) const -> void
         {
             static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "index can only be 0 or 1");
             [[maybe_unused]] auto sprite_name = std::string{};
-            if constexpr (sizeof...(Args) == 1) {
-                sprite_name = version >= 4 ? sen->readStringByUint16() : "*" + std::to_string(std::get<0>(std::make_tuple(index...)));
+            if constexpr (sizeof...(Args) == 1)
+            {
+                sprite.name = version >= 4 ? sen->readStringByUint16() : ""; 
             }
-            else {
+            else
+            {
                 sen->readStringByUint16();
             }
             if (version >= 4)
@@ -59,16 +58,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 read_frame_info(&frame_info);
                 sprite.frame.push_back(std::move(frame_info));
             }
-            if constexpr (sizeof...(Args) == 1) {
-                json.sprite[sprite_name] = sprite;
+            if constexpr (sizeof...(Args) == 1)
+            {
+                json.sprite.emplace_back(sprite);
             }
             return;
-            
         }
 
-        inline auto read_frame_info (
-            AnimationFrame* frame_info
-        ) const -> void
+        inline auto read_frame_info(
+            AnimationFrame *frame_info) const -> void
         {
             auto flag = sen->readUint8();
             auto count = 0;
@@ -112,15 +110,19 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     frame_info->change.push_back(std::move(anim_move));
                 }
             }
-            if ((flag & FrameFlags::label) != 0) {
+            if ((flag & FrameFlags::label) != 0)
+            {
                 frame_info->label = sen->readStringByUint16();
             }
-            if ((flag & FrameFlags::stop) != 0) {
+            if ((flag & FrameFlags::stop) != 0)
+            {
                 frame_info->stop = true;
             }
-            if ((flag & FrameFlags::command) != 0) {
+            if ((flag & FrameFlags::command) != 0)
+            {
                 count = sen->readUint8();
-                for (auto i : Range(count)) {
+                for (auto i : Range(count))
+                {
                     auto animation_command = AnimationCommand{};
                     read_command(&animation_command);
                     frame_info->command.push_back(std::move(animation_command));
@@ -143,17 +145,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
         }
 
         inline auto read_command(
-            AnimationCommand* animation_command
-        ) const -> void
+            AnimationCommand *animation_command) const -> void
         {
             animation_command->command = sen->readStringByUint16();
             animation_command->parameter = sen->readStringByUint16();
             return;
         }
 
-        inline auto read_append (
-            AnimationAppend* append_info
-        ) const -> void
+        inline auto read_append(
+            AnimationAppend *append_info) const -> void
         {
             const auto value = sen->readUint16();
             auto index = value & 2047;
@@ -186,8 +186,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         }
 
         inline auto read_move(
-            AnimationMove* change_info
-        ) const -> void
+            AnimationMove *change_info) const -> void
         {
             const auto flag = sen->readUint16();
             auto index = flag & 1023;
@@ -198,7 +197,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             change_info->index = index;
             if ((flag & MoveFlags::matrix) != 0)
             {
-                
+
                 auto t1 = sen->readInt32() / 65536.0;
                 auto t3 = sen->readInt32() / 65536.0;
                 auto t2 = sen->readInt32() / 65536.0;
@@ -226,19 +225,22 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 change_info->transform.emplace_back(y);
                 change_info->transform.emplace_back(x);
             }
-            if ((flag & MoveFlags::src_react) != 0) {
+            if ((flag & MoveFlags::src_react) != 0)
+            {
                 change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
                 change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
                 change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
                 change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
             }
-            if ((flag & MoveFlags::color) != 0) {
+            if ((flag & MoveFlags::color) != 0)
+            {
                 change_info->color.emplace_back(sen->readUint8() / 255.0);
                 change_info->color.emplace_back(sen->readUint8() / 255.0);
                 change_info->color.emplace_back(sen->readUint8() / 255.0);
                 change_info->color.emplace_back(sen->readUint8() / 255.0);
             }
-            if ((flag & MoveFlags::sprite_frame_number) != 0) {
+            if ((flag & MoveFlags::sprite_frame_number) != 0)
+            {
                 change_info->sprite_frame_number = sen->readUint16();
             }
             return;
@@ -250,16 +252,17 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             auto image_name = String{sen->readStringByUint16()};
             auto name_list = image_name.split("|");
-            if (json.image.contains(name_list[1]))
-            {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.duplicate_image"), name_list[1]), std::source_location::current(), "read_image");
-            }
+            //  if (json.image.contains(name_list[1]))
+            //   {
+            //    throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.duplicate_image"), name_list[1]), std::source_location::current(), "read_image");
+            //}
             auto image = AnimationImage{};
             if (version >= 4)
             {
                 image.size = AnimationSize{sen->readUint16(), sen->readUint16()};
             }
             image.name = std::string{name_list[0]};
+            image.id = std::string{name_list[1]};
             if (version == 1)
             {
                 auto matrix = sen->readInt16() / 1000.0;
@@ -281,15 +284,13 @@ namespace Sen::Kernel::Support::PopCap::Animation
                     static_cast<double>(sen->readInt16() / 20.0),
                     static_cast<double>(sen->readInt16() / 20.0)};
             }
-            json.image[name_list[1]] = image;
+            json.image.emplace_back(image);
             return;
         }
 
     public:
-
         explicit Decode(
-            std::string_view source
-        ) : sen(std::make_unique<DataStreamView>(source))
+            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
         {
         }
 
@@ -322,26 +323,25 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 auto sprite = AnimationSprite{};
                 read_sprite(sprite, i);
             }
-            if (version <= 3 || sen->readBoolean()) {
+            if (version <= 3 || sen->readBoolean())
+            {
                 read_sprite(json.main_sprite);
             }
             return;
         }
 
         explicit Decode(
-            DataStreamView & it
-        ) : sen(&it)
+            DataStreamView &it) : sen(&it)
         {
         }
 
         ~Decode(
 
-        ) = default;
+            ) = default;
 
         inline static auto decode_fs(
             std::string_view source,
-            std::string_view destination
-        ) -> void
+            std::string_view destination) -> void
         {
             auto c = Decode<T>{source};
             c.process();

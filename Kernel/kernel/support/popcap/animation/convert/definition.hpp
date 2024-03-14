@@ -5,15 +5,42 @@
 namespace Sen::Kernel::Support::PopCap::Animation::Convert
 {
 
-	struct ExtraInfo
-	{
-		int version;
-		nlohmann::ordered_json group;
+	struct ImageInfo {
+		std::string name;
+		AnimationSize size;
 	};
 
 	inline auto static to_json(
 		nlohmann::ordered_json &nlohmann_json_j,
-		const ExtraInfo &nlohmann_json_t) -> void
+		const ImageInfo &nlohmann_json_t) -> void
+	{
+		nlohmann_json_j["name"] = nlohmann_json_t.name;
+		nlohmann_json_j["size"] = nlohmann_json_t.size;
+		return;
+	}
+
+	inline auto static from_json(
+		const nlohmann::ordered_json &nlohmann_json_j,
+		ImageInfo &nlohmann_json_t) -> void
+	{
+		nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
+		nlohmann_json_j.at("size").get_to(nlohmann_json_t.size);
+		return;
+	};
+
+	struct SpriteInfo {
+
+	};
+
+	struct RecordInfo
+	{
+		int version;
+		std::map<std::string, ImageInfo> group;
+	};
+
+	inline auto static to_json(
+		nlohmann::ordered_json &nlohmann_json_j,
+		const RecordInfo &nlohmann_json_t) -> void
 	{
 		nlohmann_json_j["version"] = nlohmann_json_t.version;
 		nlohmann_json_j["group"] = nlohmann_json_t.group;
@@ -22,7 +49,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 	inline auto static from_json(
 		const nlohmann::ordered_json &nlohmann_json_j,
-		ExtraInfo &nlohmann_json_t) -> void
+		RecordInfo &nlohmann_json_t) -> void
 	{
 		nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
 		nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
@@ -40,8 +67,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	struct Model
 	{
 	public:
-		int index;
-		int8_t state;
+		uint8_t state;
 		int resource;
 		bool sprite;
 		int frame_start;
@@ -54,12 +80,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			) = default;
 
 		explicit constexpr Model(
-			int index,
-			int8_t state,
+			uint8_t state,
 			int resource,
 			bool sprite,
 			int frame_start,
-			int frame_duration) : index(index), state(state), resource(resource), sprite(sprite),
+			int frame_duration) : state(state), resource(resource), sprite(sprite),
 								  frame_start(frame_start), frame_duration(frame_duration)
 		{
 		}
@@ -84,14 +109,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 			) = default;
 
-		explicit FrameNode(
+		explicit constexpr FrameNode(
 			int index,
 			int duration,
-			int resource,
-			bool sprite,
-			int first_frame
-			) : index(index), duration(duration), resource(resource), sprite(sprite),
-													first_frame(first_frame)
+			int resource
+			) : index(index), duration(duration), resource(resource)
 		{
 		}
 
@@ -139,12 +161,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		bool sprite;
 	};
 
-	
-
 	struct FrameList {
 		
 		std::map<int, std::vector<FrameNode>> frame_node_list;
 		std::map<std::string, Action> action_list;
+		std::vector<std::string> action_name_list;
 
 		FrameList(
 

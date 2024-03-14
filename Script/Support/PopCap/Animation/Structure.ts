@@ -4,8 +4,8 @@ namespace Sen.Script.Support.PopCap.Animation.Structure {
         frame_rate: bigint;
         position: AnimationPosition;
         size: AnimationSize;
-        image: Record<string, AnimationImage>;
-        sprite: Record<string, AnimationSprite>;
+        image: Array<AnimationImage>;
+        sprite: Array<AnimationSprite>;
         main_sprite: AnimationSprite;
     }
 
@@ -21,11 +21,13 @@ namespace Sen.Script.Support.PopCap.Animation.Structure {
 
     export interface AnimationImage {
         name: string;
+        id: string;
         size: AnimationSize;
         transform: number[];
     }
 
     export interface AnimationSprite {
+        name: string,
         description: string;
         work_area: AnimationWorkArea;
         frame: AnimationFrame[];

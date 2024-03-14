@@ -144,6 +144,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         std::string name;
+        std::string id;
         AnimationSize size;
         std::vector<double> transform;
 
@@ -162,6 +163,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
         json = nlohmann::ordered_json{
             {"name", anim.name},
+            {"id", anim.id},
             {"size", anim.size},
             {"transform", anim.transform}};
         return;
@@ -172,6 +174,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         AnimationImage &anim) -> void
     {
         json.at("name").get_to(anim.name);
+        json.at("id").get_to(anim.id);
         json.at("size").get_to(anim.size);
         json.at("transform").get_to(anim.transform);
         return;
@@ -412,6 +415,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationSprite
     {
     public:
+        std::string name;
         std::string description;
         AnimationWorkArea work_area;
         std::vector<AnimationFrame> frame;
@@ -430,6 +434,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const AnimationSprite &anim) -> void
     {
         json = nlohmann::ordered_json{
+            {"name", anim.name},
             {"description", anim.description},
             {"work_area", anim.work_area},
             {"frame", anim.frame}};
@@ -440,6 +445,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const nlohmann::ordered_json &json,
         AnimationSprite &anim) -> void
     {
+        json.at("name").get_to(anim.name);
         json.at("description").get_to(anim.description);
         json.at("work_area").get_to(anim.work_area);
         json.at("frame").get_to(anim.frame);
@@ -457,8 +463,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
         int frame_rate;
         AnimationPosition position;
         AnimationSize size;
-        nlohmann::ordered_json image;
-        nlohmann::ordered_json sprite;
+        std::vector<AnimationImage> image;
+        std::vector<AnimationSprite> sprite;
         AnimationSprite main_sprite;
 
         explicit SexyAnimation(

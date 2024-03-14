@@ -19,33 +19,34 @@ namespace Sen.Script.Support.PopCap.Animation {
             // debug("process");
             const dom_document: DOMDocument = Kernel.XML.deserialize_fs(Kernel.Path.join(source, "DomDocument.xml"));
             const dom_symbol_list: DocumentSymbol = read_symbols_include(dom_document);
-            const record_info: ExtraInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "record.json"));
+            const record_info: RecordInfo = Kernel.JSON.deserialize_fs(Kernel.Path.join(source, "record.json"));
             if (record_info.version > 6n || record_info.version < 1n) {
                 throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.invalid_version"), record_info.version));
             }
             const animation_image_id_list: string[] = dom_symbol_list["image"];
-            const animation_image_map: Record<string, Structure.AnimationImage> = {};
+            const animation_image_list: Array<Structure.AnimationImage> = [];
 
             for (let image_id of animation_image_id_list) {
                 const image_document: ImageDocument = Kernel.XML.deserialize(Kernel.FileSystem.read_file(Kernel.Path.join(source, "library", "image", `${image_id}.xml`)));
-                animation_image_map[image_id] = parse_image(image_document, image_id, record_info);
+                animation_image_list.push(parse_image(image_document, image_id, record_info));
             }
             const animation_sprite_name_list: string[] = dom_symbol_list["sprite"];
             // debug(animation_sprite_name_list);
-            const animation_sprite_map: Record<string, Structure.AnimationSprite> = {};
+            const animation_sprite_list: Array<Structure.AnimationSprite> = [];
             for (let sprite_name of animation_sprite_name_list) {
                 // debug(sprite_name);
                 const sprite_document: SpriteDocument = Kernel.XML.deserialize(Kernel.FileSystem.read_file(Kernel.Path.join(source, "library", "sprite", `${sprite_name}.xml`)));
                 // debug(sprite_document);
                 const frame_node: AnimFramNode = parse_sprite(sprite_document, sprite_name, false, animation_image_id_list, animation_sprite_name_list);
-                animation_sprite_map[sprite_name] = {
+                animation_sprite_list.push({
+                    name: sprite_name,
                     description: "",
                     work_area: {
                         index: 0n,
                         duration: BigInt(frame_node["frames"].length),
                     },
                     frame: frame_node["frames"],
-                };
+                });
             }
             const animation_label_list: string[] = dom_symbol_list["action"];
             const animation_action_map: Record<string, AnimFramNode> = {};
@@ -66,9 +67,10 @@ namespace Sen.Script.Support.PopCap.Animation {
                     width: 0n,
                     height: 0n,
                 },
-                image: animation_image_map,
-                sprite: animation_sprite_map,
+                image: animation_image_list,
+                sprite: animation_sprite_list,
                 main_sprite: {
+                    name: "",
                     description: "",
                     work_area: {
                         index: 0n,
@@ -138,7 +140,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 dom_command_frames_list.push(dom_command_frames);
             }
             const all_frames: number = Number(dom_command_frames_list[dom_command_frames_list.length - 1]["@attributes"]["index"]);
-            for (let i = 0; i < all_frames - Number(last_frame); i++) {
+            for (let i = 0; i < all_frames - Number(last_frame); ++i) {
                 animation["main_sprite"]["frame"].push({
                     label: "",
                     stop: false,
@@ -187,7 +189,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             let label_remove: bigint = 0n;
             let start_index: bigint = 0n;
             const remove_list: bigint[] = [];
-            for (let i = 0; i < animation_label_list.length; i++) {
+            for (let i = 0; i < animation_label_list.length; ++i) {
                 const action_name: string = animation_label_list[i];
                 const duration: bigint = action_index_list[action_name]["duration"];
                 const layer_length: bigint = animation_action_map[action_name]["layer_length"];
@@ -546,7 +548,7 @@ namespace Sen.Script.Support.PopCap.Animation {
                 });
                 close_current_model();
             });
-            for (let i = 0; i < frames_result.length; i++) {
+            for (let i = 0; i < frames_result.length; ++i) {
                 if (frames_result[i] === undefined) {
                     frames_result[i] = {
                         label: "",
@@ -623,7 +625,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             return num;
         }
 
-        export function parse_image(image_document: ImageDocument, image_id: string, record_info: ExtraInfo): Structure.AnimationImage {
+        export function parse_image(image_document: ImageDocument, image_id: string, record_info: RecordInfo): Structure.AnimationImage {
             // debug("parse_image");
             if (!image_document.hasOwnProperty("DOMSymbolItem")) {
                 throw new Error(format(Kernel.Language.get("popcap.animation.from_flash.image_has_no_DOMSymbolItem"), image_id));
@@ -677,6 +679,7 @@ namespace Sen.Script.Support.PopCap.Animation {
             const image_transform: number[] = parse_transform_for_image(dom_bitmap_instance["matrix"]["Matrix"]);
             const animation_image: Structure.AnimationImage = {
                 name: animation_image_name,
+                id: image_id,
                 size: record_info.group[image_id]["size"],
                 transform: image_transform,
             };

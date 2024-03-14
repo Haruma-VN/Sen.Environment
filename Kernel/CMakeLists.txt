@@ -50,6 +50,11 @@ if(UNIX OR APPLE OR ANDROID OR IOS)
     add_subdirectory("./dependencies/quickjs")
 endif()
 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif ()
+
+
 if(WIN32 OR UNIX OR APPLE)
     add_subdirectory("./test")
 endif()

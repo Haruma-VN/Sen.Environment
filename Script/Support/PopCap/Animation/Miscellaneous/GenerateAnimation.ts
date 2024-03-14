@@ -2,13 +2,13 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     export interface Setting {
         use_image_id: boolean;
         image_reslution: bigint;
-        x_position: bigint;
-        y_position: bigint;
-        width: bigint;
-        height: bigint;
-        image_layers_remove_list: Array<bigint>;
-        sprite_layers_remove_list: Array<bigint>;
-        frame_name: string;
+        x_position?: bigint;
+        y_position?: bigint;
+        width?: bigint;
+        height?: bigint;
+        image_layers_remove_list?: Array<bigint>;
+        sprite_layers_remove_list?: Array<bigint>;
+        frame_name?: string;
     }
 
     export type Transform = [number, number, number, number, number, number];
@@ -82,22 +82,19 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
 
     export function create_animation_struct(animation_struct: AnimationStruct, animation: SexyAnimation, setting: Setting): void {
         let image_index = 0n;
-        for (const [key, value] of Object.entries(animation.image)) {
-            animation_struct.source_image_name.push(setting.use_image_id ? key : value.name);
-            animation_struct.source_layer.push(read_image(value, image_index++));
+        for (let image of animation.image) {
+            animation_struct.source_image_name.push(setting.use_image_id ? image.id : image.name);
+            animation_struct.source_layer.push(read_image(image, image_index++));
         }
-        const sprite_map = animation.sprite;
-        const sprite_name_list = Object.keys(sprite_map);
-        for (const [key, value] of Object.entries(sprite_map)) {
-            const frame_list = FromAnimation.decode_frame_list(value, sprite_map, sprite_name_list);
-            animation_struct.sprite_layer[key] = read_sprite(frame_list.frame_node_list);
+        for (let sprite of animation.sprite) {
+            const frame_list = FromAnimation.decode_frame_list(sprite, animation);
+            animation_struct.sprite_layer[sprite.name] = read_sprite(frame_list.frame_node_list);
         }
-        const frame_list = FromAnimation.decode_frame_list(animation.main_sprite, sprite_map, sprite_name_list);
+        const frame_list = FromAnimation.decode_frame_list(animation.main_sprite, animation);
         const action_node_list = FromAnimation.write_action(frame_list);
         for (const [key, value] of Object.entries(action_node_list)) {
             animation_struct.action_layer[key] = read_sprite(value);
         }
-        // Kernel.JSON.serialize_fs("C:/Users/Shift/Desktop/workspace/1.json", animation_struct, 1, true);
         return;
     }
 

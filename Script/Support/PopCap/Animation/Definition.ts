@@ -267,12 +267,12 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     // extra_info
-    export type ExtraInfo = {
+    export type RecordInfo = {
         version: bigint;
-        group: Record<string, ExtraGroup>;
+        group: Record<string, ImageInfo>;
     };
 
-    export type ExtraGroup = {
+    export type ImageInfo = {
         name: string,
         size: Sen.Script.Support.PopCap.Animation.Structure.AnimationSize
     }

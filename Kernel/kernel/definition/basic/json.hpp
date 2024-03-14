@@ -109,7 +109,7 @@ namespace Sen::Kernel::Definition {
 			for (auto & [key, value] : map) {
 				keys.emplace_back(key);
 			}
-			return;
+			return keys;
 		}
 
 		// U is useless, but we need to keep it
