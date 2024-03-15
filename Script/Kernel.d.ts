@@ -4463,6 +4463,317 @@ declare namespace Sen {
         }
 
         /**
+         * 0n: fill_style
+         * 1n: stroke_style
+         */
+
+        export type BrushType = 0n | 1n;
+
+        /**
+         * Kernel Canvas Support
+         * JS Call Canvas
+         */
+
+        declare class Canvas {
+            // Self declaration
+
+            private _Canvas: Canvas;
+
+            /**
+             * Default constructor
+             * @param width - Provide width
+             * @param height - Provide height
+             */
+
+            public constructor(width: bigint, height: bigint): void;
+
+            /**
+             * Scale
+             * @param x - X pos
+             * @param y - Y pos
+             */
+
+            public scale(x: number, y: number): void;
+
+            /**
+             * Rotates the context by a specified angle.
+             * @param angle The angle to rotate by, in radians.
+             */
+            public rotate(angle: number): void;
+
+            /**
+             * Translates the context to a specified point.
+             * @param x The x-coordinate to translate to.
+             * @param y The y-coordinate to translate to.
+             */
+            public translate(x: number, y: number): void;
+
+            /**
+             * Applies a transformation matrix to the context.
+             * @param a Horizontal scaling.
+             * @param b Horizontal skewing.
+             * @param c Vertical skewing.
+             * @param d Vertical scaling.
+             * @param e Horizontal moving.
+             * @param f Vertical moving.
+             */
+            public transform(a: number, b: number, c: number, d: number, e: number, f: number): void;
+
+            /**
+             * Resets the current transform to the identity matrix, and then applies a new transformation matrix.
+             * @param a Horizontal scaling.
+             * @param b Horizontal skewing.
+             * @param c Vertical skewing.
+             * @param d Vertical scaling.
+             * @param e Horizontal moving.
+             * @param f Vertical moving.
+             */
+            public set_transform(a: number, b: number, c: number, d: number, e: number, f: number): void;
+
+            /**
+             * Sets the global alpha or transparency value.
+             * @param alpha The alpha value, between 0.0 (fully transparent) and 1.0 (fully opaque).
+             */
+            public set_global_alpha(alpha: number): void;
+
+            /**
+             * Sets the color of shadows.
+             * @param a Red component of the color.
+             * @param b Green component of the color.
+             * @param c Blue component of the color.
+             * @param d Alpha component of the color.
+             */
+            public set_shadow_color(a: number, b: number, c: number, d: number): void;
+
+            /**
+             * Sets the blur level for shadows.
+             * @param blur The blur level.
+             */
+            public set_shadow_blur(blur: number): void;
+
+            /**
+             * Sets the width of lines.
+             * @param width The width of the line.
+             */
+            public set_line_width(width: number): void;
+
+            /**
+             * Sets the miter limit ratio.
+             * @param limit The miter limit ratio.
+             */
+            public set_miter_limit(limit: number): void;
+
+            /**
+             * Sets the color for drawing.
+             * @param type The type of brush to apply the color to.
+             * @param red Red component of the color.
+             * @param green Green component of the color.
+             * @param blue Blue component of the color.
+             * @param alpha Alpha component of the color.
+             */
+            public set_color(type: BrushType, red: number, green: number, blue: number, alpha: number): void;
+
+            /**
+             * Creates a linear gradient brush.
+             * @param type The type of brush to create.
+             * @param start_x The x-coordinate of the start point.
+             * @param start_y The y-coordinate of the start point.
+             * @param end_x The x-coordinate of the end point.
+             * @param end_y The y-coordinate of the end point.
+             */
+            public set_linear_gradient(type: BrushType, start_x: number, start_y: number, end_x: number, end_y: number): void;
+
+            /**
+             * Creates a radial gradient brush.
+             * @param type The type of brush to create.
+             * @param start_x The x-coordinate of the start circle.
+             * @param start_y The y-coordinate of the start circle.
+             * @param start_radius The radius of the start circle.
+             * @param end_x The x-coordinate of the end circle.
+             * @param end_y The y-coordinate of the end circle.
+             * @param end_radius The radius of the end circle.
+             */
+            public set_radial_gradient(type: BrushType, start_x: number, start_y: number, start_radius: number, end_x: number, end_y: number, end_radius: number): void;
+
+            /**
+             * Begins a new path by emptying the list of sub-paths. Call this method when you want to create a new path.
+             */
+            public begin_path(): void;
+
+            /**
+             * Closes the current path.
+             */
+            public close_path(): void;
+
+            /**
+             * Moves the pen to a specified point in the canvas, without creating a line.
+             * @param x The x-coordinate of the point.
+             * @param y The y-coordinate of the point.
+             */
+            public move_to(x: number, y: number): void;
+
+            /**
+             * Connects the last point in the current path to the specified point with a straight line.
+             * @param x The x-coordinate of the point.
+             * @param y The y-coordinate of the point.
+             */
+            public line_to(x: number, y: number): void;
+
+            /**
+             * Adds a quadratic Bézier curve to the current path.
+             * @param control_x The x-coordinate of the control point.
+             * @param control_y The y-coordinate of the control point.
+             * @param x The x-coordinate of the end point.
+             * @param y The y-coordinate of the end point.
+             */
+            public quadratic_curve_to(control_x: number, control_y: number, x: number, y: number): void;
+
+            /**
+             * Adds a cubic Bézier curve to the current path.
+             * @param control_1_x The x-coordinate of the first control point.
+             * @param control_1_y The y-coordinate of the first control point.
+             * @param control_2_x The x-coordinate of the second control point.
+             * @param control_2_y The y-coordinate of the second control point.
+             * @param x The x-coordinate of the end point.
+             * @param y The y-coordinate of the end point.
+             */
+            public bezier_curve_to(control_1_x: number, control_1_y: number, control_2_x: number, control_2_y: number, x: number, y: number): void;
+
+            /**
+             * Creates a path to a point and creates an arc.
+             * @param vertex_x The x-coordinate of the tangent point of the arc.
+             * @param vertex_y The y-coordinate of the tangent point of the arc.
+             * @param x The x-coordinate of the end point of the arc.
+             * @param y The y-coordinate of the end point of the arc.
+             * @param radius The radius of the arc.
+             */
+            public arc_to(vertex_x: number, vertex_y: number, x: number, y: number, radius: number): void;
+
+            /**
+             * Draws an arc/curve.
+             * @param x The x-coordinate of the center of the circle.
+             * @param y The y-coordinate of the center of the circle.
+             * @param radius The radius of the circle.
+             * @param start_angle The starting angle, in radians (0 is at the 3 o'clock position of the arc's circle).
+             * @param end_angle The ending angle, in radians.
+             * @param counter_clockwise Optional. Specifies whether the drawing should be counterclockwise or clockwise. False is default, and indicates clockwise.
+             */
+            public arc(x: number, y: number, radius: number, start_angle: number, end_angle: number, counter_clockwise: boolean): void;
+
+            /**
+             * Draws a rectangle.
+             * @param x The x-coordinate of the rectangle's starting point.
+             * @param y The y-coordinate of the rectangle's starting point.
+             * @param width The rectangle's width.
+             * @param height The rectangle's height.
+             */
+            public rectangle(x: number, y: number, width: number, height: number): void;
+
+            /**
+             * Fills the current or given path with the current fill style.
+             */
+            public fill(): void;
+
+            /**
+             * Strokes (outlines) the current or given path with the current stroke style.
+             */
+            public stroke(): void;
+
+            /**
+             * Turns the path currently being built into the current clipping path.
+             */
+            public clip(): void;
+
+            /**
+             * Reports whether the specified point is contained in the current path.
+             * @param x The x-coordinate of the point to check.
+             * @param y The y-coordinate of the point to check.
+             * @return Boolean indicating whether the point is in the path.
+             */
+            public is_point_in_path(x: number, y: number): boolean;
+
+            /**
+             * Clears the specified rectangular area, making it fully transparent.
+             * @param x The x-coordinate of the rectangle's starting point.
+             * @param y The y-coordinate of the rectangle's starting point.
+             * @param width The rectangle's width.
+             * @param height The rectangle's height.
+             */
+            public clear_rectangle(x: number, y: number, width: number, height: number): void;
+
+            /**
+             * Draws a filled rectangle at the specified coordinates.
+             * @param x The x-coordinate of the rectangle's starting point.
+             * @param y The y-coordinate of the rectangle's starting point.
+             * @param width The rectangle's width.
+             * @param height The rectangle's height.
+             */
+            public fill_rectangle(x: number, y: number, width: number, height: number): void;
+
+            /**
+             * Draws a rectangle that is stroked (outlined) according to the current strokeStyle and other context settings.
+             * @param x The x-coordinate of the rectangle's starting point.
+             * @param y The y-coordinate of the rectangle's starting point.
+             * @param width The rectangle's width.
+             * @param height The rectangle's height.
+             */
+            public stroke_rectangle(x: number, y: number, width: number, height: number): void;
+
+            /**
+             * Sets the font to be used for text operations.
+             * @param font The font data in ArrayBuffer format.
+             * @param bytes The size of the font data in bytes.
+             * @return Boolean indicating whether the font was successfully set.
+             */
+            public set_font(font: ArrayBuffer, bytes: bigint): boolean;
+
+            /**
+             * Draws an image onto the canvas.
+             * @param image The image data in ArrayBuffer format.
+             * @param width The width of the source image.
+             * @param height The height of the source image.
+             * @param stride The number of bytes per row in the source image.
+             * @param x The x-coordinate on the canvas at which to place the top-left corner of the source image.
+             * @param y The y-coordinate on the canvas at which to place the top-left corner of the source image.
+             * @param to_width The width to draw the image in the canvas.
+             * @param to_height The height to draw the image in the canvas.
+             */
+            public draw_image(image: ArrayBuffer, width: bigint, height: bigint, stride: bigint, x: number, y: number, to_width: number, to_height: number): void;
+
+            /**
+             * Gets the image data from the specified rectangle.
+             * @param image The ArrayBuffer where the image data will be stored.
+             * @param width The width of the rectangle from which the image data will be extracted.
+             * @param height The height of the rectangle from which the image data will be extracted.
+             * @param stride The number of bytes per row in the output image data.
+             * @param x The x-coordinate of the upper-left corner of the rectangle from which the image data will be extracted.
+             * @param y The y-coordinate of the upper-left corner of the rectangle from which the image data will be extracted.
+             */
+            public get_image_data(image: ArrayBuffer, width: bigint, height: bigint, stride: bigint, x: bigint, y: bigint): void;
+
+            /**
+             * Puts the image data into a specified rectangle of the canvas.
+             * @param image The image data in ArrayBuffer format to be placed on the canvas.
+             * @param width The width of the image data.
+             * @param height The height of the image data.
+             * @param stride The number of bytes per row in the image data.
+             * @param x The x-coordinate of the upper-left corner of the rectangle where the image data will be placed.
+             * @param y The y-coordinate of the upper-left corner of the rectangle where the image data will be placed.
+             */
+            public put_image_data(image: ArrayBuffer, width: bigint, height: bigint, stride: bigint, x: bigint, y: bigint): void;
+
+            /**
+             * Saves the entire state of the canvas by pushing the current state onto a stack.
+             */
+            public save(): void;
+
+            /**
+             * Restores the most recently saved canvas state by popping the top entry off the stack.
+             */
+            public restore(): void;
+        }
+
+        /**
          * Miscellaneous method
          */
 
@@ -4491,7 +4802,7 @@ declare namespace Sen {
             export function cast_ArrayBuffer_to_JS_String(value: ArrayBuffer): string;
 
             /**
-             *
+             * UTF16 Support
              * @param value - JS String
              */
 

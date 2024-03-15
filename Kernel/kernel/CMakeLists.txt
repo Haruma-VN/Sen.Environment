@@ -155,6 +155,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE CLANG_COMPILER)
 endif()
 
+target_compile_definitions(
+	${PROJECT_NAME} PRIVATE
+  	CANVAS_ITY_IMPLEMENTATION
+)
+
 
 
 target_compile_definitions( 

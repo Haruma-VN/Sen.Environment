@@ -1245,7 +1245,7 @@ static float length( xy that ) {
 static float direction( xy that ) {
     return atan2f( that.y, that.x ); }
 static xy const normalized( xy that ) {
-    return 1.0f / std::max( 1.0e-6f, length( that ) ) * that; }
+    return 1.0f / (std::max)( 1.0e-6f, length( that ) ) * that; }
 static xy const perpendicular( xy that ) {
     return xy( -that.y, that.x ); }
 static xy const lerp( xy from, xy to, float ratio ) {
@@ -1291,10 +1291,10 @@ static rgba const unpremultiplied( rgba that ) {
         rgba( 1.0f / that.a * that.r, 1.0f / that.a * that.g,
               1.0f / that.a * that.b, that.a ); }
 static rgba const clamped( rgba that ) {
-    return rgba( std::min( std::max( that.r, 0.0f ), 1.0f ),
-                 std::min( std::max( that.g, 0.0f ), 1.0f ),
-                 std::min( std::max( that.b, 0.0f ), 1.0f ),
-                 std::min( std::max( that.a, 0.0f ), 1.0f ) ); }
+    return rgba( (std::min)( (std::max)( that.r, 0.0f ), 1.0f ),
+                 (std::min)( (std::max)( that.g, 0.0f ), 1.0f ),
+                 (std::min)( (std::max)( that.b, 0.0f ), 1.0f ),
+                 (std::min)( (std::max)( that.a, 0.0f ), 1.0f ) ); }
 
 // Helpers for TTF file parsing
 static int unsigned_8( std::vector< unsigned char > &data, int index ) {
@@ -1346,11 +1346,11 @@ void canvas::add_tessellation(
     float squared_2 = dot( edge_2, edge_2 );
     float squared_3 = dot( edge_3, edge_3 );
     static float const epsilon = 1.0e-4f;
-    float length_squared = std::max( epsilon, dot( segment, segment ) );
+    float length_squared = (std::max)( epsilon, dot( segment, segment ) );
     float projection_1 = dot( edge_1, segment ) / length_squared;
     float projection_2 = dot( edge_3, segment ) / length_squared;
-    float clamped_1 = std::min( std::max( projection_1, 0.0f ), 1.0f );
-    float clamped_2 = std::min( std::max( projection_2, 0.0f ), 1.0f );
+    float clamped_1 = (std::min)( (std::max)( projection_1, 0.0f ), 1.0f );
+    float clamped_2 = (std::min)( (std::max)( projection_2, 0.0f ), 1.0f );
     xy to_line_1 = point_1 + clamped_1 * segment - control_1;
     xy to_line_2 = point_2 - clamped_2 * segment - control_2;
     float cosine = 1.0f;
@@ -1496,7 +1496,7 @@ void canvas::path_to_lines(
     bool stroking )
 {
     static float const tolerance = 0.125f;
-    float ratio = tolerance / std::max( 0.5f * line_width, tolerance );
+    float ratio = tolerance / (std::max)( 0.5f * line_width, tolerance );
     float angular = stroking ? ( ratio - 2.0f ) * ratio * 2.0f + 1.0f : -1.0f;
     lines.points.clear();
     lines.subpaths.clear();
@@ -1797,7 +1797,7 @@ void canvas::text_to_lines(
     bool stroking )
 {
     static float const tolerance = 0.125f;
-    float ratio = tolerance / std::max( 0.5f * line_width, tolerance );
+    float ratio = tolerance / (std::max)( 0.5f * line_width, tolerance );
     float angular = stroking ? ( ratio - 2.0f ) * ratio * 2.0f + 1.0f : -1.0f;
     lines.points.clear();
     lines.subpaths.clear();
@@ -1805,7 +1805,7 @@ void canvas::text_to_lines(
         return;
     float width = maximum_width == 1.0e30f && text_align == leftward ? 0.0f :
         measure_text( text );
-    float reduction = maximum_width / std::max( maximum_width, width );
+    float reduction = maximum_width / (std::max)( maximum_width, width );
     if ( text_align == rightward )
         position.x -= width * reduction;
     else if ( text_align == center )
@@ -1838,7 +1838,7 @@ void canvas::text_to_lines(
                    position.x + static_cast< float >( place ) * scaling.x,
                    position.y );
         add_glyph( glyph, angular );
-        int entry = std::min( glyph, hmetrics - 1 );
+        int entry = (std::min)( glyph, hmetrics - 1 );
         place += unsigned_16( face.data, face.hmtx + entry * 4 );
     }
     forward = saved_forward;
@@ -1993,7 +1993,7 @@ void canvas::add_half_stroke(
             {
                 float cosine = dot( in_direction, out_direction );
                 float angle = acosf(
-                    std::min( std::max( cosine, -1.0f ), 1.0f ) );
+                    (std::min)( (std::max)( cosine, -1.0f ), 1.0f ) );
                 float alpha = 4.0f / 3.0f * tanf( 0.25f * angle );
                 lines.points.push_back( forward * side_in );
                 add_bezier(
@@ -2133,7 +2133,7 @@ void canvas::add_runs(
         float carry = 0.0f;
         while ( next_x.x < next_y.x )
         {
-            float strip = std::min( std::max( ( next_x.y - now.y ) * y_step,
+            float strip = (std::min)( (std::max)( ( next_x.y - now.y ) * y_step,
                                               0.0f ), 1.0f );
             float mid = ( next_x.x + now.x ) * 0.5f;
             float area = ( mid - pixel.x ) * strip;
@@ -2147,7 +2147,7 @@ void canvas::add_runs(
             next_x.y = ( next_x.x - from.x ) * slope.y + from.y;
             pixel.x += 1.0f;
         }
-        float strip = std::min( std::max( ( next_y.y - now.y ) * y_step,
+        float strip = (std::min)( (std::max)( ( next_y.y - now.y ) * y_step,
                                           0.0f ), 1.0f );
         float mid = ( next_y.x + now.x ) * 0.5f;
         float area = ( mid - pixel.x ) * strip;
@@ -2232,10 +2232,10 @@ void canvas::lines_to_runs(
         {
             xy from = scratch.points[ ( index ? index : last ) - 1 ];
             xy to = scratch.points[ index ];
-            add_runs( xy( std::min( std::max( from.x, 0.0f ), width ),
-                          std::min( std::max( from.y, 0.0f ), height ) ),
-                      xy( std::min( std::max( to.x, 0.0f ), width ),
-                          std::min( std::max( to.y, 0.0f ), height ) ) );
+            add_runs( xy( (std::min)( (std::max)( from.x, 0.0f ), width ),
+                          (std::min)( (std::max)( from.y, 0.0f ), height ) ),
+                      xy( (std::min)( (std::max)( to.x, 0.0f ), width ),
+                          (std::min)( (std::max)( to.y, 0.0f ), height ) ) );
         }
     }
     if ( runs.empty() )
@@ -2282,8 +2282,8 @@ rgba canvas::paint_pixel(
             return rgba( 0.0f, 0.0f, 0.0f, 0.0f );
         float scale_x = fabsf( inverse.a ) + fabsf( inverse.c );
         float scale_y = fabsf( inverse.b ) + fabsf( inverse.d );
-        scale_x = std::max( 1.0f, std::min( scale_x, width * 0.25f ) );
-        scale_y = std::max( 1.0f, std::min( scale_y, height * 0.25f ) );
+        scale_x = (std::max)( 1.0f, (std::min)( scale_x, width * 0.25f ) );
+        scale_y = (std::max)( 1.0f, (std::min)( scale_y, height * 0.25f ) );
         float reciprocal_x = 1.0f / scale_x;
         float reciprocal_y = 1.0f / scale_y;
         point -= xy( 0.5f, 0.5f );
@@ -2304,7 +2304,7 @@ rgba canvas::paint_pixel(
             if ( wrapped_y < 0 )
                 wrapped_y += brush.height;
             if ( &brush == &image_brush )
-                wrapped_y = std::min( std::max( pattern_y, 0 ),
+                wrapped_y = (std::min)( (std::max)( pattern_y, 0 ),
                                       brush.height - 1 );
             for ( int pattern_x = left; pattern_x < right; ++pattern_x )
             {
@@ -2317,7 +2317,7 @@ rgba canvas::paint_pixel(
                 if ( wrapped_x < 0 )
                     wrapped_x += brush.width;
                 if ( &brush == &image_brush )
-                    wrapped_x = std::min( std::max( pattern_x, 0 ),
+                    wrapped_x = (std::min)( (std::max)( pattern_x, 0 ),
                                           brush.width - 1 );
                 float weight = weight_x * weight_y;
                 size_t index = static_cast< size_t >(
@@ -2412,20 +2412,20 @@ void canvas::render_shadow(
     int bottom = 0;
     for ( size_t index = 0; index < runs.size(); ++index )
     {
-        left = std::min( left, static_cast< int >( runs[ index ].x ) );
-        right = std::max( right, static_cast< int >( runs[ index ].x ) );
-        top = std::min( top, static_cast< int >( runs[ index ].y ) );
-        bottom = std::max( bottom, static_cast< int >( runs[ index ].y ) );
+        left = (std::min)( left, static_cast< int >( runs[ index ].x ) );
+        right = (std::max)( right, static_cast< int >( runs[ index ].x ) );
+        top = (std::min)( top, static_cast< int >( runs[ index ].y ) );
+        bottom = (std::max)( bottom, static_cast< int >( runs[ index ].y ) );
     }
-    left = std::max( left - border, 0 );
-    right = std::min( right + border, size_x + 2 * border ) + 1;
-    top = std::max( top - border, 0 );
-    bottom = std::min( bottom + border, size_y + 2 * border );
-    size_t width = static_cast< size_t >( std::max( right - left, 0 ) );
-    size_t height = static_cast< size_t >( std::max( bottom - top, 0 ) );
+    left = (std::max)( left - border, 0 );
+    right = (std::min)( right + border, size_x + 2 * border ) + 1;
+    top = (std::max)( top - border, 0 );
+    bottom = (std::min)( bottom + border, size_y + 2 * border );
+    size_t width = static_cast< size_t >( (std::max)( right - left, 0 ) );
+    size_t height = static_cast< size_t >( (std::max)( bottom - top, 0 ) );
     size_t working = width * height;
     shadow.clear();
-    shadow.resize( working + std::max( width, height ) );
+    shadow.resize( working + (std::max)( width, height ) );
     static float const threshold = 1.0f / 8160.0f;
     {
         int x = -1;
@@ -2434,7 +2434,7 @@ void canvas::render_shadow(
         for ( size_t index = 0; index < runs.size(); ++index )
         {
             pixel_run next = runs[ index ];
-            float coverage = std::min( fabsf( sum ), 1.0f );
+            float coverage = (std::min)( fabsf( sum ), 1.0f );
             int to = next.y == y ? next.x : x + 1;
             if ( coverage >= threshold )
                 for ( ; x < to; ++x )
@@ -2508,8 +2508,8 @@ void canvas::render_shadow(
     for ( size_t index = 0; index < mask.size(); ++index )
     {
         pixel_run next = mask[ index ];
-        float visibility = std::min( fabsf( sum ), 1.0f );
-        int to = std::min( next.y == y ? next.x : x + 1, right - border );
+        float visibility = (std::min)( fabsf( sum ), 1.0f );
+        int to = (std::min)( next.y == y ? next.x : x + 1, right - border );
         if ( visibility >= threshold &&
              top <= y + border && y + border < bottom )
             for ( ; x < to; ++x )
@@ -2527,12 +2527,12 @@ void canvas::render_shadow(
                 if ( operation & 8 )
                     mix_back = 1.0f - mix_back;
                 rgba blend = mix_fore * fore + mix_back * back;
-                blend.a = std::min( blend.a, 1.0f );
+                blend.a = (std::min)( blend.a, 1.0f );
                 back = visibility * blend + ( 1.0f - visibility ) * back;
             }
         if ( next.y != y )
             sum = 0.0f;
-        x = std::max( static_cast< int >( next.x ), left - border );
+        x = (std::max)( static_cast< int >( next.x ), left - border );
         y = next.y;
         sum += next.delta;
     }
@@ -2567,8 +2567,8 @@ void canvas::render_main(
         bool which = ( path_index < runs.size() &&
                        runs[ path_index ] < mask[ clip_index ] );
         pixel_run next = which ? runs[ path_index ] : mask[ clip_index ];
-        float coverage = std::min( fabsf( path_sum ), 1.0f );
-        float visibility = std::min( fabsf( clip_sum ), 1.0f );
+        float coverage = (std::min)( fabsf( path_sum ), 1.0f );
+        float visibility = (std::min)( fabsf( clip_sum ), 1.0f );
         int to = next.y == y ? next.x : x + 1;
         static float const threshold = 1.0f / 8160.0f;
         if ( ( coverage >= threshold || ~operation & 8 ) &&
@@ -2587,7 +2587,7 @@ void canvas::render_main(
                 if ( operation & 8 )
                     mix_back = 1.0f - mix_back;
                 rgba blend = mix_fore * fore + mix_back * back;
-                blend.a = std::min( blend.a, 1.0f );
+                blend.a = (std::min)( blend.a, 1.0f );
                 back = visibility * blend + ( 1.0f - visibility ) * back;
             }
         x = next.x;
@@ -3010,7 +3010,7 @@ void canvas::arc(
     if ( span == 0.0f )
         return;
     int steps = static_cast< int >(
-        std::max( 1.0f, roundf( 16.0f / tau * span * winding ) ) );
+        (std::max)( 1.0f, roundf( 16.0f / tau * span * winding ) ) );
     float segment = span / static_cast< float >( steps );
     float alpha = 4.0f / 3.0f * tanf( 0.25f * segment );
     for ( int step = 0; step < steps; ++step )
@@ -3082,8 +3082,8 @@ void canvas::clip()
             sum_1 += runs[ index_1++ ].delta;
         else
             sum_2 += runs[ index_2++ ].delta;
-        float visibility = ( std::min( fabsf( sum_1 ), 1.0f ) *
-                             std::min( fabsf( sum_2 ), 1.0f ) );
+        float visibility = ( (std::min)( fabsf( sum_1 ), 1.0f ) *
+                             (std::min)( fabsf( sum_2 ), 1.0f ) );
         if ( visibility == last )
             continue;
         if ( !mask.empty() &&
@@ -3304,7 +3304,7 @@ float canvas::measure_text(
     for ( int index = 0; text[ index ]; )
     {
         int glyph = character_to_glyph( text, index );
-        int entry = std::min( glyph, hmetrics - 1 );
+        int entry = (std::min)( glyph, hmetrics - 1 );
         width += unsigned_16( face.data, face.hmtx + entry * 4 );
     }
     return static_cast< float >( width ) * face.scale;
@@ -3336,8 +3336,8 @@ void canvas::draw_image(
     lines.subpaths.push_back( entry );
     affine_matrix saved_forward = forward;
     affine_matrix saved_inverse = inverse;
-    translate( x + std::min( 0.0f, to_width ),
-               y + std::min( 0.0f, to_height ) );
+    translate( x + (std::min)( 0.0f, to_width ),
+               y + (std::min)( 0.0f, to_height ) );
     scale( fabsf( to_width ) / static_cast< float >( width ),
            fabsf( to_height ) / static_cast< float >( height ) );
     render_main( image_brush );

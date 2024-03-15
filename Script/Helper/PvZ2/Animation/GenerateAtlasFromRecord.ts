@@ -3,7 +3,7 @@ namespace Sen.Script.Helper.PvZ2.Animation.GenerateAtlasFromRecord {
 
     export const allowance = ["1536", "768", "384", "640", "1200"] as const;
 
-    export function process(atlas: Support.PopCap.Atlas.Structure.Definition, record: Support.PopCap.Animation.ExtraInfo): void {
+    export function process(atlas: Support.PopCap.Atlas.Structure.Definition, record: Support.PopCap.Animation.RecordInfo): void {
         const ids: Array<string> = Object.keys(record.group);
         ids.forEach((id: string) => {
             atlas.groups[id] = {
@@ -40,7 +40,7 @@ namespace Sen.Script.Helper.PvZ2.Animation.GenerateAtlasFromRecord {
                 res: resolution,
                 groups: {},
             };
-            process(atlas, Kernel.JSON.deserialize_fs<Support.PopCap.Animation.ExtraInfo>(record));
+            process(atlas, Kernel.JSON.deserialize_fs<Support.PopCap.Animation.RecordInfo>(record));
             Kernel.JSON.serialize_fs(`${destination}/${subgroup}_${resolution}.json`, atlas, 1, false);
         });
         return;

@@ -104,6 +104,8 @@ namespace Sen::Kernel::Interface::Script {
 
 		using ImageView = JSValue;
 
+		using Canvas = JSValue;
+
 	}
 
 	/**
@@ -3508,6 +3510,944 @@ namespace Sen::Kernel::Interface::Script {
 				return;
 			}
 		
+		}
+
+		// Canvas Support
+
+		namespace Canvas {
+
+			using Data = canvas_ity::canvas;
+
+			struct Detail {
+				inline static JSClassID class_id;
+			};
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, Detail::class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSDefine::Canvas{};
+				if (argc == 2) {
+					s = new Data{ static_cast<int>(JS::Converter::get_bigint64(ctx, argv[0])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])) };
+				}
+				else {
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, Detail::class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Canvas",
+				.finalizer = finalizer,
+			};
+
+			/*
+				Scale
+			*/
+
+			inline static auto scale(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->scale(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]));
+					return JS_UNDEFINED;
+				}, "scale"_sv);
+			}
+
+			/*
+				Rotate
+			*/
+
+			inline static auto rotate(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->rotate(JS::Converter::get_float32(ctx, argv[0]));
+					return JS_UNDEFINED;
+				}, "rotate"_sv);
+			}
+
+			/*
+				Translate
+			*/
+
+			inline static auto translate(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->translate(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]));
+					return JS_UNDEFINED;
+				}, "translate"_sv);
+			}
+
+			/*
+				Transform
+			*/
+
+			inline static auto transform(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->transform(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_float32(ctx, argv[5]));
+					return JS_UNDEFINED;
+				}, "transform"_sv);
+			}
+
+			/*
+				Set Transform
+			*/
+
+			inline static auto set_transform(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_transform(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_float32(ctx, argv[5]));
+					return JS_UNDEFINED;
+				}, "set_transform"_sv);
+			}
+
+			/*
+				Set global data
+			*/
+
+			inline static auto set_global_alpha(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_global_alpha(JS::Converter::get_float32(ctx, argv[0]));
+					return JS_UNDEFINED;
+				}, "set_global_alpha"_sv);
+			}
+
+			/*
+				Set shadow color
+			*/
+
+			inline static auto set_shadow_color(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_shadow_color(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "set_shadow_color"_sv);
+			}
+
+			/*
+				Set line width
+			*/
+
+			inline static auto set_line_width(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_line_width(JS::Converter::get_float32(ctx, argv[0]));
+					return JS_UNDEFINED;
+				}, "set_line_width"_sv);
+			}
+
+			/*
+				Set shadow blur
+			*/
+
+			inline static auto set_shadow_blur(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_global_alpha(JS::Converter::get_float32(ctx, argv[0]));
+					return JS_UNDEFINED;
+				}, "set_shadow_blur"_sv);
+			}
+
+			/*
+				Set miter limit
+			*/
+
+			inline static auto set_miter_limit(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_miter_limit(JS::Converter::get_float32(ctx, argv[0]));
+					return JS_UNDEFINED;
+				}, "set_miter_limit"_sv);
+			}
+
+			// Perhaps use
+
+			using brush_type = canvas_ity::brush_type;
+
+			/*
+				Set color
+			*/
+
+			inline static auto set_color(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 5, fmt::format("{} 5, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_color(static_cast<brush_type>(JS::Converter::get_bigint64(ctx, argv[0])), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]));
+					return JS_UNDEFINED;
+				}, "set_color"_sv);
+			}
+
+			/*
+				Set linear gradient
+			*/
+
+			inline static auto set_linear_gradient(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 5, fmt::format("{} 5, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_linear_gradient(static_cast<brush_type>(JS::Converter::get_bigint64(ctx, argv[0])), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]));
+					return JS_UNDEFINED;
+				}, "set_linear_gradient"_sv);
+			}
+
+			/*
+				Set radial gradient
+			*/
+
+			inline static auto set_radial_gradient(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 7, fmt::format("{} 7, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_radial_gradient(static_cast<brush_type>(JS::Converter::get_bigint64(ctx, argv[0])), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_float32(ctx, argv[5]), JS::Converter::get_float32(ctx, argv[6]));
+					return JS_UNDEFINED;
+				}, "set_radial_gradient"_sv);
+			}
+
+			/*
+				Add color stop
+			*/
+
+			inline static auto add_color_stop(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->add_color_stop(static_cast<brush_type>(JS::Converter::get_bigint64(ctx, argv[0])), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_float32(ctx, argv[5]));
+					return JS_UNDEFINED;
+				}, "add_color_stop"_sv);
+			}
+
+			/*
+				Begin path
+			*/
+
+			inline static auto begin_path(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->begin_path();
+					return JS_UNDEFINED;
+				}, "begin_path"_sv);
+			}
+
+			/*
+				Move to
+			*/
+
+			inline static auto move_to(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->move_to(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]));
+					return JS_UNDEFINED;
+				}, "move_to"_sv);
+			}
+
+			/*
+				Close path
+			*/
+
+			inline static auto close_path(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->close_path();
+					return JS_UNDEFINED;
+				}, "close_path"_sv);
+			}
+
+			/*
+				Line to
+			*/
+
+			inline static auto line_to(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->line_to(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]));
+					return JS_UNDEFINED;
+				}, "line_to"_sv);
+			}
+
+			/*
+				quadratic_curve_to
+			*/
+
+			inline static auto quadratic_curve_to(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->quadratic_curve_to(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "quadratic_curve_to"_sv);
+			}
+
+			/*
+				bezier_curve_to
+			*/
+
+			inline static auto bezier_curve_to(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->bezier_curve_to(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_float32(ctx, argv[5]));
+					return JS_UNDEFINED;
+				}, "bezier_curve_to"_sv);
+			}
+
+			/*
+				arc_to
+			*/
+
+			inline static auto arc_to(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 5, fmt::format("{} 5, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->arc_to(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]));
+					return JS_UNDEFINED;
+				}, "arc_to"_sv);
+			}
+
+			/*
+				arc
+			*/
+
+			inline static auto arc(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->arc(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]), JS::Converter::get_float32(ctx, argv[4]), JS::Converter::get_bool(ctx, argv[5]));
+					return JS_UNDEFINED;
+				}, "arc"_sv);
+			}
+
+			/*
+				rectangle
+			*/
+
+			inline static auto rectangle(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->rectangle(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "rectangle"_sv);
+			}
+
+			/*
+				fill
+			*/
+
+			inline static auto fill(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->fill();
+					return JS_UNDEFINED;
+				}, "fill"_sv);
+			}
+
+			/*
+				stroke
+			*/
+
+			inline static auto stroke(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->stroke();
+					return JS_UNDEFINED;
+				}, "stroke"_sv);
+			}
+
+			/*
+				clip
+			*/
+
+			inline static auto clip(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->clip();
+					return JS_UNDEFINED;
+				}, "clip"_sv);
+			}
+
+			/*
+				is_point_in_path
+			*/
+
+			inline static auto is_point_in_path(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					return JS::Converter::to_bool(ctx, s->is_point_in_path(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1])));
+				}, "is_point_in_path"_sv);
+			}
+
+			/*
+				clear rectangle
+			*/
+
+			inline static auto clear_rectangle(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->clear_rectangle(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "clear_rectangle"_sv);
+			}
+
+			/*
+				fill rectangle
+			*/
+
+			inline static auto fill_rectangle(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->fill_rectangle(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "fill_rectangle"_sv);
+			}
+
+			/*
+				stroke rectangle
+			*/
+
+			inline static auto stroke_rectangle(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->stroke_rectangle(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED;
+				}, "stroke_rectangle"_sv);
+			}
+
+			/*
+				set font
+			*/
+
+			inline static auto set_font(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto size = std::size_t{};
+					auto data = JS_GetArrayBuffer(ctx, &size, argv[0]);
+					return JS::Converter::to_bool(ctx, s->set_font(data, static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])), size));
+				}, "set_font"_sv);
+			}
+
+			/*
+				draw image
+			*/
+
+			inline static auto draw_image(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 8, fmt::format("{} 8, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto size = std::size_t{};
+					auto data = JS_GetArrayBuffer(ctx, &size, argv[0]);
+					s->draw_image(data, static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])), 
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[2])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[3])),
+						static_cast<float>(JS::Converter::get_float32(ctx, argv[4])), static_cast<float>(JS::Converter::get_float32(ctx, argv[5])),
+						static_cast<float>(JS::Converter::get_float32(ctx, argv[6])), static_cast<float>(JS::Converter::get_float32(ctx, argv[7])));
+					return JS::Converter::get_undefined();
+				}, "draw_image"_sv);
+			}
+
+			/*
+				get_image_data
+			*/
+
+			inline static auto get_image_data(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto size = std::size_t{};
+					auto data = JS_GetArrayBuffer(ctx, &size, argv[0]);
+					s->get_image_data(data, static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])),
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[2])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[3])),
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[4])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[5])));
+					return JS::Converter::get_undefined();
+				}, "get_image_data"_sv);
+			}
+
+			/*
+				put_image_data
+			*/
+
+			inline static auto put_image_data(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 6, fmt::format("{} 6, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto size = std::size_t{};
+					auto data = JS_GetArrayBuffer(ctx, &size, argv[0]);
+					s->put_image_data(data, static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])),
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[2])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[3])),
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[4])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[5])));
+					return JS::Converter::get_undefined();
+				}, "put_image_data"_sv);
+			}
+
+			/*
+				save
+			*/
+
+			inline static auto save(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->save();
+					return JS_UNDEFINED;
+				}, "save"_sv);
+			}
+
+			/*
+				restore
+			*/
+
+			inline static auto restore(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->restore();
+					return JS_UNDEFINED;
+				}, "restore"_sv);
+			}
+
+			// Function
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPFUNC_DEF("scale", 2, scale),
+				JS_CPPFUNC_DEF("rotate", 1, rotate),
+				JS_CPPFUNC_DEF("translate", 2, translate),
+				JS_CPPFUNC_DEF("transform", 2, transform),
+				JS_CPPFUNC_DEF("set_transform", 2, set_transform),
+				JS_CPPFUNC_DEF("set_global_alpha", 1, set_global_alpha),
+				JS_CPPFUNC_DEF("set_shadow_color", 2, set_shadow_color),
+				JS_CPPFUNC_DEF("set_shadow_blur", 1, set_shadow_blur),
+				JS_CPPFUNC_DEF("set_line_width", 1, set_line_width),
+				JS_CPPFUNC_DEF("set_miter_limit", 1, set_miter_limit),
+				JS_CPPFUNC_DEF("set_linear_gradient", 2, set_linear_gradient),
+				JS_CPPFUNC_DEF("set_color", 2, set_color),
+				JS_CPPFUNC_DEF("set_radial_gradient", 2, set_radial_gradient),
+				JS_CPPFUNC_DEF("add_color_stop", 2, add_color_stop),
+				JS_CPPFUNC_DEF("begin_path", 0, begin_path),
+				JS_CPPFUNC_DEF("close_path", 0, close_path),
+				JS_CPPFUNC_DEF("move_to", 2, move_to),
+				JS_CPPFUNC_DEF("line_to", 2, line_to),
+				JS_CPPFUNC_DEF("quadratic_curve_to", 2, quadratic_curve_to),
+				JS_CPPFUNC_DEF("bezier_curve_to", 2, bezier_curve_to),
+				JS_CPPFUNC_DEF("arc_to", 2, arc_to),
+				JS_CPPFUNC_DEF("arc", 2, arc),
+				JS_CPPFUNC_DEF("rectangle", 2, rectangle),
+				JS_CPPFUNC_DEF("fill", 0, fill),
+				JS_CPPFUNC_DEF("stroke", 0, stroke),
+				JS_CPPFUNC_DEF("clip", 0, clip),
+				JS_CPPFUNC_DEF("is_point_in_path", 1, is_point_in_path),
+				JS_CPPFUNC_DEF("clear_rectangle", 2, clear_rectangle),
+				JS_CPPFUNC_DEF("fill_rectangle", 2, fill_rectangle),
+				JS_CPPFUNC_DEF("stroke_rectangle", 2, stroke_rectangle),
+				JS_CPPFUNC_DEF("set_font", 2, set_font),
+				JS_CPPFUNC_DEF("draw_image", 2, draw_image),
+				JS_CPPFUNC_DEF("get_image_data", 2, get_image_data),
+				JS_CPPFUNC_DEF("put_image_data", 2, put_image_data),
+				JS_CPPFUNC_DEF("save", 0, save),
+				JS_CPPFUNC_DEF("restore", 0, restore),
+			};
+
+			// Proxy call
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				Detail::class_id = JS_NewClass(JS_GetRuntime(ctx), Detail::class_id, &this_class);
+				auto class_name = "Canvas"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
 		}
 
 		// Because Image is duplicated with the namespace
