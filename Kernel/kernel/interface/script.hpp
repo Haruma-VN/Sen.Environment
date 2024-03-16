@@ -7167,6 +7167,100 @@ namespace Sen::Kernel::Interface::Script {
 
 	namespace Encryption {
 
+		namespace Rijndael {
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Rijndael encrypt
+			 * ----------------------------------------
+			*/
+
+			inline static auto encrypt(
+				JSContext* context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				using Mode = Kernel::Definition::Encryption::Rijndael::Mode;
+				static constexpr auto callback = []<auto mode>(
+					const std::vector<std::uint8_t>& plain,
+					std::string_view key,
+					std::string_view iv
+				) -> std::vector<std::uint8_t> {
+					static_assert(mode == Mode::CBC or mode == Mode::CFB or mode == Mode::ECB, "mode must be cbc or cfb or ecb");
+					return Kernel::Definition::Encryption::Rijndael::encrypt<std::size_t, Mode::CBC>(reinterpret_cast<char const*>(plain.data()), key, iv, plain.size());
+				};
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 4, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::to_binary_list(context, argv[0]);
+						auto key = JS::Converter::get_c_string(context, argv[1]);
+						auto iv = JS::Converter::get_c_string(context, argv[2]);
+						auto mode = JS::Converter::get_bigint64(context, argv[3]);
+						switch (static_cast<Mode>(mode)) {
+							case Mode::CBC: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::CBC>(source, key.get(), iv.get()));
+							}
+							case Mode::CFB: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::CFB>(source, key.get(), iv.get()));
+							}
+							case Mode::ECB: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::ECB>(source, key.get(), iv.get()));
+							}
+							default: {
+								return JS_UNDEFINED;
+							}
+						}
+				}, "encrypt"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JavaScript Rijndael decrypt
+			 * ----------------------------------------
+			*/
+
+			inline static auto decrypt(
+				JSContext* context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSValue
+			{
+				using Mode = Kernel::Definition::Encryption::Rijndael::Mode;
+				static constexpr auto callback = []<auto mode>(
+					const std::vector<std::uint8_t>&plain,
+					std::string_view key,
+					std::string_view iv
+					) -> std::vector<std::uint8_t> {
+					static_assert(mode == Mode::CBC or mode == Mode::CFB or mode == Mode::ECB, "mode must be cbc or cfb or ecb");
+					return Kernel::Definition::Encryption::Rijndael::decrypt<std::size_t, Mode::CBC>(reinterpret_cast<char const*>(plain.data()), key, iv, plain.size());
+				};
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 4, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::to_binary_list(context, argv[0]);
+						auto key = JS::Converter::get_c_string(context, argv[1]);
+						auto iv = JS::Converter::get_c_string(context, argv[2]);
+						auto mode = JS::Converter::get_bigint64(context, argv[3]);
+						switch (static_cast<Mode>(mode)) {
+							case Mode::CBC: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::CBC> (source, key.get(), iv.get()));
+							}
+							case Mode::CFB: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::CFB> (source, key.get(), iv.get()));
+							}
+							case Mode::ECB: {
+								return JS::Converter::toArrayBuffer(context, callback.operator() <Mode::ECB> (source, key.get(), iv.get()));
+							}
+							default: {
+								return JS_UNDEFINED;
+							}
+						}
+				}, "decrypt"_sv);
+			}
+
+		}
+
 		/**
 		 * JavaScript Encryption System Supportive of MD5
 		*/
@@ -7660,10 +7754,10 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto plain = JS::Converter::get_c_string(context, argv[0]);
-					auto key = JS::Converter::get_c_string(context, argv[1]);
-					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(std::vector<std::uint8_t>(plain.get(), plain.get() + std::strlen(plain.get())), std::vector<std::uint8_t>(key.get(), key.get() + std::strlen(key.get())));
-					return JS_NewArrayBufferCopy(context, result.data(), result.size());
+					auto plain = JS::Converter::to_binary_list(context, argv[0]);
+					auto key = JS::Converter::to_binary_list(context, argv[1]);
+					auto result = Sen::Kernel::Definition::Encryption::XOR::encrypt(plain, key);
+					return JS::Converter::toArrayBuffer(context, result);
 				}, "encrypt"_sv);
 			}
 
@@ -7688,8 +7782,8 @@ namespace Sen::Kernel::Interface::Script {
 					try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_c_string(context, argv[0]);
 					auto destination = JS::Converter::get_c_string(context, argv[1]);
-					auto key = JS::Converter::get_c_string(context, argv[2]);
-					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source.get(), destination.get(), std::vector<std::uint8_t>(key.get(), key.get() + std::strlen(key.get())));
+					auto key = JS::Converter::to_binary_list(context, argv[2]);
+					Sen::Kernel::Definition::Encryption::XOR::encrypt_fs(source.get(), destination.get(), key);
 					return JS::Converter::get_undefined();
 				}, "encrypt_fs"_sv);
 			}
@@ -7891,7 +7985,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto s = static_cast<Data*>(JS_GetOpaque2(context, argv[0], Class::BinaryView::class_id));
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					auto sub = new Data(Sen::Kernel::Definition::Compression::Zlib::uncompress(s->value));
@@ -7941,7 +8035,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto s = static_cast<Data*>(JS_GetOpaque2(context, argv[0], Class::BinaryView::class_id));
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					auto sub = static_cast<Data*>(nullptr);
@@ -8301,12 +8395,59 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source.get(), destination.get(), use_64_bit_variant);
 						return JS::Converter::get_undefined();
 					}, "compress_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Zlib Compression File
+				 * @param argv[0]: source file
+				 * @param argv[1]: use_64_bit_variant
+				 * @returns: BinaryView
+				 * ----------------------------------------
+				*/
+
+				inline static auto compress(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					using Data = Class::BinaryView::Data;
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::to_binary_list(context, argv[0]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[1]);
+						auto compressor = Sen::Kernel::Support::PopCap::Zlib::Compress{ use_64_bit_variant };
+						auto sub = new Data(compressor.compress(source));
+						auto global_obj = JS_GetGlobalObject(context);
+						auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
+						auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");
+						auto binary_ctor = JS_GetPropertyStr(context, kernel_obj, "BinaryView");
+						auto proto = JS_GetPropertyStr(context, binary_ctor, "prototype");
+						if (JS_IsException(proto)) {
+							js_free(context, sub);
+							throw Exception("not a constructor");
+						}
+						auto obj = JS_NewObjectProtoClass(context, proto, Class::BinaryView::class_id);
+						JS_FreeValue(context, proto);
+						if (JS_IsException(obj)) {
+							js_free(context, sub);
+							throw Exception("can't define class");
+						}
+						JS_SetOpaque(obj, sub);
+						JS_FreeValue(context, global_obj);
+						JS_FreeValue(context, sen_obj);
+						JS_FreeValue(context, kernel_obj);
+						JS_FreeValue(context, binary_ctor);
+						return obj;
+					}, "compress"_sv);
 				}
 
 				/**
@@ -8327,12 +8468,59 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::Zlib::Uncompress::uncompress_fs(source, destination, use_64_bit_variant);
+						Sen::Kernel::Support::PopCap::Zlib::Uncompress::uncompress_fs(source.get(), destination.get(), use_64_bit_variant);
 						return JS::Converter::get_undefined();
 					}, "uncompress_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Zlib Uncompression File
+				 * @param argv[0]: source file
+				 * @param argv[1]: use_64_bit_variant
+				 * @returns: BinaryView
+				 * ----------------------------------------
+				*/
+
+				inline static auto uncompress(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					using Data = Class::BinaryView::Data;
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::to_binary_list(context, argv[0]);
+						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[1]);
+						auto compressor = Sen::Kernel::Support::PopCap::Zlib::Uncompress{ use_64_bit_variant };
+						auto sub = new Data(compressor.uncompress(source));
+						auto global_obj = JS_GetGlobalObject(context);
+						auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
+						auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");
+						auto binary_ctor = JS_GetPropertyStr(context, kernel_obj, "BinaryView");
+						auto proto = JS_GetPropertyStr(context, binary_ctor, "prototype");
+						if (JS_IsException(proto)) {
+							js_free(context, sub);
+							throw Exception("not a constructor");
+						}
+						auto obj = JS_NewObjectProtoClass(context, proto, Class::BinaryView::class_id);
+						JS_FreeValue(context, proto);
+						if (JS_IsException(obj)) {
+							js_free(context, sub);
+							throw Exception("can't define class");
+						}
+						JS_SetOpaque(obj, sub);
+						JS_FreeValue(context, global_obj);
+						JS_FreeValue(context, sen_obj);
+						JS_FreeValue(context, kernel_obj);
+						JS_FreeValue(context, binary_ctor);
+						return obj;
+					}, "uncompress"_sv);
 				}
 				
 			}
@@ -8364,12 +8552,12 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("{} 5, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						auto key = JS::Converter::get_string(context, argv[2]);
-						auto iv = JS::Converter::get_string(context, argv[3]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto key = JS::Converter::get_c_string(context, argv[2]);
+						auto iv = JS::Converter::get_c_string(context, argv[3]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
-						Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source, destination, key, iv, use_64_bit_variant);
+						Sen::Kernel::Support::PopCap::CompiledText::Decode::process_fs(source.get(), destination.get(), key.get(), iv.get(), use_64_bit_variant);
 						return JS::Converter::get_undefined();
 					}, "decode_fs"_sv);
 				}
@@ -8392,12 +8580,12 @@ namespace Sen::Kernel::Interface::Script {
 				{
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 5, fmt::format("{} 5, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-						auto source = JS::Converter::get_string(context, argv[0]);
-						auto destination = JS::Converter::get_string(context, argv[1]);
-						auto key = JS::Converter::get_string(context, argv[2]);
-						auto iv = JS::Converter::get_string(context, argv[3]);
+						auto source = JS::Converter::get_c_string(context, argv[0]);
+						auto destination = JS::Converter::get_c_string(context, argv[1]);
+						auto key = JS::Converter::get_c_string(context, argv[2]);
+						auto iv = JS::Converter::get_c_string(context, argv[3]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[4]);
-						Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source, destination, key, iv, use_64_bit_variant);
+						Sen::Kernel::Support::PopCap::CompiledText::Encode::process_fs(source.get(), destination.get(), key.get(), iv.get(), use_64_bit_variant);
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}

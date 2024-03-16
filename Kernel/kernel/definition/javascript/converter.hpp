@@ -561,6 +561,28 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				return;
 			}
 
+			// JS ArrayBuffer to C++ uint8_t vector
+
+			inline static auto to_binary_list(
+				JSContext* context,
+				JSValue array_buffer
+			) -> std::vector<uint8_t>
+			{
+				auto byte_len = std::size_t{};
+				auto data = JS_GetArrayBuffer(context, &byte_len, array_buffer);
+				return std::vector<std::uint8_t>(data, data + byte_len);
+			}
+
+			// C++ vector to JS ArrayBuffer
+
+			inline static auto toArrayBuffer(
+				JSContext* ctx,
+				const std::vector<uint8_t> & v
+			) -> JSValue
+			{
+				return JS_NewArrayBufferCopy(ctx, v.data(), v.size());
+			}
+
 
 			/**
 			 * Convert JSValue to std::map

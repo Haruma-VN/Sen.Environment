@@ -78,6 +78,53 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
         public query(path: string): string {
             return path.replace(/^\.(\/|\\)/gm, this.participant);
         }
+
+        public get entry(): string {
+            return this.participant;
+        }
+
+        public set entry(participant: string) {
+            this.participant = participant;
+            return;
+        }
+    }
+
+    export type BasicForward = Configuration.Forward;
+
+    export const rijndael_list: Array<string> = ["popcap.rton.decode_and_decrypt", "popcap.rton.encode_and_encrypt", "popcap.rton.encrypt", "popcap.rton.decrypt"];
+
+    export function process_basic_command(element: BasicCommand, home: Home, setting: Setting): void {
+        let ripe: Record<string, unknown> & { source: string } = { ...element } as any;
+        delete ripe.command;
+        delete ripe.forward;
+        ripe.source = home.query(ripe.source);
+        if (ripe.destination !== undefined) {
+            ripe.destination = home.query(ripe.destination as string);
+        }
+        if (rijndael_list.includes(element.command)) {
+            ripe = { ...ripe, ...setting.rton };
+        }
+        Executor.execute(
+            ripe,
+            element.command,
+            (function exchange_forward(forward: string): Executor.Forward {
+                switch (forward) {
+                    case "batch": {
+                        return Executor.Forward.BATCH;
+                    }
+                    case "direct": {
+                        return Executor.Forward.DIRECT;
+                    }
+                    case "async": {
+                        return Executor.Forward.ASYNC;
+                    }
+                    default: {
+                        throw new Error(`invalid forward: ${forward}`);
+                    }
+                }
+            })(element.forward),
+        );
+        return;
     }
 
     export function process(source: string, destination: string): void {
@@ -111,6 +158,10 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                             return process_whole(new_manifest, `${home.query(destination)}.${resolution}`);
                         }
                     });
+                    break;
+                }
+                default: {
+                    process_basic_command(e, home, configuration);
                     break;
                 }
             }

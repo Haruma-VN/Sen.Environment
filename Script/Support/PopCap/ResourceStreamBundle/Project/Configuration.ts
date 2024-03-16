@@ -9,7 +9,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
 
     // -----------------------------------------------------
 
-    export type Forward = "async" | "direct" | "batch";
+    export type Forward = "direct" | "batch";
 
     // -----------------------------------------------------
 

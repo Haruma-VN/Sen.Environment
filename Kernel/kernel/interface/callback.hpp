@@ -248,6 +248,13 @@ namespace Sen::Kernel::Interface {
 					// hash file method
 					javascript->add_proxy(Script::Encryption::MD5::hash_fs, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "MD5"_sv, "hash_fs"_sv);
 				}
+				// rijndael
+				{
+					// encrypt
+					javascript->add_proxy(Script::Encryption::Rijndael::encrypt, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Rijndael"_sv, "encrypt"_sv);
+					// decrypt
+					javascript->add_proxy(Script::Encryption::Rijndael::decrypt, "Sen"_sv, "Kernel"_sv, "Encryption"_sv, "Rijndael"_sv, "decrypt"_sv);
+				}
 				// fnv
 				{
 					// hash method
@@ -385,6 +392,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Zlib::uncompress_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "uncompress_fs"_sv);
 					// compress fs
 					javascript->add_proxy(Script::Support::PopCap::Zlib::compress_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "compress_fs"_sv);
+					// uncompress
+					javascript->add_proxy(Script::Support::PopCap::Zlib::uncompress, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "uncompress"_sv);
+					// compress
+					javascript->add_proxy(Script::Support::PopCap::Zlib::compress, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Zlib"_sv, "compress"_sv);
 				}
 				// compiled text
 				{

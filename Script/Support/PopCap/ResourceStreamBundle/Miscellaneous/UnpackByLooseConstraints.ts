@@ -180,11 +180,9 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
                 raw_data.writeArrayBuffer(sen.getArrayBuffer(rsg_info.part0_pos + pos, part0_length + pos));
             } else {
                 const end_pos: bigint = part0_zlib_length + pos;
-                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos)));
-                raw_data.writeArrayBuffer(uncompress.value);
+                raw_data.writeArrayBuffer(Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos))).value);
             }
         }
-        //const use_atlas: boolean = rsg_info.part1_pos !== 0n && rsg_info.part1_size !== 0n && rsg_info.part1_zlib !== 0n;
         let atlas_pos = 0n;
         if (rsg_info.ptx_number !== 0n) {
             atlas_pos = raw_data.write_position;
@@ -193,8 +191,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
                 raw_data.writeArrayBuffer(sen.getArrayBuffer(rsg_info.part1_pos + pos, rsg_info.part1_pos + rsg_info.part1_size + pos));
             } else {
                 const end_pos: bigint = rsg_info.part1_pos + rsg_info.part1_zlib + pos;
-                let uncompress = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part1_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos)));
-                raw_data.writeArrayBuffer(uncompress.value);
+                raw_data.writeArrayBuffer(Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part1_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos))).value);
             }
         }
         return [atlas_pos, compression_flags];

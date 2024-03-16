@@ -31,6 +31,9 @@ namespace Sen::Kernel::FileSystem
 	) -> std::string 
 	{
 		#if WINDOWS
+				#if !defined MSVC_COMPILER
+				static_assert(false, "msvc compiler is required on windows");
+				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"r"), close_file);
 		#else
@@ -74,6 +77,9 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
+				#if !defined MSVC_COMPILER
+				static_assert(false, "msvc compiler is required on windows");
+				#endif	
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
@@ -101,6 +107,9 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
+				#if !defined MSVC_COMPILER
+						static_assert(false, "msvc compiler is required on windows");
+				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
@@ -126,6 +135,9 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
+				#if !defined MSVC_COMPILER
+						static_assert(false, "msvc compiler is required on windows");
+				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
@@ -155,6 +167,9 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
+				#if !defined MSVC_COMPILER
+						static_assert(false, "msvc compiler is required on windows");
+				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
