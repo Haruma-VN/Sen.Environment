@@ -345,6 +345,7 @@ namespace Sen.Script {
             "~/Setting/Setting.js",
             "~/utility/Definition.js",
             "~/utility/Clock.js",
+            "~/utility/CommandCounter.js",
             "~/Support/Texture/Format.js",
             "~/Support/PopCap/ResourceGroup/Convert.js",
             "~/Support/PopCap/Atlas/Structure.js",

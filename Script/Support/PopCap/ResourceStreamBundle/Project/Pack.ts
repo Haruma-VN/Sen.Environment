@@ -93,7 +93,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
 
     export const rijndael_list: Array<string> = ["popcap.rton.decode_and_decrypt", "popcap.rton.encode_and_encrypt", "popcap.rton.encrypt", "popcap.rton.decrypt"];
 
-    export function process_basic_command(element: BasicCommand, home: Home, setting: Setting): void {
+    export function process_basic_command(element: BasicCommand, home: Home, setting: Setting, counter: CommandCounter): void {
         let ripe: Record<string, unknown> & { source: string } = { ...element } as any;
         delete ripe.command;
         delete ripe.forward;
@@ -119,11 +119,12 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                         return Executor.Forward.ASYNC;
                     }
                     default: {
-                        throw new Error(`invalid forward: ${forward}`);
+                        throw new Error(Sen.Script.format(Sen.Kernel.Language.get("method_does_not_support_async_implementation"), forward));
                     }
                 }
             })(element.forward),
         );
+        counter.increase();
         return;
     }
 
@@ -131,13 +132,13 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
         const manifest = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${source}/manifest.json`);
         const configuration = Kernel.JSON.deserialize_fs<Setting>(`${source}/setting.json`);
         const home = new Home(source);
+        const counter = new CommandCounter();
         remake_manifest(manifest);
         configuration.commands.forEach(function process_command(e: BasicCommand): void {
             switch (e.command) {
                 case "popcap.rsb.pack": {
                     const process_whole = (manifest: Kernel.Support.PopCap.RSB.Manifest, destination: string): void => {
-                        // to do : add localization
-                        assert(e.source !== undefined, "source must be provided for packing command");
+                        assert(e.source !== undefined, Kernel.Language.get("popcap.rsb.pack_for_modding.source_must_be_provided"));
                         Kernel.Support.PopCap.RSB.pack(home.query(e.source as string), home.query(destination), manifest);
                     };
                     Object.keys(configuration.rsb.distribution).forEach(function process(resolution: string): void {
@@ -145,7 +146,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                             return;
                         }
                         if (resolution === "all") {
-                            Console.finished("making rsb for full resolution");
+                            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.process_whole_resolution"));
                             return process_whole(manifest, home.query(destination));
                         } else {
                             const new_manifest: Kernel.Support.PopCap.RSB.Manifest = {
@@ -153,7 +154,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                                 ptx_info_size: manifest.ptx_info_size,
                                 group: {},
                             };
-                            Console.finished(`making rsb for ${resolution} resolution`);
+                            Console.finished(format(Kernel.Language.get("popcap.rsb.pack_for_modding.process_one_resolution"), resolution));
                             generate_special_manifest(manifest, new_manifest, BigInt(resolution));
                             return process_whole(new_manifest, `${home.query(destination)}.${resolution}`);
                         }
@@ -161,11 +162,12 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                     break;
                 }
                 default: {
-                    process_basic_command(e, home, configuration);
+                    process_basic_command(e, home, configuration, counter);
                     break;
                 }
             }
         });
+        Console.finished(format(Kernel.Language.get("popcap.rsb.pack_for_modding.parsed_n_commands"), counter.count));
         return;
     }
 }

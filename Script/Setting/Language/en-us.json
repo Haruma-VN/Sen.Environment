@@ -334,5 +334,9 @@
     "popcap.atlas.split_by_res_info.source_file_must_be_json": "Source file must contains JSON",
     "popcap.atlas.split_by_res_info": "PopCap Atlas: Split by Res-Info",
     "popcap.atlas.pack_by_res_info": "PopCap Atlas: Pack by Res-Info",
-    "popcap.rsb_patch.invalid_md5": "Invalid MD5"
+    "popcap.rsb_patch.invalid_md5": "Invalid MD5",
+    "popcap.rsb.pack_for_modding.source_must_be_provided": "source property must be provided for packing command",
+    "popcap.rsb.pack_for_modding.process_whole_resolution": "Rewriting manifest for regular RSB",
+    "popcap.rsb.pack_for_modding.process_one_resolution": "Rewriting manifest for resolution {} RSB",
+    "popcap.rsb.pack_for_modding.parsed_n_commands": "Parsed {} commands, happy modding!"
 }
