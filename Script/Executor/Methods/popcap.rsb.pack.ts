@@ -55,34 +55,11 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Pack {
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Pack.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
-            },
-            async_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Pack.AsyncArgument): void {
-                Sen.Script.Executor.clock.start_safe();
-                for (let i = 0n; i < BigInt(argument.parameter.length); i += Setting.setting.thread_limit_count) {
-                    const current_thread: Array<[string, string]> = [
-                        ...argument.parameter.slice(
-                            Number(i),
-                            i + Setting.setting.thread_limit_count <= BigInt(argument.parameter.length) ? Number(i + Setting.setting.thread_limit_count) : argument.parameter.length,
-                        ),
-                    ];
-                    current_thread.forEach((e: [string, string]) => {
-                        Sen.Script.Console.obtained(e[0]);
-                        Sen.Script.Console.output(e[1]);
-                    });
-                    // to do
-                }
-                Sen.Script.Executor.clock.stop_safe();
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
-                return;
-            },
+            batch_forward: undefined!,
+            async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /(.*)\.bundle$/gi],
+            filter: ["directory", /(.*)\.bundle$/i],
         });
         return;
     }

@@ -10052,9 +10052,9 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				auto doc = tinyxml2::XMLDocument{};
 				auto source = JS::Converter::get_string(context, argv[0]);
-				auto eResult = doc.Parse(source.c_str(), source.size());
+				auto eResult = doc.Parse(source.data(), source.size());
 				if (eResult != tinyxml2::XML_SUCCESS) {
-					throw Exception(fmt::format("XML cannot be parsed, data", source));
+					throw Exception(fmt::format("XML cannot be parsed, data: {}", source));
 				}
 				auto j = nlohmann::ordered_json{};
 				j[doc.RootElement()->Value()] = xml2json(doc.RootElement());

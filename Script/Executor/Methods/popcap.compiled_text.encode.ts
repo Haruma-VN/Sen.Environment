@@ -72,10 +72,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Encode {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Encode.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
+                return basic_batch(this, argument, false);
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Encode.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
@@ -97,7 +94,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.bin$/gi],
+            filter: ["file", /(.+)\.bin$/i],
         });
         return;
     }

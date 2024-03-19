@@ -68,7 +68,7 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
             },
             is_enabled: false,
             configuration: undefined!,
-            filter: ["file", /.*/g],
+            filter: ["file", /.*/],
         });
         return;
     }

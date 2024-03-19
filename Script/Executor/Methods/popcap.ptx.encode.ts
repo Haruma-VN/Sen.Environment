@@ -134,7 +134,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Encode {
             async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
-            filter: ["file", /(.+)\.png$/gi],
+            filter: ["file", /(.+)\.png$/i],
         });
         return;
     }

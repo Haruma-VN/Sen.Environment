@@ -59,7 +59,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
             async_forward: undefined!,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /(.*)\.mod_bundle$/gi],
+            filter: ["directory", /(.*)\.mod_bundle$/i],
         });
         return;
     }

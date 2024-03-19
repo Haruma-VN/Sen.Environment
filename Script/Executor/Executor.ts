@@ -517,7 +517,7 @@ namespace Sen.Script.Executor {
                     break;
                 }
                 case 2n: {
-                    (argument.source as Array<string>).forEach((e: string) => {
+                    (argument.source as Array<string>).forEach(function process_package(e: string) {
                         load_module({ source: e });
                     });
                     break;
@@ -536,10 +536,23 @@ namespace Sen.Script.Executor {
                 }
             }
         } else {
-            (argument.source as Array<string>).forEach((e: string) => {
+            (argument.source as Array<string>).forEach(function process_package(e: string) {
                 load_module({ source: e });
             });
         }
+        return;
+    }
+
+    export function basic_batch<
+        Argument extends Sen.Script.Executor.Base,
+        BatchArgument extends Sen.Script.Executor.Base & { directory: string },
+        AsyncArgument extends Sen.Script.Executor.Base,
+        Configuration extends Sen.Script.Executor.Configuration,
+    >(thiz: MethodExecutor<Argument, BatchArgument, AsyncArgument, Configuration>, argument: BatchArgument, is_directory: boolean, other?: Record<string, unknown>): void {
+        let callback: (source: string) => boolean = is_directory ? Kernel.FileSystem.is_directory : Kernel.FileSystem.is_file;
+        const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => callback(path) && thiz.filter[1].test(path));
+        files.forEach((source: string) => thiz.direct_forward({ source: source as string, ...other } as any));
+        Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
         return;
     }
 }

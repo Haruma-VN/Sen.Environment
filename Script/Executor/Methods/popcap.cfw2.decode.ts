@@ -81,7 +81,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.cfw2$/gi],
+            filter: ["file", /(.+)\.cfw2$/i],
         });
         return;
     }

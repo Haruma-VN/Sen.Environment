@@ -107,7 +107,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
             async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
-            filter: ["file", /(.+)(\.json|\.txt)$/gi],
+            filter: ["file", /(.+)(\.json|\.txt)$/i],
         });
         return;
     }

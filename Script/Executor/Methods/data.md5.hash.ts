@@ -55,7 +55,7 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             async_forward: undefined,
             is_enabled: false,
             configuration: undefined!,
-            filter: ["file", /.*/g],
+            filter: ["file", /.*/],
         });
         return;
     }

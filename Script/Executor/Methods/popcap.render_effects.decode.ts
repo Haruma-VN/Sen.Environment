@@ -56,10 +56,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RenderEffects.Decode {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RenderEffects.Decode.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
+                return basic_batch(this, argument, false);
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.RenderEffects.Decode.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
@@ -82,7 +79,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RenderEffects.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.popfx$/gi],
+            filter: ["file", /(.+)\.popfx$/i],
         });
         return;
     }

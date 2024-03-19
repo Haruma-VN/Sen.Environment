@@ -78,7 +78,7 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.js$/gi],
+            filter: ["file", /(.+)\.js$/i],
         });
         return;
     }

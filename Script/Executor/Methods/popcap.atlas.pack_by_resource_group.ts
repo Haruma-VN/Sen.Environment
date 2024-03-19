@@ -86,7 +86,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
             async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
-            filter: ["directory", /(.+)\.sprite$/gi],
+            filter: ["directory", /(.+)\.sprite$/i],
         });
         return;
     }

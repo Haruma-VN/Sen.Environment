@@ -70,10 +70,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress {
                 return;
             },
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
+                return basic_batch(this, argument, false);
             },
             async_forward(argument: Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.AsyncArgument): void {
                 Sen.Script.Executor.clock.start_safe();
@@ -95,7 +92,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.(compiled|smf|bin)$/gi],
+            filter: ["file", /(.+)\.(compiled|smf|bin)$/i],
         });
         return;
     }

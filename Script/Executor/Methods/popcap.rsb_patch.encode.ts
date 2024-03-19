@@ -57,7 +57,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode {
             async_forward: undefined!,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)(\.rsb|\.obb)$/gi],
+            filter: ["file", /(.+)(\.rsb|\.obb)$/i],
         });
         return;
     }
