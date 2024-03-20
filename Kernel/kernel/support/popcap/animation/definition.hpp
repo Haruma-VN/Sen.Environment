@@ -416,9 +416,28 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         std::string name;
-        std::string description;
+        std::string description{};
         AnimationWorkArea work_area;
         std::vector<AnimationFrame> frame;
+
+        explicit AnimationSprite(
+            const std::string &name,
+            const std::string &description,
+            const AnimationWorkArea& work_area,
+            const std::vector<AnimationFrame>& frame
+        ) : name(name), description(description), work_area(work_area), frame(frame) 
+        {
+
+        }
+
+        explicit AnimationSprite(
+            const std::string &name,
+            const AnimationWorkArea& work_area,
+            const std::vector<AnimationFrame>& frame
+        ) : name(name), work_area(work_area), frame(frame) 
+        {
+
+        }
 
         explicit AnimationSprite(
 

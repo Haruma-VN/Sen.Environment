@@ -76,7 +76,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Sen.Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 Sen.Script.Executor.clock.start_safe();
-                Script.Support.PopCap.Animation.FromAnimation.process_fs(argument.source, argument.destination!, BigInt(argument.resolution!));
+                Kernel.Support.PopCap.Animation.ToFlash.convert_fs(argument.source, argument.destination!, BigInt(argument.resolution!));
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },

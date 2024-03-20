@@ -6,6 +6,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
         destination?: string;
+        layout?: string;
     }
 
     /**
@@ -28,7 +29,47 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
      * Configuration file if needed
      */
 
-    export interface Configuration extends Sen.Script.Executor.Configuration {}
+    export interface Configuration extends Sen.Script.Executor.Configuration {
+        layout: 1n | 2n | "?";
+    }
+
+    /**
+     * Detail namespace
+     */
+
+    export namespace Detail {
+        /**
+         * JS Implement
+         * @param layout - Layout to exchange
+         * @returns style
+         */
+
+        export function exchange_layout(layout: string): Sen.Script.Support.PopCap.ResourceGroup.PathStyle {
+            switch (layout) {
+                case "string": {
+                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.WindowStyle;
+                }
+                case "array": {
+                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.ArrayStyle;
+                }
+                default: {
+                    throw new Error(format(Kernel.Language.get("popcap.resource_group.convert.cannot_exchange_layout"), layout));
+                }
+            }
+        }
+        /**
+         *
+         * Typical Style
+         *
+         */
+
+        export function style(): Array<[bigint, string, string]> {
+            return [
+                [1n, "string", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.string")],
+                [2n, "array", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.array")],
+            ];
+        }
+    }
 
     /**
      * ----------------------------------------------
@@ -51,10 +92,11 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
+                Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
                 Support.PopCap.ResourceStreamBundle.Project.Unpack.process_fs(argument.source, argument.destination!, {
                     decode_rton: false,
                     decrypt_rton: false,
-                    layout: Support.PopCap.ResourceGroup.PathStyle.WindowStyle,
+                    layout: Detail.exchange_layout(argument.layout as string),
                     use_res_info: false,
                 });
                 Sen.Script.Executor.clock.stop_safe();

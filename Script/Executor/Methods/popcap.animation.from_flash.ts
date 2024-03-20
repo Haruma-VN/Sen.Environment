@@ -51,7 +51,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
                 defined_or_default<Executor.Methods.PopCap.Animation.FromFlash.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
-                Script.Support.PopCap.Animation.ToAnimation.process_fs(argument.source, argument.destination!);
+                Kernel.Support.PopCap.Animation.FromFlash.convert_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },

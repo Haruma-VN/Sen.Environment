@@ -1612,35 +1612,35 @@ declare namespace Sen {
                      * @returns {void} No return value, function writes encoded data to the destination file.
                      */
                     export function encode_fs(source: string, destination: string): void;
-                }
 
-                /**
-                 * Flash Conversion Support
-                 *
-                 * This namespace provides functions for converting animation data between PopCap and Flash formats.
-                 */
-
-                declare namespace ToFlash {
                     /**
-                     * Converts a PopCap Animation (PAM) file to Flash XFL format.
+                     * Flash Conversion Support
                      *
-                     * @param source {string} Path to the source PAM file to be converted.
-                     * @param destination {string} Path to the destination directory where the converted XFL files will be written.
-                     * @param resolution {bigint} The resolution to use for the generated XFL file (specific interpretation may depend on the implementation).
-                     * @returns {void} No return value, function writes converted XFL files to the destination directory.
+                     * This namespace provides functions for converting animation data between PopCap and Flash formats.
                      */
-                    export function convert_fs(source: string, destination: string, resolution: bigint): void;
-                }
 
-                declare namespace FromFlash {
-                    /**
-                     * Converts a Flash XFL file to PopCap Animation (PAM) format.
-                     *
-                     * @param source {string} Path to the source directory containing the XFL file to be converted.
-                     * @param destination {string} Path to the destination PAM file where the converted data will be written.
-                     * @returns {void} No return value, function writes converted PAM data to the destination file.
-                     */
-                    export function convert_fs(source: string, destination: string): void;
+                    declare namespace ToFlash {
+                        /**
+                         * Converts a PopCap Animation (PAM) file to Flash XFL format.
+                         *
+                         * @param source {string} Path to the source PAM file to be converted.
+                         * @param destination {string} Path to the destination directory where the converted XFL files will be written.
+                         * @param resolution {bigint} The resolution to use for the generated XFL file (specific interpretation may depend on the implementation).
+                         * @returns {void} No return value, function writes converted XFL files to the destination directory.
+                         */
+                        export function convert_fs(source: string, destination: string, resolution: bigint): void;
+                    }
+
+                    declare namespace FromFlash {
+                        /**
+                         * Converts a Flash XFL file to PopCap Animation (PAM) format.
+                         *
+                         * @param source {string} Path to the source directory containing the XFL file to be converted.
+                         * @param destination {string} Path to the destination PAM file where the converted data will be written.
+                         * @returns {void} No return value, function writes converted PAM data to the destination file.
+                         */
+                        export function convert_fs(source: string, destination: string): void;
+                    }
                 }
 
                 /**

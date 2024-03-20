@@ -35,7 +35,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		template <typename T>
-		static auto variant_to_standard(
+		inline static auto variant_to_standard(
 			std::array<T, 6> &transform,
 			const std::vector<T> &variant_transform) -> void
 		{
@@ -65,7 +65,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto constexpr convert_transform = variant_to_standard<double>;
 
 		template <typename T>
-		static auto valid_color(
+		inline static auto valid_color(
 			std::array<T, 4> &color,
 			const std::vector<T> &base_color) -> void
 		{
@@ -85,14 +85,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto constexpr copy_color = valid_color<double>;
 
 		template <typename T>
-		static auto has_duplicates(
-			const std::vector<T> &vec
-		) -> int
+		inline static auto has_duplicates(
+			const std::vector<T> &vec) -> int
 		{
 			auto unique_elements = std::set<T>{};
-			for (const auto & i : Range<int>(vec.size()))
+			for (const auto &i : Range<int>(vec.size()))
 			{
-				const auto & element = vec[i];
+				const auto &element = vec[i];
 				if (unique_elements.count(element) > 0)
 				{
 					return i;
@@ -105,8 +104,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		template <typename T, typename E>
 		inline static auto check_element_in_vector(
 			const std::vector<T> &v,
-			const E &e
-		) -> bool
+			const E &e) -> bool
 		{
 			if (std::find(v.begin(), v.end(), e) != v.end())
 			{
@@ -123,7 +121,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	protected:
 		template <typename T>
 			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		auto write_image(
+		inline auto write_image(
 			const AnimationImage &image,
 			XMLDocument *document,
 			T scale) -> void
@@ -168,11 +166,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		template <auto is_action>
-		auto write_sprite(
+		inline auto write_sprite(
 			const std::string &name,
 			std::map<int, std::vector<FrameNode>> &frame_node_list,
-			XMLDocument *document
-		) -> void
+			XMLDocument *document) -> void
 		{
 			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
 			auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
@@ -260,8 +257,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline auto check_base_frame(
 			const std::array<double, 6> &transform,
 			const std::array<double, 4> &base_color,
-			int resource
-		) -> bool
+			int resource) -> bool
 		{
 			for (auto i : Range<int>(transform.size()))
 			{
@@ -280,8 +276,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto write_document(
 			const FrameList &frame_list,
-			XMLDocument *document
-		) -> void
+			XMLDocument *document) -> void
 		{
 			auto DOMDocument = document->NewElement("DOMDocument");
 			DOMDocument->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
@@ -322,16 +317,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto flow_layer = document->NewElement("DOMLayer");
 			flow_layer->SetAttribute("name", "flow");
 			auto flow_frames = document->NewElement("frames");
-			auto Include = document->NewElement("Include");
-			Include->SetAttribute("href", fmt::format("action/{}.xml", "main").data());
-			symbols->InsertEndChild(Include);
-			for (const auto &[action_name, value] : frame_list.action_list)
+			for (const auto &action_name : frame_list.action_name_list)
 			{
 				auto Include = document->NewElement("Include");
 				Include->SetAttribute("href", fmt::format("action/{}.xml", action_name).data());
 				symbols->InsertEndChild(Include);
-				auto start_index = value.start_index;
-				auto action_duration = value.duration;
+				auto start_index = frame_list.action_list.at(action_name).start_index;
+				auto action_duration = frame_list.action_list.at(action_name).duration;
 				auto DOMFrame = document->NewElement("DOMFrame");
 				DOMFrame->SetAttribute("index", fmt::format("{}", start_index).data());
 				DOMFrame->SetAttribute("duration", fmt::format("{}", (action_duration - start_index)).data());
@@ -360,14 +352,15 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				auto command_script = std::string{};
 				if (main_frame[i].stop)
 				{
-					command_script += "stop();\n";
+					command_script += "stop();";
 					write_command = true;
 				}
 				for (const auto &command : main_frame[i].command)
 				{
-					command_script += fmt::format("fscommand(\"{}\", \"{}\")\n", command.parameter, command.command);
+					command_script += fmt::format("fscommand(\"{}\", \"{}\");", command.parameter, command.command);
 					write_command = true;
 				}
+				command_script.substr(0, command_script.size() - 1);
 				if (write_command)
 				{
 					if ((i - prev_end_index) > 0)
@@ -424,10 +417,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		template <auto is_action>
-		auto decode_frame_list(
+		inline auto decode_frame_list(
 			const AnimationSprite &sprite,
-			FrameList &frame_list
-		) -> void
+			FrameList &frame_list) -> void
 		{
 			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
 			auto sprite_model = std::map<int, Model>{};
@@ -484,7 +476,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					convert_transform(sprite_model[index].transform, move.transform);
 					copy_color(sprite_model[index].color, move.color);
 				}
-
 				auto model_keys = Map::keys<int, Model>(sprite_model);
 				for (const auto &index : model_keys)
 				{
@@ -541,8 +532,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto write_action(
 			const FrameList &frame_list,
-			std::map<std::string, std::map<int, std::vector<FrameNode>>> &action_node_list
-		) -> void
+			std::map<std::string, std::map<int, std::vector<FrameNode>>> &action_node_list) -> void
 		{
 			const auto &frame_node_list = frame_list.frame_node_list;
 			for (const auto &label : frame_list.action_name_list)
@@ -629,13 +619,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto process(
 			std::string_view destination,
-			int resolution
-		) -> void
+			int resolution) -> void
 		{
 			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
 			auto record = RecordInfo{
 				.version = animation.version};
-
 			for (const auto &image : animation.image)
 			{
 				record.group[image.id] = ImageInfo{.name = image.name, .size = image.size};
@@ -653,14 +641,16 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite.name), &sprite_document);
 				sprite_list.emplace_back(sprite.name);
 			}
-			if (has_duplicates(sprite_list) != -1) {
+			if (has_duplicates(sprite_list) != -1)
+			{
 				throw Exception("sprite_duplicates: " + sprite_list[has_duplicates(sprite_list)]);
 			}
 			auto frame_list = FrameList{};
 			decode_frame_list<true>(animation.main_sprite, frame_list);
 			auto action_node_list = std::map<std::string, std::map<int, std::vector<FrameNode>>>{};
 			write_action(frame_list, action_node_list);
-			if (has_duplicates(frame_list.action_name_list) != -1) {
+			if (has_duplicates(frame_list.action_name_list) != -1)
+			{
 				throw Exception("label_duplicates: " + frame_list.action_name_list[has_duplicates(frame_list.action_name_list)]);
 			}
 			for (const auto &label : frame_list.action_name_list)
@@ -681,8 +671,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto process_fs(
 			std::string_view source,
 			std::string_view destination,
-			int resolution
-		) -> void
+			int resolution) -> void
 		{
 			auto convert = ToFlash{*FileSystem::read_json(source)};
 			convert.process(destination, resolution);

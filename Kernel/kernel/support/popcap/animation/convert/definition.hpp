@@ -67,6 +67,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	struct Model
 	{
 	public:
+		int index;
+		bool use_model;
 		uint8_t state;
 		int resource;
 		bool sprite;
