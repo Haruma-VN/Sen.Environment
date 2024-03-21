@@ -96,7 +96,7 @@ namespace Sen::Kernel::Definition::Compression {
 				};
 				inflateInit(&zlib_init);
 				auto result = std::vector<unsigned char>{};
-				unsigned char out_chunk[Zlib::CHUNK];
+				unsigned char out_chunk[Zlib::CHUNK]{};
 				do {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
@@ -115,6 +115,9 @@ namespace Sen::Kernel::Definition::Compression {
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
+				if (result.empty()) {
+					throw Exception(fmt::format("{}", Language::get("zlib.uncompress.failed")), std::source_location::current(), "uncompress_fs");
+				}
 				return result;
 			}
 
@@ -178,7 +181,7 @@ namespace Sen::Kernel::Definition::Compression {
 				};
 				deflateInit2(&zlib_init, static_cast<int>(level), Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
 				auto result = std::vector<unsigned char>();
-				unsigned char out_chunk[Zlib::CHUNK];
+				unsigned char out_chunk[Zlib::CHUNK]{};
 				do {
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = out_chunk;
@@ -213,7 +216,7 @@ namespace Sen::Kernel::Definition::Compression {
 				zlib_init.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data.data()));
 				auto result = std::vector<unsigned char>();
 				do {
-					unsigned char out_chunk[32768];
+					unsigned char out_chunk[32768]{};
 					zlib_init.avail_out = sizeof(out_chunk);
 					zlib_init.next_out = reinterpret_cast<Bytef *>(out_chunk);
 					auto ret = inflate(&zlib_init, 0);

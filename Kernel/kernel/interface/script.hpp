@@ -1091,6 +1091,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				auto byte_len = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &byte_len, array_buffer);
+				assert_conditional(byte_len != 0, "ArrayBuffer is empty", "from_arraybuffer");
 				return std::vector<uint8_t>(data, data + byte_len);
 			}
 
@@ -1119,7 +1120,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
 					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 2) {
@@ -7996,13 +7997,13 @@ namespace Sen::Kernel::Interface::Script {
 					auto proto = JS_GetPropertyStr(context, binary_ctor, "prototype");
 					if (JS_IsException(proto)) {
 						js_free(context, sub);
-						throw Exception("not a constructor");
+						throw Exception("not a constructor", std::source_location::current(), "uncompress");
 					}
 					auto obj = JS_NewObjectProtoClass(context, proto, Class::BinaryView::class_id);
 					JS_FreeValue(context, proto);
 					if (JS_IsException(obj)) {
 						js_free(context, sub);
-						throw Exception("can't define class");
+						throw Exception("can't define class", std::source_location::current(), "uncompress");
 					}
 					JS_SetOpaque(obj, sub);
 					JS_FreeValue(context, global_obj);
