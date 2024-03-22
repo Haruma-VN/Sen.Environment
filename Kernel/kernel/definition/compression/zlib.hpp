@@ -115,9 +115,6 @@ namespace Sen::Kernel::Definition::Compression {
 					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
 				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
 				inflateEnd(&zlib_init);
-				if (result.empty()) {
-					throw Exception(fmt::format("{}", Language::get("zlib.uncompress.failed")), std::source_location::current(), "uncompress_fs");
-				}
 				return result;
 			}
 
