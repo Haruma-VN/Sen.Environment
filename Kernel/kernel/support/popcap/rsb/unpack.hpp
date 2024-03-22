@@ -239,7 +239,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             {"id", id},
                             {"width", packet_sen.readUint32()},
                             {"height", packet_sen.readUint32()}};
-                        auto pitch_pos = (rsb_head_info.ptx_info_begin + (ptx_before - id) * rsb_head_info.ptx_info_each_length) + 0x08;
+                        auto pitch_pos = (rsb_head_info.ptx_info_begin + (ptx_before + id) * rsb_head_info.ptx_info_each_length) + 0x08;
                         auto pitch = sen->readUint32(static_cast<std::uint64_t>(pitch_pos));
                         auto format = sen->readUint32();
                         res["ptx_info"]["format"] = format;

@@ -7,7 +7,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
         decrypt_rton: boolean;
         decode_rton: boolean;
         layout: ResourceGroup.PathStyle;
-        use_res_info: boolean;
+        generic: Configuration.Generic;
     }
 
     export function make_setting(category: {
@@ -15,9 +15,17 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             encryption_key?: string;
             iv?: string;
         };
+        ptx: {
+            generic: Configuration.Generic;
+        };
+        resource_group: {
+            has_newton: boolean;
+        };
     }): Setting {
         return {
             rton: {
+                encode_rton: true,
+                encrypt_rton: false,
                 key: category.rton.encryption_key ?? "",
                 iv: category.rton.iv ?? "",
             },
@@ -31,7 +39,18 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                     "640": false,
                 },
             },
-            commands: [],
+            ptx: {
+                generic: category.ptx.generic,
+            },
+            resource_group: {
+                automatic_merge_before_encode: false,
+                encode_newton: category.resource_group.has_newton,
+                encode_rton: true,
+            },
+            res_info: {
+                automatic_merge_before_encode: false,
+                convert: "?",
+            },
         };
     }
 
@@ -60,6 +79,12 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
         let manifest_group: string = undefined!;
         const setting: Setting = make_setting({
             rton: { encryption_key: "65bd1b2305f46eb2806b935aab7630bb", iv: "1b2305f46eb2806b935aab76" },
+            ptx: {
+                generic: category.generic,
+            },
+            resource_group: {
+                has_newton: false,
+            },
         });
         for (const key of keys) {
             if (/^PACKAGES$/gi.test(key)) {
@@ -85,76 +110,31 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`);
                 });
             }
-            setting.commands.push({
-                command: "popcap.rton.encode",
-                forward: "batch",
-                source: "./resource/PACKAGES",
-            });
         } while (false);
         do {
             if (manifest_group === undefined) {
                 Console.warning(Kernel.Language.get("popcap.rsb.unpack_for_modding.manifest_group_not_found"));
                 break;
             }
-            const current_command: Configuration.BasicCommand & { source: string; destination: string } = {
-                command: undefined!,
-                forward: "direct",
-                source: undefined!,
-                destination: undefined!,
-            };
-            if (category.use_res_info) {
-                current_command.command = "popcap.res_info.convert";
-                current_command.source = "./res.json";
-            } else {
-                current_command.command = "popcap.resource_group.convert";
-                current_command.destination = "./res.json";
-            }
-            setting.commands.push(current_command);
             const definition: Kernel.Support.PopCap.RSG.Definition = Kernel.Support.PopCap.RSG.unpack_modding(`${destination}/packet/${manifest_group}.rsg`, resource_destination);
             let ripe_json: string = undefined!;
             for (const e of definition.res) {
                 if (/\.newton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.newton$/gi, ".json")}`;
-                    const json_ripe: string = `./${e.path.replace(/\.newton$/gi, ".json")}`;
-                    if (category.use_res_info) {
-                        current_command.destination = json_ripe;
-                    } else {
-                        current_command.source = json_ripe;
-                    }
                     Kernel.Support.PopCap.Newton.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_newton_file"));
-                    setting.commands.push({
-                        command: "popcap.newton.encode",
-                        forward: "direct",
-                        source: json_ripe,
-                    });
+                    setting.resource_group.encode_newton = true;
                     break;
                 }
                 if (/\.rton$/gi.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`;
-                    const json_ripe: string = `./${e.path.replace(/\.rton$/gi, ".json")}`;
-                    if (category.use_res_info) {
-                        current_command.destination = json_ripe;
-                    } else {
-                        current_command.source = json_ripe;
-                    }
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_rton_file"));
-                    setting.commands.push({
-                        command: "popcap.rton.encode",
-                        forward: "direct",
-                        source: json_ripe,
-                    });
                     break;
                 }
             }
             Kernel.Support.PopCap.ResourceGroup.convert_fs(ripe_json, `${destination}/res.json`, category.layout);
         } while (false);
-        setting.commands.push({
-            command: "popcap.rsb.pack",
-            forward: "direct",
-            source: "./",
-        });
         Kernel.JSON.serialize_fs<Setting>(`${destination}/setting.json`, setting, 1, false);
         remake_manifest(manifest);
         Console.output(Kernel.Language.get("popcap.rsb.unpack_for_modding.make_setting"));

@@ -338,5 +338,11 @@
     "popcap.rsb.pack_for_modding.source_must_be_provided": "source property must be provided for packing command",
     "popcap.rsb.pack_for_modding.process_whole_resolution": "Rewriting manifest for regular RSB",
     "popcap.rsb.pack_for_modding.process_one_resolution": "Rewriting manifest for resolution {} RSB",
-    "popcap.rsb.pack_for_modding.parsed_n_commands": "Parsed {} commands, happy modding!"
+    "popcap.rsb.pack_for_modding.parsed_n_commands": "Parsed {} commands, happy modding!",
+    "android": "Android",
+    "ios": "iOS",
+    "popcap.rsb.unpack_for_modding.layout": "Resource-Group style, for path",
+    "popcap.rsb.unpack_for_modding.layout.array": "For PvZ 2 version 10.3 and below",
+    "popcap.rsb.unpack_for_modding.layout.string": "For PvZ 2 version 10.4 and above",
+    "popcap.rsb.unpack_for_modding.generic": "Texture Format Category"
 }

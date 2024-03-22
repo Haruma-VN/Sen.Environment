@@ -9,21 +9,15 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
 
     // -----------------------------------------------------
 
-    export type Forward = "direct" | "batch";
-
-    // -----------------------------------------------------
-
-    export interface BasicCommand extends Record<string, unknown> {
-        command: string;
-        forward: Forward;
-    }
-
-    // -----------------------------------------------------
-
     export interface Setting extends Record<string, unknown> {
         rton: {
+            encode_rton: Questionable<boolean>;
+            encrypt_rton: Questionable<boolean>;
             key: string;
             iv: string;
+        };
+        ptx: {
+            generic: Generic;
         };
         rsb: {
             distribution: {
@@ -35,6 +29,14 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
                 "1200": boolean;
             };
         };
-        commands: Array<BasicCommand>;
+        resource_group: {
+            encode_rton: boolean;
+            encode_newton: boolean;
+            automatic_merge_before_encode: boolean;
+        };
+        res_info: {
+            convert: Questionable<boolean>;
+            automatic_merge_before_encode: Questionable<boolean>;
+        };
     }
 }

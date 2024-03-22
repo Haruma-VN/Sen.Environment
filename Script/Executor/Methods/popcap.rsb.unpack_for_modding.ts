@@ -1,4 +1,8 @@
 namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
+    // Generic
+
+    export type Generic = Support.PopCap.ResourceStreamBundle.Project.Unpack.Generic;
+
     /**
      * Argument for the current method
      */
@@ -7,6 +11,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
         source: string;
         destination?: string;
         layout?: string;
+        generic?: Generic;
     }
 
     /**
@@ -31,6 +36,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
         layout: 1n | 2n | "?";
+        generic: 1n | 2n | 3n | "?";
     }
 
     /**
@@ -65,8 +71,16 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
 
         export function style(): Array<[bigint, string, string]> {
             return [
-                [1n, "string", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.string")],
-                [2n, "array", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.array")],
+                [1n, "string", Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.string")],
+                [2n, "array", Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.array")],
+            ];
+        }
+
+        export function generic(): Array<[bigint, string, string]> {
+            return [
+                [1n, "android", Sen.Kernel.Language.get("android")],
+                [2n, "android-cn", Sen.Kernel.Language.get("pvz2_android_cn")],
+                [3n, "ios", Sen.Kernel.Language.get("ios")],
             ];
         }
     }
@@ -92,12 +106,13 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
-                Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
+                Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
+                Sen.Script.Executor.load_bigint(argument, "generic", this.configuration, Detail.generic(), Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.generic"));
                 Support.PopCap.ResourceStreamBundle.Project.Unpack.process_fs(argument.source, argument.destination!, {
                     decode_rton: false,
                     decrypt_rton: false,
                     layout: Detail.exchange_layout(argument.layout as string),
-                    use_res_info: false,
+                    generic: argument.generic!,
                 });
                 Sen.Script.Executor.clock.stop_safe();
                 return;
