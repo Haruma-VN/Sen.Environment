@@ -180,7 +180,10 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
                 raw_data.writeArrayBuffer(sen.getArrayBuffer(rsg_info.part0_pos + pos, part0_length + pos));
             } else {
                 const end_pos: bigint = part0_zlib_length + pos;
-                raw_data.writeArrayBuffer(Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos))).value);
+                const zlib_decoded_data = Kernel.Compression.Zlib.uncompress(new Kernel.BinaryView(sen.getArrayBuffer(rsg_info.part0_pos + pos, end_pos > rsg_pos ? rsg_pos : end_pos)));
+                if (zlib_decoded_data.size() !== 0n) {
+                    raw_data.writeArrayBuffer(zlib_decoded_data.value);
+                }
             }
         }
         let atlas_pos = 0n;
@@ -253,8 +256,8 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByL
             const composite_start_pos: bigint = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
             let composite_name: string = sen.readStringByEmpty(composite_start_pos);
             const composite_info_pos: bigint = composite_start_pos + 0x80n;
-            const is_composite: boolean = composite_name.endsWith("_CompositeShell");
-            if (is_composite) {
+            const is_composite: boolean = !composite_name.endsWith("_CompositeShell");
+            if (!is_composite) {
                 composite_name = composite_name.substring(0, composite_name.length - 15);
             }
             const rsg_number: bigint = sen.readUint32(composite_start_pos + 0x480n);

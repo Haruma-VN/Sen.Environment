@@ -63,7 +63,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
         const subgroups = Object.keys(manifest.group[group].subgroup);
         if (subgroups[0].toLowerCase() !== "streamingwave") {
             // TODO : add localization
-            throw new Error("invaild_streaming_wave");
+            throw new Error("invalid_streaming_wave");
         }
         Kernel.Support.PopCap.RSG.unpack_modding(`${source}/packet/${subgroups[0]}.rsg`, `${source}/resource`);
         const packet_info = manifest.group[group].subgroup[subgroups[0]].packet_info;
