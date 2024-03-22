@@ -21,8 +21,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		using FrameList = FrameList;
 
-	protected:
+	public:
+
 		Animation animation;
+
+	protected:
 
 		struct DocumentSymbol
 		{
@@ -68,6 +71,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			const std::vector<T> &v,
 			T k) -> int
 		{
+			static_assert(sizeof(T) != 0);
 			auto it = std::find(v.begin(), v.end(), k);
 			if (it != v.end())
 			{
@@ -81,6 +85,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			const std::vector<T> &v,
 			const E &e) -> bool
 		{
+			static_assert(sizeof(T) != 0);
+			static_assert(sizeof(E) != 0);
 			if (std::find(v.begin(), v.end(), e) != v.end())
 			{
 				return true;
@@ -95,15 +101,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			std::vector<T> &transform,
 			XMLElement *Matrix) -> void
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			const auto &resolution_list = std::vector<double>{0.78125, 1.5625, 1.875, 3.125, 1.0};
 			auto a = Matrix->FindAttribute("a");
 			auto a_matrix = std::stod((a ? a->Value() : "1"));
-			if (includes(resolution_list, a_matrix))
+			if (includes(resolution_list, a_matrix)) {
 				a_matrix = 1.0;
+			}
 			auto d = Matrix->FindAttribute("d");
 			auto d_matrix = std::stod((d ? d->Value() : "1"));
-			if (includes(resolution_list, d_matrix))
+			if (includes(resolution_list, d_matrix)) {
 				d_matrix = 1.0;
+			}
 			auto b = Matrix->FindAttribute("b");
 			auto c = Matrix->FindAttribute("c");
 			auto tx = Matrix->FindAttribute("tx");
@@ -118,6 +127,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			std::vector<T> &transform,
 			XMLElement *Matrix) -> void
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			auto a = Matrix->FindAttribute("a");
 			auto d = Matrix->FindAttribute("d");
 			auto b = Matrix->FindAttribute("b");
@@ -133,6 +143,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto transform_calculator(
 			std::vector<T> &transform) -> void
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			if (transform[0] == transform[3] && transform[1] == -transform[2])
 			{
 				if (transform[0] == 1.0 && transform[1] == 0.0)
@@ -157,6 +168,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			std::array<T, 4> &color,
 			XMLElement *Color) -> void
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			//
 			auto r = Color->FindAttribute("redMultiplier");
 			auto g = Color->FindAttribute("greenMultiplier");
@@ -178,6 +190,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		template <typename T>
 		inline static auto parse_color_compute(T mutil, T offset) -> T
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			return static_cast<T>((std::max)(0.0, (std::min)(255.0, mutil * 255.0 + offset)) / 255.0);
 		}
 		inline static auto constexpr color_compute = parse_color_compute<double>;
@@ -187,6 +200,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			std::vector<T> &source,
 			const std::vector<T> &change) -> void
 		{
+			static_assert(sizeof(T) <= sizeof(double));
 			source = {
 				change[0] * source[0] + change[2] * source[1],
 				change[1] * source[0] + change[3] * source[1],
@@ -208,7 +222,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			return;
 		}
 
-		inline static auto trim_left_in_place(std::string &str)
+		inline static auto trim_left_in_place(
+			std::string &str
+		) -> std::string
 		{
 			auto i = 0;
 			while (i < str.size() && isspace(str[i]))
@@ -218,7 +234,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			return str.erase(0, i);
 		}
 
-		inline static auto trim(const std::string &str)
+		inline static auto trim(
+			const std::string &str
+		) -> std::string
 		{
 			return std::regex_replace(str, std::regex("(^[ ]+)|([ ]+$)"),"");
 		}
@@ -229,15 +247,15 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			XMLDocument *document) -> void
 		{
 			auto symbols_elements = document->FirstChildElement("DOMDocument")->FirstChildElement("symbols");
-			if (!symbols_elements)
+			if (symbols_elements == nullptr)
 			{
-				throw Exception(fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_symbols")));
+				throw Exception(fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_symbols")), std::source_location::current(), "read_symbols_include");
 			}
-			for (auto child = symbols_elements->FirstChildElement("Include"); child; child = child->NextSiblingElement("Include"))
+			for (auto child = symbols_elements->FirstChildElement("Include"); child != nullptr; child = child->NextSiblingElement("Include"))
 			{
-				if (!child)
+				if (child == nullptr)
 				{
-					throw Exception("invaild_symbols_include");
+					throw Exception(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_symbols_include")), std::source_location::current(), "read_symbols_include");
 				}
 				auto item = std::string{child->FirstAttribute()->Value()};
 				if (item.starts_with("image"))
@@ -262,59 +280,59 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			XMLDocument *document) -> void
 		{
 			auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
-			if (!DOMSymbolItem)
+			if (DOMSymbolItem == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto image_child = DOMSymbolItem->FindAttribute("name");
-			if (!image_child || fmt::format("image/{}", image_id) != std::string{image_child->Value()})
+			if (image_child == nullptr or fmt::format("image/{}", image_id) != std::string{image_child->Value()})
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto timeline = DOMSymbolItem->FirstChildElement("timeline");
-			if (!timeline)
+			if (timeline == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_timeline"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_timeline"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto DOMTimeline = timeline->FirstChildElement("DOMTimeline");
-			if (!DOMTimeline)
+			if (DOMTimeline == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_timeline"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_timeline"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto id_name = DOMTimeline->FindAttribute("name");
-			if (!id_name || image_id != std::string{id_name->Value()})
+			if (id_name == nullptr or image_id != std::string{id_name->Value()})
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto layers = DOMTimeline->FirstChildElement("layers");
-			if (!layers)
+			if (layers == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_layers"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_layers"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto DOMLayer = layers->FirstChildElement("DOMLayer");
-			if (!DOMLayer)
+			if (DOMLayer == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto frames = DOMLayer->FirstChildElement("frames");
-			if (!frames)
+			if (frames == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_frames"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_frames"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto DOMFrame = frames->FirstChildElement("DOMFrame");
-			if (!DOMFrame)
+			if (DOMFrame == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_frames"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_frames"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto elements = DOMFrame->FirstChildElement("elements");
-			if (!elements)
+			if (elements == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_elements"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_elements"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto DOMBitmapInstance = elements->FirstChildElement("DOMBitmapInstance");
-			if (!DOMBitmapInstance)
+			if (DOMBitmapInstance == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto image_name = std::string{DOMBitmapInstance->FindAttribute("libraryItemName")->Value()}.substr(6);
 			auto animation_image_name = record.group.at(image_id).name;
@@ -322,18 +340,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				if (image_name != animation_image_name)
 				{
-					throw Exception(fmt::format("{}: {}, {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id, image_name));
+					throw Exception(fmt::format("{}: {}, {}", Language::get("popcap.animation.from_flash.invalid_image_name"), image_id, image_name), std::source_location::current(), "parse_image");
 				}
 			}
 			auto matrix = DOMBitmapInstance->FirstChildElement("matrix");
-			if (!matrix)
+			if (matrix == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_matrix"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.image_has_no_matrix"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto Matrix = matrix->FirstChildElement("Matrix");
-			if (!Matrix)
+			if (Matrix == nullptr)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_matrix"), image_id));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_image_matrix"), image_id), std::source_location::current(), "parse_image");
 			}
 			auto animation_image = AnimationImage{};
 			animation_image.name = animation_image_name;
@@ -350,39 +368,39 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		) -> void
 		{
 			auto timelines_elements = document->FirstChildElement("DOMDocument")->FirstChildElement("timelines");
-			assert_conditional(timelines_elements, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_timelines")), "get_action_index");
+			assert_conditional(timelines_elements != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_timelines")), "get_action_index");
 			auto DOMTimeline = timelines_elements->FirstChildElement("DOMTimeline");
-			assert_conditional(DOMTimeline, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMTimeline")), "get_action_index");
+			assert_conditional(DOMTimeline != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMTimeline")), "get_action_index");
 			auto layers = DOMTimeline->FirstChildElement("layers");
-			assert_conditional(layers, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_layers")), "get_action_index");
+			assert_conditional(layers != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_layers")), "get_action_index");
 			auto DOMLayer_Flow = layers->FirstChildElement("DOMLayer");
-			assert_conditional(DOMLayer_Flow, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMLayer")), "get_action_index");
+			assert_conditional(DOMLayer_Flow != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMLayer")), "get_action_index");
 			assert_conditional((std::string{DOMLayer_Flow->FindAttribute("name")->Value()} == "flow"), fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_document_flow")), "get_action_index");
 			auto frames = DOMLayer_Flow->FirstChildElement("frames");
 			// add to language;
-			assert_conditional(frames, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frames")), "get_action_index");
-			for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
+			assert_conditional(frames != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frames")), "get_action_index");
+			for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame != nullptr; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
 			{
 				// add to language;
-				assert_conditional(DOMFrame, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMFrame")), "get_action_index");
+				assert_conditional(DOMFrame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMFrame")), "get_action_index");
 
 				const auto &frame_index = std::stoi(DOMFrame->FindAttribute("index")->Value());
 				auto m_duration = DOMFrame->FindAttribute("duration");
 				const auto &frame_duration = std::stoi((m_duration ? m_duration->Value() : "1"));
 				auto frame_name = DOMFrame->FindAttribute("name");
 				// add to language;
-				assert_conditional(frame_name, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frame_name")), "get_action_index");
+				assert_conditional(frame_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frame_name")), "get_action_index");
 				auto labelType = DOMFrame->FindAttribute("labelType");
-				assert_conditional(labelType, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_action_label")), "get_action_index");
+				assert_conditional(labelType != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_action_label")), "get_action_index");
 				auto elements = DOMFrame->FirstChildElement("elements");
-				assert_conditional(elements, fmt::format("{}", Language::get("popcap.animation.from_flash.dom_frame_has_no_elements")), "get_action_index");
+				assert_conditional(elements != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.dom_frame_has_no_elements")), "get_action_index");
 				auto DOMSymbolInstance = elements->FirstChildElement("DOMSymbolInstance");
-				assert_conditional(DOMSymbolInstance, fmt::format("{}", Language::get("popcap.animation.from_flash.dom_frame_has_no_DOMSymbolInstance")), "get_action_index");
+				assert_conditional(DOMSymbolInstance != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.dom_frame_has_no_DOMSymbolInstance")), "get_action_index");
 				auto action_name = std::string{frame_name->Value()};
 				assert_conditional((fmt::format("action/{}", action_name) == std::string{DOMSymbolInstance->FindAttribute("libraryItemName")->Value()}), fmt::format("{}", Language::get("popcap.animation.from_flash.invaild_action_index")), "get_action_index");
 				frame_node[action_name] = ActionFrameNode{frame_index, frame_duration};
 				auto matrix = DOMSymbolInstance->FirstChildElement("matrix");
-				if (matrix)
+				if (matrix != nullptr)
 				{
 					auto Matrix = matrix->FirstChildElement("Matrix");
 					assert_conditional(Matrix, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_sprite_matrix")), "get_action_index");
@@ -405,7 +423,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				if (color)
 				{
 					auto ColorT = color->FirstChildElement("Color");
-					assert_conditional(ColorT, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_sprite_color")), "get_action_index");
+					assert_conditional(ColorT != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_sprite_color")), "get_action_index");
 					auto base_color = std::array<double, 4>{};
 					copy_color(base_color, ColorT);
 					for (const auto &i : Range<int>(4))
@@ -433,49 +451,51 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			const DocumentSymbol &dom_symbol_list
 		) -> void
 		{
+			static_assert(is_action == true or is_action == false, "is_action must be true or false");
+			static_assert(sizeof(is_action) == sizeof(bool), "is_action must be boolean wrapper");
 			auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
-			assert_conditional(DOMSymbolItem, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMSymbolItem"), name), "parse_sprite");
+			assert_conditional(DOMSymbolItem != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMSymbolItem"), name), "parse_sprite");
 			if constexpr (is_action)
 			{
 				auto action_name = fmt::format("action/{}", name);
 				auto name_child = DOMSymbolItem->FindAttribute("name");
-				assert_conditional((name_child || action_name == std::string{name_child->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
+				assert_conditional((name_child != nullptr or action_name == std::string{name_child->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
 			}
 			{
 				auto sprite_name = fmt::format("sprite/{}", name);
 				auto name_child = DOMSymbolItem->FindAttribute("name");
-				assert_conditional((name_child || sprite_name == std::string{name_child->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
+				assert_conditional((name_child != nullptr or sprite_name == std::string{name_child->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
 			}
 			auto timeline = DOMSymbolItem->FirstChildElement("timeline");
-			assert_conditional(timeline, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_timeline"), name), "parse_sprite");
+			assert_conditional(timeline != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_timeline"), name), "parse_sprite");
 			auto DOMTimeline = timeline->FirstChildElement("DOMTimeline");
-			assert_conditional(DOMTimeline, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMtimeline"), name), "parse_sprite");
+			assert_conditional(DOMTimeline != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMtimeline"), name), "parse_sprite");
 			auto dom_name = DOMTimeline->FindAttribute("name");
-			assert_conditional((dom_name || name == std::string{dom_name->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
+			assert_conditional((dom_name != nullptr or name == std::string{dom_name->Value()}), fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_name"), name), "parse_sprite");
 			auto layers = DOMTimeline->FirstChildElement("layers");
-			assert_conditional(layers, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_layers"), name), "parse_sprite");
+			assert_conditional(layers != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_layers"), name), "parse_sprite");
 			auto &frame_list = frame_node.frames;
 			auto use_empty_last_layer = false;
 			auto model = Model{};
 			auto layer_count = 0;
 			for (auto DOMLayer = layers->LastChildElement("DOMLayer"); DOMLayer; DOMLayer = DOMLayer->PreviousSiblingElement("DOMLayer"))
 			{
-				assert_conditional(DOMLayer, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMLayer"), name), "parse_sprite");
+				assert_conditional(DOMLayer != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMLayer"), name), "parse_sprite");
 				auto frames = DOMLayer->FirstChildElement("frames");
-				assert_conditional(frames, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_frames"), name), "parse_sprite");
-				for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
+				assert_conditional(frames != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_frames"), name), "parse_sprite");
+				for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame != nullptr; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
 				{
-					assert_conditional(DOMFrame, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame"), name), "parse_sprite");
+					assert_conditional(DOMFrame != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame"), name), "parse_sprite");
 					const auto &frame_index = std::stoi(DOMFrame->FindAttribute("index")->Value());
 					auto m_duration = DOMFrame->FindAttribute("duration");
 					const auto &frame_duration = std::stoi((m_duration ? m_duration->Value() : "1"));
 					auto elements = DOMFrame->FirstChildElement("elements");
 					auto DOMSymbolInstance = elements->FirstChildElement("DOMSymbolInstance");
-					if (!DOMSymbolInstance)
+					if (DOMSymbolInstance == nullptr)
 					{
-						if (!DOMLayer->PreviousSiblingElement("DOMLayer")) {
+						if (DOMLayer->PreviousSiblingElement("DOMLayer") == nullptr) {
 							const auto &read_blank_duration = frame_duration - frame_list.size() + 1;
-							if (read_blank_duration > 0 && !DOMFrame->NextSiblingElement("DOMFrame")) {
+							if (read_blank_duration > 0 and DOMFrame->NextSiblingElement("DOMFrame") == nullptr) {
 								use_empty_last_layer = true;
 								for (const auto &i : Range<int>(read_blank_duration)) {
 									frame_list.emplace_back(AnimationFrame{});
@@ -525,7 +545,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					model.frame_duration = frame_duration;
 					auto frame_move = AnimationMove{};
 					auto matrix = DOMSymbolInstance->FirstChildElement("matrix");
-					if (!matrix)
+					if (matrix == nullptr)
 					{
 						if constexpr (is_action)
 						{
@@ -551,10 +571,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						}
 					}
 					auto color = DOMSymbolInstance->FirstChildElement("color");
-					if (color)
+					if (color != nullptr)
 					{
 						auto ColorT = color->FirstChildElement("Color");
-						assert_conditional(ColorT, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_color"), name), "parse_sprite");
+						assert_conditional(ColorT != nullptr, fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_sprite_color"), name), "parse_sprite");
 						auto base_color = std::array<double, 4>{};
 						copy_color(base_color, ColorT);
 						if (!(model.color[0] == base_color[0] && model.color[1] == base_color[1] && model.color[2] == base_color[2] && model.color[3] == base_color[3]))
@@ -708,10 +728,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				assert_conditional(DOMFrame, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "parse_dom_document");
 				const auto &frame_index = std::stoi(DOMFrame->FindAttribute("index")->Value());
 				auto Actionscript = DOMFrame->FirstChildElement("Actionscript");
-				if (!Actionscript)
+				if (Actionscript == nullptr) {
 					continue;
+				}
 				auto script = Actionscript->FirstChildElement("script");
-				assert_conditional(script, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_dom_script")), "parse_dom_document");
+				assert_conditional(script != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_dom_script")), "parse_dom_document");
 				auto script_text = script->FirstChild()->ToText();
 				assert_conditional(script_text->CData(), fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_script_cdata")), "parse_dom_document");
 				auto script_list = String{trim(std::string{script_text->Value()})}.split(";");
@@ -726,7 +747,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					auto pattern = std::regex("fscommand\\(\"(.*)\", \"(.*)\"\\)");
 					auto matches = std::smatch{};
 					auto match_result = std::regex_match(command, matches, pattern);
-					assert_conditional(match_result, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_command")), "parse_dom_document");
+					assert_conditional(match_result, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_command")), command), "parse_dom_document");
 					if (match_result)
 					{
 						animation.main_sprite.frame[frame_index].command.emplace_back(AnimationCommand{
@@ -799,8 +820,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline static auto process_fs(
 			std::string_view source,
-			std::string_view destination)
-			-> void
+			std::string_view destination
+		) -> void
 		{
 			auto convert = FromFlash{};
 			convert.process(source);

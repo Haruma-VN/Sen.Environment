@@ -102,6 +102,7 @@ add_library(
 	./support/popcap/animation/convert/definition.hpp
 	./support/popcap/animation/convert/to_flash.hpp
 	./support/popcap/animation/convert/from_flash.hpp
+	./support/popcap/animation/convert/instance.hpp
 	./support/popcap/crypt_data/definition.hpp
 	./support/popcap/crypt_data/encrypt.hpp
 	./support/popcap/crypt_data/decrypt.hpp

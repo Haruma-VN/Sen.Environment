@@ -22,7 +22,7 @@ namespace Sen.Script.Helper.PvZ2.Animation.GenerateAtlasFromRecord {
     }
 
     export function process_fs(): void {
-        // todo : add localization
+        // TODO : add localization
         const record = Console.path("input path of record.json", "file");
         Console.send("input subgroup name", Definition.Console.Color.CYAN);
         const subgroup = Kernel.Console.readline();

@@ -5796,7 +5796,6 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst *argv
 		) -> JSElement::undefined
 		{
-			// todo
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc >= 1, fmt::format("argument expected greater than {} but received {}", "1", argc));
 				switch (argc)
@@ -9663,6 +9662,64 @@ namespace Sen::Kernel::Interface::Script {
 							Sen::Kernel::Support::PopCap::Animation::Convert::FromFlash::process_fs(source.get(), destination.get());
 							return JS::Converter::get_undefined();
 						}, "convert_fs"_sv);
+					}
+				}
+
+				/**
+				 * Instance convert 
+				*/
+
+				namespace Instance {
+					/**
+					 * ----------------------------------------
+					 * JavaScript PAM Convert File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: scale
+					 * @returns: Converted file
+					 * ----------------------------------------
+					*/
+
+					inline static auto to_flash (
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_c_string(context, argv[0]);
+							auto destination = JS::Converter::get_c_string(context, argv[1]);
+							Sen::Kernel::Support::PopCap::Animation::Convert::InstanceConvert::to_flash(source.get(), destination.get(), static_cast<int>(JS::Converter::get_bigint64(context, argv[2])));
+							return JS::Converter::get_undefined();
+						}, "to_flash"_sv);
+					}
+
+					/**
+					 * ----------------------------------------
+					 * JavaScript PAM Convert File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: scale
+					 * @returns: Converted file
+					 * ----------------------------------------
+					*/
+
+					inline static auto from_flash (
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_c_string(context, argv[0]);
+							auto destination = JS::Converter::get_c_string(context, argv[1]);
+							Sen::Kernel::Support::PopCap::Animation::Convert::InstanceConvert::from_flash(source.get(), destination.get());
+							return JS::Converter::get_undefined();
+						}, "from_flash"_sv);
 					}
 				}
 

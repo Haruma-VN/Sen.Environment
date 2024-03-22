@@ -264,7 +264,7 @@ namespace Sen.Script {
 
         export function make_exception(e: Error): string {
             if (Shell.is_gui) {
-                // todo
+                // TODO
                 return undefined!;
             }
             return make_exception_cli(e);
@@ -360,6 +360,8 @@ namespace Sen.Script {
             "~/Support/PopCap/LawnStrings/Convert.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/Obfuscate.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/UnpackByLooseConstraints.js",
+            "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/ConvertAndroidToiOS.js",
+            "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/PackResources.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Configuration.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Unpack.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Pack.js",

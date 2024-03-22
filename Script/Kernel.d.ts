@@ -1641,6 +1641,12 @@ declare namespace Sen {
                          */
                         export function convert_fs(source: string, destination: string): void;
                     }
+
+                    declare namespace Instance {
+                        export function to_flash(source: string, destination: string, resolution: bigint): void;
+
+                        export function from_flash(source: string, destination: string): void;
+                    }
                 }
 
                 /**
@@ -1950,18 +1956,23 @@ declare namespace Sen {
                         // Implementation for converting a Resource Group archive to a different layout
                     }
 
-                    /**
-                     * Interface for Resource containing an Image
-                     *
-                     * Represents a resource within a Resource Group that contains an image file.
-                     */
-                    export interface ResourceContainsImage extends Record<string, unknown> {
+                    export interface ResourceBasic extends Record<string, unknown> {
                         /** Slot number associated with the resource */
                         slot: bigint;
                         /** Unique identifier for the resource */
                         id: string;
                         /** Path to the image file(s) within the Resource Group (can be a string or an array of strings for multiple images) */
                         path: Array<string> | string;
+                        /** Resource type (always set to "Image" for this interface) */
+                        type: string;
+                    }
+
+                    /**
+                     * Interface for Resource containing an Image
+                     *
+                     * Represents a resource within a Resource Group that contains an image file.
+                     */
+                    export interface ResourceContainsImage extends ResourceBasic {
                         /** Resource type (always set to "Image" for this interface) */
                         type: "Image";
                     }
@@ -2034,11 +2045,16 @@ declare namespace Sen {
                         /** Subgroup type (always set to "simple" for this interface) */
                         type: "simple";
                         /** Parent subgroup ID (if applicable) */
-                        parent: string;
+                        parent?: string;
                         /** Resource reference string (meaning depends on the specific resource type) */
                         res: string;
                         /** Array of resources contained within the subgroup */
-                        resources: Array<ResourceContainsImage>;
+                        resources: Array<ResourceBasic>;
+                    }
+
+                    export interface ResourceGroup {
+                        slot_count: bigint;
+                        resources: Array<ResourceSubgroup>;
                     }
                 }
 

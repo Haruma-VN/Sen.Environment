@@ -32,6 +32,7 @@
 #include "kernel/support/popcap/animation/encode.hpp"
 #include "kernel/support/popcap/animation/convert/from_flash.hpp"
 #include "kernel/support/popcap/animation/convert/to_flash.hpp"
+#include "kernel/support/popcap/animation/convert/instance.hpp"
 #include "kernel/support/wwise/sound_bank/encode.hpp"
 #include "kernel/support/wwise/sound_bank/decode.hpp"
 

@@ -753,10 +753,13 @@ namespace Sen::Kernel {
 				auto token = std::string{};
 				while ((pos = str.find(delimiter)) != std::string::npos) {
 					token = str.substr(0, pos);
-					result.push_back(token);
+					result.emplace_back(token);
 					str.erase(0, pos + delimiter.length());
 				}
-				result.push_back(str);
+				result.emplace_back(str);
+				if (result.at(result.size() - 1).empty()) {
+					result.pop_back();
+				}
 				return result;
 			}
 
@@ -1071,6 +1074,24 @@ namespace Sen::Kernel {
 			{
 				auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
 				return myconv.to_bytes(wstr);
+			}
+
+			template<typename... Args> requires (std::is_same<Args, std::string_view>::value && ...) or 
+			(std::is_same<Args, std::string>::value && ...)
+			inline static auto format(
+				std::string str, 
+				Args... args
+			) -> std::string
+			{
+				auto placeholder = "{}"_sv;
+				auto replacePlaceholder = [&](auto arg) -> void {
+					auto pos = str.find(placeholder);
+					if (pos != std::string::npos) {
+						str.replace(pos, placeholder.length(), arg);
+					}
+				};
+				(replacePlaceholder(args), ...);
+				return str;
 			}
 
 			/**

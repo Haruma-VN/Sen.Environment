@@ -1,6 +1,6 @@
 namespace Sen.Script.Helper.PvZ2.Permanent.ErasePlantLevels {
     /**
-     * @todo Update this for official
+     * @TODO Update this for official
      */
     export interface PlantLevels extends Record<string, unknown> {
         objects: Array<{

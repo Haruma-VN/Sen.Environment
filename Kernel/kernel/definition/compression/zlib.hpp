@@ -204,7 +204,7 @@ namespace Sen::Kernel::Definition::Compression {
 					.avail_in = 0,
 					.zalloc = Z_NULL,
 					.zfree = Z_NULL,
-					.opaque = Z_NULL
+					.opaque = Z_NULL,
 				};
 				if (inflateInit2(&zlib_init, 16 + MAX_WBITS) != Z_OK){
 					throw Exception(fmt::format("{}", Language::get("gzip.init_stream.failed")), std::source_location::current(), "uncompress_gzip");

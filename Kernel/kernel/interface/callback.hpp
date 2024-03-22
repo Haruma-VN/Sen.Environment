@@ -471,6 +471,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "encode_fs"_sv);
 					javascript->add_proxy(Script::Support::PopCap::Animation::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "ToFlash"_sv, "convert_fs"_sv);
 					javascript->add_proxy(Script::Support::PopCap::Animation::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "FromFlash"_sv, "convert_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "to_flash"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
 				}
 				// bnk
 				{

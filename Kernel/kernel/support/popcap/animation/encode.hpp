@@ -9,11 +9,13 @@ namespace Sen::Kernel::Support::PopCap::Animation
     class Encode
     {
 
-    protected:
+    public:
         SexyAnimation json;
         int mutable version;
         int mutable frame_rate;
-        inline auto animation_encode() const -> void
+        inline auto process (
+
+        ) const -> void
         {
             version = json.version;
             frame_rate = json.frame_rate;
@@ -62,6 +64,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             return;
         }
+
+    protected:
 
         inline auto write_sprite(const AnimationSprite & sprite) const -> void {
             if (version >= 4) {
@@ -402,7 +406,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             auto json = *FileSystem::read_json(source);
             auto c = std::make_unique<Encode>(json);
-            c->animation_encode();
+            c->process();
             c->sen->out_file(destination);
             return;
         }
