@@ -6480,7 +6480,7 @@ namespace Sen::Kernel::Interface::Script {
 
 			/**
 			 * ----------------------------------------
-			 * JS copy file
+			 * JS remove file
 			 * @param argv[0]: source file
 			 * @return: undefined
 			 * ----------------------------------------
@@ -6495,10 +6495,33 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					std::filesystem::remove(std::filesystem::path{source});
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					std::filesystem::remove(std::filesystem::path{source.get()});
 					return JS::Converter::get_undefined();
 				}, "remove"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JS remove file
+			 * @param argv[0]: source file
+			 * @return: undefined
+			 * ----------------------------------------
+			*/
+
+			inline static auto remove_all(
+				JSContext* context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					std::filesystem::remove_all(std::filesystem::path{source.get()});
+					return JS::Converter::get_undefined();
+				}, "remove_all"_sv);
 			}
 
 		}

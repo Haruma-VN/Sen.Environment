@@ -207,16 +207,13 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
             encode_rton(`${source}/resource/PACKAGES`);
         }
         remake_manifest(manifest);
-        const process_whole = (manifest: Kernel.Support.PopCap.RSB.Manifest, destination: string): void => {
-            Kernel.Support.PopCap.RSB.pack(source, destination, manifest);
-        };
         Object.keys(configuration.rsb.distribution).forEach(function pack_rsb(resolution: string): void {
             if (!((configuration.rsb.distribution as any)[resolution] as boolean)) {
                 return;
             }
             if (resolution === "all") {
                 Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.process_whole_resolution"));
-                return process_whole(manifest, destination);
+                return Kernel.Support.PopCap.RSB.pack(source, destination, manifest);
             } else {
                 const new_manifest: Kernel.Support.PopCap.RSB.Manifest = {
                     version: 4n,
@@ -225,7 +222,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                 };
                 Console.finished(format(Kernel.Language.get("popcap.rsb.pack_for_modding.process_one_resolution"), resolution));
                 generate_special_manifest(manifest, new_manifest, BigInt(resolution));
-                return process_whole(new_manifest, `${destination}.${resolution}`);
+                return Kernel.Support.PopCap.RSB.pack(source, `${destination}.${resolution}`, new_manifest);
             }
         });
         return;

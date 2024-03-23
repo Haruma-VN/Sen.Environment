@@ -135,6 +135,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::FileSystem::Operation::rename, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "rename"_sv);
 					// operation : remove
 					javascript->add_proxy(Script::FileSystem::Operation::remove, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "remove"_sv);
+					// operation : remove all
+					javascript->add_proxy(Script::FileSystem::Operation::remove_all, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "remove_all"_sv);
 					// operation : copy
 					javascript->add_proxy(Script::FileSystem::Operation::copy, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "copy"_sv);
 				}

@@ -17,13 +17,19 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
         resources: Array<ResourceSubInfo>;
     }
 
+    export function is_power_of_2<T extends number | bigint>(num: T): boolean {
+        return (num & -num) === num;
+    }
+
+    export const format_148 = ["UI_JOUST_ICICLES_1536", "UI_LEAGUES_1536", "UI_PENNYPURSUITS_HOWTOPLAY_1536"];
+
     export function convert_image(source: string, group: string, manifest: Manifest, version: Kernel.Support.PopCap.RSG.Version): void {
         const subgroups = Object.keys(manifest.group[group].subgroup);
         for (const subgroup of subgroups) {
             const packet_info = manifest.group[group].subgroup[subgroup].packet_info;
             if (packet_info.res[0].ptx_info === undefined) continue;
             Kernel.Support.PopCap.RSG.unpack_modding(`${source}/packet/${subgroup}.rsg`, `${source}/resource`);
-            for (let e of packet_info.res) {
+            for (const e of packet_info.res) {
                 const ptx_info = e.ptx_info;
                 switch (ptx_info!.format) {
                     case 0n: {
@@ -36,11 +42,23 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
                     }
                     default: {
                         // TODO : add localization
-                        throw new Error("invaild_image_format");
+                        throw new Error("invalid_image_format");
                     }
                 }
-                ptx_info!.format = 0n;
-                Kernel.Support.Texture.encode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, Texture.Format.ARGB_8888);
+                const convert_whole = (info_format: bigint, format: Texture.Format) => {
+                    ptx_info!.format = info_format;
+                    Kernel.Support.Texture.encode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, format);
+                };
+                if (format_148.includes(subgroup.toUpperCase())) {
+                    convert_whole(148n, Texture.Format.RGB_PVRTC_4BPP_A_8);
+                    continue;
+                }
+                if (ptx_info!.width === ptx_info!.height && is_power_of_2(ptx_info!.width)) {
+                    convert_whole(30n, Texture.Format.RGBA_PVRTC_4BPP);
+                    ptx_info!.pitch = ptx_info!.width / 2n;
+                    continue;
+                }
+                convert_whole(0n, Texture.Format.ARGB_8888);
             }
             Kernel.Support.PopCap.RSG.pack(`${source}/resource`, `${source}/packet/${subgroup}.rsg`, { version, ...packet_info });
         }
@@ -142,7 +160,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
             }
         }
         Kernel.Support.PopCap.RSB.pack(rsb_destination, destination, manifest);
-        Kernel.FileSystem.Operation.remove(rsb_destination);
+        Kernel.FileSystem.Operation.remove_all(rsb_destination);
         return;
     }
 

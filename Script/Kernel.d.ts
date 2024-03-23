@@ -719,6 +719,12 @@ declare namespace Sen {
                  * @param source - The path of the file or directory to remove
                  */
                 export function remove(source: string): void;
+
+                /**
+                 * Remove a file or directory.
+                 * @param source - The path of the file or directory to remove
+                 */
+                export function remove_all(source: string): void;
             }
         }
 
@@ -2049,7 +2055,7 @@ declare namespace Sen {
                         /** Resource reference string (meaning depends on the specific resource type) */
                         res: string;
                         /** Array of resources contained within the subgroup */
-                        resources: Array<ResourceBasic>;
+                        resources: Array<ResourceContainsImage>;
                     }
 
                     export interface ResourceGroup {
