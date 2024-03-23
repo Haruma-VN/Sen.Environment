@@ -119,14 +119,14 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
             const definition: Kernel.Support.PopCap.RSG.Definition = Kernel.Support.PopCap.RSG.unpack_modding(`${destination}/packet/${manifest_group}.rsg`, resource_destination);
             let ripe_json: string = undefined!;
             for (const e of definition.res) {
-                if (/\.newton$/gi.test(e.path)) {
+                if (/\.newton$/i.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.newton$/gi, ".json")}`;
                     Kernel.Support.PopCap.Newton.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_newton_file"));
                     setting.resource_group.encode_newton = true;
                     break;
                 }
-                if (/\.rton$/gi.test(e.path)) {
+                if (/\.rton$/i.test(e.path)) {
                     ripe_json = `${resource_destination}/${e.path.replace(/\.rton$/gi, ".json")}`;
                     Kernel.Support.PopCap.RTON.decode_fs(`${resource_destination}/${e.path}`, ripe_json);
                     Console.finished(Kernel.Language.get("popcap.rsb.unpack_for_modding.decode_rton_file"));

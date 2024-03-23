@@ -5,7 +5,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.PackResou
 
     export type DataStreamView = Kernel.DataStreamView;
 
-    export function pack_rsg(source: string, manifest: Manifest): void {
+    export function pack_whole_rsg(source: string, manifest: Manifest): void {
         const version = manifest.version as Kernel.Support.PopCap.RSG.Version;
         const groups = Object.keys(manifest.group);
         Kernel.FileSystem.create_directory(`${source}/packet`);
@@ -23,7 +23,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.PackResou
     }
 
     export function process(source: string, destination: string, manifest: Manifest): void {
-        pack_rsg(source, manifest);
+        pack_whole_rsg(source, manifest);
         Kernel.Support.PopCap.RSB.pack(source, destination, manifest);
         return;
     }

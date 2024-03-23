@@ -11,8 +11,8 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
 
     export interface Setting extends Record<string, unknown> {
         rton: {
-            encode_rton: Questionable<boolean>;
-            encrypt_rton: Questionable<boolean>;
+            encode_rton: boolean;
+            encrypt_rton: boolean;
             key: string;
             iv: string;
         };
@@ -36,7 +36,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
         };
         res_info: {
             convert: Questionable<boolean>;
-            automatic_merge_before_encode: Questionable<boolean>;
+            automatic_merge_before_encode: boolean;
         };
     }
 }

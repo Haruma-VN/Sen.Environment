@@ -1952,7 +1952,7 @@ declare namespace Sen {
                      * @param {Sen.Script.Support.PopCap.ResourceGroup} layout - The target layout or format for the converted Resource Group.
                      * @returns {void} - Doesn't return any data, creates a new Resource Group archive with the specified layout.
                      */
-                    export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup): void {
+                    export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup.PathStyle): void {
                         // Implementation for converting a Resource Group archive to a different layout
                     }
 

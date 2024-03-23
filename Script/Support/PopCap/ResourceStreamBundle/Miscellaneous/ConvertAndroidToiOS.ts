@@ -23,27 +23,15 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
             const packet_info = manifest.group[group].subgroup[subgroup].packet_info;
             if (packet_info.res[0].ptx_info === undefined) continue;
             Kernel.Support.PopCap.RSG.unpack_modding(`${source}/packet/${subgroup}.rsg`, `${source}/resource`);
-            for (let i = 0; i < packet_info.res.length; i++) {
-                const ptx_info = packet_info.res[i].ptx_info;
+            for (let e of packet_info.res) {
+                const ptx_info = e.ptx_info;
                 switch (ptx_info!.format) {
                     case 0n: {
-                        Kernel.Support.Texture.decode_fs(
-                            `${source}/resource/${packet_info.res[i].path}`,
-                            `${source}/resource/${packet_info.res[i].path}`,
-                            ptx_info!.width,
-                            ptx_info!.height,
-                            Texture.Format.RGBA_8888,
-                        );
+                        Kernel.Support.Texture.decode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, ptx_info!.width, ptx_info!.height, Texture.Format.RGBA_8888);
                         break;
                     }
                     case 147n: {
-                        Kernel.Support.Texture.decode_fs(
-                            `${source}/resource/${packet_info.res[i].path}`,
-                            `${source}/resource/${packet_info.res[i].path}`,
-                            ptx_info!.width,
-                            ptx_info!.height,
-                            Texture.Format.RGB_ETC1_A_8,
-                        );
+                        Kernel.Support.Texture.decode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, ptx_info!.width, ptx_info!.height, Texture.Format.RGB_ETC1_A_8);
                         break;
                     }
                     default: {
@@ -52,7 +40,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
                     }
                 }
                 ptx_info!.format = 0n;
-                Kernel.Support.Texture.encode_fs(`${source}/resource/${packet_info.res[i].path}`, `${source}/resource/${packet_info.res[i].path}`, Texture.Format.ARGB_8888);
+                Kernel.Support.Texture.encode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, Texture.Format.ARGB_8888);
             }
             Kernel.Support.PopCap.RSG.pack(`${source}/resource`, `${source}/packet/${subgroup}.rsg`, { version, ...packet_info });
         }
@@ -75,7 +63,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
             packet_info.res[i].path = new_path;
         }
         Kernel.Support.PopCap.RSG.pack(`${source}/resource`, `${source}/packet/GLOBAL_DATA.rsg`, { version, ...packet_info });
-        manifest.group["GLOBAL_DATA"] = {
+        manifest.group.GLOBAL_DATA = {
             is_composite: false,
             subgroup: {
                 GOLBAL_DATA: manifest.group[group].subgroup[subgroups[0]],

@@ -256,10 +256,7 @@ namespace Sen.Script.Executor {
             return;
         }
         if ((configuration as any)[key] === "?") {
-            Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
-            Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
-            const result = input_integer([1n, 2n]);
-            (argument as any)[key] = result === 1n;
+            (argument as any)[key] = input_boolean();
             return;
         }
         if (configuration[key] !== "?") {
@@ -273,6 +270,13 @@ namespace Sen.Script.Executor {
             return load_boolean(argument, key, configuration, title);
         }
         return;
+    }
+
+    export function input_boolean(): boolean {
+        Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
+        Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+        const result = input_integer([1n, 2n]);
+        return result === 1n;
     }
 
     /**
