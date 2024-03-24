@@ -192,7 +192,11 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			}
 			raw_data->read_pos = pos;
 			{
+				#if WINDOWS
+				auto path = std::filesystem::path(String::utf8_to_utf16(destination.data()));
+				#else
 				auto path = std::filesystem::path(destination);
+				#endif
 				if (path.has_parent_path())
 				{
 					std::filesystem::create_directories(path.parent_path());
@@ -202,7 +206,7 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			return;
 		}
 
-		auto uncompress_zlib(
+		inline auto uncompress_zlib(
 			DataStreamView* rsg_data
 		) -> void
 		{

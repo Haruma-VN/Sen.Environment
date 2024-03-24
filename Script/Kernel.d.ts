@@ -2624,6 +2624,16 @@ declare namespace Sen {
              * @returns {void} - Doesn't return any data, writes the image data to the specified file.
              */
             public static write_fs(destination: string, image: ImageView): void;
+
+            /**
+             * Creates a new Kernel.ImageView instance.
+             *
+             * @param {bigint} width - The desired width of the image in pixels.
+             * @param {bigint} height - The desired height of the image in pixels.
+             * @param {ArrayBuffer} color - An ArrayBuffer containing raw pixel data in a format supported by the Kernel framework.
+             * @returns {Kernel.ImageView} A new, initialized Kernel.ImageView object.
+             */
+            public static instance(width: bigint, height: bigint, color: ArrayBuffer): Kernel.ImageView;
         }
 
         /**

@@ -399,7 +399,7 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "load_language");
+					assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "load_language");
 				Sen::Kernel::Language::read_language(JS::Converter::get_c_string(context, argv[0]).get());
 				return JS::Converter::get_undefined();
 			}, "load_language"_sv);
@@ -2609,6 +2609,7 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSDefine::Boolean
 			{
 				static_assert(T == true or T == false, "T must be true or false");
+				static_assert(sizeof(T) == sizeof(Data));
 				auto s = new Data(T);
 				auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
 				if (JS_IsException(proto)) {
@@ -4977,7 +4978,6 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSElement::undefined
 			{
 				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				auto v = bool{};
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
@@ -5040,7 +5040,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, s->area());
@@ -5061,7 +5061,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-					if (!s) {
+					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
 					return JS::Converter::to_bigint<uint64_t>(ctx, s->circumference());
@@ -5255,6 +5255,38 @@ namespace Sen::Kernel::Interface::Script {
 				}, "read_fs"_sv);
 			}
 
+			inline static auto instance(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSDefine::Boolean
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = new Data(
+						0,
+						0,
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[0])),
+						static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])),
+						JS::Converter::to_binary_list(ctx, argv[2])
+					);
+					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
+					if (JS_IsException(proto)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					auto obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						js_free(ctx, s);
+						return JS_EXCEPTION;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+				}, "instance"_sv);
+			}
+
 			// Function
 
 			inline static const JSCFunctionListEntry proto_functions[] = {
@@ -5280,6 +5312,8 @@ namespace Sen::Kernel::Interface::Script {
 				auto class_name = "ImageView"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
+				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
+				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
 				auto default_cut = JS_NewCFunction(ctx, cut, "cut", 0);
 				auto default_resize = JS_NewCFunction(ctx, resize, "resize", 0);
 				auto default_scale = JS_NewCFunction(ctx, scale, "scale", 0);
@@ -6393,8 +6427,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "is_file");
 				auto source = JS::Converter::get_c_string(context, argv[0]);
-				auto result = std::filesystem::is_regular_file(source.get());
-				return JS::Converter::to_bool(context, result);
+				return JS::Converter::to_bool(context, Kernel::Path::Script::is_file(source.get()));
 			}, "is_file"_sv);
 		}
 
@@ -6417,8 +6450,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "is_directory");
 				auto source = JS::Converter::get_c_string(context, argv[0]);
-				auto result = std::filesystem::is_directory(source.get());
-				return JS::Converter::to_bool(context, result);
+				return JS::Converter::to_bool(context, Kernel::Path::Script::is_directory(source.get()));
 			}, "is_directory"_sv);
 		}
 
@@ -6446,9 +6478,9 @@ namespace Sen::Kernel::Interface::Script {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
 					assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 1, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "rename");
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto destination = JS::Converter::get_string(context, argv[1]);
-					std::filesystem::rename(std::filesystem::path{source}, std::filesystem::path{destination});
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto destination = JS::Converter::get_c_string(context, argv[1]);
+					Kernel::Path::Script::rename(source.get(), destination.get());
 					return JS::Converter::get_undefined(); 
 				}, "rename"_sv);
 			}
@@ -6471,9 +6503,9 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto source = JS::Converter::get_string(context, argv[0]);
-					auto destination = JS::Converter::get_string(context, argv[1]);
-					std::filesystem::copy(std::filesystem::path{source}, std::filesystem::path{destination});
+					auto source = JS::Converter::get_c_string(context, argv[0]);
+					auto destination = JS::Converter::get_c_string(context, argv[1]);
+					Kernel::Path::Script::copy(source.get(), destination.get());
 					return JS::Converter::get_undefined();
 				}, "copy"_sv);
 			}
@@ -6496,7 +6528,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_c_string(context, argv[0]);
-					std::filesystem::remove(std::filesystem::path{source.get()});
+					Kernel::Path::Script::remove(source.get());
 					return JS::Converter::get_undefined();
 				}, "remove"_sv);
 			}
@@ -6519,7 +6551,7 @@ namespace Sen::Kernel::Interface::Script {
 				M_JS_PROXY_WRAPPER(context, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_c_string(context, argv[0]);
-					std::filesystem::remove_all(std::filesystem::path{source.get()});
+					Kernel::Path::Script::remove_all(source.get());
 					return JS::Converter::get_undefined();
 				}, "remove_all"_sv);
 			}

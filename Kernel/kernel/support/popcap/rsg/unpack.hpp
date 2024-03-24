@@ -84,14 +84,18 @@ namespace Sen::Kernel::Support::PopCap::RSG
         }
 
         inline auto write_file(
-            std::string_view packet_destination,
+            const std::string & packet_destination,
             const RSG_HeadInfo &rsg_head_info,
             bool is_atlas
         ) const -> void
         {
             auto pos = sen->readUint32() + static_cast<uint32_t>(is_atlas ? atlas_pos : 0);
             auto size = sen->readUint32();
+            #if WINDOWS
+            auto filePath = std::filesystem::path(String::utf8_to_utf16(packet_destination.data()).data());
+            #else
             auto filePath = std::filesystem::path(packet_destination.data());
+            #endif
             if (filePath.has_parent_path())
             {
                 std::filesystem::create_directories(filePath.parent_path());
@@ -126,12 +130,14 @@ namespace Sen::Kernel::Support::PopCap::RSG
 
         ) = default;
 
-        template <bool use_res_folder>
+        template <auto use_res_folder>
         inline auto process(
             std::string_view destination,
             PacketInfo* packet_info
         ) const -> void
         {
+            static_assert(use_res_folder == true or use_res_folder == false, "use_res_folder must be true or false");
+            static_assert(sizeof(use_res_folder) == sizeof(bool));
             auto rsg_head_info = RSG_HeadInfo{};
             read_head(&rsg_head_info);
             auto packet_destination = std::string{};
@@ -210,8 +216,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             return;
         }
 
-        template <auto write_info, auto use_res, typename return_type> requires std::is_same<return_type, void>::value or 
-            std::is_same<return_type, std::shared_ptr<PacketInfo>>::value
+        template <auto write_info, auto use_res, typename return_type> requires std::is_same<return_type, void>::value or std::is_same<return_type, std::shared_ptr<PacketInfo>>::value
         inline static auto unpack_fs(
             std::string_view source,
             std::string_view destination
@@ -219,13 +224,16 @@ namespace Sen::Kernel::Support::PopCap::RSG
         {
             static_assert(write_info == true || write_info == false, "write_info must be true or false");
             static_assert(use_res == true || use_res == false, "write_info must be true or false");
+            static_assert(sizeof(write_info) == sizeof(bool));
+            static_assert(sizeof(use_res) == sizeof(bool));
             auto unpack = Unpack{source};
-            auto packet_info = std::make_unique<PacketInfo>();
+            auto packet_info = std::make_shared<PacketInfo>();
             unpack.process<use_res>(destination, packet_info.get());
             if constexpr (write_info) {
                 FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
             }
-            if constexpr (std::is_same<return_type, std::shared_ptr<PacketInfo>>::value) {
+            if constexpr (std::is_same<return_type, std::shared_ptr<PacketInfo>>::value)
+            {
                 return packet_info;
             }
             else {

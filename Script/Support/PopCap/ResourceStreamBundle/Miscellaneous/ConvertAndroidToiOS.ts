@@ -120,6 +120,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
         info.id = "Global_Data";
         for (const e of info.resources) {
             e.id.replace(`RESFILE_STREAMINGWAVES`, `RESFILE_STREAMINGWAVES_GLOBAL_DATA`);
+            // TODO : Add support for old version
             e.path.replace(`streamingwaves`, `streamingwaves\\Global_Data`);
         }
         Kernel.JSON.serialize_fs(`${resource_path}.info/subgroup/Global_Data.json`, info, 1, true);

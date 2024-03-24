@@ -175,11 +175,11 @@ namespace Sen::Kernel::FileSystem
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
-		if (!file) {
+		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(indent, indent_char, ensureAscii);
-		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
+		std::fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -312,12 +312,12 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<T> const
 	{
 		#if WINDOWS
-		auto file = std::ifstream(fmt::format("\\\\?\\{}",
-			String::to_windows_style(filepath.data())).data(), std::ios::binary);
+			auto file = std::ifstream(String::utf8_to_utf16(fmt::format("\\\\?\\{}",
+				String::to_windows_style(filepath.data()))).data(), std::ios::binary);
 		#else
 		auto file = std::ifstream(filepath.data(), std::ios::binary);
 		#endif
-		if(!file)
+		if(!file.is_open())
 		{
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
 		}

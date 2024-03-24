@@ -23,8 +23,13 @@ namespace Sen::Kernel::Definition
 
             inline static auto constexpr buffer_size = static_cast<size_t>(8192);
 
-            inline static auto constexpr close_file = [](auto f)
-            { if (f) fclose(f); };
+            inline static auto constexpr close_file = [](FILE* file) { 
+                if (file != nullptr) {
+                    std::fclose(file);
+                    file = nullptr;
+                }
+                return;
+            };
 
         public:
             std::size_t mutable read_pos;
@@ -42,26 +47,24 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                Stream &&that) noexcept : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
+                Stream &&that
+            ) noexcept : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
             {
             }
 
             auto operator=(
-                Stream &&that) -> Stream & = delete;
+                Stream &&that
+            ) -> Stream & = delete;
 
             Stream(
-                std::string_view source) : read_pos(0), write_pos(0)
+                std::string_view source
+            ) : read_pos(0), write_pos(0)
             {
-#if WINDOWS
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-                                                                                                                      String::to_windows_style(source.data()))
-                                                                                                              .data())
-                                                                                    .data(),
-                                                                                L"rb"),
-                                                                        close_file);
-#else
+                #if WINDOWS
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(source.data()))).data(), L"rb"), close_file);
+                #else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "rb"), close_file);
-#endif
+                #endif
                 if (file == nullptr)
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source),
@@ -225,21 +228,29 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto out_file(
-                std::string_view path) const -> void
+                std::string_view path
+            ) const -> void
             {
                 {
+                    #if WINDOWS
+                        #if !defined MSVC_COMPILER
+                            static_assert(false, "msvc compiler is required on windows");
+                        #endif
+                    auto filePath = std::filesystem::path(String::utf8_to_utf16(path.data()));
+                    #else
                     auto filePath = std::filesystem::path(path);
+                    #endif
                     if (filePath.has_parent_path())
                     {
                         std::filesystem::create_directories(filePath.parent_path());
                     }
                 }
-#if WINDOWS
+                #if WINDOWS
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(path.data()).c_str(), L"wb"), close_file);
-#else
+                #else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(path.data(), "wb"), close_file);
-#endif
-                if (!file)
+                #endif
+                if (file == nullptr)
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path), std::source_location::current(),
                                     "out_file");
