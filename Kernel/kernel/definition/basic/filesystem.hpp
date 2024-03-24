@@ -31,15 +31,12 @@ namespace Sen::Kernel::FileSystem
 	) -> std::string 
 	{
 		#if WINDOWS
-				#if !defined MSVC_COMPILER
-				static_assert(false, "msvc compiler is required on windows");
-				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"r"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "r"), close_file);
 		#endif
-		if (!file) {
+		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_file");
 		}
 		std::fseek(file.get(), 0, SEEK_END);
@@ -77,15 +74,12 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				#if !defined MSVC_COMPILER
-				static_assert(false, "msvc compiler is required on windows");
-				#endif	
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
-		if (!file) {
+		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, '\t');
@@ -233,11 +227,11 @@ namespace Sen::Kernel::FileSystem
 		std::string_view path
 	) -> void
 	{
-		if(fs::is_directory(path)){
+		if(fs::is_directory(String::utf8_to_utf16(path.data()))){
 			return;
 		}
 		#if WINDOWS
-			fs::create_directories(fmt::format("\\\\?\\{}", String::to_windows_style(path.data())));
+			fs::create_directories(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(path.data()))));
 		#else
 			fs::create_directories(path);
 		#endif

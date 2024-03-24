@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
@@ -65,11 +65,7 @@ namespace Sen::Kernel::Definition
                 #else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "rb"), close_file);
                 #endif
-                if (file == nullptr)
-                {
-                    throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source),
-                                    std::source_location::current(), "Stream");
-                }
+                assert_conditional(file != nullptr, fmt::format("{}: {}", Language::get("cannot_read_file"), source), "Stream");
                 std::fseek(file.get(), 0, SEEK_END);
                 auto size = fsize(file.get());
                 std::fseek(file.get(), 0, SEEK_SET);
@@ -77,7 +73,6 @@ namespace Sen::Kernel::Definition
                 thiz.length = size;
                 thiz.write_pos = size;
                 std::fread(thiz.data.data(), 1, size, file.get());
-                return;
             }
 
             Stream(
@@ -233,9 +228,6 @@ namespace Sen::Kernel::Definition
             {
                 {
                     #if WINDOWS
-                        #if !defined MSVC_COMPILER
-                            static_assert(false, "msvc compiler is required on windows");
-                        #endif
                     auto filePath = std::filesystem::path(String::utf8_to_utf16(path.data()));
                     #else
                     auto filePath = std::filesystem::path(path);

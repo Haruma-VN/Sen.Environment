@@ -83,13 +83,18 @@ namespace Sen::Kernel::Support::PopCap::RSG
             return;
         }
 
+        template <auto is_atlas>
         inline auto write_file(
-            const std::string & packet_destination,
-            const RSG_HeadInfo &rsg_head_info,
-            bool is_atlas
+            std::string_view packet_destination,
+            const RSG_HeadInfo &rsg_head_info
         ) const -> void
         {
-            auto pos = sen->readUint32() + static_cast<uint32_t>(is_atlas ? atlas_pos : 0);
+            static_assert(is_atlas == true or is_atlas == false, "is_atlas must be boolean value");
+            static_assert(sizeof(is_atlas) == sizeof(bool));
+            auto pos = sen->readUint32();
+            if constexpr (is_atlas) {
+                pos += static_cast<uint32_t>(atlas_pos);
+            }
             auto size = sen->readUint32();
             #if WINDOWS
             auto filePath = std::filesystem::path(String::utf8_to_utf16(packet_destination.data()).data());
@@ -174,14 +179,17 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     }
                     auto is_atlas = sen->readUint32() == 1;
                     auto res = ResInfo{name_path, is_atlas};
-                    write_file(fmt::format("{}/{}", packet_destination, name_path), rsg_head_info, is_atlas);
                     if (is_atlas)
                     {
+                        write_file<true>(fmt::format("{}/{}", packet_destination, name_path), rsg_head_info);
                         auto id = sen->readUint32();
                         sen->read_pos += 8;
                         res.ptx_info = PTXInfo{
                             id, sen->readUint32(), sen->readUint32()
                         };
+                    }
+                    else {
+                        write_file<false>(fmt::format("{}/{}", packet_destination, name_path), rsg_head_info);
                     }
                     packet_info->res.emplace_back(res);
                     for (auto i : Range(name_dist_list.size()))
@@ -230,7 +238,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto packet_info = std::make_shared<PacketInfo>();
             unpack.process<use_res>(destination, packet_info.get());
             if constexpr (write_info) {
-                FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
+                //FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
             }
             if constexpr (std::is_same<return_type, std::shared_ptr<PacketInfo>>::value)
             {
