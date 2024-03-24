@@ -525,6 +525,10 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::String::register_class);
 				// Character
 				javascript->register_object(Script::Class::Character::register_class);
+				// DimensionView
+				javascript->register_object(Script::Class::DimensionView::register_class);
+				// Rectangle
+				javascript->register_object(Script::Class::Rectangle::register_class);
 				// ImageView
 				javascript->register_object(Script::Class::ImageView::register_class);
 				// Canvas
@@ -533,6 +537,7 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::BinaryView::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
+				return;
 			}
 
 			/**

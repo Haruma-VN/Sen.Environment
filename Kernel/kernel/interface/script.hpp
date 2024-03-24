@@ -2473,7 +2473,9 @@ namespace Sen::Kernel::Interface::Script {
 			) -> void
 			{
 				static_assert(use_big_endian == true || use_big_endian == false, "use_big_endian can only be true or false");
-				ClassID<use_big_endian>::value = JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::value, &this_class<use_big_endian>);
+				static_assert(sizeof(use_big_endian) == sizeof(bool));
+				JS_NewClassID(&ClassID<use_big_endian>::value);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), ClassID<use_big_endian>::value, &this_class<use_big_endian>) == 0, "register DataStreamView failed", "register_class");
 				auto class_name = std::string_view{};
 				if constexpr (use_big_endian) {
 					class_name = "DataStreamViewUseBigEndian"_sv;
@@ -2631,7 +2633,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Boolean class register failed", "register_class");
 				auto class_name = "Boolean"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -2795,7 +2798,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Size class failed register", "register_class");
 				auto class_name = "Size"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -2966,7 +2970,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Character class register failed", "register_class");
 				auto class_name = "Character"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -3144,7 +3149,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "String class register failed", "register_class");
 				auto class_name = "String"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -3494,7 +3500,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "BinaryView class register failed", "register_class");
 				auto class_name = "BinaryView"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -4434,7 +4441,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				Detail::class_id = JS_NewClass(JS_GetRuntime(ctx), Detail::class_id, &this_class);
+				JS_NewClassID(&(Detail::class_id));
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), Detail::class_id, &this_class) == 0, "Canvas class register failed", "register_class");
 				auto class_name = "Canvas"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -4599,7 +4607,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "DimensionView class failed register", "register_class");
 				auto class_name = "DimensionView"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
@@ -4792,7 +4801,8 @@ namespace Sen::Kernel::Interface::Script {
 				JSContext* ctx
 			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Rectangle class register failed", "register_class");
 				auto class_name = "Rectangle"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
