@@ -783,7 +783,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
 			if (record_info["version"] > 6 || record_info["version"] < 1)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_version"), record_info["version"]));
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_version"), record_info["version"]), std::source_location::current(), "process");
 			}
 			for (const auto &image_id : dom_symbol_list.image)
 			{

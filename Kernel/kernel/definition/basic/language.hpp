@@ -24,27 +24,41 @@ namespace Sen::Kernel::Language
 	 * Lambda auto close file
 	*/
 
-	inline static auto constexpr close_file = [](auto f)
+	inline static auto constexpr close_file = [](FILE* f)
 	{
-		if(f)
+		if(f != nullptr)
 		{
 			std::fclose(f);
 			f = nullptr;
 		}
 		return;
 	};
-
 	/**
 	 * Language file reader
 	 * Kernel will parse language before start program
 	*/
 
-	inline static auto read_language(
+	inline static auto read_language (
 		std::string_view source
 	) -> void {
+		#if _WIN32
+		auto static constexpr utf8_to_utf16 = [](std::string_view str) -> std::wstring
+		{
+			auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+			return myconv.from_bytes(str.data(), str.data() + str.size());
+		};
+		auto file = std::ifstream(utf8_to_utf16(source));
+		#else
 		auto file = std::ifstream(source.data());
-		if (!file) {
+		#endif
+		if (!(file.is_open())) {
+			#if _WIN32
+			auto path = std::string{source.data(), source.size()};
+			std::replace(path.begin(), path.end(), '\\', '/');
+			throw Exception(fmt::format("Could not read language file: {}", path), std::source_location::current(), "read_language");
+			#else
 			throw Exception(fmt::format("Could not read language file: {}", source), std::source_location::current(), "read_language");
+			#endif
 		}
 		auto buffer = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 		language = nlohmann::ordered_json::parse(buffer);

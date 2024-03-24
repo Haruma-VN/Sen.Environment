@@ -91,9 +91,9 @@ MAIN_FUNCTION
         result = execute_method(script_pointer.get(), argument_list, callback);
         delete[] copy;
         #if WINDOWS
-        for (auto i = 3; i < size; ++i) {
-            delete[] argument_list->value[i].value;
-        }
+            for (auto i = 3; i < size; ++i) {
+                delete[] argument_list->value[i].value;
+            }
         #endif
         delete[] argument_list->value;
         delete argument_list;

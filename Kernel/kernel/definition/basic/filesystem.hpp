@@ -15,10 +15,10 @@ namespace Sen::Kernel::FileSystem
 	 * Lambda
 	*/
 	
-	inline static auto constexpr close_file =  [](auto f){ 
-		if (f) {
-			std::fclose(f);
-			f = nullptr;
+	inline static auto constexpr close_file =  [](FILE* file){ 
+		if (file != nullptr) {
+			std::fclose(file);
+			file = nullptr;
 		}
 		return;
 	};
@@ -109,11 +109,11 @@ namespace Sen::Kernel::FileSystem
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
-		if (!file) {
+		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(indent, indent_char);
-		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
+		std::fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -137,11 +137,11 @@ namespace Sen::Kernel::FileSystem
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
-		if (!file) {
+		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, indent_char);
-		fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
+		std::fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
 		return;
 	}
 
@@ -187,11 +187,17 @@ namespace Sen::Kernel::FileSystem
 	#if WINDOWS
 		auto wif = std::wifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 			String::to_windows_style(source.data()))).data());
+		if (!wif.is_open()) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::view(String::to_posix_style(source.data()))), std::source_location::current(), "read_file_by_utf16");
+		}
 		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
 		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
 		return content;
 	#else
 		auto wif = std::wifstream(std::wstring{ source.begin(), source.end() });
+		if (!wif.is_open()) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source), std::source_location::current(), "read_file_by_utf16");
+		}
 		wif.imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
 		auto content = std::wstring((std::istreambuf_iterator<wchar_t>(wif)), std::istreambuf_iterator<wchar_t>());
 		return content;
@@ -227,9 +233,15 @@ namespace Sen::Kernel::FileSystem
 		std::string_view path
 	) -> void
 	{
+		#if WINDOWS
 		if(fs::is_directory(String::utf8_to_utf16(path.data()))){
 			return;
 		}
+		#else
+		if(fs::is_directory(path.data())){
+			return;
+		}
+		#endif
 		#if WINDOWS
 			fs::create_directories(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(path.data()))));
 		#else
@@ -260,8 +272,8 @@ namespace Sen::Kernel::FileSystem
 		#else
 		auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
-		if (!file) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_write_file"), filepath), std::source_location::current(), "write_file");
+		if (file == nullptr) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_write_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "write_file");
 		}
 		std::fwrite(content.data(), 1, content.size(), file.get());
 		return;
@@ -313,7 +325,7 @@ namespace Sen::Kernel::FileSystem
 		#endif
 		if(!file.is_open())
 		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_binary");
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_binary");
 		}
 		file.seekg(0, std::ios::end);
 		auto size = static_cast<std::streamsize>(file.tellg());
@@ -321,7 +333,7 @@ namespace Sen::Kernel::FileSystem
 		auto data = std::vector<T>(size);
 		if (!file.read(reinterpret_cast<char*>(data.data()), size))
 		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,filepath), std::source_location::current(), "read_binary");
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_binary");
 		}
 		return data;	
 	}
@@ -341,9 +353,9 @@ namespace Sen::Kernel::FileSystem
 		#endif
 		{
 			#if WINDOWS
-				result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().generic_wstring())));
+				result.emplace_back(Path::normalize(String::utf16_to_utf8(c.path().wstring())));
 			#else
-				result.emplace_back(Path::normalize(c.path().generic_string()));
+				result.emplace_back(Path::normalize(c.path().string()));
 			#endif
 		}
 		return result;
@@ -454,8 +466,8 @@ namespace Sen::Kernel::FileSystem
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "wb"), close_file);
 		#endif
-		if(!file){
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_binary");
+		if(file == nullptr){
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), String::to_posix_style(filepath.data())), std::source_location::current(), "write_binary");
 		}
 		std::fwrite(reinterpret_cast<const char *>(data.data()), sizeof(T), data.size(), file.get());
 		return;
@@ -473,8 +485,8 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		auto data = FileSystem::read_file(source);
-		auto eResult = xml->Parse(data.data(), data.size());
-		assert_conditional(eResult == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), source), "read_xml");
+		auto status_code = xml->Parse(data.data(), data.size());
+		assert_conditional(status_code == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), String::view(String::to_posix_style(source.data()))), "read_xml");
 		return;
 	}
 
@@ -492,7 +504,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto printer = tinyxml2::XMLPrinter{};
 		data->Print(&printer);
-		FileSystem::write_file(file_path, std::string{printer.CStr()});
+		FileSystem::write_file(file_path, String::make_string_view(printer.CStr(), static_cast<std::size_t>(printer.CStrSize())));
 		return;
 	}
 

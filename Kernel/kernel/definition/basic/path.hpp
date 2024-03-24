@@ -43,7 +43,11 @@ namespace Sen::Kernel::Path
 		const std::string & source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::absolute(source).wstring());
+		#else
 		return fs::absolute(source).string();
+		#endif
 	}
 
 	/**
@@ -55,7 +59,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).parent_path().wstring());
+		#else
 		return fs::path(source).parent_path().string();
+		#endif
 	}
 
 	/**
@@ -68,7 +76,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).filename().wstring());
+		#else
 		return fs::path(source).filename().string();
+		#endif
 	}
 
 	/**
@@ -80,7 +92,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).parent_path().filename().wstring());
+		#else
 		return fs::path(source).parent_path().filename().string();
+		#endif
 	}
 
 	/**
@@ -92,7 +108,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).extension().wstring());
+		#else
 		return fs::path(source).extension().string();
+		#endif
 	}
 
 	/**
@@ -104,7 +124,11 @@ namespace Sen::Kernel::Path
 		const std::string &source
 	) -> std::string const
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).stem().wstring());
+		#else
 		return fs::path(source).stem().string();
+		#endif
 	}
 
 
@@ -131,7 +155,11 @@ namespace Sen::Kernel::Path
 		const std::string & source
 	) -> std::string
 	{
+		#if WINDOWS
+		return String::utf16_to_utf8(fs::path(source).wstring());
+		#else
 		return fs::path(source).string();
+		#endif
 	}
 
 	/**
@@ -142,11 +170,19 @@ namespace Sen::Kernel::Path
 		std::initializer_list<std::string> list
 	) -> std::string
 	{
+		#if WINDOWS
+		auto path = fs::path(std::wstring{});
+		for(auto & element : list){
+			path.append(String::utf8_to_utf16(element));
+		}
+		return String::utf16_to_utf8(path.wstring());
+		#else
 		auto path = fs::path(std::string{});
 		for(auto & element : list){
 			path.append(element);
 		}
 		return path.string();
+		#endif
 	}
 
 	struct Format {

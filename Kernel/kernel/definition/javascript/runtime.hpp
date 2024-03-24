@@ -663,7 +663,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBool(ctx.get(), value_adapter));\
 			}\
 			if constexpr (std::is_same<T, std::string_view>::value) {\
-				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewString(ctx.get(), value_adapter.data()));\
+				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewStringLen(ctx.get(), value_adapter.data(), value_adapter.size()));\
 			}\
 			if constexpr (std::is_integral<T>::value) {\
 				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBigUint64(ctx.get(), value_adapter));\
@@ -681,7 +681,7 @@ namespace Sen::Kernel::Definition::JavaScript
 					val = JS_NewBool(ctx.get(), item);\
 				}\
 				if constexpr (std::is_same_v<T, std::string_view>) {\
-					val = JS_NewString(ctx.get(), item.data());\
+					val = JS_NewString(ctx.get(), item.data(), item.size());\
 				}\
 				if constexpr (std::is_integral<T>::value) {\
 					val = JS_NewBigUint64(ctx.get(), item);\
@@ -848,7 +848,7 @@ namespace Sen::Kernel::Definition::JavaScript
 				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
 				auto js_array = JS_NewArray(ctx.get());
 				for (auto i : Range<size_t>(value.size())) {
-					JS_SetPropertyUint32(ctx.get(), js_array, i, JS_NewString(ctx.get(), value[i].c_str()));
+					JS_SetPropertyUint32(ctx.get(), js_array, i, JS_NewStringLen(ctx.get(), value[i].data(), value[i].size()));
 				}
 				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), js_array);
 				M_FREE_GLOBAL_OBJECT();

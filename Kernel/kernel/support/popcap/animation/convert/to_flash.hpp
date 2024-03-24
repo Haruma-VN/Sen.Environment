@@ -24,17 +24,19 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		using FrameList = FrameList;
 
 	protected:
-		template <auto point, typename T>
+		template <auto point, typename T> 
 			requires std::is_integral<T>::value or std::is_floating_point<T>::value
 		inline static auto to_fixed(
-			T number) -> std::string
+			T number
+		) -> std::string
 		{
+			static_assert(sizeof(point) == sizeof(int));
 			auto stream = std::ostringstream{};
 			stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
 			return stream.str();
 		}
 
-		template <typename T>
+		template <typename T> requires std::is_integral<T>::value or std::is_floating_point<T>::value
 		inline static auto variant_to_standard(
 			std::array<T, 6> &transform,
 			const std::vector<T> &variant_transform) -> void
@@ -58,16 +60,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				transform = {variant_transform[0], variant_transform[1], variant_transform[2], variant_transform[3], variant_transform[4], variant_transform[5]};
 				break;
 			}
-			default:
-				throw Exception(fmt::format("{}", Language::get("popcap.animation.from_animation.invalid_transform")));
+			default: {
+				throw Exception(fmt::format("{}", Language::get("popcap.animation.from_animation.invalid_transform")), std::source_location::current(), "variant_to_standard");
+			}
 			}
 		}
 		inline static auto constexpr convert_transform = variant_to_standard<double>;
 
-		template <typename T>
+		template <typename T> requires std::is_integral<T>::value or std::is_floating_point<T>::value
 		inline static auto valid_color(
 			std::array<T, 4> &color,
-			const std::vector<T> &base_color) -> void
+			const std::vector<T> &base_color
+		) -> void
 		{
 			if (!base_color.empty())
 			{
@@ -82,11 +86,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			return;
 		}
+
 		inline static auto constexpr copy_color = valid_color<double>;
 
 		template <typename T>
 		inline static auto has_duplicates(
-			const std::vector<T> &vec) -> int
+			const std::vector<T> &vec
+		) -> int
 		{
 			auto unique_elements = std::set<T>{};
 			for (const auto &i : Range<int>(vec.size()))
@@ -240,8 +246,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					DOMFrame->InsertEndChild(elements);
 					frames->InsertEndChild(DOMFrame);
 				}
-				if (frame_node.size() == 0)
+				if (frame_node.size() == 0) {
 					continue;
+				}
 				DOMLayer->SetAttribute("name", fmt::format("{}", name_layer_index).data());
 				DOMLayer->InsertEndChild(frames);
 				layers->InsertFirstChild(DOMLayer);
@@ -257,7 +264,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline auto check_base_frame(
 			const std::array<double, 6> &transform,
 			const std::array<double, 4> &base_color,
-			int resource) -> bool
+			int resource
+		) -> bool
 		{
 			for (auto i : Range<int>(transform.size()))
 			{
@@ -266,11 +274,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			for (auto i : Range<int>(base_color.size()))
 			{
-				if (base_color[i] != Common::initial_color[i])
+				if (base_color[i] != Common::initial_color[i]) {
 					return true;
+				}
 			}
-			if (resource != -1)
+			if (resource != -1) {
 				return true;
+			}
 			return false;
 		}
 
@@ -419,9 +429,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		template <auto is_action>
 		inline auto decode_frame_list(
 			const AnimationSprite &sprite,
-			FrameList &frame_list) -> void
+			FrameList &frame_list
+		) -> void
 		{
 			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
+			static_assert(sizeof(is_action) == sizeof(bool));
 			auto sprite_model = std::map<int, Model>{};
 			auto &frame_node_list = frame_list.frame_node_list;
 			auto frame_length = static_cast<int>(sprite.frame.size());
@@ -643,7 +655,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			if (has_duplicates(sprite_list) != -1)
 			{
-				throw Exception("sprite_duplicates: " + sprite_list[has_duplicates(sprite_list)]);
+				throw Exception("sprite_duplicates: " + sprite_list[static_cast<std::size_t>(has_duplicates(sprite_list))], std::source_location::current(), "process");
 			}
 			auto frame_list = FrameList{};
 			decode_frame_list<true>(animation.main_sprite, frame_list);
@@ -651,7 +663,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			write_action(frame_list, action_node_list);
 			if (has_duplicates(frame_list.action_name_list) != -1)
 			{
-				throw Exception("label_duplicates: " + frame_list.action_name_list[has_duplicates(frame_list.action_name_list)]);
+				throw Exception("label_duplicates: " + frame_list.action_name_list[has_duplicates(frame_list.action_name_list)], std::source_location::current(), "process");
 			}
 			for (const auto &label : frame_list.action_name_list)
 			{
@@ -659,9 +671,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				write_sprite<true>(label, action_node_list.at(label), &action_document);
 				FileSystem::write_xml(fmt::format("{}/library/action/{}.xml", destination, label), &action_document);
 			}
-			auto dom_document = XMLDocument{};
-			write_document(frame_list, &dom_document);
-			FileSystem::write_xml(fmt::format("{}/DomDocument.xml", destination), &dom_document);
+			{
+				auto dom_document = XMLDocument{};
+				write_document(frame_list, &dom_document);
+				FileSystem::write_xml(fmt::format("{}/DomDocument.xml", destination), &dom_document);
+			}
 			FileSystem::write_file(fmt::format("{}/main.xfl", destination), "PROXY-CS5");
 			FileSystem::write_json(fmt::format("{}/record.json", destination), record);
 			FileSystem::create_directory(fmt::format("{}/library/media", destination));
