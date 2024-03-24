@@ -172,7 +172,7 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			return;
 		}
 
-		auto write_rsg(
+		inline auto write_rsg(
 			std::string_view destination,
 			DataStreamView* rsg_data,
 			nlohmann::ordered_json &res

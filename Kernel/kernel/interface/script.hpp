@@ -482,8 +482,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto obj = JS_UNDEFINED;
 				auto proto = JSElement::Prototype{};
 				if (argc == 1) {
-					auto path = JS::Converter::get_c_string(ctx, argv[0]);
-					s = new Data<T>{ path.get() };
+					s = new Data<T>{ JS::Converter::get_string(ctx, argv[0]) };
 				}
 				else if (argc == 0) {
 					s = new Data<T>{};
@@ -492,8 +491,9 @@ namespace Sen::Kernel::Interface::Script {
 					return JS_EXCEPTION;
 				}
 				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
-				if (JS_IsException(proto))
+				if (JS_IsException(proto)) {
 					goto fail;
+				}
 				obj = JS_NewObjectProtoClass(ctx, proto, ClassID<T>::value);
 				JS_FreeValue(ctx, proto);
 				if (JS_IsException(obj))

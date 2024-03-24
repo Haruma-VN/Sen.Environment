@@ -18,8 +18,9 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const JSValue & that
 			) -> std::string
 			{
-				auto c_str = JS_ToCString(context, that);
-				auto str = std::string{c_str};
+				auto size = std::size_t{};
+				auto c_str = JS_ToCStringLen(context, &size, that);
+				auto str = std::string{c_str, size};
 				JS_FreeCString(context, c_str);
 				return str;
 			}
@@ -543,21 +544,18 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto size = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &size, that);
-				if (data == NULL) {
+				if (data == nullptr) {
 					throw Exception(fmt::format("{}", Language::get("js.converter.failed_to_get_js_array_buffer")), std::source_location::current(), "write_file_as_arraybuffer");
 				}
 				#if WINDOWS
-					auto ofs = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(destination.data()).c_str(), L"wb"), Language::close_file);
+					auto ofs = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(destination.data()))).data(), L"wb"), Language::close_file);
 				#else
 					auto ofs = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(destination.data(), "wb"), Language::close_file);
 				#endif
-				if (!ofs) {
+				if (ofs.get() == nullptr) {
 					throw Exception(fmt::format("{}", Language::get("open_write_failed"), destination), std::source_location::current(), "write_file_as_arraybuffer");
 				}
-				auto result = std::fwrite(reinterpret_cast<const char*>(data), 1, size, ofs.get());
-				if (result != size) {
-					throw Exception(fmt::format("File cannot be written, path: {}", destination), std::source_location::current(), "write_file_as_arraybuffer");
-				}
+				std::fwrite(reinterpret_cast<char*>(data), 1, size, ofs.get());
 				return;
 			}
 
