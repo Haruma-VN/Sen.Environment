@@ -238,7 +238,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto packet_info = std::make_shared<PacketInfo>();
             unpack.process<use_res>(destination, packet_info.get());
             if constexpr (write_info) {
-                //FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
+                FileSystem::write_json(fmt::format("{}/packet.json", destination), *packet_info);
             }
             if constexpr (std::is_same<return_type, std::shared_ptr<PacketInfo>>::value)
             {
