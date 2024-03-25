@@ -47,6 +47,20 @@ namespace Sen::Kernel {
     		return std::getenv(str.data()) != nullptr;
 		}
 
+		// TODO add function
+
+
+			/**
+		 * Get path environment
+		*/
+
+		inline static auto get_path_environment(
+			std::string_view str
+		) -> std::string
+		{
+    		return std::string{std::getenv(str.data())};
+		}
+
 		/**
 		 * Method launch process and return a string if the result is returned
 		*/

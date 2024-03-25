@@ -63,7 +63,9 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode {
                 Sen.Script.Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Sen.Script.Console.output(argument.destination!);
+                // TODO : Add localization
                 Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.rton.decrypt.key"));
+                // TODO : Add localization
                 Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.rton.decrypt.iv"));
                 Sen.Script.Executor.clock.start_safe();
                 Sen.Kernel.Support.PopCap.RTON.decrypt_and_decode_fs(argument.source, argument.destination!, argument.key!, argument.iv!);

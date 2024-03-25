@@ -5816,6 +5816,32 @@ namespace Sen::Kernel::Interface::Script {
 			}, "is_exists_in_path_environment"_sv);
 		}
 
+		// TODO add thiz function
+
+		/**
+		 * ----------------------------------------
+		 * JavaScript Get Environment
+		 * @param argv[0]: process
+		 * @return: string
+		 * ----------------------------------------
+		*/
+
+		inline static auto get_path_environment(
+			JSContext *context, 
+			JSValueConst this_val, 
+			int argc, 
+			JSValueConst *argv
+		) -> JSElement::string
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				assert_conditional(JS_IsString(argv[0]), fmt::format("{} {} {} {}", Kernel::Language::get("kernel.expected_argument"), 0, Kernel::Language::get("is"), Kernel::Language::get("kernel.tuple.js_string")), "get_path_environment");
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto result = Sen::Kernel::Process::get_path_environment(source);
+				return JS::Converter::to_string(context, result);
+			}, "get_path_environment"_sv);
+		}
+
 		/**
 		 * ----------------------------------------
 		 * JavaScript Spawn Process

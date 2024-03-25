@@ -189,6 +189,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Process::execute, "Sen"_sv, "Kernel"_sv, "Process"_sv, "execute"_sv);
 					// is_exists_in_path_environment
 					javascript->add_proxy(Script::Process::is_exists_in_path_environment, "Sen"_sv, "Kernel"_sv, "Process"_sv, "is_exists_in_path_environment"_sv);
+					// get_path_environment
+					javascript->add_proxy(Script::Process::get_path_environment, "Sen"_sv, "Kernel"_sv, "Process"_sv, "get_path_environment"_sv);
 				}
 				// thread
 				{

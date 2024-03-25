@@ -230,6 +230,15 @@ declare namespace Sen {
              * @returns True if the command exists in PATH, false otherwise.
              */
             export function is_exists_in_path_environment(command: string): boolean;
+
+
+             /**
+             * Get path in the system's PATH environment variable.
+             *
+             * @param command The command to check for.
+             * @returns string.
+             */
+             export function get_path_environment(command: string): string;
         }
 
         /**

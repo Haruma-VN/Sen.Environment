@@ -39,10 +39,14 @@ namespace Sen::Kernel::Definition
             inline static constexpr auto NullValue = std::string_view{"null"};
 
             inline static constexpr auto RemoveFlagsBitMask = 0x7FFFFFFF;
+
+            inline static auto quote_pattern = std::regex("\"");
             inline static auto backslash_pattern = std::regex("\\\\");
             inline static auto newline_pattern = std::regex("\n");
             inline static auto carriage_pattern = std::regex("\r");
             inline static auto tab_pattern = std::regex("\t");
+            inline static auto backspace_pattern = std::regex("\b");
+            inline static auto formfeed_pattern = std::regex("\f");
         };
 
         /// This enum defines the various JSON tokens that make up a JSON text and is used by
@@ -153,6 +157,10 @@ namespace Sen::Kernel::Definition
                 {
                     value = std::regex_replace(value, JsonConstants::backslash_pattern, "\\\\");
                 }
+                if (value.find(JsonConstants::Quote) != std::string::npos)
+                {
+                    value = std::regex_replace(value, JsonConstants::quote_pattern, "\\\"");
+                }
                 if (value.find(JsonConstants::LineFeed) != std::string::npos)
                 {
                     value = std::regex_replace(value, JsonConstants::newline_pattern, "\\n");
@@ -165,13 +173,14 @@ namespace Sen::Kernel::Definition
                 {
                     value = std::regex_replace(value, JsonConstants::tab_pattern, "\\t");
                 }
-                /*
                 if (value.find(JsonConstants::FormFeed) != std::string::npos)
                 {
-                    std::regex regexPattern("\f");
-                    value = std::regex_replace(value, regexPattern, "\\f");
+                    value = std::regex_replace(value, JsonConstants::formfeed_pattern, "\\f");
                 }
-                */
+                if (value.find(JsonConstants::BackSpace) != std::string::npos)
+                {
+                    value = std::regex_replace(value, JsonConstants::backslash_pattern, "\\b");
+                }
                 return;
             }
 
@@ -505,12 +514,6 @@ namespace Sen::Kernel::Definition
             */
             inline auto WriteValue(std::string value) const -> void
             {
-                // Write Null
-                if (value.empty())
-                {
-                    thiz.WriteNull();
-                    return;
-                }
                 JsonWriterHelper::EscapeString(value);
                 thiz.WriteStringValue(value);
                 thiz._tokenType = String;
