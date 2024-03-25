@@ -10,7 +10,6 @@ MAIN_FUNCTION
             SetConsoleCP(CP_UTF8);
             SetConsoleOutputCP(CP_UTF8);
         #endif
-        std::setlocale(LC_ALL, "C");
         auto kernel = std::string{};
         auto script = std::string{};
         if (size >= 2) {
@@ -38,7 +37,7 @@ MAIN_FUNCTION
         #else
             auto hinstLib = dlopen(kernel.c_str(), RTLD_LAZY);
         #endif
-        if (hinstLib == NULL) {
+        if (hinstLib == nullptr) {
             Console::print("Kernel cannot be loaded", "", Sen::Shell::Interactive::Color::RED);
             return 1;
         }
@@ -47,7 +46,7 @@ MAIN_FUNCTION
         #else
             auto execute_method = (execute)dlsym(hinstLib, "execute");
         #endif
-        if (execute_method == NULL) {
+        if (execute_method == nullptr) {
             Console::print("Method not found", "", Sen::Shell::Interactive::Color::RED);
             #if WINDOWS
                     FreeLibrary(hinstLib);

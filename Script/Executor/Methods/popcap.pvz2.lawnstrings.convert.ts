@@ -95,8 +95,8 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
             configuration: undefined!,
             direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.Argument): void {
                 Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.load_string(argument, "source_type", this.configuration, Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.convert.source_type"), Detail.rule);
-                Sen.Script.Executor.load_string(argument, "destination_type", this.configuration, Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.destination.destination_type"), Detail.rule);
+                Sen.Script.Executor.load_bigint(argument, "source_type", this.configuration, Detail.type(), Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.convert.source_type"));
+                Sen.Script.Executor.load_bigint(argument, "destination_type", this.configuration, Detail.type(), Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.destination.destination_type"));
                 Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.${Detail.extension(argument.destination_type!)}`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();

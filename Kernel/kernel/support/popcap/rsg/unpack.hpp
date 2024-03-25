@@ -168,7 +168,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             {
                 auto char_byte = sen->readUint8();
                 auto pos = sen->readUint24() * 4;
-                if (char_byte == 0)
+                if (char_byte == 0_byte)
                 {
                     if (pos != 0)
                     {
@@ -204,9 +204,9 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 }
                 else
                 {
-                    if (char_byte == 0x5C)
+                    if (char_byte == 0x5C_byte)
                     {
-                        char_byte = 0x2F;
+                        char_byte = 0x2F_byte;
                     }
                     if (pos != 0)
                     {

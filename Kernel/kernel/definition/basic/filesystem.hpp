@@ -74,13 +74,12 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(filepath.data()))).c_str(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
 		if (file == nullptr) {
-			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), filepath), std::source_location::current(), "write_json");
+			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), String::to_posix_style(filepath.data())), std::source_location::current(), "write_json");
 		}
 		auto dumped_content = content.dump(1, '\t');
 		std::fwrite(dumped_content.data(), 1, dumped_content.size(), file.get());
@@ -105,7 +104,7 @@ namespace Sen::Kernel::FileSystem
 						static_assert(false, "msvc compiler is required on windows");
 				#endif
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-					String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
+					String::to_windows_style(filepath.data()))).data(), L"wb"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif
@@ -215,8 +214,12 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto utf16le_locale = std::locale(std::locale::classic(), new std::codecvt_utf16<wchar_t, 0x10ffff,
 			(std::codecvt_mode)(std::little_endian | std::generate_header)>);
+		#if WINDOWS
 		auto file = std::wofstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 			String::to_windows_style(source.data()))).data(), std::ios::binary);
+		#else
+		auto file = std::wofstream(source.data(), std::ios::binary);
+		#endif
 		file.imbue(utf16le_locale);
 		file << data;
 		return;
@@ -318,23 +321,17 @@ namespace Sen::Kernel::FileSystem
 	) -> std::vector<T> const
 	{
 		#if WINDOWS
-			auto file = std::ifstream(String::utf8_to_utf16(fmt::format("\\\\?\\{}",
+		auto file = std::ifstream(String::utf8_to_utf16(fmt::format("\\\\?\\{}",
 				String::to_windows_style(filepath.data()))).data(), std::ios::binary);
 		#else
 		auto file = std::ifstream(filepath.data(), std::ios::binary);
 		#endif
-		if(!file.is_open())
-		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_binary");
-		}
+		assert_conditional(file.is_open(), fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), "read_binary");
 		file.seekg(0, std::ios::end);
 		auto size = static_cast<std::streamsize>(file.tellg());
 		file.seekg(0, std::ios::beg);
 		auto data = std::vector<T>(size);
-		if (!file.read(reinterpret_cast<char*>(data.data()), size))
-		{
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_binary");
-		}
+		assert_conditional(file.read(reinterpret_cast<char*>(data.data()), size), fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), "read_binary");
 		return data;	
 	}
 
