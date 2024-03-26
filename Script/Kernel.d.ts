@@ -231,14 +231,13 @@ declare namespace Sen {
              */
             export function is_exists_in_path_environment(command: string): boolean;
 
-
-             /**
+            /**
              * Get path in the system's PATH environment variable.
              *
              * @param command The command to check for.
              * @returns string.
              */
-             export function get_path_environment(command: string): string;
+            export function get_path_environment(command: string): string;
         }
 
         /**
@@ -2701,12 +2700,453 @@ declare namespace Sen {
         }
 
         /**
+         * Kernel class must be implements this interface
+         */
+
+        declare interface BaseWrapper {
+            _value: BaseWrapper;
+        }
+
+        /**
+         * Kernel Integer8 Class
+         *
+         * This class represents an 8-bit signed integer data type in the Kernel framework.
+         * It provides functionalities for working with integer values within the -128 to 127 range.
+         */
+        declare class Integer8 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Integer8: Integer8;
+
+            /**
+             * Internal storage for the 8-bit signed integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal integer value.
+             *
+             * @returns {bigint} - The current 8-bit signed integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal integer value.
+             *
+             * @param {bigint} value - The new 8-bit signed integer value to set.
+             * @throws {RangeError} - If the provided value is outside the -128 to 127 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel Integer8 class.
+             *
+             * Initializes the internal value with the provided integer argument.
+             *
+             * @param {bigint} value - The initial 8-bit signed integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the -128 to 127 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Integer16 Class
+         *
+         * This class represents a 16-bit signed integer data type in the Kernel framework.
+         * It provides functionalities for working with integer values within the -32768 to 32767 range.
+         */
+        declare class Integer16 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Integer16: Integer16;
+
+            /**
+             * Internal storage for the 16-bit signed integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal integer value.
+             *
+             * @returns {bigint} - The current 16-bit signed integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal integer value.
+             *
+             * @param {bigint} value - The new 16-bit signed integer value to set.
+             * @throws {RangeError} - If the provided value is outside the -32768 to 32767 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel Integer16 class.
+             *
+             * Initializes the internal value with the provided integer argument.
+             *
+             * @param {bigint} value - The initial 16-bit signed integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the -32768 to 32767 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Integer32 Class
+         *
+         * This class represents a 32-bit signed integer data type in the Kernel framework.
+         * It provides functionalities for working with integer values within the -2147483648 to 2147483647 range.
+         */
+        declare class Integer32 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Integer32: Integer32;
+
+            /**
+             * Internal storage for the 32-bit signed integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal integer value.
+             *
+             * @returns {bigint} - The current 32-bit signed integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal integer value.
+             *
+             * @param {bigint} value - The new 32-bit signed integer value to set.
+             * @throws {RangeError} - If the provided value is outside the -2147483648 to 2147483647 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel Integer32 class.
+             *
+             * Initializes the internal value with the provided integer argument.
+             *
+             * @param {bigint} value - The initial 32-bit signed integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the -2147483648 to 2147483647 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Integer64 Class
+         *
+         * This class represents a 64-bit signed integer data type in the Kernel framework.
+         * It provides functionalities for working with integer values within a very large positive and negative range.
+         * Be mindful of potential overflow or underflow errors when using extremely large or small values.
+         */
+        declare class Integer64 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Integer64: Integer64;
+
+            /**
+             * Internal storage for the 64-bit signed integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal integer value.
+             *
+             * @returns {bigint} - The current 64-bit signed integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal integer value.
+             *
+             * @param {bigint} value - The new 64-bit signed integer value to set.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel Integer64 class.
+             *
+             * Initializes the internal value with the provided integer argument.
+             *
+             * @param {bigint} value - The initial 64-bit signed integer value for the object.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Unsigned Integer8 Class
+         *
+         * This class represents an 8-bit unsigned integer data type in the Kernel framework.
+         * It provides functionalities for working with non-negative integer values within the 0 to 255 range.
+         */
+        declare class UInteger8 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _UInteger8: UInteger8;
+
+            /**
+             * Internal storage for the 8-bit unsigned integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal unsigned integer value.
+             *
+             * @returns {bigint} - The current 8-bit unsigned integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal unsigned integer value.
+             *
+             * @param {bigint} value - The new 8-bit unsigned integer value to set.
+             * @throws {RangeError} - If the provided value is outside the 0 to 255 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel UInteger8 class.
+             *
+             * Initializes the internal value with the provided non-negative integer argument.
+             *
+             * @param {bigint} value - The initial 8-bit unsigned integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the 0 to 255 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Unsigned Integer16 Class
+         *
+         * This class represents a 16-bit unsigned integer data type in the Kernel framework.
+         * It provides functionalities for working with non-negative integer values within the 0 to 65535 range.
+         */
+        declare class UInteger16 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _UInteger16: UInteger16;
+
+            /**
+             * Internal storage for the 16-bit unsigned integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal unsigned integer value.
+             *
+             * @returns {bigint} - The current 16-bit unsigned integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal unsigned integer value.
+             *
+             * @param {bigint} value - The new 16-bit unsigned integer value to set.
+             * @throws {RangeError} - If the provided value is outside the 0 to 65535 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel UInteger16 class.
+             *
+             * Initializes the internal value with the provided non-negative integer argument.
+             *
+             * @param {bigint} value - The initial 16-bit unsigned integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the 0 to 65535 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Unsigned Integer32 Class
+         *
+         * This class represents a 32-bit unsigned integer data type in the Kernel framework.
+         * It provides functionalities for working with non-negative integer values within the 0 to 4294967295 range.
+         */
+        declare class UInteger32 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _UInteger32: UInteger32;
+            /**
+             * Internal storage for the 32-bit unsigned integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal unsigned integer value.
+             *
+             * @returns {bigint} - The current 32-bit unsigned integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal unsigned integer value.
+             *
+             * @param {bigint} value - The new 32-bit unsigned integer value to set.
+             * @throws {RangeError} - If the provided value is outside the 0 to 4294967295 range.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel UInteger32 class.
+             *
+             * Initializes the internal value with the provided non-negative integer argument.
+             *
+             * @param {bigint} value - The initial 32-bit unsigned integer value for the object.
+             * @throws {RangeError} - If the provided value is outside the 0 to 4294967295 range.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Unsigned Integer64 Class
+         *
+         * This class represents a 64-bit unsigned integer data type in the Kernel framework.
+         * It provides functionalities for working with non-negative integer values within a very large positive range.
+         * Be mindful of potential overflow errors when using extremely large values.
+         */
+        declare class UInteger64 implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _UInteger64: UInteger64;
+
+            /**
+             * Internal storage for the 64-bit unsigned integer value.
+             */
+            private _value: bigint;
+
+            /**
+             * Getter for the internal unsigned integer value.
+             *
+             * @returns {bigint} - The current 64-bit unsigned integer value.
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the internal unsigned integer value.
+             *
+             * @param {bigint} value - The new 64-bit unsigned integer value to set.
+             * @throws {RangeError} - If the provided value is negative.
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Constructor for the Kernel UInteger64 class.
+             *
+             * Initializes the internal value with the provided non-negative integer argument.
+             *
+             * @param {bigint} value - The initial 64-bit unsigned integer value for the object.
+             * @throws {RangeError} - If the provided value is negative.
+             */
+            public constructor(value?: bigint): void;
+        }
+
+        /**
+         * Kernel Float Class
+         *
+         * This class represents a single-precision floating-point data type in the Kernel framework.
+         */
+        declare class Float implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Float: Float;
+
+            /**
+             * Internal storage for the single-precision floating-point value.
+             */
+            private _value: number;
+
+            /**
+             * Getter for the internal floating-point value.
+             *
+             * @returns {number} - The current single-precision floating-point value.
+             */
+            public get value(): number;
+
+            /**
+             * Setter for the internal floating-point value.
+             *
+             * @param {number} value - The new single-precision floating-point value to set.
+             */
+            public set value(value: number): void;
+
+            /**
+             * Constructor for the Kernel Float class.
+             *
+             * Initializes the internal value with the provided floating-point argument.
+             *
+             * @param {number} value - The initial single-precision floating-point value for the object.
+             */
+            public constructor(value?: number): void;
+        }
+
+        /**
+         * Kernel Double Class
+         *
+         * This class represents a double-precision floating-point data type in the Kernel framework.
+         */
+        declare class Double implements BaseWrapper {
+            /**
+             * Instance
+             */
+
+            private _Double: Double;
+
+            /**
+             * Internal storage for the double-precision floating-point value.
+             */
+            private _value: number;
+
+            /**
+             * Getter for the internal floating-point value.
+             *
+             * @returns {number} - The current double-precision floating-point value.
+             */
+            public get value(): number;
+
+            /**
+             * Setter for the internal floating-point value.
+             *
+             * @param {number} value - The new double-precision floating-point value to set.
+             */
+            public set value(value: number): void;
+
+            /**
+             * Constructor for the Kernel Double class.
+             *
+             * Initializes the internal value with the provided floating-point argument.
+             *
+             * @param {number} value - The initial double-precision floating-point value for the object.
+             */
+            public constructor(value?: number): void;
+        }
+
+        /**
          * Kernel String Wrapper Class
          *
          * This class likely provides a wrapper around the native JavaScript string type,
          * potentially offering additional functionalities or behaviors specific to the Kernel framework.
          */
-        declare class String {
+        declare class String implements BaseWrapper {
             /**
              * Internal storage for the string value (might be redundant with _value)
              */
@@ -2817,7 +3257,7 @@ declare namespace Sen {
          * be handling characters using their Unicode code points (integer values
          * representing characters) or have custom logic for character representation.
          */
-        declare class Character {
+        declare class Character implements BaseWrapper {
             /**
              * Internal storage for the Character
              */
@@ -2835,7 +3275,7 @@ declare namespace Sen {
              *
              * @param value - The initial character value (bigint).
              */
-            public constructor(value: bigint): void;
+            public constructor(value?: bigint): void;
 
             /**
              * Getter for the character value
@@ -2860,6 +3300,63 @@ declare namespace Sen {
              * @returns {Character} - A new Character object with the given value.
              */
             public static instance(value: bigint): Character;
+        }
+
+        /**
+         * UCharacter Class
+         *
+         * This class likely represents a character value. It uses a bigint for storage,
+         * which can accommodate a wider range of character codes compared to
+         * a standard number type. However, it's important to note that bigint
+         * primarily deals with integer values.
+         *
+         * Depending on the context of the Kernel framework, this class might
+         * be handling characters using their Unicode code points (integer values
+         * representing characters) or have custom logic for character representation.
+         */
+        declare class UCharacter implements BaseWrapper {
+            /**
+             * Internal storage for the Character
+             */
+
+            private _UCharacter: UCharacter;
+            /**
+             * Internal storage for the character value (bigint)
+             */
+            private _value: bigint;
+
+            /**
+             * Constructor for the Character class
+             *
+             * Initializes a new Character object with the specified value (bigint).
+             *
+             * @param value - The initial character value (bigint).
+             */
+            public constructor(value?: bigint): void;
+
+            /**
+             * Getter for the character value
+             *
+             * @returns {bigint} - The current character value (bigint).
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the character value
+             *
+             * @param value - The new character value to set (bigint).
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Static method to create a Character instance
+             *
+             * Creates a new Character object with the specified value (bigint).
+             *
+             * @param value - The initial character value (bigint).
+             * @returns {UCharacter} - A new Character object with the given value.
+             */
+            public static instance(value: bigint): UCharacter;
         }
 
         /**

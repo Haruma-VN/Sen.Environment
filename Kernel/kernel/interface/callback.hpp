@@ -526,7 +526,9 @@ namespace Sen::Kernel::Interface {
 				// String
 				javascript->register_object(Script::Class::String::register_class);
 				// Character
-				javascript->register_object(Script::Class::Character::register_class);
+				javascript->register_object(Script::Class::Character::register_class<char>);
+				// UCharacter
+				javascript->register_object(Script::Class::Character::register_class<unsigned char>);
 				// DimensionView
 				javascript->register_object(Script::Class::DimensionView::register_class);
 				// Rectangle
@@ -537,6 +539,26 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Canvas::register_class);
 				// BinaryView
 				javascript->register_object(Script::Class::BinaryView::register_class);
+				// Integer8
+				javascript->register_object(Script::Class::Number::register_class<int8_t>);
+				// Integer16
+				javascript->register_object(Script::Class::Number::register_class<int16_t>);
+				// Integer32
+				javascript->register_object(Script::Class::Number::register_class<int32_t>);
+				// Integer64
+				javascript->register_object(Script::Class::Number::register_class<int64_t>);
+				// UInteger8
+				javascript->register_object(Script::Class::Number::register_class<uint8_t>);
+				// UInteger16
+				javascript->register_object(Script::Class::Number::register_class<uint16_t>);
+				// UInteger32
+				javascript->register_object(Script::Class::Number::register_class<uint32_t>);
+				// UInteger64
+				javascript->register_object(Script::Class::Number::register_class<uint64_t>);
+				// Float
+				javascript->register_object(Script::Class::Number::register_class<float>);
+				// Double
+				javascript->register_object(Script::Class::Number::register_class<double>);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;

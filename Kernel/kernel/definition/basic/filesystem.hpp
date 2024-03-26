@@ -501,7 +501,7 @@ namespace Sen::Kernel::FileSystem
 	{
 		auto printer = tinyxml2::XMLPrinter{};
 		data->Print(&printer);
-		FileSystem::write_file(file_path, String::make_string_view(printer.CStr(), static_cast<std::size_t>(printer.CStrSize())));
+		FileSystem::write_file(file_path, String::make_string_view(printer.CStr(), static_cast<std::size_t>(printer.CStrSize() - 1)));
 		return;
 	}
 

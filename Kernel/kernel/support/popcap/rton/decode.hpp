@@ -78,7 +78,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
 
             inline auto read_object(
 
-                ) -> void
+            ) -> void
             {
                 json_writer.WriteStartObject();
                 auto bytecode = thiz.sen->readUint8();

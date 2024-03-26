@@ -344,5 +344,7 @@
     "popcap.rsb.unpack_for_modding.layout": "Resource-Group style, for path",
     "popcap.rsb.unpack_for_modding.layout.array": "For PvZ 2 version 10.3 and below",
     "popcap.rsb.unpack_for_modding.layout.string": "For PvZ 2 version 10.4 and above",
-    "popcap.rsb.unpack_for_modding.generic": "Texture Format Category"
+    "popcap.rsb.unpack_for_modding.generic": "Texture Format Category",
+    "popcap.animation.from_flash_and_encode": "PopCap Animation: Flash to PAM",
+    "popcap.animation.decode_and_to_flash": "PopCap Animation: PAM to Flash"
 }

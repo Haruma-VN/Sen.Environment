@@ -258,7 +258,12 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				T value
 			) -> JSValue
 			{
-				return JS_NewBigInt64(context, static_cast<int64_t>(value));
+				if constexpr (std::is_same<T, std::uint64_t>::value) {
+					return JS_NewBigUint64(context, value);
+				}
+				else {
+					return JS_NewBigInt64(context, static_cast<int64_t>(value));
+				}
 			}
 
 			/**

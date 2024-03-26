@@ -94,7 +94,7 @@ namespace Sen::Kernel {
 				return std::string_view{source.data(), source.size()};
 			}
 
-			inline static auto make_string_view (
+			inline static auto constexpr make_string_view (
 				const char* str,
 				std::size_t size
 			) -> std::string_view
