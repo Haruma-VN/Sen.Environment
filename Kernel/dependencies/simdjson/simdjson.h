@@ -3899,7 +3899,17 @@ inline simdjson_result<padded_string> padded_string::load(std::string_view filen
   // Open the file
   SIMDJSON_PUSH_DISABLE_WARNINGS
   SIMDJSON_DISABLE_DEPRECATED_WARNING // Disable CRT_SECURE warning on MSVC: manually verified this is safe
+  // Haruma : Modify
+  #if _WIN32
+  auto static constexpr utf8_to_utf16 = [](std::string_view str) -> std::wstring
+		{
+			auto myconv = std::wstring_convert<std::codecvt_utf8<wchar_t>>{};
+			return myconv.from_bytes(str.data(), str.data() + str.size());
+		};
+  std::FILE *fp = _wfopen(utf8_to_utf16(filename).data(), L"rb");
+  #else
   std::FILE *fp = std::fopen(filename.data(), "rb");
+  #endif
   SIMDJSON_POP_DISABLE_WARNINGS
 
   if (fp == nullptr) {

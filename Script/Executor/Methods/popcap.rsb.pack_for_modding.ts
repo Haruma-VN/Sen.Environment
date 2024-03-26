@@ -51,7 +51,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
                 Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.RSB.pack_fs(argument.source, argument.destination!);
+                Support.PopCap.ResourceStreamBundle.Project.Pack.process_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },

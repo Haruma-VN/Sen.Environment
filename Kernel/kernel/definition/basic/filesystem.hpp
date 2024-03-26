@@ -37,7 +37,7 @@ namespace Sen::Kernel::FileSystem
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "r"), close_file);
 		#endif
 		if (file == nullptr) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), filepath), std::source_location::current(), "read_file");
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_file");
 		}
 		std::fseek(file.get(), 0, SEEK_END);
 		auto length = fsize(file.get());
@@ -57,7 +57,7 @@ namespace Sen::Kernel::FileSystem
 		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 			String::to_windows_style(source.data()))).data());
         if (!file.is_open()) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file") ,source), std::source_location::current(), "read_json");
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(source.data())), std::source_location::current(), "read_json");
         }
         auto buffer = std::stringstream{};
         buffer << file.rdbuf();

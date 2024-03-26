@@ -389,14 +389,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
         inline auto toupper(
-            std::string &str)
+            std::string &str
+        ) -> void
         {
             std::transform(str.begin(), str.end(), str.begin(), ::toupper);
             return;
         }
 
         inline auto toupperback(
-            const std::string &str) -> std::string
+            const std::string &str
+        ) -> std::string
         {
             auto upper_str = str;
             std::transform(upper_str.begin(), upper_str.end(), upper_str.begin(), ::toupper);
