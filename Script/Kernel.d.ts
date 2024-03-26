@@ -2402,6 +2402,166 @@ declare namespace Sen {
         }
 
         /**
+         * APNGMakerSetting Class
+         *
+         * This class likely represents a collection of settings used to configure the
+         * generation of Animated Portable Network Graphics (APNG) images.
+         *
+         * These settings might control aspects like:
+         *  - Quality (compression level)
+         *  - Disposal method (how previous frames are handled)
+         *  - Blending mode (how frames are combined)
+         */
+
+        declare class APNGMakerSetting {
+            /**
+             * _APNGMakerSetting: APNGMakerSetting
+             *
+             * This private member holds a reference to an APNGMakerSetting object.
+             * This object likely contains configuration settings for the APNG generation process.
+             *
+             * Access to this setting object is likely controlled through public methods of the class
+             * (not shown here) to ensure proper configuration and validation.
+             */
+            private _APNGMakerSetting: APNGMakerSetting;
+
+            /**
+             * _delay_frames_list: Array<bigint>
+             *
+             * This private member stores an array of bigint values.
+             * Each bigint value likely represents the delay (in milliseconds or some unit)
+             * between consecutive frames in the APNG animation.
+             *
+             * The size of this array should correspond to the number of frames in the animation.
+             */
+            private _delay_frames_list: Array<bigint>;
+
+            /**
+             * _loop: bigint
+             *
+             * This private member stores a bigint value representing the number of times
+             * the APNG animation should loop.
+             *
+             * A value of 0 likely indicates infinite looping, while any positive value specifies
+             * the number of loops before stopping playback.
+             */
+            private _loop: bigint;
+
+            /**
+             * _width: bigint
+             *
+             * This private member stores a bigint value representing the width of the APNG image
+             * in pixels.
+             *
+             * Using bigint allows for handling very large image dimensions if necessary.
+             */
+            private _width: bigint;
+
+            /**
+             * _height: bigint
+             *
+             * This private member stores a bigint value representing the height of the APNG image
+             * in pixels.
+             *
+             * Using bigint allows for handling very large image dimensions if necessary.
+             */
+            private _height: bigint;
+
+            /**
+             * _trim: boolean
+             *
+             * This private member stores a boolean value indicating whether to trim any transparent
+             * pixels from the edges of the APNG frames.
+             *
+             * A value of true enables trimming, while false keeps all pixels.
+             */
+            private _trim: boolean;
+
+            /**
+             * Constructor for the class
+             *
+             * Initializes the class with the provided APNG settings.
+             *
+             * @param delay_frames_list An array of bigint values representing delays between frames (in milliseconds or similar units).
+             * @param loop              A Kernel.UInteger32 value indicating the number of loops for the animation (0 for infinite).
+             * @param width             A Kernel.UInteger32 value representing the width of the APNG image in pixels.
+             * @param height            A Kernel.UInteger32 value representing the height of the APNG image in pixels.
+             * @param trim              A Kernel.Boolean value indicating whether to trim transparent pixels from the edges.
+             */
+            public constructor(delay_frames_list: typeof this._delay_frames_list, loop: Kernel.UInteger32, width: Kernel.UInteger32, height: Kernel.UInteger32, trim: Kernel.Boolean): void;
+
+            /**
+             * Gets the array of delays between frames.
+             *
+             * @returns An array of bigint values representing the delays.
+             */
+            public get delay_frames_list(): typeof this._delay_frames_list;
+
+            /**
+             * Sets the array of delays between frames.
+             *
+             * @param value An array of bigint values representing the new delays to set.
+             */
+            public set delay_frames_list(value: typeof this._delay_frames_list): void;
+
+            /**
+             * Gets the number of loops for the animation.
+             *
+             * @returns A Kernel.UInteger32 value representing the number of loops.
+             */
+            public get loop(): typeof this._loop;
+
+            /**
+             * Sets the number of loops for the animation.
+             *
+             * @param value A Kernel.UInteger32 value representing the new number of loops to set.
+             */
+            public set loop(value: typeof this._loop): void;
+
+            /**
+             * Gets the width of the APNG image.
+             *
+             * @returns A Kernel.UInteger32 value representing the width in pixels.
+             */
+            public get width(): typeof this._width;
+
+            /**
+             * Sets the width of the APNG image.
+             *
+             * @param value A Kernel.UInteger32 value representing the new width to set.
+             */
+            public set width(value: typeof this._width): void;
+
+            /**
+             * Gets the height of the APNG image.
+             *
+             * @returns A Kernel.UInteger32 value representing the height in pixels.
+             */
+            public get height(): typeof this._height;
+
+            /**
+             * Sets the height of the APNG image.
+             *
+             * @param value A Kernel.UInteger32 value representing the new height to set.
+             */
+            public set height(value: typeof this._height): void;
+
+            /**
+             * Gets the trim setting for transparent pixels.
+             *
+             * @returns A Kernel.Boolean value indicating whether trimming is enabled.
+             */
+            public get trim(): typeof this._trim;
+
+            /**
+             * Sets the trim setting for transparent pixels.
+             *
+             * @param value A Kernel.Boolean value indicating whether to enable trimming.
+             */
+            public set trim(value: typeof this._trim): void;
+        }
+
+        /**
          * ImageView Class
          *
          * This class represents an image object with properties and methods for manipulation.
@@ -6484,6 +6644,21 @@ declare namespace Sen {
              * @returns {ArrayBuffer} - A new ArrayBuffer containing a copy of the original data.
              */
             export function copyArrayBuffer(value: ArrayBuffer): ArrayBuffer;
+
+            /**
+             * to_apng function
+             *
+             * This function generates an Animated Portable Network Graphic (APNG) image from a list of image paths.
+             *
+             * @param image_path_list  An array of strings containing the paths to the individual image frames for the animation.
+             * @param destination     The destination path (including filename) where the generated APNG image will be saved.
+             * @param setting          A Kernel.APNGMakerSetting object containing configuration options for the APNG generation process.
+             *                          This object likely controls aspects like quality, disposal method, and blending mode.
+             * @throws                 An error if there are issues processing the images or saving the APNG file.
+             */
+            export function to_apng(image_path_list: Array<string>, destination: string, setting: Kernel.APNGMakerSetting): void;
+
+            export function to_apng(image_path_list: Array<string>, destination: string, setting: Kernel.APNGMakerSetting): void;
         }
     }
 }

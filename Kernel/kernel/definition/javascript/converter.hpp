@@ -303,7 +303,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<int>{};
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(JS::Converter::get_int32(context, value));
+						m_list.emplace_back(JS::Converter::get_int32(context, value));
 					}
 					return m_list;
 				}
@@ -311,7 +311,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<bool>{};
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(JS::Converter::get_bool(context, value));
+						m_list.emplace_back(JS::Converter::get_bool(context, value));
 					}
 					return m_list;
 				}
@@ -319,7 +319,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<long long>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_int64(context, val));
+						m_list.emplace_back(Converter::get_int64(context, val));
 					}
 					return m_list;
 				}
@@ -327,7 +327,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<unsigned int>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_uint32(context, val));
+						m_list.emplace_back(Converter::get_uint32(context, val));
 					}
 					return m_list;
 				}
@@ -335,7 +335,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<uint64_t>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(Converter::get_uint64(context, val));
+						m_list.emplace_back(Converter::get_uint64(context, val));
 					}
 					return m_list;
 				}
@@ -343,7 +343,70 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					auto m_list = std::vector<JSValue>{};
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
-						m_list.push_back(val);
+						m_list.emplace_back(val);
+					}
+					return m_list;
+				}
+			}
+
+			/**
+			 * Convert JS Array to C++ Vector
+			*/
+
+			template <typename T>
+			inline static auto get_array(
+				JSContext* context,
+				const JSValue& that
+			) -> std::vector<T>
+			{
+				auto length_value = JS_GetPropertyStr(context, that, "length");
+				auto length = Converter::get_int32(context, length_value);
+				JS_FreeValue(context, length_value);
+				if constexpr (std::is_same<T, int>::value) {
+					auto m_list = std::vector<int>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, bool>::value) {
+					auto m_list = std::vector<bool>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(JS::Converter::get_bool(context, value));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, long long>::value) {
+					auto m_list = std::vector<long long>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, uint32_t>::value) {
+					auto m_list = std::vector<unsigned int>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, uint64_t>::value) {
+					auto m_list = std::vector<uint64_t>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+					}
+					return m_list;
+				}
+				else {
+					auto m_list = std::vector<JSValue>{};
+					for (auto i : Range(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(value);
 					}
 					return m_list;
 				}
@@ -418,7 +481,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto js_array = JS_NewArray(ctx);
 				for (auto i : Range<size_t>(vec.size())) {
-					JS_SetPropertyUint32(ctx, js_array, i, JS_NewUint32(ctx, vec[i]));
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, static_cast<int64_t>(vec[i])));
 				}
 				return js_array;
 			}
@@ -482,7 +545,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto js_array = JS_NewArray(ctx);
 				for (auto i : Range<size_t>(vec.size())) {
-					JS_SetPropertyUint32(ctx, js_array, i, JS_NewString(ctx, vec[i].c_str()));
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewStringLen(ctx, vec[i].data(), vec[i].size()));
 				}
 				return js_array;
 			}
@@ -504,15 +567,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				#else
 				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "rb"), Language::close_file);
 				#endif
-				auto file_size = long{};
-				if (!fp) {
+				if (fp == nullptr) {
 					throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), source), std::source_location::current(), "read_file_as_js_arraybuffer");
 				}
-				std::fseek(fp.get(), 0, SEEK_END);
-				file_size = std::ftell(fp.get());
-				std::rewind(fp.get());
+				#if WINDOWS
+				auto file_size = std::filesystem::file_size(std::filesystem::path{ String::utf8_to_utf16(source.data()) });
+				#else
+				auto file_size = std::filesystem::file_size(std::filesystem::path{ source });
+				#endif
 				auto buffer = std::unique_ptr<char[], decltype(close_buffer)>((char*) std::malloc(file_size * sizeof(char)), close_buffer);
-				if (buffer == NULL) {
+				if (buffer == nullptr) {
 					throw Exception(fmt::format("C malloc allocating memory failed, source file: {}", source), std::source_location::current(), "read_file_as_js_arraybuffer");
 				}
 				auto result = std::fread(buffer.get(), 1, file_size, fp.get());

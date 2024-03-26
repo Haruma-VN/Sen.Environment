@@ -681,7 +681,7 @@ namespace Sen::Kernel::Definition::JavaScript
 					val = JS_NewBool(ctx.get(), item);\
 				}\
 				if constexpr (std::is_same_v<T, std::string_view>) {\
-					val = JS_NewString(ctx.get(), item.data(), item.size());\
+					val = JS_NewStringLen(ctx.get(), item.data(), item.size());\
 				}\
 				if constexpr (std::is_integral<T>::value) {\
 					val = JS_NewBigUint64(ctx.get(), item);\

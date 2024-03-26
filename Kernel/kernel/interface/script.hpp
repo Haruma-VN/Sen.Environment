@@ -108,6 +108,7 @@ namespace Sen::Kernel::Interface::Script {
 
 		using JsonWriter = JSValue;
 
+		using APNGMakerSetting = JSValue;
 	}
 
 	/**
@@ -3269,6 +3270,193 @@ namespace Sen::Kernel::Interface::Script {
 
 		}
 
+
+
+		// APNGMakerSetting Support
+
+		namespace APNGMakerSetting {
+
+			using Data = Definition::APNGMakerSetting;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+			enum GetterSetter {
+				delay_frames_list,
+				loop,
+				width,
+				height,
+				trim,
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSElement::Prototype{};
+				if (argc == 5) {
+					auto delay_frames_list = JS::Converter::get_array<std::uint32_t>(ctx, argv[0]);
+					auto loop = static_cast<Number::Data<std::uint32_t>*>(JS_GetOpaque2(ctx, argv[1], Number::NumberID<std::uint32_t>::class_id));
+					if (loop == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto width = static_cast<Number::Data<std::uint32_t>*>(JS_GetOpaque2(ctx, argv[2], Number::NumberID<std::uint32_t>::class_id));
+					if (width == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto height = static_cast<Number::Data<std::uint32_t>*>(JS_GetOpaque2(ctx, argv[3], Number::NumberID<std::uint32_t>::class_id));
+					if (height == nullptr) {
+						return JS_EXCEPTION;
+					}
+					auto trim = static_cast<Boolean::Data*>(JS_GetOpaque2(ctx, argv[4], Boolean::class_id));
+					if (trim == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s = new Data{ delay_frames_list, loop->value, width->value, height->value, trim->value };
+				}
+				else {
+					s = new Data();
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+			fail:
+				js_free(ctx, s);
+				JS_FreeValue(ctx, obj);
+				return JS_EXCEPTION;
+			}
+
+			/*
+				Current class
+			*/
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "APNGMakerSetting",
+				.finalizer = finalizer,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<GetterSetter>(magic)) {
+					case GetterSetter::delay_frames_list: {
+						return JS::Converter::to_array(ctx, s->delay_frames_list);
+					}
+					case GetterSetter::loop: {
+						return JS::Converter::to_bigint(ctx, s->loop);
+					}
+					case GetterSetter::width: {
+						return JS::Converter::to_bigint(ctx, s->width);
+					}
+					case GetterSetter::height: {
+						return JS::Converter::to_bigint(ctx, s->height);
+					}
+					case GetterSetter::trim: {
+						return JS::Converter::to_bool(ctx, s->trim);
+					}
+				}
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<GetterSetter>(magic)) {
+					case GetterSetter::delay_frames_list: {
+						s->delay_frames_list.clear();
+						auto delay_frames_list = JS::Converter::get_array<uint32_t>(ctx, val);
+						s->delay_frames_list.assign(delay_frames_list.begin(), delay_frames_list.end());
+						break;
+					}
+					case GetterSetter::loop: {
+						s->loop = static_cast<std::uint32_t>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case GetterSetter::width: {
+						s->width = static_cast<std::uint32_t>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case GetterSetter::height: {
+						s->height = static_cast<std::uint32_t>(JS::Converter::get_bigint64(ctx, val));
+						break;
+					}
+					case GetterSetter::trim: {
+						s->trim = static_cast<bool>(JS::Converter::get_bool(ctx, val));
+						break;
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("delay_frames_list", getter, setter, GetterSetter::delay_frames_list),
+				JS_CPPGETSET_MAGIC_DEF("loop", getter, setter, GetterSetter::loop),
+				JS_CPPGETSET_MAGIC_DEF("width", getter, setter, GetterSetter::width),
+				JS_CPPGETSET_MAGIC_DEF("height", getter, setter, GetterSetter::height),
+				JS_CPPGETSET_MAGIC_DEF("trim", getter, setter, GetterSetter::trim),
+			};
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "APNGMakerSetting class failed register", "register_class");
+				auto class_name = "APNGMakerSetting"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
 		// Size Support
 
 		namespace Size {
@@ -3299,7 +3487,7 @@ namespace Sen::Kernel::Interface::Script {
 			) -> void
 			{
 				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
-				if (s) {
+				if (s != nullptr) {
 					delete s;
 				}
 				return;
@@ -3368,7 +3556,6 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSElement::undefined
 			{
 				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
-				auto v = bool{};
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
@@ -3627,11 +3814,22 @@ namespace Sen::Kernel::Interface::Script {
 		namespace String {
 
 			struct CData {
-				char const* value;
-				std::size_t size;
+				char* value = nullptr;
+
+				std::size_t size{};
 
 				CData(
-					char const* value,
+
+				) = default;
+
+				CData(
+					std::size_t size
+				) : size(size)
+				{
+				}
+
+				CData(
+					char* value,
 					std::size_t size
 				) : value(value), size(size)
 				{
@@ -3639,7 +3837,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 
 				CData(
-					char const* value
+					char* value
 				) : value(value), size(strlen(value))
 				{
 				}
@@ -3648,6 +3846,12 @@ namespace Sen::Kernel::Interface::Script {
 					free(const_cast<char*>(value));
 				}
 
+				auto view(
+
+				) -> std::string_view
+				{
+					return std::string_view{ thiz.value, thiz.size };
+				}
 			};
 
 			using Data = CData;
@@ -3660,7 +3864,7 @@ namespace Sen::Kernel::Interface::Script {
 			) -> void
 			{
 				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
-				if (s) {
+				if (s != nullptr) {
 					delete s;
 				}
 				return;
@@ -3677,7 +3881,16 @@ namespace Sen::Kernel::Interface::Script {
 				auto obj = JS_UNDEFINED;
 				auto proto = JSDefine::String{};
 				if (argc == 1) {
-					s = new Data{ strdup(JS::Converter::get_string(ctx, argv[0]).data())};
+					s = new Data();
+					auto str = JS::Converter::get_string(ctx, argv[0]);
+					s->value = static_cast<char*>(malloc(sizeof(char) * str.size() + 1));
+					if (s->value == nullptr) {
+						JS_ThrowReferenceError(ctx, "could not allocate Kernel String");
+						return JS_EXCEPTION;
+					}
+					std::memcpy(s->value, str.data(), str.size());
+					s->size = str.size();
+					s->value[str.size()] = '\0';
 				}
 				else {
 					return JS_EXCEPTION;
@@ -3720,7 +3933,7 @@ namespace Sen::Kernel::Interface::Script {
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
-				return JS::Converter::to_string(ctx, std::string{ s->value , s->size });
+				return JS::Converter::to_string(ctx, s->view());
 			}
 
 			// Setter
@@ -3737,7 +3950,11 @@ namespace Sen::Kernel::Interface::Script {
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
-				s->value = strdup(JS::Converter::get_string(ctx, val).data());
+				auto str = JS::Converter::get_string(ctx, val);
+				s->value = static_cast<char*>(malloc(sizeof(char) * str.size() + 1));
+				std::memcpy(s->value, str.data(), str.size());
+				s->size = str.size();
+				s->value[str.size()] = '\0';
 				return JS_UNDEFINED;
 			}
 
@@ -3758,7 +3975,12 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = new Data{ strdup(JS::Converter::get_string(ctx, argv[0]).data())};
+					auto s = new Data{};
+					auto str = JS::Converter::get_string(ctx, argv[0]);
+					s->value = static_cast<char*>(malloc(sizeof(char) * str.size() + 1));
+					std::memcpy(s->value, str.data(), str.size());
+					s->size = str.size();
+					s->value[str.size()] = '\0';
 					auto proto = JS_GetPropertyStr(ctx, this_val, "prototype");
 					if (JS_IsException(proto)) {
 						js_free(ctx, s);
@@ -10706,7 +10928,7 @@ namespace Sen::Kernel::Interface::Script {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				auto len = size_t{};
 				auto buf = JS_GetArrayBuffer(context, &len, argv[0]);
-				if (!buf) {
+				if (buf == nullptr) {
 					throw Exception(fmt::format("{}", Kernel::Language::get("kernel.cast_ArrayBuffer_to_JS_String.failed_to_get_array_buffer")));
 				}
 				auto utf16 = std::wstring(reinterpret_cast<wchar_t*>(buf), len / sizeof(wchar_t));
@@ -10715,6 +10937,30 @@ namespace Sen::Kernel::Interface::Script {
 				auto str = JS_NewStringLen(context, utf8.c_str(), utf8.size());
 				return str;
 			}, "cast_ArrayBuffer_to_JS_WideString"_sv);
+		}
+
+		/*
+			to_apng
+		*/
+
+		inline static auto to_apng(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto a = JS::Converter::get_vector<std::string>(context, argv[0]);
+				auto b = JS::Converter::get_string(context, argv[1]);
+				auto s = static_cast<Class::APNGMakerSetting::Data*>(JS_GetOpaque2(context, argv[2], Class::APNGMakerSetting::class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				Kernel::Definition::APNGMaker::process_fs(a, b, s);
+				return JS_UNDEFINED;
+			}, "to_apng"_sv);
 		}
 
 

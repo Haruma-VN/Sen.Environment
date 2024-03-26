@@ -471,28 +471,42 @@ namespace Sen::Kernel::Interface {
 				}
 				// pam
 				{
+					// decode_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "decode_fs"_sv);
+					// encode_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "encode_fs"_sv);
+					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "ToFlash"_sv, "convert_fs"_sv);
+					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "FromFlash"_sv, "convert_fs"_sv);
+					// to_flash
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "to_flash"_sv);
+					// from_flash
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
 				}
 				// bnk
 				{
+					// decode_fs
 					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "decode_fs"_sv);
+					// encode_fs
 					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "encode_fs"_sv);
 				}
 				// resource group
 				{
+					// split_fs
 					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::split_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "split_fs"_sv);
+					// merge_fs
 					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::merge_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "merge_fs"_sv);
+					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::ResourceGroup::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResourceGroup"_sv, "convert_fs"_sv);
 				}
 				// res info
 				{
+					// split_fs
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::split_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "split_fs"_sv);
+					// merge_fs
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::merge_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "merge_fs"_sv);
+					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "convert_fs"_sv);
 				}
 				// dimension
@@ -516,6 +530,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Miscellaneous::cast_movable_String_to_ArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_movable_String_to_ArrayBuffer"_sv);
 					// copyArrayBuffer
 					javascript->add_proxy(Script::Miscellaneous::copyArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "copyArrayBuffer"_sv);
+					// to_apng
+					javascript->add_proxy(Script::Miscellaneous::to_apng, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "to_apng"_sv);
 				}
 				// DataStreamView
 				javascript->register_object(Script::Class::DataStreamView::register_class<false>);
@@ -563,6 +579,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Number::register_class<double>);
 				// JsonWriter
 				javascript->register_object(Script::Class::JsonWriter::register_class);
+				// APNGMakerSetting
+				javascript->register_object(Script::Class::APNGMakerSetting::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;
@@ -576,6 +594,10 @@ namespace Sen::Kernel::Interface {
 
 			) -> void
 			{
+				debug(Kernel::Definition::Encryption::CRC32::Normal::compute(0, {0x49, 0x45, 0x4e, 0x44}));
+				debug(Kernel::Definition::Encryption::CRC32::Bzip2::compute(0, {0x49, 0x45, 0x4e, 0x44}));
+				debug(Kernel::Definition::Encryption::CRC32::POSIX::compute(0, {0x49, 0x45, 0x4e, 0x44}));
+				debug(Kernel::Definition::Encryption::CRC32::C::compute(0, {0x49, 0x45, 0x4e, 0x44}));
 				// call main
 				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());
 				return;

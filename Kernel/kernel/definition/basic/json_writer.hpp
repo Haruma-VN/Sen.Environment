@@ -495,7 +495,7 @@ namespace Sen::Kernel::Definition
                 Writes the property name (as a JSON string) as the first part of a name/value pair of a JSON object.
                 @param[in] properyName The name of the property to write.
             */
-            template <typename T>
+            template <typename T> 
             inline auto WritePropertyName(T propertyName) const -> void
             {
                 auto name = std::string{"null"};

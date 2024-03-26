@@ -27,6 +27,7 @@ add_library(
 	./definition/basic/thread.hpp
 	./definition/basic/collections.hpp
 	./definition/basic/json_writer.hpp
+	./definition/basic/apng_maker.hpp
 
 	./definition/encryption/md5.hpp
 	./definition/encryption/Rijndael.hpp
@@ -34,6 +35,7 @@ add_library(
 	./definition/encryption/sha256.hpp
 	./definition/encryption/base64.hpp
 	./definition/encryption/XOR.hpp
+	./definition/encryption/crc32.hpp
 	./definition/encryption/fnv.hpp
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp
