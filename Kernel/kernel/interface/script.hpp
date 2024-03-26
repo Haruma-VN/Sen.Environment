@@ -10673,6 +10673,25 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 		/*
+			Copy ArrayBuffer
+		*/
+
+		inline static auto copyArrayBuffer(
+			JSContext* context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto byte_len = std::size_t{};
+				auto data = JS_GetArrayBuffer(context, &byte_len, argv[0]);
+				return JS_NewArrayBufferCopy(context, reinterpret_cast<uint8_t*>(data), byte_len);
+			}, "copyArrayBuffer"_sv);
+		}
+
+		/*
 		UTF16 Support
 		*/
 

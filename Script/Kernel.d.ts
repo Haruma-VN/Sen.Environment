@@ -6470,6 +6470,20 @@ declare namespace Sen {
              * @returns An ArrayBuffer holding the UTF-16 encoded text data.
              */
             export function cast_movable_String_to_ArrayBuffer(value: string): ArrayBuffer;
+
+            /**
+             * copyArrayBuffer function
+             *
+             * This function creates a deep copy of the provided ArrayBuffer.
+             *
+             * A deep copy ensures a new, independent ArrayBuffer is created with the same
+             * contents as the original. Changes to the copy won't affect the original buffer,
+             * and vice versa.
+             *
+             * @param {ArrayBuffer} value - The ArrayBuffer to copy.
+             * @returns {ArrayBuffer} - A new ArrayBuffer containing a copy of the original data.
+             */
+            export function copyArrayBuffer(value: ArrayBuffer): ArrayBuffer;
         }
     }
 }
