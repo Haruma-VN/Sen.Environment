@@ -25,22 +25,6 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				return str;
 			}
 
-			/**
-			 * JS String to C String
-			*/
-
-			inline static auto get_string_view(
-				JSContext* context,
-				const JSValue & that
-			) -> std::string_view
-			{
-				auto size = std::size_t{};
-				auto c_string = JS_ToCStringLen(context, &size, that);
-				auto value = std::string_view{ c_string, size };
-				JS_FreeCString(context, c_string);
-				return value;
-			}
-
 
 
 			/**
@@ -402,7 +386,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto m_list = std::vector<std::string_view>{};
 				for (auto i : Range<int>(length)) {
 					auto val = JS_GetPropertyUint32(context, that, i);
-					m_list.emplace_back(Converter::get_string_view(context, val));
+					m_list.emplace_back(Converter::get_string(context, val));
 				}
 				return m_list;
 			}
