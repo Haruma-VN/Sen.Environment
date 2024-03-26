@@ -35,7 +35,7 @@ add_library(
 	./definition/encryption/sha256.hpp
 	./definition/encryption/base64.hpp
 	./definition/encryption/XOR.hpp
-	./definition/encryption/crc32.hpp
+	./definition/encryption/crc.hpp
 	./definition/encryption/fnv.hpp
 	./definition/compression/zlib.hpp
 	./definition/compression/lzma.hpp

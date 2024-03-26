@@ -24,7 +24,7 @@
 #include "kernel/definition/encryption/sha384.hpp"
 #include "kernel/definition/encryption/sha512.hpp"
 #include "kernel/definition/encryption/XOR.hpp"
-#include "kernel/definition/encryption/crc32.hpp"
+#include "kernel/definition/encryption/crc.hpp"
 #include "kernel/definition/encryption/sha256.hpp"
 #include "kernel/definition/encryption/base64.hpp"
 #include "kernel/definition/encryption/fnv.hpp"

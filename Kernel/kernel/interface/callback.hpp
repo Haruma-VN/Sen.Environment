@@ -594,10 +594,6 @@ namespace Sen::Kernel::Interface {
 
 			) -> void
 			{
-				debug(Kernel::Definition::Encryption::CRC32::Normal::compute(0, {0x49, 0x45, 0x4e, 0x44}));
-				debug(Kernel::Definition::Encryption::CRC32::Bzip2::compute(0, {0x49, 0x45, 0x4e, 0x44}));
-				debug(Kernel::Definition::Encryption::CRC32::POSIX::compute(0, {0x49, 0x45, 0x4e, 0x44}));
-				debug(Kernel::Definition::Encryption::CRC32::C::compute(0, {0x49, 0x45, 0x4e, 0x44}));
 				// call main
 				javascript->evaluate("Sen.Script.main()"_sv, std::source_location::current().file_name());
 				return;
