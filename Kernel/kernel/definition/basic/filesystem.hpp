@@ -39,9 +39,11 @@ namespace Sen::Kernel::FileSystem
 		if (file == nullptr) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_file");
 		}
-		std::fseek(file.get(), 0, SEEK_END);
-		auto length = fsize(file.get());
-		std::fseek(file.get(), 0, SEEK_SET);
+		#if WINDOWS
+        auto length = std::filesystem::file_size(std::filesystem::path{ String::utf8_to_utf16(filepath.data())});
+        #else
+        auto length = std::filesystem::file_size(std::filesystem::path{ filepath });
+        #endif
 		auto buffer = std::string(length, ' ');
 		std::fread(buffer.data(), 1, length, file.get());
 		return buffer;

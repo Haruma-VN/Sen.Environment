@@ -1208,4 +1208,91 @@ namespace Sen::Kernel {
 
 	};
 
+	struct OptimizeString {
+
+		private:
+			using Character = char;
+
+			template <typename T>
+			using Pointer = std::shared_ptr<T>;
+
+			template <typename T>
+			using UniquePointer = std::unique_ptr<T>;
+
+			using Size = std::size_t;
+
+		public:
+
+			Pointer<Character[]> value = std::make_shared<Character[]>(thiz.size);
+
+			Size size{};
+
+			OptimizeString(
+
+			) = default;
+
+			OptimizeString(
+				Size& size
+			) : size(size)
+			{
+				auto ptr = std::make_unique<Character[]>(thiz.size + 1);
+				ptr[thiz.size] = '\0';
+				thiz.value.reset(ptr.release());
+			}
+
+			OptimizeString(
+				const char* str,
+				Size& size
+			) : size(size)
+			{
+				auto arr = std::make_unique<Character[]>(this->size + 1);
+				std::memcpy(arr.get(), str, size);
+				arr[this->size] = '\0';
+				this->value.reset(arr.release());
+			}
+
+			OptimizeString(
+				OptimizeString&& that
+			) noexcept : value(std::move(that.value)), size(that.size)
+			{
+				that.size = 0;
+			}
+
+			auto operator =(
+				OptimizeString&& that
+			) noexcept -> OptimizeString&
+			{
+				if (this != &that) {
+					thiz.value = std::move(that.value);
+					thiz.size = that.size;
+					that.size = 0;
+				}
+				return thiz;
+			}
+
+			~OptimizeString(
+			) = default;
+
+			auto view(
+
+			) -> std::string_view
+			{
+				return std::string_view{ thiz.value.get(), thiz.size };
+			}
+
+			auto to_std(
+
+			) -> std::string
+			{
+				return std::string{ thiz.value.get(), thiz.size };
+			}
+	};
+
+	inline static auto make_string(
+		const char* ptr,
+		std::size_t& size
+	) -> OptimizeString
+	{
+		return OptimizeString{ ptr, size };
+	}
 }
