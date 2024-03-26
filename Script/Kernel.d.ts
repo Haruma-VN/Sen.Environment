@@ -2708,6 +2708,110 @@ declare namespace Sen {
         }
 
         /**
+         * JsonWriter class
+         *
+         * This class provides methods for building JSON-formatted output in a structured way.
+         */
+        declare class JsonWriter {
+            /**
+             * An internal JsonWriter instance for managing nested structures.
+             * It's unclear why this is necessary at this point.
+             */
+            private _JsonWriter: JsonWriter;
+
+            /**
+             * Controls whether to write indented JSON for readability.
+             */
+            private _write_indent: boolean;
+
+            /**
+             * Creates a new instance of the JsonWriter class.
+             */
+            public constructor(): void;
+
+            /**
+             * Gets a value indicating whether indentation is enabled.
+             *
+             * @returns True if indentation is enabled, false otherwise.
+             */
+            public get write_indent(): boolean;
+
+            /**
+             * Sets a value to enable or disable indentation.
+             *
+             * @param value True to enable indentation, false to disable.
+             */
+            public set write_indent(value: boolean): void;
+
+            /**
+             * Clears any previously written JSON data.
+             */
+            public clear(): void;
+
+            /**
+             * Returns the generated JSON string.
+             *
+             * @returns The complete JSON string in compact or indented format.
+             */
+            public toString(): string;
+
+            /**
+             * Writes the start of a JSON array ('[').
+             */
+            public writeStartArray(): void;
+
+            /**
+             * Writes the end of a JSON array (']').
+             */
+            public writeEndArray(): void;
+
+            /**
+             * Writes the start of a JSON object ('{').
+             */
+            public writeStartObject(): void;
+
+            /**
+             * Writes a boolean value to the JSON output.
+             *
+             * @param value The boolean value to write (true or false).
+             */
+            public writeBoolean(value: boolean): void;
+
+            /**
+             * Writes a null value to the JSON output.
+             */
+            public writeNull(): void;
+
+            /**
+             * Writes a property name followed by a colon (:) in a JSON object.
+             *
+             * @param property_name The name of the property to write.
+             */
+            public writePropertyName(property_name: string): void;
+
+            /**
+             * Writes a string value to the JSON output.
+             *
+             * @param value The string value to write.
+             */
+            public writeString(value: string): void;
+
+            /**
+             * Writes a number value to the JSON output.
+             *
+             * @param value The number value to write.
+             */
+            public writeNumber(value: number): void;
+
+            /**
+             * Writes a BigInt value to the JSON output.
+             *
+             * @param value The BigInt value to write.
+             */
+            public writeBigInt(value: bigint): void;
+        }
+
+        /**
          * Kernel Integer8 Class
          *
          * This class represents an 8-bit signed integer data type in the Kernel framework.

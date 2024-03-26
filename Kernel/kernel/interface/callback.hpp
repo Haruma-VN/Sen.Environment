@@ -559,6 +559,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Number::register_class<float>);
 				// Double
 				javascript->register_object(Script::Class::Number::register_class<double>);
+				// JsonWriter
+				javascript->register_object(Script::Class::JsonWriter::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;
