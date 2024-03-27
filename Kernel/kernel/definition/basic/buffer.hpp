@@ -13,9 +13,14 @@ namespace Sen::Kernel::Definition
 
     namespace Buffer
     {
-        template <bool use_big_endian>
+        template <auto use_big_endian>
         struct Stream
         {
+
+            static_assert(sizeof(use_big_endian) == sizeof(bool));
+
+            static_assert(use_big_endian == true or use_big_endian == false);
+
         private:
             std::vector<std::uint8_t> mutable data;
 
@@ -493,16 +498,7 @@ namespace Sen::Kernel::Definition
                 {
                     thiz.length = new_pos;
                 }
-                if constexpr (use_big_endian)
-                {
-                    auto reversedBytes = inputBytes;
-                    std::reverse(reversedBytes.begin(), reversedBytes.end());
-                    std::move(reversedBytes.begin(), reversedBytes.end(), thiz.data.begin() + thiz.write_pos);
-                }
-                else
-                {
-                    std::move(inputBytes.begin(), inputBytes.end(), thiz.data.begin() + thiz.write_pos);
-                }
+                std::move(inputBytes.begin(), inputBytes.end(), thiz.data.begin() + thiz.write_pos);
                 thiz.write_pos = new_pos;
                 return;
             }
@@ -1447,10 +1443,6 @@ namespace Sen::Kernel::Definition
                 auto bytes = std::vector<std::uint8_t>{};
                 bytes.assign(thiz.data.begin() + thiz.read_pos, thiz.data.begin() + thiz.read_pos + size);
                 thiz.read_pos += size;
-                if constexpr (use_big_endian)
-                {
-                    std::reverse(bytes.begin(), bytes.end());
-                }
                 return bytes;
             }
 

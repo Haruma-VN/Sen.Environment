@@ -224,14 +224,6 @@ namespace Sen::Kernel::Interface::Script {
 			}, "deserialize"_sv);
 		}
 
-		/**
-		 * ----------------------------------------
-		 * JavaScript JSON Deserializer
-		 * @param argv[0]: JS String
-		 * @returns: Deserialized object
-		 * ----------------------------------------
-		*/
-
 		inline static auto deserialize_fs(
 			JSContext* context,
 			JSValueConst this_val,
@@ -239,14 +231,18 @@ namespace Sen::Kernel::Interface::Script {
 			JSValueConst* argv
 		) -> JSElement::Object
 		{
+
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 				auto source = JS::Converter::get_string(context, argv[0]);
 				auto json = Sen::Kernel::FileSystem::read_json(source);
 				auto js_obj = json_to_js_value(context, *json);
+
+
 				return js_obj;
 			}, "deserialize_fs"_sv);
 		}
+
 
 		/**
 		 * QuickJS JSON Value to nlohmann::ordered_json and then to string

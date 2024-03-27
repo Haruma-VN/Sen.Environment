@@ -346,5 +346,13 @@
     "popcap.rsb.unpack_for_modding.layout.string": "For PvZ 2 version 10.4 and above",
     "popcap.rsb.unpack_for_modding.generic": "Texture Format Category",
     "popcap.animation.from_flash_and_encode": "PopCap Animation: Flash to PAM",
-    "popcap.animation.decode_and_to_flash": "PopCap Animation: PAM to Flash"
+    "popcap.animation.decode_and_to_flash": "PopCap Animation: PAM to Flash",
+    "popcap.animation.miscellaneous.to_apng.disable_sprite": "Disable sprite",
+    "popcap.animation.miscellaneous.to_apng.enable_all": "Enable all sprites",
+    "popcap.animation.miscellaneous.to_apng.disable_all": "Disable all sprites",
+    "popcap.animation.miscellaneous.to_apng.select_to_disable": "Select sprite to disable",
+    "popcap.animation.miscellaneous.to_apng.sprite_already_selected": "Sprite already selected",
+    "popcap.animation.miscellaneous.to_apng.input_sprite_to_disable": "Input sprite index to disable, input 0 to finish...",
+    "popcap.animation.miscellaneous.to_apng.invalid_transform_length": "Invalid transform size, expected size: 6, got: {}",
+    "popcap.animation.miscellaneous.to_apng.invalid_color_length": "Invalid color size, expected size: 4, got: {}"
 }

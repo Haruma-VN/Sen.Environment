@@ -13,6 +13,12 @@ namespace Sen::Kernel::Definition::Encryption {
 
 			using Type = Polinomial;
 
+		private:
+			using Buffer = std::vector<uint8_t>;
+
+			template <typename T, auto size>
+			using ByteArray = std::array<T, size>;
+
 		protected:
 
 			inline static constexpr auto polynomial = static_cast<Polinomial>(0xEDB88320);
@@ -29,7 +35,7 @@ namespace Sen::Kernel::Definition::Encryption {
 
 			template <typename T, auto size>
 			auto constexpr generate_table(
-				std::array<T, size>* table
+				ByteArray<T, size>* table
 			) -> void
 			{
 				for (auto i : Range(table->size()))
@@ -50,15 +56,14 @@ namespace Sen::Kernel::Definition::Encryption {
 			}
 
 			template <typename T, auto size>
-			constexpr auto update(
-				const std::array<T, size> & table,
+			constexpr auto update (
+				const ByteArray<T, size> & table,
 				T initial, 
-				const std::vector<uint8_t> & buffer
+				const Buffer & buffer
 			) -> T
 			{
 				auto c = initial ^ 0xFFFFFFFF;
-				for (auto e : buffer) 
-				{
+				for (auto & e : buffer) {
 					c = table[(c ^ e) & 0xFF] ^ (c >> 8);
 				}
 				return c ^ 0xFFFFFFFF;
@@ -66,9 +71,9 @@ namespace Sen::Kernel::Definition::Encryption {
 
 			template <typename Polinomial, typename T, auto size>
 			static auto constexpr compute (
-				const std::array<T, size> & table,
+				const ByteArray<T, size> & table,
 				T initial, 
-				const std::vector<uint8_t> & buffer
+				const Buffer & buffer
 			) -> T
 			{
 				auto crc = CRC<Polinomial>{};

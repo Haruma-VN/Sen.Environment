@@ -2931,6 +2931,11 @@ declare namespace Sen {
             public writeStartObject(): void;
 
             /**
+             * Writes the start of a JSON object ('}').
+             */
+            public writeEndObject(): void;
+
+            /**
              * Writes a boolean value to the JSON output.
              *
              * @param value The boolean value to write (true or false).
@@ -4502,7 +4507,7 @@ declare namespace Sen {
              *
              * @returns {number} The 64-bit floating-point number value read from the data stream.
              */
-            public readDouble(): bigint; // This should return a number, not bigint
+            public readDouble(): number; // This should return a number, not bigint
 
             /**
              * Read a 64-bit floating-point number from the data stream at a specific position
