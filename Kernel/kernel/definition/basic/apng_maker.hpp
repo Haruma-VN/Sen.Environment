@@ -128,8 +128,7 @@ namespace Sen::Kernel::Definition
             for (const auto &image_path : image_path_list)
             {
                 auto stream = DataStreamViewBigEndian{image_path};
-                // TODO add localization;
-                assert_conditional(stream.readString(4, 0xCull) == "IHDR", String::format(fmt::format("invaild_png_in_{}", image_path)), "load_image_path");
+                assert_conditional(stream.readString(4, 0xCull) == "IHDR", String::format(fmt::format("{}", Language::get("mismatch_image_magic")), String::to_posix_style(image_path)), "load_image_path");
                 auto image_data = ImageData{
                     .meta_data = ImageHeader{
                         stream.readUint32(),

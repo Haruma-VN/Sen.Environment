@@ -208,8 +208,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						return element;
 					}
 				}
-				// TODO : Add localization
-				throw Exception(fmt::format("Cannot find id {} in resource group", id), std::source_location::current(), "first_where");
+				throw Exception(String::format(fmt::format("{}", Language::get("popcap.resource_group.convert.cannot_find_id")), id), std::source_location::current(), "first_where");
 			}
 
 		

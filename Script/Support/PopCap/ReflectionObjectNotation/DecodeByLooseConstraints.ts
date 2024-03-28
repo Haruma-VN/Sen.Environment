@@ -56,7 +56,7 @@ namespace Sen.Script.Support.PopCap.RTON.DecodeByLooseConstraints {
             value = current;
             extra_size = 0n;
         } else if (current < 192n) {
-            throw new Error(`in_pos: ${stream.read_position} : invalid utf-8 first character`); // TODO add localization
+            throw new Error(`${Kernel.Language.get("popcap.rton.force_decode.position")}: ${stream.read_position} : ${Kernel.Language.get("popcap.rton.force_decode.invalid_utf8_first_character")}`);
         } else if (current < 224n) {
             value = current & 31n;
             extra_size = 1n;
@@ -67,14 +67,16 @@ namespace Sen.Script.Support.PopCap.RTON.DecodeByLooseConstraints {
             value = current & 7n;
             extra_size = 3n;
         } else {
-            throw new Error(`in_pos: ${stream.read_position} : invalid utf-8 first character`); // TODO add localization
+            throw new Error(`${Kernel.Language.get("popcap.rton.force_decode.position")}: ${stream.read_position} : ${Kernel.Language.get("popcap.rton.force_decode.invalid_utf8_first_character")}`);
         }
         size.value = 1n + extra_size;
         while (extra_size > 0) {
             --extra_size;
             current = stream.readUint8();
             if ((current & 192n) != 128n) {
-                throw new Error(`in_pos: ${stream.read_position} : invalid utf-8 extra character`); // TODO add localization
+                throw new Error(
+                    `${Kernel.Language.get("popcap.rton.force_decode.position")}: ${stream.read_position} : ${Kernel.Language.get("popcap.rton.force_decode.invalid_utf8_extra_character")}`,
+                );
             }
             value = (value << 6n) | (current & 63n);
         }
@@ -93,7 +95,11 @@ namespace Sen.Script.Support.PopCap.RTON.DecodeByLooseConstraints {
             actual_size += character_size.value;
         }
         if (size !== actual_size) {
-            Console.warning(`in_pos: ${stream.read_position}: invalid utf-8 string size : except ${size} but actual ${actual_size}`); // TODO add localization
+            Console.warning(
+                `${Kernel.Language.get("popcap.rton.force_decode.position")}: ${stream.read_position}: ${Kernel.Language.get("popcap.rton.force_decode.invalid_string_size")}: ${Kernel.Language.get(
+                    "got",
+                )} ${size} ${Kernel.Language.get("popcap.rton.force_decode.but_actual")} ${actual_size}`,
+            );
         }
         return str;
     }
@@ -157,7 +163,11 @@ namespace Sen.Script.Support.PopCap.RTON.DecodeByLooseConstraints {
 
     export function catch_error(bytecode: bigint, stream: DataStreamView, function_name: string): void {
         write();
-        throw new Error(`invalid_bytecode: ${bytecode.toString(16)} at pos: ${stream.read_position} in ${function_name}`);
+        throw new Error(
+            `${Kernel.Language.get("popcap.rton.force_decode.invalid_bytecode")}: ${bytecode.toString(16)} | ${Kernel.Language.get("popcap.rton.force_decode.position")}: ${
+                stream.read_position
+            } ${Kernel.Language.get("in")} ${function_name}`,
+        );
     }
 
     export function read_bytecode(stream: DataStreamView, bytecode: bigint): void {

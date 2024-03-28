@@ -1,7 +1,6 @@
 namespace Sen.Script.Support.Wwise.Media.Encode {
-
     // base on Wwise 2021.1
-    const k_sample_conversion_settings = `<?xml version="1.0" encoding="utf-8"?>
+    export const k_sample_conversion_settings: string = `<?xml version="1.0" encoding="utf-8"?>
     <WwiseDocument Type="WorkUnit" ID="{E271866C-F671-47E6-BC51-1593F78D3B68}" SchemaVersion="103">
         <Conversions>
             <WorkUnit Name="Sample Conversion Settings" ID="{E271866C-F671-47E6-BC51-1593F78D3B68}" PersistMode="Standalone">
@@ -267,29 +266,25 @@ namespace Sen.Script.Support.Wwise.Media.Encode {
             </WorkUnit>
         </Conversions>
     </WwiseDocument>
-    `
+    `;
 
-    function cast_wwise_internal_path(raw: string) {
+    export function cast_wwise_internal_path(raw: string): string | undefined {
         const operating_system = Kernel.OperatingSystem.current();
         if (operating_system === "Windows") {
             return raw;
         }
         if (operating_system === "macOS") {
-            assert(raw.startsWith("/"));
+            assert(raw.startsWith("/"), Kernel.Language.get("wwise.media.encode.path_must_starts_with_seperator"));
             return `Z:${raw}`;
         }
-        // TODO add localization;
-        assert(true, "unsupported system");
-        return;
+        assert(false, Kernel.Language.get("wwise.media.encode.unsupported_operating_system")) as never;
     }
 
-    export function process(source: string, destination: string, format: Common.Format) {
+    export function process(source: string, destination: string, format: Common.Format): void {
         const operating_system = Kernel.OperatingSystem.current();
-        // TODO add localization;
-        assert(operating_system === "Windows" || operating_system === "macOS", `unsupported system, this function only avaliable for windows or macintosh`);
+        assert(operating_system === "Windows" || operating_system === "macOS", Kernel.Language.get("wwise.media.encode.unsupported_operating_system"));
         const wwise_program_file_path = Script.Support.Wwise.Media.Common.search_path("WwiseConsole");
-        // TODO add localization;
-        assert(wwise_program_file_path !== null, `could not find 'WwiseConsole' program from PATH environment`);
+        assert(wwise_program_file_path !== null, Kernel.Language.get("wwise.media.encode.could_not_find_wwise_console"));
         const tempfolder_path = Kernel.Process.get_path_environment("TEMP");
         const wwise_project_dir = `${tempfolder_path}/Sample`;
         const wwise_wproj_file = `${wwise_project_dir}/Sample.wproj`;
@@ -305,42 +300,40 @@ namespace Sen.Script.Support.Wwise.Media.Encode {
             ExternalSourcesList: {
                 "@attributes": {
                     SchemaVersion: "1",
-                    Root: cast_wwise_internal_path(wwise_project_dir)
+                    Root: cast_wwise_internal_path(wwise_project_dir),
                 },
                 Source: {
                     "@attributes": {
                         Path: "Sample.wav",
                         Destination: "Sample.wem",
-                        Conversion: `_${format}`
-                    }
-                }
-            }
+                        Conversion: `_${format}`,
+                    },
+                },
+            },
         };
         Kernel.FileSystem.write_file(wwise_wsources_file, Kernel.XML.serialize(wwise_wsources));
         Kernel.FileSystem.write_file(`${wwise_project_dir}/Conversion Settings/Sample Conversion Settings.wwu`, k_sample_conversion_settings);
         if (Kernel.FileSystem.is_file(`${wwise_project_dir}/Sample.wav`)) Kernel.FileSystem.Operation.remove(`${wwise_project_dir}/Sample.wav`);
         Kernel.FileSystem.Operation.copy(source, `${wwise_project_dir}/Sample.wav`);
-        const platform = ({
-			'pcm': 'Android',
-			'adpcm': 'Android',
-			'vorbis': 'Android',
-			'aac': 'iOS',
-			'opus': 'Android',
-			'wemopus': 'Android',
-		})[format];
+        const platform = {
+            pcm: "Android",
+            adpcm: "Android",
+            vorbis: "Android",
+            aac: "iOS",
+            opus: "Android",
+            wemopus: "Android",
+        }[format];
         const wwise_command = `WwiseConsole convert-external-source "${wwise_wproj_file}" --platform "${platform}" --source-file "${wwise_wsources_file}"`;
         const process_result = Kernel.Process.execute(wwise_command);
-        // TODO check process_result done or failed 
+        // TODO check process_result done or failed
         Kernel.FileSystem.Operation.remove(destination);
         Kernel.FileSystem.Operation.copy(`${wwise_project_dir}/GeneratedSoundBanks/${platform}/Sample.wem`, destination);
         Kernel.FileSystem.Operation.remove_all(wwise_project_dir);
         return;
     }
 
-
-    export function process_fs(source: string, destination: string, format: Common.Format) {
+    export function process_fs(source: string, destination: string, format: Common.Format): void {
         process(source, destination, format);
         return;
     }
-
 }

@@ -6622,8 +6622,6 @@ namespace Sen::Kernel::Interface::Script {
 			}, "is_exists_in_path_environment"_sv);
 		}
 
-		// TODO add thiz function
-
 		/**
 		 * ----------------------------------------
 		 * JavaScript Get Environment
