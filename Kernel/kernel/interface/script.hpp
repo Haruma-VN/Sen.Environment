@@ -7944,7 +7944,6 @@ namespace Sen::Kernel::Interface::Script {
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto source = JS::Converter::get_string(context, argv[0]);
 				auto data = std::vector<Sen::Kernel::Definition::RectangleFileIO<int>>{};
 				if (JS_IsArray(context, argv[1])) {
 					auto length = uint32_t{};
@@ -7980,6 +7979,7 @@ namespace Sen::Kernel::Interface::Script {
 				} else {
 					throw Exception("Cannot read property \"length\" of undefined");
 				}
+				auto source = JS::Converter::get_string(context, argv[0]);
 				Sen::Kernel::Definition::ImageIO::cut_pngs(source, data);
 				return JS::Converter::get_undefined();
 			}, "cut_multiple_fs"_sv);

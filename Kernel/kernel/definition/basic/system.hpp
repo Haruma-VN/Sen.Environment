@@ -47,8 +47,6 @@ namespace Sen::Kernel {
     		return std::getenv(str.data()) != nullptr;
 		}
 
-		// TODO : add function
-
 
 			/**
 		 * Get path environment

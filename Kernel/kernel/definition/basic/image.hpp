@@ -534,7 +534,7 @@ namespace Sen::Kernel::Definition {
 		public:
 
 			// destination file
-			std::string_view destination;
+			std::string destination;
 
 			// constructor
 
@@ -549,7 +549,7 @@ namespace Sen::Kernel::Definition {
 				T y,
 				T width,
 				T height,
-				std::string_view destination
+				const std::string& destination
 			) : Rectangle<T>(x, y, width, height), destination(destination)
 			{
 			}
@@ -568,7 +568,7 @@ namespace Sen::Kernel::Definition {
 
 			RectangleFileIO(
 				const Rectangle<T> &that,
-				std::string_view destination
+				const std::string& destination
 			) : Rectangle<T>(that), destination(destination)
 			{
 			}
@@ -583,10 +583,10 @@ namespace Sen::Kernel::Definition {
 	template <typename T> requires Integral<T>
 	struct RectangleFileIOList : RectangleFileIO<T> {
 		public:
-			std::string_view source;
+			std::string source;
 			std::vector<RectangleFileIO<T>> data;
 			RectangleFileIOList(
-				std::string_view source,
+				const std::string& source,
 				std::vector<RectangleFileIO<T>> data
 			) : source(source), data(std::move(data))
 			{
