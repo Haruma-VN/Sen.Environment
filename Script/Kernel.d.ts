@@ -619,7 +619,7 @@ declare namespace Sen {
              * @param ensure_ascii Whether to ensure ASCII characters only (optional, defaults to false).
              * @returns: (void) - This function doesn't return a value.
              */
-            export function serialize_fs<T>(destination: string, obj: T, indent?: number, ensure_ascii?: boolean): void;
+            export function serialize_fs<T>(destination: string, obj: T, indent: number, ensure_ascii: boolean): void;
         }
 
         /**

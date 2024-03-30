@@ -23,9 +23,9 @@ concept IsValidArguments = true;
 			template <typename MType>
 			using List = std::vector<MType>;
 		protected:
-			List<std::function<T(Args...)>> threads;
-			CurrentThread _current_pointer = 0;
-			Mutex g_mutex;
+			List<std::function<T(Args...)>> threads{};
+			CurrentThread _current_pointer{};
+			Mutex g_mutex{};
 		public:
 			ThreadManager(
 			) = default;
@@ -168,7 +168,7 @@ concept IsValidArguments = true;
 				ThreadCount index
 			) -> void
 			{
-				assert_conditional(index < this->threads.size(), "Thread need to be set at 0 to yield all", "set");
+				assert_conditional(index < this->threads.size(), "Thread need to be set at 0 to yield all", "set_pointer");
 				this->_current_pointer = index;
 				return;
 			}

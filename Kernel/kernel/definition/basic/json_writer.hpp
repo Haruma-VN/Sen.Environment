@@ -179,17 +179,17 @@ namespace Sen::Kernel::Definition
                 }
                 if (value.find(JsonConstants::BackSpace) != std::string::npos)
                 {
-                    value = std::regex_replace(value, JsonConstants::backslash_pattern, "\\b");
+                    value = std::regex_replace(value, JsonConstants::backspace_pattern, "\\b");
                 }
                 return;
             }
 
             inline static auto WriteNewLine(std::string &output) -> void
             {
-// Write '\r\n' OR '\n', depending on OS
-#if LINUX
-                output += JsonConstants::CarriageReturn;
-#endif
+                // Write '\r\n' OR '\n', depending on OS
+                #if LINUX
+                                output += JsonConstants::CarriageReturn;
+                #endif
                 output += JsonConstants::LineFeed;
                 return;
             }
