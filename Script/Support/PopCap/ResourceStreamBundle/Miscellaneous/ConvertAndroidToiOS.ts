@@ -59,17 +59,15 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
                     ptx_info.format = info_format;
                     Kernel.Support.Texture.encode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, format);
                 };
-                /*
-                if (format_148.includes(subgroup.toUpperCase())) {
-                    convert_whole(148n, Texture.Format.RGB_PVRTC_4BPP_A_8);
-                    continue;
-                }
-                if (ptx_info.width === ptx_info.height && is_power_of_2(ptx_info.width)) {
-                    convert_whole(30n, Texture.Format.RGBA_PVRTC_4BPP);
-                    ptx_info.pitch = ptx_info.width / 2n;
-                    continue;
-                }
-                */
+                // if (format_148.includes(subgroup.toUpperCase())) {
+                //     convert_whole(148n, Texture.Format.RGB_PVRTC_4BPP_A_8);
+                //     continue;
+                // }
+                // if (ptx_info.width === ptx_info.height && is_power_of_2(ptx_info.width)) {
+                //     convert_whole(30n, Texture.Format.RGBA_PVRTC_4BPP);
+                //     ptx_info.pitch = ptx_info.width / 2n;
+                //     continue;
+                // }
                 convert_whole(0n, Texture.Format.ARGB_8888);
             }
             Kernel.Support.PopCap.RSG.pack(`${source}/resource`, `${source}/packet/${subgroup}.rsg`, { version, ...packet_info });

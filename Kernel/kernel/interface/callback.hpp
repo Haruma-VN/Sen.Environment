@@ -565,6 +565,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Character::register_class<char>);
 				// UCharacter
 				javascript->register_object(Script::Class::Character::register_class<unsigned char>);
+				// WideCharacter
+				javascript->register_object(Script::Class::Character::register_class<wchar_t>);
 				// DimensionView
 				javascript->register_object(Script::Class::DimensionView::register_class);
 				// Rectangle
@@ -599,6 +601,12 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::JsonWriter::register_class);
 				// APNGMakerSetting
 				javascript->register_object(Script::Class::APNGMakerSetting::register_class);
+				// FileInputStream
+				javascript->register_object(Script::Class::FileInputStream::register_class);
+				// FileOutputStream
+				javascript->register_object(Script::Class::FileOutputStream::register_class);
+				// FileStream
+				javascript->register_object(Script::Class::FileStream::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;

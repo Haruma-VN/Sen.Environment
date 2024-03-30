@@ -507,4 +507,122 @@ namespace Sen::Kernel::FileSystem
 		return;
 	}
 
+	class FileHandler {
+
+		private:
+
+			template <typename T, typename CloseMethod>
+			using Pointer = std::unique_ptr<T, CloseMethod>;
+
+		protected:
+
+			inline static auto constexpr close_file = [](FILE* file) {
+				if (file != nullptr) {
+					std::fclose(file);
+					file = nullptr;
+				}
+				return;
+			};
+
+
+		public:
+
+			Pointer<std::FILE, decltype(close_file)> file{};
+
+			FileHandler(
+				std::string_view source,
+				std::string_view mode
+			) 
+			{
+				#if WINDOWS
+					file.reset(_wfopen(String::utf8_to_utf16(String::to_windows_style(source.data())).data(), String::utf8view_to_utf16(mode).data()));
+				#else
+					file.reset(std::fopen(source.data()), mode.data());
+				#endif
+				// TODO : Add localization
+				assert_conditional(file != nullptr, "file is nullptr", "FileHandler");
+			}
+
+			auto close(
+
+			) -> void
+			{
+				thiz.file.reset(nullptr);
+				return;
+			}
+
+			auto read(
+
+			) -> char
+			{
+				return std::fgetc(thiz.file.get());
+			}
+
+			auto position(
+			) -> std::size_t
+			{
+				return fsize(thiz.file.get());
+			}
+
+			auto position(
+				std::size_t pos
+			) -> void
+			{
+				std::fseek(thiz.file.get(), 0, pos);
+				return;
+			}
+
+			auto size(
+
+			) -> std::size_t
+			{
+				std::fseek(thiz.file.get(), 0, SEEK_END);
+				auto file_size = fsize(thiz.file.get());
+				std::fseek(thiz.file.get(), 0, SEEK_SET);
+				return file_size;
+			}
+
+			auto read_all (
+
+			) -> std::vector<uint8_t>
+			{
+				auto file_size = size();
+				auto data = std::vector<uint8_t>{};
+				data.resize(file_size);
+				std::fread(data.data(), 1, file_size, thiz.file.get());
+				return data;
+			}
+
+			auto write_all (
+				const std::vector<uint8_t>& data
+			) -> void
+			{
+				std::fwrite(reinterpret_cast<char const*>(data.data()), 1, data.size(), thiz.file.get());
+				return;
+			}
+
+			auto write (
+				char data
+			) -> void
+			{
+				std::fputc(static_cast<int>(data), thiz.file.get());
+				return;
+			}
+
+			FileHandler(
+			) = delete;
+
+			FileHandler(
+				FileHandler const& that
+			) = delete;
+
+			FileHandler(
+				FileHandler&& that
+			) = delete;
+
+			~FileHandler(
+			) = default;
+
+
+	};
 }

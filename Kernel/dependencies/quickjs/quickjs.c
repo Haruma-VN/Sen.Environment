@@ -6502,7 +6502,7 @@ static void build_backtrace(JSContext *ctx, JSValueConst error_obj,
         }
         func_name_str = get_func_name(ctx, sf->cur_func);
         if (!func_name_str || func_name_str[0] == '\0')
-            str1 = "<anonymous>";
+            str1 = "lambda";
         else
             str1 = func_name_str;
         dbuf_printf(&dbuf, "    at %s", str1);
@@ -6529,7 +6529,7 @@ static void build_backtrace(JSContext *ctx, JSValueConst error_obj,
                 dbuf_putc(&dbuf, ')');
             }
         } else {
-            dbuf_printf(&dbuf, " (native)");
+            dbuf_printf(&dbuf, " (<proxy>:?)");
         }
         dbuf_putc(&dbuf, '\n');
         /* stop backtrace if JS_EVAL_FLAG_BACKTRACE_BARRIER was used */

@@ -3706,6 +3706,279 @@ declare namespace Sen {
         }
 
         /**
+         * WideCharacter Class
+         *
+         * This class likely represents a character value. It uses a bigint for storage,
+         * which can accommodate a wider range of character codes compared to
+         * a standard number type. However, it's important to note that bigint
+         * primarily deals with integer values.
+         *
+         * Depending on the context of the Kernel framework, this class might
+         * be handling characters using their Unicode code points (integer values
+         * representing characters) or have custom logic for character representation.
+         */
+        declare class WideCharacter implements BaseWrapper {
+            /**
+             * Internal storage for the Character
+             */
+
+            private _WideCharacter: WideCharacter;
+            /**
+             * Internal storage for the character value (bigint)
+             */
+            private _value: bigint;
+
+            /**
+             * Constructor for the Character class
+             *
+             * Initializes a new Character object with the specified value (bigint).
+             *
+             * @param value - The initial character value (bigint).
+             */
+            public constructor(value?: bigint): void;
+
+            /**
+             * Getter for the character value
+             *
+             * @returns {bigint} - The current character value (bigint).
+             */
+            public get value(): bigint;
+
+            /**
+             * Setter for the character value
+             *
+             * @param value - The new character value to set (bigint).
+             */
+            public set value(value: bigint): void;
+
+            /**
+             * Static method to create a Character instance
+             *
+             * Creates a new Character object with the specified value (bigint).
+             *
+             * @param value - The initial character value (bigint).
+             * @returns {WideCharacter} - A new Character object with the given value.
+             */
+            public static instance(value: bigint): WideCharacter;
+        }
+
+        /**
+         * Represents a stream for reading from a file.
+         * Provides methods to access file size, current position, read individual bytes,
+         * read all bytes into an ArrayBuffer, and close the stream.
+         */
+        class FileInputStream {
+            /**
+             * The underlying file input stream.
+             */
+            private _fileInputStream: FileInputStream;
+
+            /**
+             * The current position in the stream.
+             */
+            private _m_position: bigint;
+
+            /**
+             * Creates a new file input stream for the specified file path.
+             *
+             * @param source The path to the file to read from.
+             */
+            public constructor(source: string);
+
+            /**
+             * Gets the current position in the stream.
+             *
+             * @returns The current position in bytes as a bigint.
+             */
+            public get position(): bigint;
+
+            /**
+             * Sets the current position in the stream.
+             *
+             * @param value The new position in bytes as a bigint.
+             */
+            public set position(value: bigint);
+
+            /**
+             * Gets the size of the file in bytes.
+             *
+             * @returns The size of the file as a bigint.
+             */
+            public size(): bigint;
+
+            /**
+             * Reads a single byte from the stream.
+             *
+             * @returns The byte read as a bigint, or -1 if the end of the stream is reached.
+             */
+            public read(): bigint;
+
+            /**
+             * Reads all bytes from the stream into an ArrayBuffer.
+             *
+             * @returns An ArrayBuffer containing all bytes from the stream.
+             *
+             * **Note:** Consider adding a comment to clarify if this method reads the entire file at once
+             * or uses buffering for large files.
+             */
+            public read_all(): ArrayBuffer;
+
+            /**
+             * Closes the file input stream and releases resources.
+             */
+            public close(): void;
+        }
+
+        /**
+         * Represents a stream for writing to a file.
+         * Provides methods to access file size, current position, write individual bytes,
+         * write all bytes from an ArrayBuffer, and close the stream.
+         */
+        class FileOutputStream {
+            /**
+             * The underlying file output stream.
+             */
+            private _fileOutputStream: FileOutputStream;
+
+            /**
+             * The current position in the stream.
+             */
+            private _m_position: bigint;
+
+            /**
+             * Creates a new file output stream for the specified file path.
+             *
+             * @param source The path to the file to write to.
+             */
+            public constructor(source: string);
+
+            /**
+             * Gets the current position in the stream.
+             *
+             * @returns The current position in bytes as a bigint.
+             */
+            public get position(): bigint;
+
+            /**
+             * Sets the current position in the stream.
+             *
+             * @param value The new position in bytes as a bigint.
+             */
+            public set position(value: bigint);
+
+            /**
+             * Gets the size of the file in bytes.
+             *
+             * @returns The size of the file as a bigint, or 0 if the file is new.
+             */
+            public size(): bigint;
+
+            /**
+             * Writes a single byte to the stream.
+             *
+             * @param value The byte to write as a bigint.
+             */
+            public write(value: bigint): void;
+
+            /**
+             * Writes all bytes from the provided ArrayBuffer to the stream.
+             *
+             * @param value The ArrayBuffer containing the bytes to write.
+             */
+            public write_all(value: ArrayBuffer): void;
+
+            /**
+             * Closes the file output stream and flushes any unwritten data to the file.
+             */
+            public close(): void;
+        }
+
+        /**
+         * Represents a general-purpose stream for both reading and writing to a file.
+         * Provides methods to access file size, current position, read and write individual bytes or entire buffers,
+         * and close the stream.
+         *
+         * **Note:** This class likely inherits from separate `FileInputStream` and `FileOutputStream` classes
+         * for specific read and write operations. Consider using those for clarity in most cases.
+         */
+        class FileStream {
+            /**
+             * The underlying file stream (potentially combining input and output streams).
+             */
+            private _fileStream: FileStream;
+
+            /**
+             * The current position in the stream.
+             */
+            private _m_position: bigint;
+
+            /**
+             * Creates a new file stream for the specified file path,
+             * opening the file for both reading and writing.
+             *
+             * @param source The path to the file to access.
+             */
+            public constructor(source: string);
+
+            /**
+             * Gets the current position in the stream.
+             *
+             * @returns The current position in bytes as a bigint.
+             */
+            public get position(): bigint;
+
+            /**
+             * Sets the current position in the stream.
+             *
+             * @param value The new position in bytes as a bigint.
+             */
+            public set position(value: bigint);
+
+            /**
+             * Gets the size of the file in bytes.
+             *
+             * @returns The size of the file as a bigint, or 0 if the file is new.
+             */
+            public size(): bigint;
+
+            /**
+             * Writes a single byte to the stream.
+             *
+             * @param value The byte to write as a bigint.
+             */
+            public write(value: bigint): void;
+
+            /**
+             * Writes all bytes from the provided ArrayBuffer to the stream.
+             *
+             * @param value The ArrayBuffer containing the bytes to write.
+             */
+            public write_all(value: ArrayBuffer): void;
+
+            /**
+             * Reads a single byte from the stream.
+             *
+             * @returns The byte read as a bigint, or -1 if the end of the stream is reached.
+             */
+            public read(): bigint;
+
+            /**
+             * Reads all bytes from the stream into an ArrayBuffer.
+             *
+             * @returns An ArrayBuffer containing all bytes from the stream.
+             *
+             * **Note:** Consider adding a comment to clarify if this method reads the entire file at once
+             * or uses buffering for large files.
+             */
+            public read_all(): ArrayBuffer;
+
+            /**
+             * Closes the file stream and flushes any unwritten data to the file.
+             */
+            public close(): void;
+        }
+
+        /**
          * BinaryView Class
          *
          * This class likely represents a view of a binary data buffer stored in an ArrayBuffer.

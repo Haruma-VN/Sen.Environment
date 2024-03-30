@@ -233,12 +233,11 @@ namespace Sen.Script {
 
         export function make_stack(stack: string): string {
             return stack
-                .replace(/(\s)at(\s)/g, ` ${Kernel.Language.get("at")} `)
-                .replace(/\(native\)/gm, "(<native>:?)")
-                .replace(/(?<=\()(.*)(?=(Kernel|Script))/gm, "")
+                .replace(/(\s)at(\s)/, ` ${Kernel.Language.get("at")} `)
+                .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
                 .replaceAll("\\", "/")
                 .split("\n")
-                .filter((e: string) => !/(\s)<eval>(\s)/g.test(e))
+                .filter((e: string) => !/(\s)<eval>(\s)/m.test(e))
                 .join("\n");
         }
 
