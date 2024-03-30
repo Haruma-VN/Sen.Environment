@@ -9336,7 +9336,12 @@ namespace Sen::Kernel::Interface::Script {
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::Zlib::Compress::compress_fs(source, destination, use_64_bit_variant);
+						if (use_64_bit_variant) {
+							Sen::Kernel::Support::PopCap::Zlib::Compress<true>::compress_fs(source, destination);
+						}
+						else {
+							Sen::Kernel::Support::PopCap::Zlib::Compress<false>::compress_fs(source, destination);
+						}
 						return JS::Converter::get_undefined();
 					}, "compress_fs"_sv);
 				}
@@ -9358,12 +9363,19 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					using Data = Class::BinaryView::Data;
+					using CompressPointer = std::unique_ptr<Sen::Kernel::Support::PopCap::Zlib::VirtualC>;
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::to_binary_list(context, argv[0]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[1]);
-						auto compressor = Sen::Kernel::Support::PopCap::Zlib::Compress{ use_64_bit_variant };
-						auto sub = new Data(compressor.compress(source));
+						auto compressor = CompressPointer(nullptr);
+						if (use_64_bit_variant) {
+							compressor.reset(new Sen::Kernel::Support::PopCap::Zlib::Compress<true>());
+						}
+						else {
+							compressor.reset(new Sen::Kernel::Support::PopCap::Zlib::Compress<false>());
+						}
+						auto sub = new Data(compressor->compress(source));
 						auto global_obj = JS_GetGlobalObject(context);
 						auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
 						auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");
@@ -10515,6 +10527,63 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 			/**
+			 * JavaScript PAK Support
+			*/
+
+			namespace PAK {
+				/**
+				 * ----------------------------------------
+				 * JavaScript PAK Unpack File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Unpacked file
+				 * ----------------------------------------
+				*/
+
+				inline static auto unpack_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Kernel::Support::PopCap::PAK::Unpack::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "unpack_fs"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript PAK Pack File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Packed
+				 *  file
+				 * ----------------------------------------
+				*/
+
+				inline static auto pack_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Kernel::Support::PopCap::PAK::Pack::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "pack_fs"_sv);
+				}
+			}
+
+			/**
 			 * JavaScript PAM Supportive
 			*/
 
@@ -10686,6 +10755,161 @@ namespace Sen::Kernel::Interface::Script {
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Animation::Encode::encode_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "encode_fs"_sv);
+				}
+			}
+
+				/**
+			 * JavaScript REANIM Supportive
+			*/
+
+			namespace Reanim {
+
+				using Platform = Sen::Kernel::Support::PopCap::Reanim::ReanimPlatform;
+
+				// Function to get platform
+
+				inline static auto constexpr get_platform(
+					std::string_view platform
+				) -> Platform
+				{
+					if (platform == "pc"_sv) {
+						return Platform::PC_Compile;
+					}
+					if (platform == "game-console"_sv) {
+						return Platform::GameConsole_Compile;
+					}
+					if (platform == "phone-32"_sv) {
+						return Platform::Phone32_Compile;
+					}
+					if (platform == "phone-64"_sv) {
+						return Platform::Phone64_Compile;
+					}
+					if (platform == "raw-xml"_sv) {
+						return Platform::RawXML;
+					}
+					if (platform == "tv"_sv) {
+						return Platform::TV_Compile;
+					}
+					if (platform == "wp"_sv) {
+						return Platform::WP_XNB;
+					}
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Reanim Decode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Decoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto decode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto z_platform = JS::Converter::get_string(context, argv[2]);
+						auto platform = get_platform(z_platform);
+						Sen::Kernel::Support::PopCap::Reanim::Decode::process_fs(source, destination, platform);
+						return JS::Converter::get_undefined();
+					}, "decode_fs"_sv);
+				}
+
+				/**
+				 * ToFlash convert support
+				*/
+
+				namespace ToFlash {
+					/**
+					 * ----------------------------------------
+					 * JavaScript Reanim Convert File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: scale
+					 * @returns: Converted file
+					 * ----------------------------------------
+					*/
+
+					inline static auto convert_fs(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_string(context, argv[0]);
+							auto destination = JS::Converter::get_string(context, argv[1]);
+							Sen::Kernel::Support::PopCap::Reanim::Convert::ToFlash::process_fs(source, destination);
+							return JS::Converter::get_undefined();
+						}, "convert_fs"_sv);
+					}
+				}
+
+				/**
+				 * FromFlash convert support
+				*/
+
+				namespace FromFlash {
+					/**
+					 * ----------------------------------------
+					 * JavaScript Reanim Convert File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @returns: Converted file
+					 * ----------------------------------------
+					*/
+
+					inline static auto convert_fs(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_string(context, argv[0]);
+							auto destination = JS::Converter::get_string(context, argv[1]);
+							Sen::Kernel::Support::PopCap::Reanim::Convert::FromFlash::process_fs(source, destination);
+							return JS::Converter::get_undefined();
+						}, "convert_fs"_sv);
+					}
+				}
+
+				/**
+				 * ----------------------------------------
+				 * JavaScript Reanim Encode File
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Encoded file
+				 * ----------------------------------------
+				*/
+
+				inline static auto encode_fs(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						auto z_platform = JS::Converter::get_string(context, argv[2]);
+						auto platform = get_platform(z_platform);
+						Sen::Kernel::Support::PopCap::Reanim::Encode::process_fs(source, destination, platform);
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}

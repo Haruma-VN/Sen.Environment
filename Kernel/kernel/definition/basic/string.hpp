@@ -1206,6 +1206,16 @@ namespace Sen::Kernel {
 					}
 			}
 
+			template <typename T> requires std::is_integral<T>::value || std::is_floating_point<T>::value
+			inline static auto decimal_to_hexadecimal (
+				T decNumber
+			) -> std::string 
+			{
+				auto ss = std::stringstream{};
+				ss << std::hex << decNumber;
+				return ss.str();
+			}
+
 	};
 
 	struct OptimizeString {

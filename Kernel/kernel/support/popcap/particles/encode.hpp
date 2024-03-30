@@ -13,7 +13,6 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 
 	using Sen::Kernel::Definition::DataStreamView;
 
-
 	#pragma endregion
 
 	class Encode : public Common {
@@ -157,7 +156,7 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 					write_track_nodes(emitter.animation_rate);
 				}
 				if constexpr (compress_zlib) {
-					auto zlib = std::make_unique<PopCap::Zlib::Compress>(false);
+					auto zlib = std::make_unique<PopCap::Zlib::Compress<Common::use_64_bit_variant>>();
 					auto bytes = zlib->compress(sen->getBytes(static_cast<std::size_t>(0), static_cast<std::size_t>(sen->size())));
 					sen->close();
 					sen->writeBytes(bytes);

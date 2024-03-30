@@ -364,6 +364,13 @@ namespace Sen::Kernel::Interface {
 					// encode fs
 					javascript->add_proxy(Script::Support::Texture::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Texture"_sv, "encode_fs"_sv);
 				}
+				// pak
+				{
+					// unpack_fs
+					javascript->add_proxy(Script::Support::PopCap::PAK::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PAK"_sv, "unpack_fs"_sv);
+					// pack_fs
+					javascript->add_proxy(Script::Support::PopCap::PAK::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PAK"_sv, "pack_fs"_sv);
+				}
 				// newton
 				{
 					// decode fs
@@ -483,6 +490,17 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "to_flash"_sv);
 					// from_flash
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
+				}
+				// reanim
+				{
+					// decode_fs
+					javascript->add_proxy(Script::Support::PopCap::Reanim::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "decode_fs"_sv);
+					// encode_fs
+					javascript->add_proxy(Script::Support::PopCap::Reanim::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "encode_fs"_sv);
+					// convert_fs
+					javascript->add_proxy(Script::Support::PopCap::Reanim::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "ToFlash"_sv, "convert_fs"_sv);
+					// convert_fs
+					javascript->add_proxy(Script::Support::PopCap::Reanim::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "FromFlash"_sv, "convert_fs"_sv);
 				}
 				// bnk
 				{

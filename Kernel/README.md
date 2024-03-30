@@ -72,6 +72,10 @@
 
 -   [dirent](https://github.com/tronkko/dirent): dirent for `MSVC`
 
+-   [canvas_ity](https://github.com/a-e-k/canvas_ity/tree/main): canvas for drawing image
+
+-   [tsl](https://github.com/Tessil/ordered-map): Actual ordered map for C++ comes with support of First-in-first-out
+
 ## Modification
 
 -   To make sure all the libraries work perfectly fine with `Kernel`, there are some modification compare to original project. All modification will be added `Haruma :: Add`, `Haruma :: Change`, `Haruma :: Delete`
@@ -80,8 +84,10 @@
 
 -   All the modification has been made:
 
-|                         Library                          |                    Modification                    |
-| :------------------------------------------------------: | :------------------------------------------------: |
-|      [quickjs](https://github.com/bellard/quickjs/)      |         Adapt some `ES2022/ES2023` methods         |
-| [quickjs.c_smile](https://github.com/c-smile/quickjspp/) |         Adapt some `ES2022/ES2023` methods         |
-|       [etcpak](https://github.com/wolfpld/etcpak)        | Added `PubDecodeETCRGB` methods in `BlockData.cpp` |
+|                           Library                           |                    Modification                    |
+| :---------------------------------------------------------: | :------------------------------------------------: |
+|       [quickjs](https://github.com/bellard/quickjs/)        |         Adapt some `ES2022/ES2023` methods         |
+|   [quickjs.c_smile](https://github.com/c-smile/quickjspp)   |         Adapt some `ES2022/ES2023` methods         |
+|         [etcpak](https://github.com/wolfpld/etcpak)         | Added `PubDecodeETCRGB` methods in `BlockData.cpp` |
+|              [simdjson](https://simdjson.org)               |     Fix issues with opening Unicode file path      |
+| [canvas_ity](https://github.com/a-e-k/canvas_ity/tree/main) |      Fix some issues when assigning JS class       |

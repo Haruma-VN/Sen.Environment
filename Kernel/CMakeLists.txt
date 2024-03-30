@@ -80,6 +80,14 @@ if(ANDROID)
   )
 endif()
 
+include(InstallRequiredSystemLibraries)
+
+if(MSVC)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS TRUE)
+    include(InstallRequiredSystemLibraries)
+    
+    install(PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin)
+endif()
 
 # Symbol visibility
 set(CMAKE_C_VISIBILITY_PRESET hidden)

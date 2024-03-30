@@ -38,62 +38,52 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 			) = default;
 	};
 
+	template <auto UseVariant>
 	struct Compress : VirtualC {
 
-		private:
+		static_assert(sizeof(UseVariant) == sizeof(bool));
 
-			// the use of the 64 bit variant
+		static_assert(UseVariant == true or UseVariant == false);
 
-			bool use_64_bit_variant;
+	public:
+		// constructor
 
-		public:
-
-			// constructor
-
-			Compress(
+		Compress(
 
 			) = default;
 
-			// destructor
+		// destructor
 
-			~Compress(
+		~Compress(
 
 			) = default;
 
-			// constructor
+		/**
+		 * source: the binary source
+		 * return: the compressed source
+		 */
 
-			explicit constexpr Compress(
-				bool use_64_bit_variant
-			) : use_64_bit_variant(use_64_bit_variant)
+		inline auto compress(
+			const std::vector<unsigned char> &source) -> std::vector<unsigned char> override final
+		{
+			auto sen = DataStreamView{};
+			// magic
+			sen.writeUint32(static_cast<uint32_t>(thiz.magic));
+			if constexpr (UseVariant)
 			{
-
+				// 4 blank byte
+				sen.writeUint32(static_cast<uint32_t>(0x00));
 			}
-
-			/**
-			 * source: the binary source
-			 * return: the compressed source
-			*/
-
-			inline auto compress(
-				const std::vector<unsigned char> & source
-			) -> std::vector<unsigned char> override final
+			// size
+			sen.writeUint32(static_cast<uint32_t>(source.size()));
+			if constexpr (UseVariant)
 			{
-				auto sen = DataStreamView{};
-				// magic
-				sen.writeUint32(static_cast<uint32_t>(thiz.magic));
-				if(thiz.use_64_bit_variant){
-					// 4 blank byte
-					sen.writeUint32(static_cast<uint32_t>(0x00));
-				}
-				// size
-				sen.writeUint32(static_cast<uint32_t>(source.size()));
-				if(thiz.use_64_bit_variant){
-					// 4 blank byte
-					sen.writeUint32(static_cast<uint32_t>(0x00));
-				}
-				// compressed zlib part
-				sen.writeBytes(Compression::Zlib::compress<Compression::Zlib::Level::LEVEL_9>(source));
-				return sen.getBytes(0, sen.size());
+				// 4 blank byte
+				sen.writeUint32(static_cast<uint32_t>(0x00));
+			}
+			// compressed zlib part
+			sen.writeBytes(Compression::Zlib::compress<Compression::Zlib::Level::LEVEL_9>(source));
+			return sen.getBytes(0, sen.size());
 			}
 
 			/**
@@ -106,11 +96,10 @@ namespace Sen::Kernel::Support::PopCap::Zlib {
 
 			inline static auto compress_fs(
 				std::string_view source,
-				std::string_view destination,
-				bool use_64_bit_variant
+				std::string_view destination
 			) -> void
 			{
-				auto sen = std::make_unique<PopCap::Zlib::Compress>(use_64_bit_variant);
+				auto sen = std::make_unique<PopCap::Zlib::Compress<UseVariant>>();
 				FileSystem::write_binary<unsigned char>(destination, sen->compress(FileSystem::read_binary<unsigned char>(source)));
 				return;
 			}

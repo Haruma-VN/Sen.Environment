@@ -12,5 +12,7 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 
 		inline static auto constexpr zlib_magic = -559022380;
 
+		inline static auto constexpr use_64_bit_variant = false;
+
 	};
 }

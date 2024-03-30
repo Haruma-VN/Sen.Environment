@@ -22,16 +22,15 @@ namespace Sen.Script.Helper.PvZ2.Animation.GenerateAtlasFromRecord {
     }
 
     export function process_fs(): void {
-        // TODO : add localization
-        const record = Console.path("input path of record.json", "file");
-        Console.send("input subgroup name", Definition.Console.Color.CYAN);
+        const record = Console.path(Kernel.Language.get("script.helper.pvz2.animation.generate_atlas_from_record.input_record_json"), "file");
+        Console.send(Kernel.Language.get("script.helper.pvz2.animation.generate_atlas_from_record.input_subgroup_name"), Definition.Console.Color.CYAN);
         const subgroup = Kernel.Console.readline();
         const resolutions = get_resolution();
         if (resolutions.length === 0) {
-            throw new Error(`resolution not found, should match: ${allowance}`);
+            throw new Error(format(Kernel.Language.get("script.helper.pvz2.animation.generate_atlas_from_record.resolution_not_found"), allowance));
         }
         const destination = Kernel.Path.dirname(subgroup);
-        resolutions.forEach((resolution) => {
+        resolutions.forEach(function handle_resolution(resolution) {
             const atlas: Support.PopCap.Atlas.Structure.Definition = {
                 expand_path: "array",
                 method: "id",

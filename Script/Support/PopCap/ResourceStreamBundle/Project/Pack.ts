@@ -14,7 +14,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
         for (const group of groups) {
             const subgroups: Array<string> = Object.keys(manifest.group[group].subgroup);
             subgroups.forEach(function rewrite_manifest(subgroup: string): void {
-                manifest.group[group].subgroup[subgroup].packet_info.res.forEach((e) => {
+                manifest.group[group].subgroup[subgroup].packet_info.res.forEach(function write_pitch(e) {
                     if (e.ptx_info) {
                         e.ptx_info.pitch = calculate_pitch(e.ptx_info.format, e.ptx_info.width);
                     }
@@ -70,15 +70,13 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
             try {
                 callback(e.replace(/((\.rton))$/i, ".json"), e);
             } catch (error: any) {
-                // TODO : Add localization
-                Console.error(`error file: ${e}`);
+                Console.error(`${Kernel.Language.get("popcap.rsb.pack_for_modding.error_json_file")}: ${e}`);
                 // rethrow
                 throw error;
             }
             return;
         });
-        // TODO : Add localization
-        Console.finished(`process: ${rton_list.length} JSON to RTON`);
+        Console.finished(format(Kernel.Language.get("popcap.rsb.pack_for_modding.made_n_json_to_rton"), rton_list.length));
         return;
     }
 
@@ -131,28 +129,24 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
             }
         }
         if (manifest_group === undefined) {
-            // TODO : add localization
-            Console.warning("manifest group not found");
+            Console.warning(Kernel.Language.get("popcap.rsb.pack_for_modding.resource_group_not_found"));
             return;
         }
         if (category.merge_res_info) {
-            merge_resource(`${source}/res.json.info`, `${source}/res.json`, Kernel.Support.PopCap.ResInfo.merge_fs);
-            // TODO : Add localization
-            Console.finished("merge res-info done");
+            Kernel.Support.PopCap.ResInfo.merge_fs(`${source}/res.json.info`, `${source}/res.json`);
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.merge_res_info_done"));
         }
         if (category.merge_resource_group) {
             const resource_json: string = `${source}/${manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json")}`;
-            merge_resource(`${resource_json}.info`, resource_json, Kernel.Support.PopCap.ResourceGroup.merge_fs);
-            // TODO : Add localization
-            Console.finished("merge resource-group done");
+            Kernel.Support.PopCap.ResourceGroup.merge_fs(`${resource_json}.info`, resource_json);
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.merge_resource_group_done"));
         }
         if (category.res_info_convert) {
             Kernel.Support.PopCap.ResInfo.convert_fs(
                 `${source}/res.json`,
                 `${source}/resource/${manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json")}`,
             );
-            // TODO : Add localization
-            Console.finished("convert res_info to resource done");
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.converted_res_info_to_resource_group"));
         } else {
             Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${source}/res.json`);
             Console.send(manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json"));
@@ -161,34 +155,26 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                 `${source}/res.json`,
                 exchange_layout(Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${source}/res.json`).expand_path),
             );
-            // TODO : Add localization
-            Console.finished("convert resource to res_info done");
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.converted_resource_group_to_res_info"));
         }
         if (category.encode_newton) {
             let ripe_file = `${source}/resource/${manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json")}`;
             Kernel.Support.PopCap.Newton.encode_fs(ripe_file, ripe_file.replace(/((\.json))/i, ".newton"));
-            // TODO : Add localization
-            Console.finished("encode newton done");
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.newton_file_is_encoded"));
         }
         if (category.encode_rton) {
             let ripe_file = `${source}/resource/${manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json")}`;
             Kernel.Support.PopCap.RTON.encode_fs(ripe_file, ripe_file.replace(/((\.json))/i, ".rton"));
-            // TODO : Add localization
-            Console.finished("encode rton done");
+            Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.rton_file_is_encoded"));
         }
         return;
-    }
-
-    export function merge_resource(source: string, destination: string, callback: Callback): void {
-        return callback(source, destination);
     }
 
     export function process(source: string, destination: string): void {
         const manifest = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${source}/manifest.json`);
         const configuration = Kernel.JSON.deserialize_fs<Setting>(`${source}/setting.json`);
         if (configuration.res_info.convert === "?") {
-            // TODO : Add localization
-            Console.argument("use res-info?");
+            Console.argument(Kernel.Language.get("popcap.rsb.pack_for_modding.use_res_info"));
             configuration.res_info.convert = Executor.input_boolean();
         }
         if (Kernel.FileSystem.is_directory(`${source}/resource/PROPERTIES`)) {
@@ -200,8 +186,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
                 merge_resource_group: configuration.resource_group.automatic_merge_before_encode,
             });
         } else {
-            // TODO : Add localization
-            Console.warning("Skip resource convert because PROPERTIES directory not found");
+            Console.warning(Kernel.Language.get("popcap.rsb.pack_for_modding.properties_directory_not_found"));
         }
         if (configuration.rton.encrypt_rton && !configuration.rton.encode_rton) {
             encrypt_rton(`${source}/resource/PACKAGES`, { key: configuration.rton.key, iv: configuration.rton.iv });

@@ -1879,9 +1879,7 @@ declare namespace Sen {
                      * @param {string} destination - Path to the directory where unpacked files should be placed.
                      * @returns {void} - Doesn't return any data, extracts the archive contents to the destination folder.
                      */
-                    export function unpack_fs(source: string, destination: string): void {
-                        // Implementation for unpacking the RSG archive for modding purposes
-                    }
+                    export function unpack_fs(source: string, destination: string): void;
 
                     /**
                      * JavaScript RSG Unpack method for file (header information)
@@ -1893,9 +1891,7 @@ declare namespace Sen {
                      *                                 Can be omitted if only header information is needed.
                      * @returns {Definition} - Returns a Definition object containing information about the file format and resources within the archive.
                      */
-                    export function unpack_modding(source: string, destination?: string): Definition {
-                        // Implementation for unpacking the RSG archive and parsing header information
-                    }
+                    export function unpack_modding(source: string, destination?: string): Definition;
 
                     /**
                      * JavaScript RSG Pack method for file (modding purposes)
@@ -1906,9 +1902,7 @@ declare namespace Sen {
                      * @param {string} destination - Path to the destination RSG archive file.
                      * @returns {void} - Doesn't return any data, creates a new RSG archive at the specified destination.
                      */
-                    export function pack_fs(source: string, destination: string): void {
-                        // Implementation for packing a directory of loose files into an RSG archive
-                    }
+                    export function pack_fs(source: string, destination: string): void;
 
                     /**
                      * JavaScript RSG Pack method for file (custom header)
@@ -1920,8 +1914,93 @@ declare namespace Sen {
                      * @param {Definition} packet_info - An object containing custom metadata about the archive format and resources.
                      * @returns {void} - Doesn't return any data, creates a new RSG archive with custom header information.
                      */
-                    export function pack(source: string, destination: string, packet_info: Definition): void {
-                        // Implementation for packing a directory of loose files into an RSG archive with custom header information
+                    export function pack(source: string, destination: string, packet_info: Definition): void;
+                }
+
+                /**
+                 * PopCap Package Support
+                 * This namespace groups functions and types related to PopCap Package (PAK).
+                 */
+
+                declare namespace PAK {
+                    /**
+                     * Unpacks a file system archive from the source path to the destination directory.
+                     *
+                     * @param {string} source - The path to the archive file.
+                     * @param {string} destination - The directory where the extracted files will be placed.
+                     * @returns {void}
+                     */
+                    export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * Packs a directory and its contents into a file system archive at the destination path.
+                     *
+                     * @param {string} source - The directory to be archived.
+                     * @param {string} destination - The path and filename of the resulting archive.
+                     * @returns {void}
+                     */
+                    export function pack_fs(source: string, destination: string): void;
+                }
+
+                /**
+                 * PopCap Re-Animation
+                 * This namespace groups functions and types related to PopCap Re-Animation (Reanim).
+                 */
+
+                declare namespace Reanim {
+                    /**
+                     * Denotes the target platform for file system operations.
+                     */
+                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "raw-xml" | "tv" | "wp";
+
+                    /**
+                     * Decodes a file system archive from the source path to the destination directory,
+                     * targeting a specific platform.
+                     *
+                     * @param {string} source - The path to the archive file.
+                     * @param {string} destination - The directory where the extracted files will be placed.
+                     * @param {Platform} platform - The target platform for the decoded files.
+                     * @returns {void}
+                     */
+                    export function decode_fs(source: string, destination: string, platform: Platform): void;
+
+                    /**
+                     * Encodes a directory and its contents into a file system archive at the destination path,
+                     * targeting a specific platform.
+                     *
+                     * @param {string} source - The directory to be archived.
+                     * @param {string} destination - The path and filename of the resulting archive.
+                     * @param {Platform} platform - The target platform for the encoded archive.
+                     * @returns {void}
+                     */
+                    export function encode_fs(source: string, destination: string, platform: Platform): void;
+
+                    /**
+                     * Namespace for converting file systems to Flash format.
+                     */
+                    declare namespace ToFlash {
+                        /**
+                         * Converts a file system from the source path to Flash format at the destination path.
+                         *
+                         * @param {string} source - The path to the source file system.
+                         * @param {string} destination - The path and filename for the Flash output.
+                         * @returns {void}
+                         */
+                        export function convert_fs(source: string, destination: string): void;
+                    }
+
+                    /**
+                     * Namespace for converting from Flash format to a file system.
+                     */
+                    declare namespace FromFlash {
+                        /**
+                         * Converts a file system from Flash format at the source path to a regular file system at the destination path.
+                         *
+                         * @param {string} source - The path to the source Flash file.
+                         * @param {string} destination - The directory where the extracted files will be placed.
+                         * @returns {void}
+                         */
+                        export function convert_fs(source: string, destination: string): void;
                     }
                 }
 
@@ -1939,9 +2018,7 @@ declare namespace Sen {
                      * @param {string} destination - Path to the destination directory for split resources.
                      * @returns {void} - Doesn't return any data, creates separate files for each resource type in the destination directory.
                      */
-                    export function split_fs(source: string, destination: string): void {
-                        // Implementation for splitting a Resource Group archive
-                    }
+                    export function split_fs(source: string, destination: string): void;
 
                     /**
                      * JavaScript Merge Resource Group Support
@@ -1952,9 +2029,7 @@ declare namespace Sen {
                      * @param {string} destination - Path to the destination Resource Group file.
                      * @returns {void} - Doesn't return any data, creates a new Resource Group archive at the specified destination.
                      */
-                    export function merge_fs(source: string, destination: string): void {
-                        // Implementation for merging separate resource files into a Resource Group archive
-                    }
+                    export function merge_fs(source: string, destination: string): void;
 
                     /**
                      * JavaScript Convert Resource Group Support
@@ -1966,9 +2041,7 @@ declare namespace Sen {
                      * @param {Sen.Script.Support.PopCap.ResourceGroup} layout - The target layout or format for the converted Resource Group.
                      * @returns {void} - Doesn't return any data, creates a new Resource Group archive with the specified layout.
                      */
-                    export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup.PathStyle): void {
-                        // Implementation for converting a Resource Group archive to a different layout
-                    }
+                    export function convert_fs(source: string, destination: string, layout: Sen.Script.Support.PopCap.ResourceGroup.PathStyle): void;
 
                     export interface ResourceBasic extends Record<string, unknown> {
                         /** Slot number associated with the resource */
@@ -2065,6 +2138,10 @@ declare namespace Sen {
                         /** Array of resources contained within the subgroup */
                         resources: Array<ResourceContainsImage>;
                     }
+
+                    /**
+                     * Interface for a Resource Group
+                     */
 
                     export interface ResourceGroup {
                         slot_count: bigint;
@@ -6661,8 +6738,6 @@ declare namespace Sen {
              *                          This object likely controls aspects like quality, disposal method, and blending mode.
              * @throws                 An error if there are issues processing the images or saving the APNG file.
              */
-            export function to_apng(image_path_list: Array<string>, destination: string, setting: Kernel.APNGMakerSetting): void;
-
             export function to_apng(image_path_list: Array<string>, destination: string, setting: Kernel.APNGMakerSetting): void;
         }
     }

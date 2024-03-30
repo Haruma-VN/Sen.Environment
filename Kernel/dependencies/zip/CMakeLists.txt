@@ -4,7 +4,7 @@ project(
   zip
   LANGUAGES C
   HOMEPAGE_URL https://github.com/kuba--/zip
-  VERSION 0.3.0
+  VERSION 0.3.2
 )
 
 add_definitions(-DZIP_ENABLE_SHARABLE_FILE_OPEN)

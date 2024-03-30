@@ -109,7 +109,7 @@ namespace Sen::Kernel::Support::PopCap::CompiledText {
 			) -> void
 			{
 				auto buffer = DataStreamView{};
-				buffer.writeBytes(PopCap::Zlib::Compress{use_64_bit_variant}.compress(thiz.sen->getBytes(0, thiz.sen->size())));
+				buffer.writeBytes(PopCap::Zlib::Compress<false>{}.compress(thiz.sen->getBytes(0, thiz.sen->size())));
 				fill_rijndael_block(buffer, thiz.iv);
 				auto decoded_base64 = DataStreamView{};
 				decoded_base64.writeUint8(0x10);
