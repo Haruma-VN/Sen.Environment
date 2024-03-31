@@ -61,6 +61,10 @@ namespace Sen::Kernel::Definition::Compression {
 				auto propsSize = static_cast<size_t>(LZMA_PROPS_SIZE);
 				auto result = std::vector<unsigned char>(destination_length);
 				auto props = std::vector<unsigned char>(propsSize);
+				auto sen = DataStreamView{};
+				sen.writeUint8(0x5D);
+				sen.writeBytes({0x00, 0x00, 0x00, 0x04});
+				sen.writeInt64(data.size());
 				auto ret = LzmaCompress(
 					&result[0],
 					&destination_length,
@@ -76,9 +80,10 @@ namespace Sen::Kernel::Definition::Compression {
 					-1,
 					-1
 				);
-				assert_conditional(ret != SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.compress.failed")), "compress");
+				assert_conditional(ret == SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.compress.failed")), "compress");
 				result.resize(destination_length);
-				return result;
+				sen.writeBytes(result);
+				return sen.toBytes();
 			}
 
 			/**
@@ -86,24 +91,25 @@ namespace Sen::Kernel::Definition::Compression {
 			 * size: actual size
 			 * return: uncompressed data
 			*/
-			template <typename T> requires std::is_integral<T>::value
 			inline static auto uncompress(
-				const std::vector<unsigned char> &data,
-				T actual_size
+				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
-				auto result = std::vector<unsigned char>(actual_size);
-				auto destination_length = actual_size;
-				auto source_length = data.size() - LZMA_PROPS_SIZE;
+				auto view = DataStreamView{data};
+				assert_conditional(view.readUint8() == 0x5D, fmt::format("{}", Language::get("lzma.uncompress.invalid_magic")), "uncompress");
+				assert_conditional(view.readUint32() == 67108864, fmt::format("{}", Language::get("lzma.uncompress.invalid_props")), "uncompress");
+				auto destination_length = static_cast<std::size_t>(view.readInt64());
+				auto result = std::vector<unsigned char>(destination_length);
+				auto source_length = view.size() - view.read_pos;
 				auto ret = LzmaUncompress(
 					&result[0],
 					&destination_length,
-					&data[LZMA_PROPS_SIZE],
+					&data[view.read_pos],
 					&source_length,
 					&data[0],
 					LZMA_PROPS_SIZE
 				);
-				assert_conditional(ret != SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "compress");
+				assert_conditional(ret == SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "uncompress");
 				result.resize(destination_length);
 				return result;
 			}
@@ -174,15 +180,13 @@ namespace Sen::Kernel::Definition::Compression {
 			 * size: actual size
 			 * return: uncompressed file
 			*/
-			template <typename T> requires std::is_integral<T>::value
 			inline static auto uncompress_fs(
 				std::string_view source,
-				std::string_view destination,
-				T actual_size
+				std::string_view destination
 			) -> void
 			{
 				auto data = FileSystem::read_binary<unsigned char>(source);
-				auto uncompressed_data = Lzma::uncompress<T>(data, actual_size);
+				auto uncompressed_data = Lzma::uncompress(data);
 				FileSystem::write_binary<unsigned char>(destination, uncompressed_data);
 				return;
 			}

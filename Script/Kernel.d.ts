@@ -1032,6 +1032,35 @@ declare namespace Sen {
          */
         declare namespace Compression {
             /**
+             * Namespace for Lzma compression and decompression functions.
+             */
+            declare namespace Lzma {
+                /**
+                 * Lzma compression level. Higher levels result in better compression ratios
+                 * but take longer to compress.
+                 */
+                export type Level = 0n | 1n | 2n | 3n | 4n | 5n | 6n | 7n | 8n | 9n;
+
+                /**
+                 * Compresses a file system object at the specified path to the destination path
+                 * using the given Lzma compression level.
+                 *
+                 * @param source - The path to the file or directory to compress.
+                 * @param destination - The path to the archive file to create.
+                 * @param level - The Lzma compression level to use (0-9).
+                 */
+                export function compress_fs(source: string, destination: string, level: Level): void;
+
+                /**
+                 * Decompresses a Lzma archive file at the specified path to the destination path.
+                 *
+                 * @param source - The path to the Lzma archive file to decompress.
+                 * @param destination - The path to extract the decompressed files.
+                 */
+                export function uncompress_fs(source: string, destination: string): void;
+            }
+
+            /**
              * JavaScript Zip Compression and Decompression Utilities
              * Based on zip.h library written in C
              */

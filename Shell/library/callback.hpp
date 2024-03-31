@@ -124,11 +124,8 @@ namespace Sen::Shell {
 		if (result[0] == "is_gui") {
 			delete[] copy;
 			copy = nullptr;
+			destination->value = "0";
 			destination->size = 1;
-			copy = new char[destination->size + 1];
-			copy[0] = '0';
-			copy[destination->size] = '\0';
-			destination->value = copy;
 			return;
 		}
 		if (result[0] == "wait") {
@@ -153,9 +150,9 @@ namespace Sen::Shell {
 			copy = nullptr;
 			auto version = std::to_string(Sen::Shell::version);
 			copy = new char[version.size() + 1];
-			copy[version.size()] = '\0';
 			std::memcpy(copy, version.data(), version.size());
-			destination->size = static_cast<int>(version.size());
+			copy[version.size()] = '\0';
+			destination->size = version.size();
 			destination->value = copy;
 			return;
 		}

@@ -411,5 +411,8 @@
     "popcap.reanim.decode.invalid_game_console_reanim_magic": "Không khớp với dấu hiệu nhận diện REANIM cho máy chơi game, phải là 0xC, nhận được: {}",
     "popcap.reanim.decode.invalid_game_console_reanim_track": "Không khớp với track REANIM cho máy chơi game, phải là 0x2C, nhận được: {}",
     "popcap.reanim.decode.invalid_fps_chuck": "FPS Chuck không hợp lệ",
-    "popcap.reanim.decode.invalid_reanim_platform": "Nền tảng REANIM không được hỗ trợ, nhận được nền tảng không xác định"
+    "popcap.reanim.decode.invalid_reanim_platform": "Nền tảng REANIM không được hỗ trợ, nhận được nền tảng không xác định",
+    "invalid": "Không hợp lệ",
+    "lzma.uncompress.invalid_magic": "lzma magic không hợp lệ, nên bắt đầu bằng 0x5D",
+    "lzma.uncompress.invalid_props": "lzma props không hợp lệ"
 }

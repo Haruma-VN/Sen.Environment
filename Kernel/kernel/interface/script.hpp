@@ -9838,11 +9838,10 @@ namespace Sen::Kernel::Interface::Script {
 			) -> JSValue
 			{
 				M_JS_PROXY_WRAPPER(context, {
-					try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 					auto source = JS::Converter::get_string(context, argv[0]);
 					auto destination = JS::Converter::get_string(context, argv[1]);
-					auto actual_size = JS::Converter::get_uint64(context, argv[2]);
-					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs<std::size_t>(source, destination, actual_size);
+					Sen::Kernel::Definition::Compression::Lzma::uncompress_fs(source, destination);
 					return JS::Converter::get_undefined();
 				}, "uncompress_fs"_sv);
 			}
