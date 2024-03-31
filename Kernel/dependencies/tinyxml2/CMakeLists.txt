@@ -1,6 +1,6 @@
 project(
 	tinyxml2
-	VERSION 9.0.0
+	VERSION 10.0.0
 	HOMEPAGE_URL https://github.com/leethomason/tinyxml2
 	LANGUAGES CXX
 )

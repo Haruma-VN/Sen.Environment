@@ -1,6 +1,6 @@
 project(
 	json
-	VERSION 3.11.2
+	VERSION 3.11.3
 	HOMEPAGE_URL https://github.com/nlohmann/json
 	LANGUAGES CXX
 )

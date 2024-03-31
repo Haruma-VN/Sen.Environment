@@ -1,6 +1,6 @@
 project(
 	avir
-  	VERSION 3.0.9
+  	VERSION 3.0.11
 	HOMEPAGE_URL https://github.com/avaneev/avir
 	LANGUAGES CXX
 )
