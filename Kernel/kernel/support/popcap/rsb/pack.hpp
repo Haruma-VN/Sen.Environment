@@ -40,10 +40,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     class Pack
     {
+
     public:
         Pack(
 
-            ) : sen(std::make_shared<DataStreamView>())
+        ) : sen(std::make_shared<DataStreamView>())
         {
         }
 
@@ -285,7 +286,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto get_packet_info(
             DataStreamView &rsg_file,
-            PacketInfo &packet_info)
+            PacketInfo &packet_info
+        ) -> void
         {
             packet_info.compression_flags = rsg_file.readUint32(0x10ull);
             auto file_list_length = rsg_file.readUint32(0x48ull);
@@ -315,8 +317,9 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         current_character = 0x2F;
                     key += static_cast<char>(current_character);
                 }
-                if (key.empty())
+                if (key.empty()) {
                     break;
+                }
                 auto is_atlas = rsg_file.readUint32() == 1;
                 auto res = RSG::ResInfo{key, is_atlas};
                 rsg_file.read_pos += 8;
@@ -339,15 +342,17 @@ namespace Sen::Kernel::Support::PopCap::RSB
             const std::string &type,
             const T &modify,
             const T &rsg,
-            const std::string &name)
+            const std::string &name
+        ) -> void
         {
-            throw Exception(fmt::format("invaild_{}. manifest: {}. rsg: {}. at {}", type, modify, rsg, name));
+            throw Exception(fmt::format("{} {}. manifest: {}. rsg: {}. {} {}", Language::get("invalid"), type, modify, rsg, Language::get("at"), name));
         }
 
         inline auto compare_packet_info(
             const RSG_PacketInfo<uint32_t> &modify_packet_info,
             PacketInfo &rsg_packet_info,
-            const std::string packet_name)
+            const std::string packet_name
+        ) -> void
         {
             if (modify_packet_info.compression_flags != rsg_packet_info.compression_flags)
             {
@@ -400,7 +405,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             const std::string &str
         ) -> std::string
         {
-            auto upper_str = str;
+            auto upper_str = std::string{str.data(), str.size()};
             std::transform(upper_str.begin(), upper_str.end(), upper_str.begin(), ::toupper);
             return upper_str;
         }
@@ -409,9 +414,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
         template <auto check_packet>
         inline auto process(
             std::string_view source,
-            const Manifest<std::uint32_t> &manifest) -> void
+            const Manifest<std::uint32_t> &manifest
+        ) -> void
         {
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");
+            static_assert(sizeof(check_packet) == sizeof(bool));
             sen->writeString("1bsr"_sv);
             auto version = manifest.version;
             if (version != 3 and version != 4)

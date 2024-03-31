@@ -360,7 +360,7 @@ namespace Sen::Kernel::Support::PopCap::RTON
                         sen->writeVarInt32(std::stoi(int_str[0]));
                         auto& hex_string = int_str[2];
                         std::reverse(hex_string.begin(), hex_string.end());
-                        auto hex_int = static_cast<int>(std::strtol(hex_string.data(), nullptr, 16));
+                        auto hex_int = static_cast<int>(std::strtol(hex_string.data(), NULL, 16));
                         sen->writeInt32(hex_int);
                     }
                     else

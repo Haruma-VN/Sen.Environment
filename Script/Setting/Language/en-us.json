@@ -411,5 +411,6 @@
     "popcap.reanim.decode.invalid_game_console_reanim_magic": "Mismatch REANIM magic, should be 0xC, got: {}",
     "popcap.reanim.decode.invalid_game_console_reanim_track": "Mismatch REANIM track, should be 0x2C, got: {}",
     "popcap.reanim.decode.invalid_fps_chuck": "Invalid FPS Chuck",
-    "popcap.reanim.decode.invalid_reanim_platform": "Unsupported REANIM platform, got unknown platform"
+    "popcap.reanim.decode.invalid_reanim_platform": "Unsupported REANIM platform, got unknown platform",
+    "invalid": "Invalid"
 }
