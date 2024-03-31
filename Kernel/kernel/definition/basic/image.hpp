@@ -678,7 +678,7 @@ namespace Sen::Kernel::Definition {
 			) -> void
 			{
 				#if WINDOWS
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).c_str(), L"wb"), Language::close_file);
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(filepath.data()).data(), L"wb"), Language::close_file);
 				#else
 				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(filepath.data(), "wb"), Language::close_file);
 				#endif

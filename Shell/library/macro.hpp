@@ -55,22 +55,22 @@ using namespace httplib;
 #define MAIN_FUNCTION int main(int size, char** argc)
 #endif
 struct StringView {
-	int size;
-	const char* value;
+	size_t size;
+	const char* value{ nullptr };
 };
 
 struct StringList {
 	StringView* value;
-	int size;
+	size_t size;
 
-	static auto to_vector(
+	inline static auto to_vector(
 		const StringList& that
 	) -> std::vector<std::string>
 	{
 		auto destination = std::vector<std::string>{};
 		for (auto i = 0; i < that.size; ++i)
 		{
-			destination.emplace_back(std::string{ that.value[i].value, static_cast<std::size_t>(that.value[i].size)});
+			destination.emplace_back(std::string{ that.value[i].value, that.value[i].size });
 		}
 		return destination;
 	}
@@ -89,7 +89,7 @@ namespace Sen::Shell {
 }
 
 #if WINDOWS
-#define KERNEL_DEFAULT "kernel.dll"
+#define KERNEL_DEFAULT L".\\kernel.dll"
 #elif MACINTOSH || IPHONE
 #define KERNEL_DEFAULT "kernel.dylib"
 #elif ANDROID || LINUX

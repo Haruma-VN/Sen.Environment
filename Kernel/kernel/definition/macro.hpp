@@ -4,7 +4,7 @@
 
 #define thiz (*this)
 
-#define debug(arg) std::cout << arg << std::endl;
+#define debug(arg) std::cout << arg << '\n' << std::flush;
 
 #define WINDOWS _WIN32
 

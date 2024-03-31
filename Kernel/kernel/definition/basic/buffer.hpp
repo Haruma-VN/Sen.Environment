@@ -245,7 +245,7 @@ namespace Sen::Kernel::Definition
                     }
                 }
                 #if WINDOWS
-                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(path.data()).c_str(), L"wb"), close_file);
+                auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(path.data()).data(), L"wb"), close_file);
                 #else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(path.data(), "wb"), close_file);
                 #endif

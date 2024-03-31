@@ -4,7 +4,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 final class CStringView extends Struct {
-  @Uint64()
+  @Size()
   external int size;
 
   external Pointer<Utf8> value;
@@ -13,7 +13,7 @@ final class CStringView extends Struct {
 final class CStringList extends Struct {
   external Pointer<CStringView> value;
 
-  @Int32()
+  @Size()
   external int size;
 }
 

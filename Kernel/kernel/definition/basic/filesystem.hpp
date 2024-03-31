@@ -76,7 +76,7 @@ namespace Sen::Kernel::FileSystem
 	) -> void
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(filepath.data()))).c_str(), L"w"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(filepath.data()))).data(), L"w"), close_file);
 		#else
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "w"), close_file);
 		#endif

@@ -10,14 +10,14 @@ namespace Sen::Kernel::Interface {
 
 	struct StringView {
 		public:
-			int size;
+			size_t size;
 			const char* value;
 	};
 
 	struct StringList {
 		public:
 			StringView* value;
-			int size;
+			size_t size;
 
 			~StringList(
 
@@ -40,8 +40,8 @@ namespace Sen::Kernel::Interface {
 	) -> CStringView
 	{
 		return CStringView {
-			.size = static_cast<int>(that.size()),
-			.value = that.c_str(),
+			.size = that.size(),
+			.value = that.data(),
 		};
 	}
 
@@ -51,21 +51,21 @@ namespace Sen::Kernel::Interface {
 		CStringView* that
 	) -> std::string
 	{
-		return std::string{that->value, static_cast<std::size_t>(that->size)};
+		return std::string{that->value, that->size};
 	}
 
 	inline static auto construct_standard_string(
 		const CStringView & that
 	) -> std::string
 	{
-		return std::string{that.value, static_cast<std::size_t>(that.size)};
+		return std::string{that.value, that.size};
 	}
 
 	inline static auto construct_string_list(
 		const std::vector<std::string> & that
 	) -> std::shared_ptr<CStringList>
 	{
-		auto destination = std::make_shared<CStringList>(new StringView[that.size()], static_cast<int>(that.size()));
+		auto destination = std::make_shared<CStringList>(new StringView[that.size()], that.size());
 		for	(auto i : Range<std::size_t>(that.size())){
 			destination->value[i] = construct_string(that.at(i));
 		}

@@ -27,7 +27,7 @@ MAIN_FUNCTION
         }
         else {
             #if WINDOWS
-                    script = Sen::Shell::utf16_to_utf8(std::filesystem::absolute("./Script/main.js").wstring());
+                    script = Sen::Shell::utf16_to_utf8(std::filesystem::absolute(L".\\Script\\main.js").wstring());
             #else
                     script = std::filesystem::absolute("./Script/main.js").string();
             #endif
@@ -55,8 +55,8 @@ MAIN_FUNCTION
             #endif
             return 1;
         }
-        auto script_pointer = std::make_unique<CStringView>(static_cast<int>(script.size()), script.data());
-        auto argument_size = static_cast<int>(size);
+        auto script_pointer = std::make_unique<CStringView>(script.size(), script.data());
+        auto argument_size = static_cast<size_t>(size);
         auto argument_list = new CStringList{
             .value = new CStringView[argument_size],
             .size = argument_size,
@@ -64,12 +64,12 @@ MAIN_FUNCTION
         for (auto i = 0; i < size; ++i) {
             switch (i) {
                 case 1: {
-                    argument_list->value[i].value = kernel.c_str();
+                    argument_list->value[i].value = kernel.data();
                     argument_list->value[i].size = kernel.size();
                     break;
                 }
                 case 2: {
-                    argument_list->value[i].value = script.c_str();
+                    argument_list->value[i].value = script.data();
                     argument_list->value[i].size = script.size();
                     break;
                 }
@@ -77,12 +77,15 @@ MAIN_FUNCTION
                     #if WINDOWS
                         auto argument_value = Sen::Shell::utf16_to_utf8(reinterpret_cast<char16_t const*>(argc[i]));
                         auto value_copy = new char[argument_value.size() + 1];
-                        std::memcpy(value_copy, argument_value.c_str(), argument_value.size());
+                        std::memcpy(value_copy, argument_value.data(), argument_value.size());
+                        // last element must be a null terminator
+                        value_copy[argument_value.size()] = '\0';
+                        // 
                         argument_list->value[i].value = value_copy;
                         argument_list->value[i].size = argument_value.size();
                     #else
                         argument_list->value[i].value = argc[i];
-                        argument_list->value[i].size = strlen(argc[i]);
+                        argument_list->value[i].size = std::strlen(argc[i]);
                     #endif
                 };
             }

@@ -10,7 +10,7 @@
 	evaluate_context += fmt::format("throw e;");\
 	evaluate_context += "}";\
 	evaluate_context += fmt::format("\n{}();", function_name);\
-	return JS_Eval(context, evaluate_context.c_str(), evaluate_context.size(), source.c_str(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
+	return JS_Eval(context, evaluate_context.data(), evaluate_context.size(), source.data(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
 
 #define M_JS_PROXY_WRAPPER(context, code, func_name)                                         \
 	try code catch (...)                                                             \
@@ -168,7 +168,7 @@ namespace Sen::Kernel::Interface::Script {
 				case nlohmann::ordered_json::value_t::object: {
 					auto js_obj = JS_NewObject(context);
 					for (auto& [key, value] : json.items()) {
-						JS_DefinePropertyValueStr(context, js_obj, key.c_str(), json_to_js_value(context, value), JS_PROP_C_W_E);
+						JS_DefinePropertyValueStr(context, js_obj, key.data(), json_to_js_value(context, value), JS_PROP_C_W_E);
 					}
 					return js_obj;
 				}
@@ -11808,7 +11808,7 @@ namespace Sen::Kernel::Interface::Script {
 				auto utf16 = std::wstring(reinterpret_cast<wchar_t*>(buf), len / sizeof(wchar_t));
 				auto converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>{};
 				auto utf8 = converter.to_bytes(utf16);
-				auto str = JS_NewStringLen(context, utf8.c_str(), utf8.size());
+				auto str = JS_NewStringLen(context, utf8.data(), utf8.size());
 				return str;
 			}, "cast_ArrayBuffer_to_JS_WideString"_sv);
 		}
@@ -11875,7 +11875,7 @@ namespace Sen::Kernel::Interface::Script {
 					}
 					else {
 						if (child_json.find("@text") != child_json.end()) {
-							if (std::strcmp(child_json["@text"]["value"].get<std::string>().c_str(),
+							if (std::strcmp(child_json["@text"]["value"].get<std::string>().data(),
 								child->Value()) == 0) {
 								j = child_json;
 							}
@@ -11902,28 +11902,28 @@ namespace Sen::Kernel::Interface::Script {
 				for (auto& [key, value] : j.items()) {
 					if (key == "@attributes") {
 						for (auto& [attribute_key, attribute_value] : value.items()) {
-							dynamic_cast<tinyxml2::XMLElement*>(node)->SetAttribute(attribute_key.c_str(), attribute_value.get<std::string>().c_str());
+							dynamic_cast<tinyxml2::XMLElement*>(node)->SetAttribute(attribute_key.data(), attribute_value.get<std::string>().data());
 						}
 					}
 					else if (key == "@text") {
 						if(!value["is_cdata"].is_null() and value["is_cdata"]) {
-							auto cdata = doc.NewText(value["value"].get<std::string>().c_str());
+							auto cdata = doc.NewText(value["value"].get<std::string>().data());
 							cdata->SetCData(true);
 							node->InsertEndChild(cdata);
 						}
 						else {
-							dynamic_cast<tinyxml2::XMLElement*>(node)->SetText(value["value"].get<std::string>().c_str());
+							dynamic_cast<tinyxml2::XMLElement*>(node)->SetText(value["value"].get<std::string>().data());
 						}
 					}
 					else {
 						if (value.is_object()) {
-							auto child = doc.NewElement(key.c_str());
+							auto child = doc.NewElement(key.data());
 							node->InsertEndChild(child);
 							json2xml(value, child, doc);
 						}
 						else if (value.is_array()) {
 							for (auto& element : value) {
-								auto child = doc.NewElement(key.c_str());
+								auto child = doc.NewElement(key.data());
 								node->InsertEndChild(child);
 								json2xml(element, child, doc);
 							}
@@ -11943,7 +11943,7 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 			else if(j.is_string()) {
-				node->InsertEndChild(doc.NewText(j.get<std::string>().c_str()));
+				node->InsertEndChild(doc.NewText(j.get<std::string>().data()));
 			}
 			else {
 				auto child = doc.NewElement(node->Value());
@@ -11958,7 +11958,7 @@ namespace Sen::Kernel::Interface::Script {
 		) -> void
 		{
 			auto & root_name = j.begin().key();
-			auto root = doc.NewElement(root_name.c_str());
+			auto root = doc.NewElement(root_name.data());
 			doc.InsertEndChild(root);
 			json2xml(j.begin().value(), root, doc);
 			return;

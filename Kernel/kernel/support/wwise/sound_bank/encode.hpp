@@ -28,7 +28,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank {
 				auto bytes = std::vector<uint8_t>{};
 				for (auto i = static_cast<unsigned int>(0); i < hexStr.length(); i += 2) {
 					auto byteString = hexStr.substr(i, 2);
-					auto byte = static_cast<std::uint8_t>(std::strtol(byteString.c_str(), NULL, 16));
+					auto byte = static_cast<std::uint8_t>(std::strtol(byteString.data(), nullptr, 16));
 					bytes.push_back(byte);
 				}
 				return bytes;

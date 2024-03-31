@@ -69,7 +69,7 @@ namespace Sen::Kernel {
 			}
 			~Exception () throw () {}
 			const char *what () const throw () {
-				return this->msg.c_str();
+				return this->msg.data();
 			}
 	};
 
