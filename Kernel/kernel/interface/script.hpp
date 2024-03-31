@@ -795,6 +795,27 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 			template <auto T> requires BooleanConstraint
+			inline static auto allocate(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				static_assert(T == true or T == false, "T must be true or false");
+				static_assert(sizeof(T) == sizeof(bool));
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 1, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->allocate(static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+					return JS_UNDEFINED;
+				}, "allocate"_sv);
+			}
+
+			template <auto T> requires BooleanConstraint
 			inline static auto writeUint8(
 				JSContext* ctx,
 				JSValueConst this_val,
@@ -2505,6 +2526,7 @@ namespace Sen::Kernel::Interface::Script {
 					JS_CPPFUNC_DEF("readFloat", 1, readFloat<T>),
 					JS_CPPFUNC_DEF("readDouble", 1, readDouble<T>),
 					JS_CPPFUNC_DEF("close", 0, close<T>),
+					JS_CPPFUNC_DEF("allocate", 1, allocate<T>),
 			};
 
 

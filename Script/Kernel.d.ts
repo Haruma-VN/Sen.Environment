@@ -5413,6 +5413,15 @@ declare namespace Sen {
             public reserve(value: bigint): void;
 
             /**
+             * Allocate additional space in the data stream
+             *
+             * This method likely increases the capacity of the stream by the specified amount of bytes.
+             *
+             * @param {bigint} value - The number of bytes to reserve.
+             */
+            public allocate(value: bigint): void;
+
+            /**
              * Potentially data population from string (needs clarification)
              *
              * The purpose of the `fromString` method is unclear based on the current comment.

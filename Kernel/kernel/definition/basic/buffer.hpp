@@ -273,6 +273,14 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
+            inline auto allocate(
+                const std::size_t& size
+            ) -> void
+            {
+                thiz.data.reserve(size);
+                return;
+            }
+
             template <typename... Args>
                 requires(IsValidArgument<Args> && ...)
             inline auto writeUint16(
