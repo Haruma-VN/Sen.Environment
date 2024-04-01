@@ -22,6 +22,7 @@ namespace Sen::Kernel::Definition
             static_assert(use_big_endian == true or use_big_endian == false);
 
         private:
+
             std::vector<std::uint8_t> mutable data;
 
             std::size_t mutable length;
@@ -83,7 +84,8 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                const std::size_t &length) : read_pos(0), write_pos(length), length(length)
+                const std::size_t &length
+            ) : read_pos(0), write_pos(length), length(length)
             {
                 thiz.reserve(length + thiz.buffer_size);
                 return;
@@ -118,27 +120,30 @@ namespace Sen::Kernel::Definition
                 return thiz.data.end();
             }
 
-            inline auto get_length(
+            inline auto constexpr get_length(
 
             ) const -> uint64_t
             {
                 return thiz.length;
             }
 
-            inline auto size() const -> uint64_t
+            inline auto constexpr size(
+
+            ) const -> size_t
             {
                 return thiz.length;
             }
 
-            inline auto capacity(
+            inline auto constexpr capacity(
 
-            ) const -> uint64_t
+            ) const -> size_t
             {
                 return thiz.data.size();
             }
 
-            inline auto reserve(
-                const std::size_t &capacity) const -> void
+            inline auto constexpr reserve(
+                const std::size_t &capacity
+            ) const -> void
             {
                 thiz.data.resize(capacity);
                 return;
@@ -191,11 +196,13 @@ namespace Sen::Kernel::Definition
                 const std::size_t &pos
             ) const -> void
             {
+                // TODO : Add localization
+                assert_conditional(pos <= thiz.size(), "read position cannot be smaller than size", "position");
                 thiz.read_pos = pos;
                 return;
             }
 
-            inline auto change_write_pos(
+            inline auto constexpr change_write_pos(
                 const std::size_t & pos
             ) const -> void
             {
@@ -243,7 +250,7 @@ namespace Sen::Kernel::Definition
             {
                 {
                     #if WINDOWS
-                    auto filePath = std::filesystem::path(String::utf8_to_utf16(path.data()));
+                    auto filePath = std::filesystem::path(String::utf8_to_utf16(String::to_windows_style(path.data())));
                     #else
                     auto filePath = std::filesystem::path(path);
                     #endif
@@ -937,7 +944,7 @@ namespace Sen::Kernel::Definition
                 return this->data.at(position);
             }
 
-            template <typename T>
+            template <typename T> requires std::is_integral<T>::value
             inline auto write_LE(T value) const -> void
             {
                 auto size = sizeof(T);
@@ -956,7 +963,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            template <typename T>
+            template <typename T> requires std::is_integral<T>::value
             inline auto write_BE(
                 T value) const -> void
             {
@@ -1633,7 +1640,9 @@ namespace Sen::Kernel::Definition
                 return value;
             }
 
-            inline auto close() const -> void
+            inline auto constexpr close(
+
+            ) const -> void
             {
                 thiz.data.clear();
                 thiz.read_pos = 0;

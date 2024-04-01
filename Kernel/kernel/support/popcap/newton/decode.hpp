@@ -16,33 +16,6 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 	struct Decode {
 
-		private:
-
-			/**
-			 * read boolean
-			*/
-
-			inline auto constexpr read_boolean(
-				uint8_t base_check
-			) -> bool
-			{
-				auto value = bool{};
-				switch(base_check){
-					case 0x01: {
-						value = true;
-						break;
-					}
-					case 0x00:{
-						value = false;
-						break;
-					}
-					default:{
-						throw Exception(fmt::format("{} {}", Language::get("popcap.newton.invalid_boolean_value") , sen->get_read_pos() - 1), std::source_location::current(), "read_boolean");
-					}
-				}
-				return value;
-			}
-
 		public:
 
 			// buffer reader
@@ -88,7 +61,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 					auto resources_count = sen->readInt32();
 					auto version = sen->readUint8();
 					assert_conditional(version == 0x01, fmt::format("{} {} {} {}", Kernel::Language::get("popcap.newton.decode.unknown_version"), version, Kernel::Language::get("popcap.newton.decode.at_index"), i), "process");
-      				auto group_has_parent = thiz.read_boolean(sen->readUint8());
+      				auto group_has_parent = sen->readBoolean();
 					group["id"] = sen->readString(static_cast<size_t>(sen->readUint32()));
 					if (group_has_parent) {
 						group["parent"] = sen->readString(static_cast<size_t>(sen->readUint32()));
@@ -158,7 +131,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							auto ah = sen->readInt32();
 							auto cols = sen->readInt32();
 							auto rows = sen->readInt32();
-							auto atlas = thiz.read_boolean(sen->readUint8());
+							auto atlas = sen->readBoolean();
           					auto is_sprite = aw != 0x00 and ah != 0x00;
 							sub_resources["slot"] = slot;
 							if(atlas){
@@ -189,7 +162,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							}
 							sen->readUint8();
 							sen->readUint8();
-							auto resource_has_parent = thiz.read_boolean(sen->readUint8());
+							auto resource_has_parent = sen->readBoolean();
 							sub_resources["id"] = sen->readString(static_cast<size_t>(sen->readUint32()));
 							sub_resources["path"] = sen->readString(static_cast<size_t>(sen->readUint32()));
 							if (resource_has_parent) {
