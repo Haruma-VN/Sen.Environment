@@ -10293,12 +10293,22 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst *argv
 				) -> JSValue
 				{
+					using PathStyle = Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle;
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						auto path_style = JS::Converter::get_int32(context, argv[2]);
-						Sen::Kernel::Support::PopCap::ResourceGroup::Convert::convert_fs(source, destination, static_cast<Sen::Kernel::Support::PopCap::ResourceGroup::PathStyle>(path_style));
+						switch (static_cast<PathStyle>(path_style)) {
+							case PathStyle::ArrayStyle:{
+								Sen::Kernel::Support::PopCap::ResourceGroup::Convert<false>::convert_fs(source, destination);
+								break;
+							}
+							case PathStyle::WindowStyle:{
+								Sen::Kernel::Support::PopCap::ResourceGroup::Convert<true>::convert_fs(source, destination);
+								break;
+							}
+						}
 						return JS::Converter::get_undefined();
 					}, "convert_fs"_sv);
 				}

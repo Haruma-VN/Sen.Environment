@@ -110,7 +110,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * resource_information: necessary resource information
 			 * return: generated common information
 			*/
-
+			template <auto use_string_for_style>
 			inline auto generate_common(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
@@ -130,22 +130,11 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"slot", 0},
 						{"id", key}
 					};
-					if(thiz.use_string_for_style){
+					if constexpr (use_string_for_style){
 						resource["path"] = String::replaceAll(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
 					}
 					else{
 						resource["path"] = String::split(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle);
-					}
-					if(value.find("srcpath") != value.end()){
-						if(thiz.use_string_for_style){
-							resource["srcpath"] = String::replaceAll(value["srcpath"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
-						}
-						else{
-							resource["srcpath"] = String::split(value["srcpath"].get<std::string>(), ResourceGroup::Common::PosixStyle);
-						}
-					}
-					if(value.find("forceOriginalVectorSymbolSize") != value.end() and value["forceOriginalVectorSymbolSize"].get<bool>()){
-						resource["forceOriginalVectorSymbolSize"] = true;
 					}
 					result["resources"].emplace_back(resource);
 				}
@@ -158,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 			 * resource_information: necessary resource information
 			 * return: generated atlas information
 			*/
-
+			template <auto use_string_for_style>
 			inline auto generate_image(
 				const SubInformation & extra_information,
 				const nlohmann::ordered_json & resource_information
@@ -181,7 +170,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"width", value["dimension"]["width"].get<int>()},
 						{"height", value["dimension"]["height"].get<int>()}
 					};
-					if(thiz.use_string_for_style){
+					if constexpr (use_string_for_style){
 						resource["path"] = String::replaceAll(value["path"].get<std::string>(), ResourceGroup::Common::PosixStyle, ResourceGroup::Common::WindowStyle);
 					}
 					else{
@@ -195,7 +184,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 							{"id", sub},
 							{"parent", key}
 						};
-						if(thiz.use_string_for_style){
+						if constexpr (use_string_for_style){
 							sub_resource["path"] = String::replaceAll(sub_value["path"].get<std::string>(), Common::PosixStyle , ResourceGroup::Common::WindowStyle);
 						}
 						else{
@@ -269,31 +258,61 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
         				result["groups"].emplace_back(thiz.generate_composite(composite_name, group));
 						for(auto & [subgroup_name, subgroup_value] : group["subgroup"].items()){
 							if (!subgroup_value["type"].is_null() and subgroup_value["type"].get<std::string>() != Convert::emptyType) {
-								result["groups"].emplace_back(
-									thiz.generate_image(
-										SubInformation(subgroup_name, composite_name),
-										subgroup_value
-									)
-								);
+								if (thiz.use_string_for_style) {
+									result["groups"].emplace_back(
+										thiz.generate_image<true>(
+											SubInformation(subgroup_name, composite_name),
+											subgroup_value
+										)
+									);
+								}
+								else {
+									result["groups"].emplace_back(
+										thiz.generate_image<false>(
+											SubInformation(subgroup_name, composite_name),
+											subgroup_value
+										)
+									);
+								}
 							}
 							else{
-								result["groups"].emplace_back(
-									thiz.generate_common(
-										SubInformation(subgroup_name, composite_name),
-										subgroup_value
-									)
-								);
+								if (thiz.use_string_for_style) { 
+									result["groups"].emplace_back(
+										thiz.generate_common<true>(
+											SubInformation(subgroup_name, composite_name),
+											subgroup_value
+										)
+									);
+								}
+								else {
+									result["groups"].emplace_back(
+										thiz.generate_common<false>(
+											SubInformation(subgroup_name, composite_name),
+											subgroup_value
+										)
+									);
+								}
 							}
 						}
 					}
 					else{
 						for(auto & [subgroup_name, subgroup_value] : group["subgroup"].items()){
-							result["groups"].emplace_back(
-								thiz.generate_common(
-									SubInformation(subgroup_name, Convert::emptyString),
-									subgroup_value
-								)
-							);
+							if (thiz.use_string_for_style) {
+								result["groups"].emplace_back(
+									thiz.generate_common<true>(
+										SubInformation(subgroup_name, Convert::emptyString),
+										subgroup_value
+									)
+								);
+							}
+							else {
+								result["groups"].emplace_back(
+									thiz.generate_common<false>(
+										SubInformation(subgroup_name, Convert::emptyString),
+										subgroup_value
+									)
+								);
+							}
 						}
 					}
 				}

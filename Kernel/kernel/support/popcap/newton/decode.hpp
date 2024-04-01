@@ -238,16 +238,6 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 							if (resource_has_parent) {
 								sub_resources["parent"] = thiz.read_string();
 							}
-							switch (static_cast<int>(resource_type)) {
-								case 0x02: {
-									sub_resources["forceOriginalVectorSymbolSize"] = true;
-									break;
-								}
-								case 0x06: {
-									sub_resources["srcpath"] = fmt::format("res\\common\\{}", sub_resources["path"].get<std::string>());
-									break;
-								}
-							}
 							resources.emplace_back(sub_resources);
 						}
         				group["resources"] = resources;

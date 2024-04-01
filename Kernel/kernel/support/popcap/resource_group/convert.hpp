@@ -75,14 +75,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 	/**
 	 * Convert class
 	*/
-
-	class Convert : Common {
+	template <auto use_string_for_style>
+	class Convert : public Common {
 
 		private:
 
-			// use windows path : new style
+			static_assert(sizeof(use_string_for_style) == sizeof(bool));
 
-			bool use_string_for_style;
+			static_assert(use_string_for_style == true or use_string_for_style == false);
 
 			/**
 			 * This function will convert atlas
@@ -104,15 +104,27 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}
 				}
 				for(auto & parent : atlas) {
-					auto atlas_data = nlohmann::ordered_json {
-						{"type", parent["type"].get<std::string>()},
-						{"path", thiz.use_string_for_style ? String::replaceAll(parent["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : 
-						String::join(parent["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
-						{"dimension", nlohmann::ordered_json {
-							{"width", parent["width"].get<int>() },
-							{"height", parent["height"].get<int>() }
-						}}
-					};
+					auto atlas_data = nlohmann::ordered_json{};
+					if constexpr (use_string_for_style) {
+						atlas_data =  nlohmann::ordered_json{
+							{"type", parent["type"].get<std::string>()},
+							{"path", String::replaceAll(parent["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle)},
+							{"dimension", nlohmann::ordered_json {
+								{"width", parent["width"].get<int>() },
+								{"height", parent["height"].get<int>() }
+							}}
+						};
+					}
+					else {
+						atlas_data =  nlohmann::ordered_json{
+							{"type", parent["type"].get<std::string>()},
+							{"path", String::join(parent["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
+							{"dimension", nlohmann::ordered_json {
+								{"width", parent["width"].get<int>() },
+								{"height", parent["height"].get<int>() }
+							}}
+						};
+					}
 					auto children_in_current_parent = std::vector<nlohmann::ordered_json>{};
 					for(auto & element : subgroup["resources"]) {
 						if(element.find("parent") != element.end() and element["parent"].get<std::string>() == parent["id"].get<std::string>()) {
@@ -120,18 +132,33 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						}
 					}
 					for(auto & element : children_in_current_parent) {
-						auto children_data = nlohmann::ordered_json {
-							{"type", element["type"].get<std::string>()},
-							{"path", thiz.use_string_for_style ? String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : 
-							String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
-							{
-								"default", nlohmann::ordered_json {
-									{"ax", element["ax"].get<int>()},
-									{"ay", element["ay"].get<int>()},
-									{"aw", element["aw"].get<int>()},
-									{"ah", element["ah"].get<int>()}
-							}}
-						};
+						auto children_data = nlohmann::ordered_json{};
+						if constexpr (use_string_for_style) {
+							children_data = nlohmann::ordered_json {
+								{"type", element["type"].get<std::string>()},
+								{"path", String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle)},
+								{
+									"default", nlohmann::ordered_json {
+										{"ax", element["ax"].get<int>()},
+										{"ay", element["ay"].get<int>()},
+										{"aw", element["aw"].get<int>()},
+										{"ah", element["ah"].get<int>()}
+								}}
+							};
+						}
+						else {
+							children_data = nlohmann::ordered_json {
+								{"type", element["type"].get<std::string>()},
+								{"path", String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle)},
+								{
+									"default", nlohmann::ordered_json {
+										{"ax", element["ax"].get<int>()},
+										{"ay", element["ay"].get<int>()},
+										{"aw", element["aw"].get<int>()},
+										{"ah", element["ah"].get<int>()}
+								}}
+							};
+						}
 						if(element.find("x") != element.end() and element["x"] != Common::DefaultCoordinateOffset){
 							children_data["default"]["x"] = element["x"].get<int>();
 						}
@@ -175,17 +202,21 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				};
 				auto data = nlohmann::ordered_json{};
 				for(auto & element : subgroup["resources"]) {
-					auto data_s = nlohmann::ordered_json {
-						{"type", element["type"].get<std::string>()},
-						{"path", thiz.use_string_for_style ? String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle) }
-					};
-					if(element.find("forceOriginalVectorSymbolSize") != element.end()) {
-						data_s["forceOriginalVectorSymbolSize"] = element["forceOriginalVectorSymbolSize"].get<bool>();
+					auto sub_data = nlohmann::ordered_json{};
+					if constexpr (use_string_for_style)
+					{
+						sub_data = nlohmann::ordered_json {
+							{"type", element["type"].get<std::string>()},
+							{"path", String::replaceAll(element["path"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) }
+						};
 					}
-					if(element.find("srcpath") != element.end()) {
-						data_s["srcpath"] = thiz.use_string_for_style ? String::replaceAll(element["srcpath"].get<std::string>(), Common::WindowStyle, Common::PosixStyle) : String::join(element["srcpath"].get<std::vector<std::string>>(), Common::PosixStyle);
+					else {
+						sub_data = nlohmann::ordered_json {
+							{"type", element["type"].get<std::string>()},
+							{"path", String::join(element["path"].get<std::vector<std::string>>(), Common::PosixStyle) }
+						};
 					}
-					data[element["id"].get<std::string>()] = data_s;
+					data[element["id"].get<std::string>()] = sub_data;
 				}
 				result["packet"]["data"] = data;
 				return result;
@@ -225,9 +256,17 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> nlohmann::ordered_json
 			{
 				assert_conditional(resource_group.find("groups") != resource_group.end(), fmt::format("\"{}\" cannot be null in resource group", "groups"), "convert_whole");
-				auto result = nlohmann::ordered_json {
-					{"expand_path", thiz.use_string_for_style ? Common::String : Common::Array}
-				};
+				auto result = nlohmann::ordered_json{};
+				if constexpr (use_string_for_style) {
+					result = nlohmann::ordered_json{
+						{"expand_path", Common::String
+					}};
+				}
+				else {
+					result = nlohmann::ordered_json{
+						{"expand_path", Common::Array
+					}};
+				}
 				for(auto & element : resource_group["groups"]) {
 					if(element.find("subgroups") != element.end()){
 						auto subgroup = nlohmann::ordered_json {
@@ -267,23 +306,19 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 			inline static auto convert_fs(
 				std::string_view source,
-				std::string_view destination,
-				PathStyle style
+				std::string_view destination
 			) -> void 
 			{
-				auto view = std::make_unique<ResourceGroup::Convert>(style);
+				auto view = std::make_unique<ResourceGroup::Convert<use_string_for_style>>();
 				FileSystem::write_json(destination, view->convert_whole(*FileSystem::read_json(source)));
 				return;
 			}
 
 			// default constructor
 
-			explicit constexpr Convert(
-				PathStyle style
-			) noexcept : use_string_for_style(style == PathStyle::WindowStyle)
-			{
+			explicit Convert(
 
-			}
+			) = default;
 
 			// default destructor
 
