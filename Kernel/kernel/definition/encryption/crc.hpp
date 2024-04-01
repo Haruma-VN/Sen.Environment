@@ -38,10 +38,10 @@ namespace Sen::Kernel::Definition::Encryption {
 				ByteArray<T, size>* table
 			) -> void
 			{
-				for (auto i : Range(table->size()))
+				for (auto i = 0; i < table->size(); ++i)
 				{
 					auto c = static_cast<T>(i);
-					for (auto j : Range(8))
+					for (auto j = 0; j < 8; ++j)
 					{
 						if (c & 1) {
 							c = polynomial ^ (c >> 1);
@@ -69,15 +69,15 @@ namespace Sen::Kernel::Definition::Encryption {
 				return c ^ 0xFFFFFFFF;
 			}
 
-			template <typename Polinomial, typename T, auto size>
+			template <typename P, typename T, auto size>
 			static auto constexpr compute (
 				const ByteArray<T, size> & table,
 				T initial, 
 				const Buffer & buffer
 			) -> T
 			{
-				auto crc = CRC<Polinomial>{};
-				return crc.update<T, size>(table, initial, buffer);
+				auto crc = CRC<P>{};
+				return crc.template update<T, size>(table, initial, buffer);
 			}
 	};
 

@@ -10040,12 +10040,15 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					using Data = Class::BinaryView::Data;
-					using CompressPointer = std::unique_ptr<Sen::Kernel::Support::PopCap::Zlib::VirtualC>;
+					auto constexpr delete_pointer = [](Kernel::Support::PopCap::Zlib::VirtualC *ptr) {
+						delete ptr;
+					};
+					using CompressPointer = std::unique_ptr<Sen::Kernel::Support::PopCap::Zlib::VirtualC, decltype(delete_pointer)>;
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::to_binary_list(context, argv[0]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[1]);
-						auto compressor = CompressPointer(nullptr);
+						auto compressor = CompressPointer(nullptr, delete_pointer);
 						if (use_64_bit_variant) {
 							compressor.reset(new Sen::Kernel::Support::PopCap::Zlib::Compress<true>());
 						}
@@ -10098,7 +10101,12 @@ namespace Sen::Kernel::Interface::Script {
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::PopCap::Zlib::Uncompress::uncompress_fs(source, destination, use_64_bit_variant);
+						if (use_64_bit_variant) {
+							Sen::Kernel::Support::PopCap::Zlib::Uncompress<true>::uncompress_fs(source, destination);
+						}
+						else {
+							Sen::Kernel::Support::PopCap::Zlib::Uncompress<false>::uncompress_fs(source, destination);
+						}
 						return JS::Converter::get_undefined();
 					}, "uncompress_fs"_sv);
 				}
@@ -10120,12 +10128,22 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					using Data = Class::BinaryView::Data;
+					auto constexpr delete_pointer = [](Kernel::Support::PopCap::Zlib::Virtual *ptr) {
+						delete ptr;
+					};
+					using UncompressPointer = std::unique_ptr<Sen::Kernel::Support::PopCap::Zlib::Virtual, decltype(delete_pointer)>;
 					M_JS_PROXY_WRAPPER(context, {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::to_binary_list(context, argv[0]);
 						auto use_64_bit_variant = JS::Converter::get_bool(context, argv[1]);
-						auto compressor = Sen::Kernel::Support::PopCap::Zlib::Uncompress{ use_64_bit_variant };
-						auto sub = new Data(compressor.uncompress(source));
+						auto compressor = UncompressPointer(nullptr, delete_pointer);
+						if (use_64_bit_variant) {
+							compressor.reset(new Sen::Kernel::Support::PopCap::Zlib::Uncompress<true>());
+						}
+						else {
+							compressor.reset(new Sen::Kernel::Support::PopCap::Zlib::Uncompress<false>());
+						}
+						auto sub = new Data(compressor->uncompress(source));
 						auto global_obj = JS_GetGlobalObject(context);
 						auto sen_obj = JS_GetPropertyStr(context, global_obj, "Sen");
 						auto kernel_obj = JS_GetPropertyStr(context, sen_obj, "Kernel");

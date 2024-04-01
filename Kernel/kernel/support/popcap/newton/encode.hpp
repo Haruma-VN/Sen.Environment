@@ -38,7 +38,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 
 			nlohmann::ordered_json resource;
 
-	public :
+		public :
 
 			std::unique_ptr<DataStreamView> sen;
 

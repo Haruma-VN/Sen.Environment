@@ -68,7 +68,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     protected:
         inline auto write_head(
-            const RSB_HeadInfo<uint32_t> &head_info) const -> void
+            const RSB_HeadInfo<uint32_t> &head_info
+        ) const -> void
         {
             sen->writeUint32(head_info.file_offset, 12ull);
             sen->writeUint32(head_info.file_list_length);

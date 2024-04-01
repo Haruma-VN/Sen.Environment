@@ -537,7 +537,7 @@ namespace Sen::Kernel::FileSystem
 				#if WINDOWS
 					file.reset(_wfopen(String::utf8_to_utf16(String::to_windows_style(source.data())).data(), String::utf8view_to_utf16(mode).data()));
 				#else
-					file.reset(std::fopen(source.data()), mode.data());
+					file.reset(std::fopen(source.data(), mode.data()));
 				#endif
 				// TODO : Add localization
 				assert_conditional(file != nullptr, "file is nullptr", "FileHandler");

@@ -28,9 +28,12 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 
 			using ParticlesTrackNode = Sen::Kernel::Support::PopCap::Particles::Definition::ParticlesTrackNode;
 
-			using Uncompress = Support::PopCap::Zlib::Uncompress;
+			template <auto UseVariant>
+			using Uncompress = Support::PopCap::Zlib::Uncompress<UseVariant>;
 
 			using ParticlesEmitter = Sen::Kernel::Support::PopCap::Particles::Definition::ParticlesEmitter;
+
+			using CompositeObject = Support::PopCap::Zlib::Virtual;
 
 		public:
 
@@ -50,7 +53,16 @@ namespace Sen::Kernel::Support::PopCap::Particles {
 				if constexpr (uncompress_zlib) {
 					static_assert(sizeof...(Args) == 1, "Uncompress zlib is provided but no argument provided for use_64_bit_variant");
 					{
-						auto zlib = std::make_unique<Uncompress>(std::get<0>(std::make_tuple(use_64_bit_variant...)));
+						auto constexpr delete_pointer = [](CompositeObject *ptr) {
+							delete ptr;
+						};
+						auto zlib = std::unique_ptr<CompositeObject, decltype(delete_pointer)>(nullptr, delete_pointer);
+						if (std::get<0>(std::make_tuple(use_64_bit_variant...))) {
+							zlib.reset(new Uncompress<true>());
+						}
+						else {
+							zlib.reset(new Uncompress<false>());
+						}
 						auto raw_data = zlib->uncompress(sen->getBytes(static_cast<std::size_t>(0), sen->size()));
 						sen->close();
 						sen->writeBytes(raw_data);

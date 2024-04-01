@@ -154,11 +154,11 @@ namespace Sen::Kernel::Definition
                 return bytes;
             }
 
-            inline auto get(
+            inline constexpr auto get(
 
             ) const -> const std::vector<std::uint8_t> &
             {
-                return thiz.getBytes(0x00, thiz.size());
+                return thiz.toBytes();
             }
 
             inline auto get(
@@ -173,23 +173,31 @@ namespace Sen::Kernel::Definition
                 return std::vector<unsigned char>(thiz.data.begin() + from, thiz.data.begin() + to);
             }
 
-            inline auto get_read_pos() const -> std::size_t
+            inline constexpr auto get_read_pos(
+
+            ) const -> std::size_t
             {
                 return thiz.read_pos;
             }
 
-            inline auto get_write_pos() const -> std::size_t
+            inline constexpr auto get_write_pos(
+
+            ) const -> std::size_t
             {
                 return thiz.write_pos;
             }
 
-            inline auto change_read_pos(std::size_t pos) const -> void
+            inline auto change_read_pos(
+                const std::size_t &pos
+            ) const -> void
             {
                 thiz.read_pos = pos;
                 return;
             }
 
-            inline auto change_write_pos(std::size_t pos) const -> void
+            inline auto change_write_pos(
+                const std::size_t & pos
+            ) const -> void
             {
                 thiz.write_pos = pos;
                 return;
@@ -197,7 +205,7 @@ namespace Sen::Kernel::Definition
 
             inline auto toString(
 
-                ) -> std::string
+            ) -> std::string
             {
                 auto ss = std::stringstream{};
                 auto bytes = thiz.data.data();

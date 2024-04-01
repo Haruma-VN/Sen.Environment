@@ -209,7 +209,7 @@ namespace Sen::Kernel::Definition
                     stream.writeUint16(static_cast<uint16_t>(setting->delay_frames_list.at(i)));
                     stream.writeUint16(1000);
                     stream.writeNull(2);
-                    stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(30, pos)));
+                    stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(30, static_cast<std::uint64_t>(pos))));
                 }
                 if (i > 0)
                 {

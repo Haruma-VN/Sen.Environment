@@ -100,14 +100,14 @@ namespace Sen::Kernel::Definition::Compression {
 				assert_conditional(view.readUint32() == 67108864, fmt::format("{}", Language::get("lzma.uncompress.invalid_props")), "uncompress");
 				auto destination_length = static_cast<std::size_t>(view.readInt64());
 				auto result = std::vector<unsigned char>(destination_length);
-				auto source_length = view.size() - view.read_pos;
+				auto source_length = static_cast<size_t>(view.size() - view.read_pos);
 				auto ret = LzmaUncompress(
 					&result[0],
 					&destination_length,
 					&data[view.read_pos],
 					&source_length,
 					&data[0],
-					LZMA_PROPS_SIZE
+					static_cast<size_t>(LZMA_PROPS_SIZE)
 				);
 				assert_conditional(ret == SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "uncompress");
 				result.resize(destination_length);

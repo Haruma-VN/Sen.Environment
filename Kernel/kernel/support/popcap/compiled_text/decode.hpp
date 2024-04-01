@@ -21,8 +21,8 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 	/**
 	 * Compiled Text decode struct
 	 */
-
-	using Zlib = Sen::Kernel::Support::PopCap::Zlib::Uncompress;
+	template <auto UseVariant>
+	using Zlib = Sen::Kernel::Support::PopCap::Zlib::Uncompress<UseVariant>;
 
 	/**
 	 * Decode Struct
@@ -112,7 +112,12 @@ namespace Sen::Kernel::Support::PopCap::CompiledText
 		{
 			auto decoded_base64 = DataStreamView{};
 			decoded_base64.fromString(Base64::decode(thiz.sen->toString()));
-			destination->append<unsigned char>(Zlib{thiz.use_64_bit_variant}.uncompress(Rijndael::decrypt<std::uint64_t, Rijndael::Mode::CBC>(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02)));
+			if (thiz.use_64_bit_variant) {
+				destination->append<unsigned char>(Zlib<true>{}.uncompress(Rijndael::decrypt<std::uint64_t, Rijndael::Mode::CBC>(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02)));
+			}
+			else {
+				destination->append<unsigned char>(Zlib<false>{}.uncompress(Rijndael::decrypt<std::uint64_t, Rijndael::Mode::CBC>(reinterpret_cast<char *>(decoded_base64.getBytes(0x02, decoded_base64.size()).data()), thiz.key, thiz.iv, decoded_base64.size() - 0x02)));
+			}
 			return;
 		}
 

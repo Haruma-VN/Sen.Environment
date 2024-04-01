@@ -116,6 +116,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const nlohmann::ordered_json & resource_information
 			) -> nlohmann::ordered_json
 			{
+				static_assert(use_string_for_style == true or use_string_for_style == false);
+				static_assert(sizeof(use_string_for_style) == sizeof(bool));
 				auto result = nlohmann::ordered_json {
 					{"type", Simple},
 					{"id", extra_information.id},
@@ -153,6 +155,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				const nlohmann::ordered_json & resource_information
 			) -> nlohmann::ordered_json
 			{
+				static_assert(use_string_for_style == true or use_string_for_style == false);
+				static_assert(sizeof(use_string_for_style) == sizeof(bool));
 				auto result = nlohmann::ordered_json {
 					{"type", Simple},
 					{"id", extra_information.id},
