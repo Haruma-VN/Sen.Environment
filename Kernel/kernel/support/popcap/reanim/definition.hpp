@@ -6,9 +6,11 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 {
     inline static constexpr auto transform_tfloat_end = -10000.0f;
 
-    inline static constexpr auto transform_wp_tfloat_end = -99999.0f;
+    // inline static constexpr auto transform_wp_tfloat_end = -99999.0f;
 
-    inline static constexpr auto reanim_pc_head = -559022380;
+    inline static constexpr auto reanim_compress_head = -559022380;
+
+    inline static constexpr auto reanim_pc_head = -1282165568;
 
     inline static constexpr auto reanim_xmb_head = 1833061976;
 
@@ -20,25 +22,25 @@ namespace Sen::Kernel::Support::PopCap::Reanim
     {
         PC_Compile,
         TV_Compile,
-        WP_XNB, // xnb extension;
         Phone32_Compile,
         Phone64_Compile,
         GameConsole_Compile,
-        RawXML
+        RawXML,
+        WP_XNB, // xnb extension; doesn't support 
     };
 
     // template <typename T>
     struct ReanimTransform
     {
     public:
-        float x;
-        float y;
-        float kx;
-        float ky;
-        float sx;
-        float sy;
-        float f;
-        float a;
+        float x = transform_tfloat_end;
+        float y = transform_tfloat_end;
+        float kx = transform_tfloat_end;
+        float ky = transform_tfloat_end;
+        float sx = transform_tfloat_end;
+        float sy = transform_tfloat_end;
+        float f = transform_tfloat_end;
+        float a = transform_tfloat_end;
         std::string i;
         std::string resource;
         std::string i2;

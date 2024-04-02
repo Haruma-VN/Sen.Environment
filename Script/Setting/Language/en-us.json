@@ -414,5 +414,7 @@
     "popcap.reanim.decode.invalid_reanim_platform": "Unsupported REANIM platform, got unknown platform",
     "invalid": "Invalid",
     "lzma.uncompress.invalid_magic": "Invalid lzma magic, should begins with 0x5D",
-    "lzma.uncompress.invalid_props": "Invalid lzma props"
+    "lzma.uncompress.invalid_props": "Invalid lzma props",
+    "file_is_nullptr": "File cannot be initialize to write or read. Error file: {}",
+    "data_stream_view_cannot_be_initialize": "DataStreamView cannot be initialized"
 }

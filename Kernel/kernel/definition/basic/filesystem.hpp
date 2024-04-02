@@ -539,8 +539,7 @@ namespace Sen::Kernel::FileSystem
 				#else
 					file.reset(std::fopen(source.data(), mode.data()));
 				#endif
-				// TODO : Add localization
-				assert_conditional(file != nullptr, "file is nullptr", "FileHandler");
+				assert_conditional(file != nullptr, String::format(fmt::format("{}", Language::get("file_is_nullptr")), String::to_posix_style(source.data())), "FileHandler");
 			}
 
 			auto close(

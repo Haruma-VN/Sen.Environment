@@ -21,11 +21,10 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 
         // PC
         inline auto decode_pc(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
             const auto &magic = stream->readInt32();
-            if (magic == reanim_pc_head)
+            if (magic == reanim_compress_head)
             {
                 const auto &data = Definition::Compression::Zlib::uncompress(stream->readBytes(stream->size() - 8));
                 stream->close();
@@ -117,11 +116,10 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 
         // TV
         inline auto decode_tv(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
             const auto &magic = stream->readInt32();
-            if (magic == reanim_pc_head)
+            if (magic == reanim_compress_head)
             {
                 const auto &data = Definition::Compression::Zlib::uncompress(stream->readBytes(stream->size() - 8));
                 stream->close();
@@ -145,7 +143,7 @@ namespace Sen::Kernel::Support::PopCap::Reanim
             {
                 track.name = stream->readStringByUint32();
                 const auto &c_track = stream->readUint32();
-                assert_conditional(c_track == 0x30, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_tv_reanim_track")), String::decimal_to_hexadecimal(c_track)), "decode_tv"); 
+                assert_conditional(c_track == 0x30, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_tv_reanim_track")), String::decimal_to_hexadecimal(c_track)), "decode_tv");
                 for (auto &transform : track.transforms)
                 {
                     auto tfloat = stream->readFloat();
@@ -226,7 +224,7 @@ namespace Sen::Kernel::Support::PopCap::Reanim
             }
             return;
         }
-
+        /*
         // WP
         inline auto decode_wp(
             ReanimInfo &reanim
@@ -234,12 +232,12 @@ namespace Sen::Kernel::Support::PopCap::Reanim
         {
             const auto &magic = stream->readInt32();
             const auto &version = stream->readUint16();
-            assert_conditional(magic == reanim_xmb_head && version == reanim_xmb_version, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_wp_reanim_magic")), String::decimal_to_hexadecimal(magic), String::decimal_to_hexadecimal(version)), "decode_wp"); 
+            assert_conditional(magic == reanim_xmb_head && version == reanim_xmb_version, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_wp_reanim_magic")), String::decimal_to_hexadecimal(magic), String::decimal_to_hexadecimal(version)), "decode_wp");
             stream->read_pos += 4;
             const auto &info = stream->readBytes(0x26);
             for (const auto &i : Range<int>(0x26))
             {
-                assert_conditional(info.at(i) == reanim_xmb_info.at(i), fmt::format("{}", Language::get("popcap.reanim.decode.invalid_reanim_info")), "decode_wp"); 
+                assert_conditional(info.at(i) == reanim_xmb_info.at(i), fmt::format("{}", Language::get("popcap.reanim.decode.invalid_reanim_info")), "decode_wp");
             }
             reanim.do_scale = stream->readInt8();
             reanim.fps = stream->readFloat();
@@ -313,14 +311,13 @@ namespace Sen::Kernel::Support::PopCap::Reanim
             }
             return;
         }
-
+        */
         // Phone 32
         inline auto decode_phone_32(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
             const auto &magic = stream->readInt32();
-            if (magic == reanim_pc_head)
+            if (magic == reanim_compress_head)
             {
                 stream->read_pos += 4;
                 const auto &data = Definition::Compression::Zlib::uncompress(stream->readBytes(stream->size() - 8));
@@ -413,11 +410,10 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 
         // Phone 64
         inline auto decode_phone_64(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
             const auto &magic = stream->readInt32();
-            if (magic == reanim_pc_head)
+            if (magic == reanim_compress_head)
             {
                 stream->read_pos += 16;
                 const auto &data = Definition::Compression::Zlib::uncompress(stream->readBytes(stream->size() - 8));
@@ -429,7 +425,7 @@ namespace Sen::Kernel::Support::PopCap::Reanim
             reanim.fps = stream->readFloat();
             stream->read_pos += 8;
             const auto &c_magic = stream->readUint32();
-            assert_conditional(c_magic == 0x20, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_phone_64_reanim_magic")), String::decimal_to_hexadecimal(c_magic)), "decode_phone_64"); 
+            assert_conditional(c_magic == 0x20, String::format(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_phone_64_reanim_magic")), String::decimal_to_hexadecimal(c_magic)), "decode_phone_64");
             for (const auto &i : Range<int>(track_size))
             {
                 stream->read_pos += 24;
@@ -511,13 +507,12 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 
         // GameConsole
         inline auto decode_game_console(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
             auto stream_big = std::unique_ptr<DataStreamViewBigEndian>{};
             std::copy(stream_big->begin(), stream_big->end(), stream->begin());
             const auto &magic = stream_big->readInt32();
-            if (magic == reanim_pc_head)
+            if (magic == reanim_compress_head)
             {
                 stream_big->read_pos += 4;
                 const auto &data = Definition::Compression::Zlib::uncompress(stream_big->readBytes(stream_big->size() - 8));
@@ -609,91 +604,103 @@ namespace Sen::Kernel::Support::PopCap::Reanim
         }
 
         inline auto decode_raw_xml(
-            ReanimInfo &reanim
-        ) -> void
+            ReanimInfo &reanim) -> void
         {
-            // auto document = XMLDocument{};
-            // const auto &data = stream->toString();
-            // auto status_code = document.Parse(data.data(), data.size());
-            // assert_conditional(status_code == tinyxml2::XML_SUCCESS, "xml.read_error", "decode_raw_xml"); 
-            // auto fps = document.FirstChildElement("fps");
-            // assert_conditional(fps == nullptr, fmt::format("{}", Language::get("popcap.reanim.decode.invalid_fps_chuck")), "decode_raw_xml");
-            // reanim.fps = std::stof(fps->FirstChild()->Value());
-            // auto do_scale = document.NextSiblingElement("doScale");
-            // if (do_scale != nullptr)
-            // {
-            //     reanim.do_scale = static_cast<int8_t>(std::stoi(do_scale->FirstChild()->Value()));
-            // }
-            // auto tracks = document.NextSiblingElement("track");
-            // for (auto track = tracks->FirstChildElement(); track != nullptr; track = track->NextSiblingElement())
-            // {
-            //     auto track_info = ReanimTrack{};
-            //     auto name = track->FirstChildElement("name");
-            //     if (name != nullptr)
-            //     {
-            //         track_info.name = std::string{name->FirstChild()->Value()};
-            //     }
-                
-            //     auto transforms = track->NextSiblingElement("t");
-            //     for (auto transform = transforms->FirstChildElement(); transform != nullptr; transform = transform->NextSiblingElement())
-            //     {
-            //         auto transform_info = ReanimTransform{};
-            //         auto x = transform->FirstChildElement("x");
-            //         if (x != nullptr) {
-            //             transform_info.x = std::stof(x->FirstChild()->Value());
-            //         }
-            //         auto y = transform->FirstChildElement("y");
-            //         if (y != nullptr) {
-            //             transform_info.y = std::stof(y->FirstChild()->Value());
-            //         }
-            //         auto kx = transform->FirstChildElement("kx");
-            //         if (kx != nullptr) {
-            //             transform_info.kx = std::stof(kx->FirstChild()->Value());
-            //         }
-            //         auto ky = transform->FirstChildElement("ky");
-            //         if (ky != nullptr) {
-            //             transform_info.ky = std::stof(ky->FirstChild()->Value());
-            //         }
-            //         auto sx = transform->FirstChildElement("sx");
-            //         if (sx != nullptr) {
-            //             transform_info.sx = std::stof(sx->FirstChild()->Value());
-            //         }
-            //         auto sy = transform->FirstChildElement("sy");
-            //         if (sy != nullptr) {
-            //             transform_info.sy = std::stof(sy->FirstChild()->Value());
-            //         }
-            //         auto a = transform->FirstChildElement("a");
-            //         if (a != nullptr) {
-            //             transform_info.x = std::stof(a->FirstChild()->Value());
-            //         }
-            //         auto i = transform->FirstChildElement("i");
-            //         if (i != nullptr) {
-            //             transform_info.i = std::string{i->FirstChild()->Value()};
-            //         }
-            //         auto resource = transform->FirstChildElement("resource");
-            //         if (resource != nullptr) {
-            //             transform_info.resource = std::string{resource->FirstChild()->Value()};
-            //         }
-            //         auto i2 = transform->FirstChildElement("i2");
-            //         if (i2 != nullptr) {
-            //             transform_info.i2 = std::string{i2->FirstChild()->Value()};
-            //         }
-            //         auto resource2 = transform->FirstChildElement("resource2");
-            //         if (resource2 != nullptr) {
-            //             transform_info.resource2 = std::string{resource2->FirstChild()->Value()};
-            //         }
-            //         auto font = transform->FirstChildElement("font");
-            //         if (font != nullptr) {
-            //             transform_info.font = std::string{font->FirstChild()->Value()};
-            //         }
-            //         auto text = transform->FirstChildElement("text");
-            //         if (text != nullptr) {
-            //             transform_info.text = std::string{text->FirstChild()->Value()};
-            //         }
-            //         track_info.transforms.emplace_back(transform);
-            //     }
-            //     reanim.tracks.emplace_back(transforms);
-            // }
+            auto document = XMLDocument{};
+            const auto &data = stream->toString();
+            auto status_code = document.Parse(data.data(), data.size());
+            assert_conditional(status_code == tinyxml2::XML_SUCCESS, "xml.read_error", "decode_raw_xml");
+            auto fps = document.FirstChildElement("fps");
+            assert_conditional(fps == nullptr, fmt::format("{}", Language::get("popcap.reanim.decode.invalid_fps_chuck")), "decode_raw_xml");
+            reanim.fps = std::stof(fps->FirstChild()->Value());
+            auto do_scale = document.NextSiblingElement("doScale");
+            if (do_scale != nullptr)
+            {
+                reanim.do_scale = static_cast<int8_t>(std::stoi(do_scale->FirstChild()->Value()));
+            }
+            auto tracks = document.NextSiblingElement("track");
+            for (auto track = tracks->FirstChildElement(); track != nullptr; track = track->NextSiblingElement())
+            {
+                auto track_info = ReanimTrack{};
+                auto name = track->FirstChildElement("name");
+                if (name != nullptr)
+                {
+                    track_info.name = std::string{name->FirstChild()->Value()};
+                }
+
+                auto transforms = track->NextSiblingElement("t");
+                for (auto transform = transforms->FirstChildElement(); transform != nullptr; transform = transform->NextSiblingElement())
+                {
+                    auto transform_info = ReanimTransform{};
+                    auto x = transform->FirstChildElement("x");
+                    if (x != nullptr)
+                    {
+                        transform_info.x = std::stof(x->FirstChild()->Value());
+                    }
+                    auto y = transform->FirstChildElement("y");
+                    if (y != nullptr)
+                    {
+                        transform_info.y = std::stof(y->FirstChild()->Value());
+                    }
+                    auto kx = transform->FirstChildElement("kx");
+                    if (kx != nullptr)
+                    {
+                        transform_info.kx = std::stof(kx->FirstChild()->Value());
+                    }
+                    auto ky = transform->FirstChildElement("ky");
+                    if (ky != nullptr)
+                    {
+                        transform_info.ky = std::stof(ky->FirstChild()->Value());
+                    }
+                    auto sx = transform->FirstChildElement("sx");
+                    if (sx != nullptr)
+                    {
+                        transform_info.sx = std::stof(sx->FirstChild()->Value());
+                    }
+                    auto sy = transform->FirstChildElement("sy");
+                    if (sy != nullptr)
+                    {
+                        transform_info.sy = std::stof(sy->FirstChild()->Value());
+                    }
+                    auto a = transform->FirstChildElement("a");
+                    if (a != nullptr)
+                    {
+                        transform_info.x = std::stof(a->FirstChild()->Value());
+                    }
+                    auto i = transform->FirstChildElement("i");
+                    if (i != nullptr)
+                    {
+                        transform_info.i = std::string{i->FirstChild()->Value()};
+                    }
+                    auto resource = transform->FirstChildElement("resource");
+                    if (resource != nullptr)
+                    {
+                        transform_info.resource = std::string{resource->FirstChild()->Value()};
+                    }
+                    auto i2 = transform->FirstChildElement("i2");
+                    if (i2 != nullptr)
+                    {
+                        transform_info.i2 = std::string{i2->FirstChild()->Value()};
+                    }
+                    auto resource2 = transform->FirstChildElement("resource2");
+                    if (resource2 != nullptr)
+                    {
+                        transform_info.resource2 = std::string{resource2->FirstChild()->Value()};
+                    }
+                    auto font = transform->FirstChildElement("font");
+                    if (font != nullptr)
+                    {
+                        transform_info.font = std::string{font->FirstChild()->Value()};
+                    }
+                    auto text = transform->FirstChildElement("text");
+                    if (text != nullptr)
+                    {
+                        transform_info.text = std::string{text->FirstChild()->Value()};
+                    }
+                    track_info.transforms.emplace_back(transform_info);
+                }
+                reanim.tracks.emplace_back(track_info);
+            }
             return;
         }
 
@@ -714,8 +721,7 @@ namespace Sen::Kernel::Support::PopCap::Reanim
 
         inline auto process(
             ReanimInfo &reanim,
-            ReanimPlatform platform
-        ) -> void
+            ReanimPlatform platform) -> void
         {
             switch (platform)
             {
@@ -729,25 +735,25 @@ namespace Sen::Kernel::Support::PopCap::Reanim
                 decode_tv(reanim);
                 return;
             }
-            case ReanimPlatform::WP_XNB:
-            {
-                decode_wp(reanim);
-            }
             case ReanimPlatform::Phone32_Compile:
             {
                 decode_phone_32(reanim);
+                return;
             }
             case ReanimPlatform::Phone64_Compile:
             {
                 decode_phone_64(reanim);
+                return;
             }
             case ReanimPlatform::GameConsole_Compile:
             {
                 decode_game_console(reanim);
+                return;
             }
             case ReanimPlatform::RawXML:
             {
                 decode_raw_xml(reanim);
+                return;
             }
             default:
                 throw Exception(fmt::format("{}", Language::get("popcap.reanim.decode.invalid_reanim_platform")), std::source_location::current(), "process");
@@ -759,8 +765,7 @@ namespace Sen::Kernel::Support::PopCap::Reanim
         inline static auto process_fs(
             std::string_view source,
             std::string_view destination,
-            ReanimPlatform platform
-        ) -> void
+            ReanimPlatform platform) -> void
         {
             auto decode = Decode{source};
             auto reanim_info = ReanimInfo{};

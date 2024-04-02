@@ -459,7 +459,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				static_assert(T == true or T == false, "T must be true or false");
 				static_assert(sizeof(T) == sizeof(bool));
-				auto s = (Data<T>*)JS_GetOpaque(val, ClassID<T>::value);
+				auto s = static_cast<Data<T>*>(JS_GetOpaque(val, ClassID<T>::value));
 				if (s != nullptr) {
 					delete s;
 				}
@@ -480,14 +480,19 @@ namespace Sen::Kernel::Interface::Script {
 					auto s = static_cast<Data<T>*>(nullptr);
 					auto obj = JS_UNDEFINED;
 					auto proto = JSElement::Prototype{};
-					if (argc == 1) {
-						s = new Data<T>{ JS::Converter::get_string(ctx, argv[0]) };
-					}
-					else if (argc == 0) {
-						s = new Data<T>{};
-					}
-					else {
-						return JS_EXCEPTION;
+					switch (argc) {
+						case 1:{
+							s = new Data<T>{ JS::Converter::get_string(ctx, argv[0]) };
+							break;
+						}
+						case 0:{
+							s = new Data<T>{};
+							break;
+						}
+						default:{
+							JS_ThrowInternalError(ctx, fmt::format("{}", Kernel::Language::get("data_stream_view_cannot_be_initialize")).data());
+							return JS_EXCEPTION;
+						}
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
 					if (JS_IsException(proto)) {
@@ -521,7 +526,7 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				static_assert(T == true or T == false, "T must be true or false");
 				static_assert(sizeof(T) == sizeof(bool));
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+				auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
@@ -543,13 +548,14 @@ namespace Sen::Kernel::Interface::Script {
 			{
 				static_assert(T == true or T == false, "T must be true or false");
 				static_assert(sizeof(T) == sizeof(bool));
-				auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+				auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 				auto v = std::int64_t{};
 				if (s == nullptr) {
 					return JS_EXCEPTION;
 				}
-				if (JS_ToBigInt64(ctx, &v, val))
+				if (JS_ToBigInt64(ctx, &v, val)) {
 					return JS_EXCEPTION;
+				}
 				if (magic == 0) {
 					s->read_pos = v;
 				}
@@ -571,7 +577,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -591,7 +597,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -611,7 +617,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -632,7 +638,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -681,7 +687,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -701,7 +707,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("{} 0, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -721,7 +727,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -743,7 +749,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -765,7 +771,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 				try_assert(argc == 0, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -785,7 +791,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -806,7 +812,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -827,7 +833,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -858,7 +864,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T> *>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -889,7 +895,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -920,7 +926,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -951,7 +957,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -982,7 +988,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1013,7 +1019,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1044,7 +1050,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1075,7 +1081,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1106,7 +1112,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1163,7 +1169,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1189,7 +1195,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1215,7 +1221,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1246,7 +1252,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1277,7 +1283,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1308,7 +1314,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1339,7 +1345,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1370,7 +1376,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1401,7 +1407,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1432,7 +1438,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1463,7 +1469,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1494,7 +1500,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1525,7 +1531,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1556,7 +1562,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1587,7 +1593,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1618,7 +1624,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1649,7 +1655,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1680,7 +1686,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1711,7 +1717,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(sizeof(T) == sizeof(bool));
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 2 || argc == 1, fmt::format("argument expected 2 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					if (s == nullptr) {
 						return JS_EXCEPTION;
 					}
@@ -1741,9 +1747,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T> *>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint8_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1767,9 +1773,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint16_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1793,9 +1799,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1819,9 +1825,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1845,9 +1851,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint64_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1871,9 +1877,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int8_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1897,9 +1903,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int16_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1923,9 +1929,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1949,9 +1955,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -1975,9 +1981,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int64_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2001,9 +2007,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 1 || argc == 2, fmt::format("argument expected 1 or 2, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2030,9 +2036,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2056,9 +2062,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2082,9 +2088,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2108,9 +2114,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2134,9 +2140,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2160,9 +2166,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2186,9 +2192,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2212,9 +2218,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = std::string{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2238,9 +2244,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2264,7 +2270,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int64_t{};
 					if (s == nullptr) {
 						return JS_EXCEPTION;
@@ -2290,7 +2296,7 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint32_t{};
 					if (s == nullptr) {
 						return JS_EXCEPTION;
@@ -2316,9 +2322,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = uint64_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2342,9 +2348,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int32_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2368,9 +2374,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = int64_t{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2394,9 +2400,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = float{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2420,9 +2426,9 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0 || argc == 1, fmt::format("argument expected 0 or 1, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
 					auto v = double{};
-					if (!s) {
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
@@ -2446,8 +2452,8 @@ namespace Sen::Kernel::Interface::Script {
 				static_assert(T == true or T == false, "T must be true or false");
 				M_JS_PROXY_WRAPPER(ctx, {
 					try_assert(argc == 0, fmt::format("argument expected 0, received: {}", argc));
-					auto s = (Data<T>*)JS_GetOpaque2(ctx, this_val, ClassID<T>::value);
-					if (!s) {
+					auto s = static_cast<Data<T>*>(JS_GetOpaque2(ctx, this_val, ClassID<T>::value));
+					if (s != nullptr) {
 						return JS_EXCEPTION;
 					}
 					s->close();
