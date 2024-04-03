@@ -128,7 +128,7 @@ namespace Sen::Kernel::Definition
             for (const auto &image_path : image_path_list)
             {
                 auto stream = DataStreamViewBigEndian{image_path};
-                assert_conditional(stream.readString(4, 0xCull) == "IHDR", String::format(fmt::format("{}", Language::get("mismatch_image_magic")), String::to_posix_style(image_path)), "load_image_path");
+                assert_conditional(stream.readString(4, 0xC_size) == "IHDR", String::format(fmt::format("{}", Language::get("mismatch_image_magic")), String::to_posix_style(image_path)), "load_image_path");
                 auto image_data = ImageData{
                     .meta_data = ImageHeader{
                         stream.readUint32(),
@@ -182,7 +182,7 @@ namespace Sen::Kernel::Definition
             stream.writeUint8(8);
             stream.writeUint8(6);
             stream.writeNull(3);
-            stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(17, 12ull)));
+            stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(17, 12_size)));
             auto is_animated = image_data_list.size() > 1;
             if (is_animated)
             {
@@ -190,7 +190,7 @@ namespace Sen::Kernel::Definition
                 stream.writeString("acTL");
                 stream.writeUint32(image_data_list.size());
                 stream.writeUint32(setting->loop);
-                stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(12, 37ull)));
+                stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(12, 37_size)));
             }
             auto frame_index = 0;
             for (const auto &i : Range<int>(image_data_list.size()))
@@ -209,7 +209,7 @@ namespace Sen::Kernel::Definition
                     stream.writeUint16(static_cast<uint16_t>(setting->delay_frames_list.at(i)));
                     stream.writeUint16(1000);
                     stream.writeNull(2);
-                    stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(30, static_cast<std::uint64_t>(pos))));
+                    stream.writeUint32(Encryption::CRC32::Normal::compute(0, stream.readBytes(30, static_cast<std::size_t>(pos))));
                 }
                 if (i > 0)
                 {

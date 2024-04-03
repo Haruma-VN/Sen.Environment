@@ -144,7 +144,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 auto backup_pos = sen.write_pos;
                 for (auto h : Range<int>(path_temp_list[i].positions.size()))
                 {
-                    sen.writeUint24(path_temp_list[i].positions[h].position, static_cast<std::uint64_t>((begin_pos + path_temp_list[i].positions[h].offset * 4 + 1)));
+                    sen.writeUint24(path_temp_list[i].positions[h].position, static_cast<std::size_t>((begin_pos + path_temp_list[i].positions[h].offset * 4 + 1)));
                 }
                 auto item_data = std::vector<uint8_t>{};
                 if constexpr (use_res_folder)
@@ -185,8 +185,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto append_size = beautify_length<std::size_t, false>(sen.write_pos);
             sen.writeNull(append_size);
             auto backup_pos = sen.write_pos;
-            sen.writeUint32(sen.write_pos, 0x14ull);
-            sen.writeUint32(file_list_length, 0x48ull);
+            sen.writeUint32(sen.write_pos, 0x14_size);
+            sen.writeUint32(file_list_length, 0x48_size);
             sen.writeUint32(file_list_begin);
             sen.write_pos = backup_pos;
             compressor(compression_flags);
@@ -205,7 +205,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             {
                 sen.writeBytes(data_bytes);
                 auto backup_pos = sen.write_pos;
-                sen.writeUint32(part0_pos, 0x18ull);
+                sen.writeUint32(part0_pos, 0x18_size);
                 sen.writeUint32(part0_size);
                 if (is_atlas)
                 {
@@ -225,7 +225,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 sen.writeNull(append_size);
                 auto part0_zlib = zlib_bytes.size() + append_size;
                 auto backup_pos = sen.write_pos;
-                sen.writeUint32(part0_pos, 0x18ull);
+                sen.writeUint32(part0_pos, 0x18_size);
                 sen.writeUint32(part0_zlib);
                 sen.writeUint32(part0_size);
             }
@@ -261,7 +261,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     part1_pos = sen.write_pos;
                     sen.writeBytes(atlas_bytes);
                     auto backup_pos = sen.write_pos;
-                    sen.writeUint32(part1_pos, 0x28ull);
+                    sen.writeUint32(part1_pos, 0x28_size);
                     sen.writeUint32(part1_size);
                     sen.writeUint32(part1_size);
                     sen.write_pos = backup_pos;
@@ -283,7 +283,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     sen.writeNull(append_size);
                     auto part1_zlib = zlib_bytes.size() + append_size;
                     auto backup_pos = sen.write_pos;
-                    sen.writeUint32(part1_pos, 0x28ull);
+                    sen.writeUint32(part1_pos, 0x28_size);
                     sen.writeUint32(part1_zlib);
                     sen.writeUint32(part1_size);
                     sen.write_pos = backup_pos;
@@ -291,7 +291,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
             }
             else
             {
-                sen.writeUint32(sen.size(), 0x28ull);
+                sen.writeUint32(sen.size(), 0x28_size);
             }
             return;
         }

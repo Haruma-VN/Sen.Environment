@@ -71,10 +71,10 @@ namespace Sen::Kernel::Support::PopCap::RSB
             const RSB_HeadInfo<uint32_t> &head_info
         ) const -> void
         {
-            sen->writeUint32(head_info.file_offset, 12ull);
+            sen->writeUint32(head_info.file_offset, 12_size);
             sen->writeUint32(head_info.file_list_length);
             sen->writeUint32(head_info.file_list_begin);
-            sen->writeUint32(head_info.rsg_list_length, 32ull);
+            sen->writeUint32(head_info.rsg_list_length, 32_size);
             sen->writeUint32(head_info.rsg_list_begin);
             sen->writeUint32(head_info.rsg_number);
             sen->writeUint32(head_info.rsg_info_begin);
@@ -217,7 +217,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto backup_pos = sen->write_pos;
             for (auto i : Range<int>(path_temp.positions.size()))
             {
-                sen->writeUint24(path_temp.positions[i].position, begin_pos + static_cast<std::uint64_t>(path_temp.positions[i].offset * 4 + 1));
+                sen->writeUint24(path_temp.positions[i].position, begin_pos + static_cast<std::size_t>(path_temp.positions[i].offset * 4 + 1));
             }
             sen->write_pos = backup_pos;
             sen->writeUint32(path_temp.pool_index);
@@ -290,8 +290,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
             PacketInfo &packet_info
         ) -> void
         {
-            packet_info.compression_flags = rsg_file.readUint32(0x10ull);
-            auto file_list_length = rsg_file.readUint32(0x48ull);
+            packet_info.compression_flags = rsg_file.readUint32(0x10_size);
+            auto file_list_length = rsg_file.readUint32(0x48_size);
             auto file_list_pos = rsg_file.readUint32();
             auto parent_string = std::map<int, std::string>{};
             rsg_file.read_pos = file_list_pos;
@@ -482,7 +482,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             ++ptx_number;
                             rsg_composite = true;
                             auto id = ptx_info["id"].get<uint32_t>();
-                            auto ptx_pos = static_cast<uint64_t>((ptx_before_number + id) * ptx_info_size);
+                            auto ptx_pos = static_cast<std::size_t>((ptx_before_number + id) * ptx_info_size);
                             stream_ptx_info.writeUint32(ptx_info["width"].get<uint32_t>(), ptx_pos);
                             stream_ptx_info.writeUint32(ptx_info["height"].get<uint32_t>());
                             stream_ptx_info.writeUint32(ptx_info["pitch"].get<uint32_t>());
@@ -530,8 +530,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         stream_rsg_info.writeUint32(packet_index);
                         stream_rsg_info.writeBytes(rsg_file.getBytes(0x10, 0x48));
                         auto write_pos = stream_rsg_info.write_pos;
-                        stream_rsg_info.writeUint32(rsg_file.readUint32(0x20ull), static_cast<std::uint64_t>(write_pos - 36));
-                        stream_rsg_info.writeUint32(ptx_number, static_cast<std::uint64_t>(write_pos));
+                        stream_rsg_info.writeUint32(rsg_file.readUint32(0x20_size), static_cast<std::size_t>(write_pos - 36));
+                        stream_rsg_info.writeUint32(ptx_number, static_cast<std::size_t>(write_pos));
                         stream_rsg_info.writeUint32(ptx_before_number);
                         ptx_before_number += ptx_number;
                     }
@@ -540,12 +540,12 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         stream_autopool_info.writeNull(128 - (subgroup_key.size() + 9));
                         if (rsg_composite)
                         {
-                            stream_autopool_info.writeUint32(rsg_file.readUint32(0x18ull));
-                            stream_autopool_info.writeUint32(rsg_file.readUint32(0x30ull));
+                            stream_autopool_info.writeUint32(rsg_file.readUint32(0x18_size));
+                            stream_autopool_info.writeUint32(rsg_file.readUint32(0x30_size));
                         }
                         else
                         {
-                            const auto &file_size = (rsg_file.readUint32(0x18ull) + rsg_file.readUint32(0x20ull));
+                            const auto &file_size = (rsg_file.readUint32(0x18_size) + rsg_file.readUint32(0x20_size));
                             stream_autopool_info.writeUint32(file_size);
                             stream_autopool_info.writeNull(4);
                         }
@@ -553,7 +553,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         stream_autopool_info.writeNull(12);
                     }
                     ++packet_index;
-                    rsg_file.read_pos = 0ull;
+                    rsg_file.read_pos = 0_size;
                 }
                 auto subgroup_size = composite_packet.subgroup.size();
                 stream_composite_info.writeNull(1024 - (subgroup_size * 16));
@@ -620,7 +620,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 head_info.rsg_info_each_length = 0xCC;
                 for (auto i : Range<int>(packet_index))
                 {
-                    auto rsg_info_file_pos = static_cast<uint64_t>((head_info.rsg_info_begin + i * head_info.rsg_info_each_length) + 128);
+                    auto rsg_info_file_pos = static_cast<size_t>((head_info.rsg_info_begin + i * head_info.rsg_info_each_length) + 128);
                     auto packet_pos = sen->readUint32(rsg_info_file_pos);
                     sen->writeUint32((file_offset + packet_pos), rsg_info_file_pos);
                 }

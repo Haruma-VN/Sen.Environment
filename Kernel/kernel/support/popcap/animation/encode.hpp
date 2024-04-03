@@ -162,12 +162,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 }
             }
             auto thiz_pos = sen->write_pos;
-            sen->writeUint8(flag, static_cast<std::uint64_t>(write_pos));
+            sen->writeUint8(flag, static_cast<std::size_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }
 
-        inline auto write_remove(int index) const -> void {
+        inline auto write_remove(
+            int index
+        ) const -> void {
             if (index >= 2047) {
                 sen->writeUint16(2047);
                 sen->writeUint32(index);
@@ -215,7 +217,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
                 sen->writeUint32(append.time_scale * 65536);
             }
             auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, static_cast<std::uint64_t>(write_pos));
+            sen->writeUint16(flag, static_cast<std::size_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }
@@ -281,7 +283,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             };
             flag |= num_flag;
             auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, static_cast<std::uint64_t>(write_pos));
+            sen->writeUint16(flag, static_cast<std::size_t>(write_pos));
             sen->write_pos = thiz_pos;
             return;
         }

@@ -845,7 +845,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeUint8(
 							static_cast<uint8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -876,7 +876,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeUint16(
 							static_cast<uint16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -907,7 +907,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeUint24(
 							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -938,7 +938,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeUint32(
 							static_cast<uint32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -969,7 +969,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeUint64(
 							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1000,7 +1000,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeInt8(
 							static_cast<int8_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1031,7 +1031,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeInt16(
 							static_cast<int16_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1062,7 +1062,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeInt24(
 							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1093,7 +1093,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeInt32(
 							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1124,7 +1124,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeInt64(
 							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1174,7 +1174,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 2) {
-						s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+						s->writeBytes(from_arraybuffer(ctx, argv[0]), static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[1])));
 					}
 					else {
 						s->writeBytes(from_arraybuffer(ctx, argv[0]));
@@ -1203,7 +1203,7 @@ namespace Sen::Kernel::Interface::Script {
 						s->writeBytes(from_uint8array(ctx, argv[0]));
 					}
 					else {
-						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[1])));
+						s->writeBytes(from_uint8array(ctx, argv[0]), static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[1])));
 					}
 					return JS_UNDEFINED;
 				}, "writeUint8Array"_sv);
@@ -1233,7 +1233,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeFloat(
 							static_cast<float>(JS::Converter::get_float32(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1264,7 +1264,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeDouble(
 							static_cast<double>(JS::Converter::get_float64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1295,7 +1295,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeVarInt32(
 							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1326,7 +1326,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeVarInt64(
 							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1357,7 +1357,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeZigZag32(
 							static_cast<int32_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1388,7 +1388,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeZigZag64(
 							static_cast<int64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1419,7 +1419,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeString(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1450,7 +1450,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringFourByte(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1481,7 +1481,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeNull(
 							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1512,7 +1512,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeBoolean(
 							JS::Converter::get_bool(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1543,7 +1543,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByUint8(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1574,7 +1574,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByUint16(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1605,7 +1605,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByUint32(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1636,7 +1636,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByInt8(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1667,7 +1667,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByInt16(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1698,7 +1698,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByInt32(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1729,7 +1729,7 @@ namespace Sen::Kernel::Interface::Script {
 					else {
 						s->writeStringByEmpty(
 							JS::Converter::get_string(ctx, argv[0]),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS_UNDEFINED;
@@ -1753,7 +1753,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readUint8(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readUint8();
@@ -1779,7 +1779,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readUint16(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readUint16();
@@ -1805,7 +1805,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readUint24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readUint24(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readUint24();
@@ -1831,7 +1831,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readUint32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readUint32();
@@ -1857,7 +1857,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readUint64(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readUint64();
@@ -1883,7 +1883,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readInt8(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readInt8();
@@ -1909,7 +1909,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readInt16(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readInt16();
@@ -1935,7 +1935,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readInt24(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readInt24(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readInt24();
@@ -1961,7 +1961,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readInt32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readInt32();
@@ -1987,7 +1987,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readInt64(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readInt64();
@@ -2013,12 +2013,12 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readString(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readString(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readString(
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])),
-							static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[1]))
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])),
+							static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[1]))
 						);
 					}
 					return JS::Converter::to_string(ctx, v);
@@ -2042,7 +2042,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByUint8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByUint8(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByUint8();
@@ -2068,7 +2068,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByUint16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByUint16(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByUint16();
@@ -2094,7 +2094,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByUint32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByUint32();
@@ -2120,7 +2120,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByInt8(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByInt8(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByInt8();
@@ -2146,7 +2146,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByInt16(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByInt16(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByInt16();
@@ -2172,7 +2172,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByInt32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByInt32();
@@ -2198,7 +2198,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByVarInt32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByVarInt32();
@@ -2224,7 +2224,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readStringByEmpty(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readStringByEmpty(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readStringByEmpty();
@@ -2250,7 +2250,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readVarInt32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readVarInt32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readVarInt32();
@@ -2276,7 +2276,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readVarInt64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readVarInt64(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readVarInt64();
@@ -2302,7 +2302,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readVarUint32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readVarUint32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readVarUint32();
@@ -2328,7 +2328,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readVarUint64(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readVarUint64(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readVarUint64();
@@ -2354,7 +2354,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readZigZag32(static_cast<uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readZigZag32(static_cast<size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readZigZag32();
@@ -2380,7 +2380,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readZigZag64(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readZigZag64(static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readZigZag64();
@@ -2406,7 +2406,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readFloat(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readFloat(static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readFloat();
@@ -2432,7 +2432,7 @@ namespace Sen::Kernel::Interface::Script {
 						return JS_EXCEPTION;
 					}
 					if (argc == 1) {
-						v = s->readDouble(static_cast<std::uint64_t>(JS::Converter::get_bigint64(ctx, argv[0])));
+						v = s->readDouble(static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])));
 					}
 					else {
 						v = s->readDouble();

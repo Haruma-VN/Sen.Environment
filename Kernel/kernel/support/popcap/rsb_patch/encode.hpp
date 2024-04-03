@@ -49,8 +49,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             {
                 throw Exception(fmt::format("{}", Language::get("popcap.rsb_patch.encode.only_support_pvz2")), std::source_location::current(), "process");
             }
-            auto rsb_before_section_byte = rsb_before->readBytes(rsb_before_head_infomation.file_offset, 0ull);
-            auto rsb_after_section_byte = rsb_after->readBytes(rsb_after_head_infomation.file_offset, 0ull);
+            auto rsb_before_section_byte = rsb_before->readBytes(rsb_before_head_infomation.file_offset, 0_size);
+            auto rsb_after_section_byte = rsb_after->readBytes(rsb_after_head_infomation.file_offset, 0_size);
             auto md5_rsb_old = Encryption::MD5::hash(rsb_before_section_byte);
             Common::test_hash(rsb_after_section_byte, md5_rsb_old);
             auto information_section_patch_exist = !std::equal(rsb_before_section_byte.begin(), rsb_before_section_byte.end(), rsb_after_section_byte.begin());
@@ -61,7 +61,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             result->writeInt32(rsb_after->size());
             result->writeNull(8);
             result->writeBytes(Common::to_bytes(md5_rsb_old));
-            result->writeInt32(rsb_after->readInt32(0x28ull));
+            result->writeInt32(rsb_after->readInt32(0x28_size));
             result->writeInt32(0);
             if (information_section_patch_exist)
             {
@@ -69,8 +69,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                     reinterpret_cast<char const *>(rsb_before_section_byte.data()), rsb_before_section_byte.size(),
                     reinterpret_cast<char const *>(rsb_after_section_byte.data()), rsb_after_section_byte.size());
                 auto backup_write_pos = result->write_pos;
-                result->writeInt32(rsb_head_vcdiff.size(), 0x14ull);
-                result->writeInt32(1, 0x2Cull);
+                result->writeInt32(rsb_head_vcdiff.size(), 0x14_size);
+                result->writeInt32(1, 0x2C_size);
                 result->write_pos = backup_write_pos;
                 result->writeBytes(rsb_head_vcdiff);
             }
@@ -93,11 +93,11 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                     if constexpr (use_raw_packet)
                     {
                         // auto rsg_pos = rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_pos;
-                        // auto packet_before_raw_size = rsb_before->readInt32(rsg_pos + 0x20ull) + rsb_before->readInt32(rsg_pos + 0x30ull) + rsb_before->readInt32(rsg_pos + 0x48ull);
+                        // auto packet_before_raw_size = rsb_before->readInt32(rsg_pos + 0x20_size) + rsb_before->readInt32(rsg_pos + 0x30_size) + rsb_before->readInt32(rsg_pos + 0x48_size);
                     }
                     else
                     {
-                        packet_before = rsb_before->readBytes(rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_length, rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_pos);
+                        packet_before = rsb_before->readBytes(static_cast<std::size_t>(rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_length, rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_pos));
                     }
                 }
                 auto packet_after = std::vector<uint8_t>{};
@@ -106,7 +106,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                 }
                 else
                 {
-                    packet_after = rsb_after->readBytes(rsb_after_rsg_info_list[i].rsg_length, rsb_after_rsg_info_list[i].rsg_pos);
+                    packet_after = rsb_after->readBytes(static_cast<std::size_t>(rsb_after_rsg_info_list[i].rsg_length, rsb_after_rsg_info_list[i].rsg_pos));
                 }
                 result->writeNull(8);
                 result->writeString(packet_after_name);
@@ -118,7 +118,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                         reinterpret_cast<char const *>(packet_before.data()), packet_before.size(),
                         reinterpret_cast<char const *>(packet_after.data()), packet_after.size());
                     auto pos = result->write_pos;
-                    result->writeInt32(subgroup_vcdiff.size(), pos - 148ull);
+                    result->writeInt32(subgroup_vcdiff.size(), pos - 148_size);
                     result->writeBytes(subgroup_vcdiff);
                 }
             }

@@ -81,8 +81,8 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             {
                 throw Exception(fmt::format("{}", Language::get("popcap.rsb_patch.decode.invalid_magic")), std::source_location::current(), "read_rsb_patch_head");
             }
-            rsg_patch_head_info->rsb_after_file_size = rsb_patch->readInt32(0xCull);
-            rsg_patch_head_info->rsb_head_section_patch_size = rsb_patch->readInt32(0x14ull);
+            rsg_patch_head_info->rsb_after_file_size = rsb_patch->readInt32(0xC_size);
+            rsg_patch_head_info->rsb_head_section_patch_size = rsb_patch->readInt32(0x14_size);
             rsg_patch_head_info->md5_rsb_before = Common::to_string(rsb_patch->readBytes(16));
             rsg_patch_head_info->rsg_number = rsb_patch->readInt32();
             rsg_patch_head_info->rsb_need_patch = rsb_patch->readInt32() == 1;
@@ -94,9 +94,9 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
         ) -> void
         {
             auto start_pos = rsb_patch->read_pos;
-            rsg_patch_subgroup_info->packet_patch_size = rsb_patch->readInt32(start_pos + 4ull);
+            rsg_patch_subgroup_info->packet_patch_size = rsb_patch->readInt32(start_pos + 4_size);
             rsg_patch_subgroup_info->packet_name = rsb_patch->readStringByEmpty();
-            auto data = rsb_patch->readBytes(16, start_pos + 136ull);
+            auto data = rsb_patch->readBytes(16, start_pos + 136_size);
             rsg_patch_subgroup_info->md5_packet = Common::to_string(data);
             return;
         }
@@ -124,7 +124,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             Common::read_head<T>(&rsb_before_head_infomation, rsb_before.get());
             auto rsg_patch_head_info = RSBPatchHeadExpand<D>{};
             read_rsb_patch_head<D>(&rsg_patch_head_info);
-            auto rsb_before_head_section_byte = rsb_before->readBytes(rsb_before_head_infomation.file_offset, 0ull);
+            auto rsb_before_head_section_byte = rsb_before->readBytes(rsb_before_head_infomation.file_offset, 0_size);
             Common::test_hash(rsb_before_head_section_byte, rsg_patch_head_info.md5_rsb_before);
             auto rsb_after_head_section_byte = std::vector<uint8_t>{};
             if (rsg_patch_head_info.rsb_need_patch)
@@ -167,10 +167,10 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                 if (packet_before_subgroup_indexing.contains(packet_after_name))
                 {
                     auto packet_before_subgroup_index = packet_before_subgroup_indexing[packet_after_name];
-                    packet_before = std::move(rsb_before->readBytes(rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_length, rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_pos));
+                    packet_before = std::move(rsb_before->readBytes(static_cast<std::size_t>(rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_length), static_cast<std::size_t>(rsb_before_rsg_info_list[packet_before_subgroup_index].rsg_pos)));
                     if constexpr (use_raw_packet)
                     {
-                        // to do
+                        // TODO : implement
                     }
                 }
                 if (rsg_patch_subgroup_info.packet_patch_size > 0)

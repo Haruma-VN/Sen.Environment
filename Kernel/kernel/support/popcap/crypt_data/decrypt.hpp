@@ -46,7 +46,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 			inline auto process(
 				const DataStreamView & view,
 				std::string_view key
-			) -> DataStreamView
+			) -> std::vector<std::uint8_t>
 			{
 				auto result = DataStreamView{};
 				auto code = std::vector<uint8_t>{key.begin(), key.end()};
@@ -62,7 +62,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 					}
 				}
 				result.append(view.get(view.get_read_pos(), view.size()));
-				return result;
+				return result.toBytes();
 			}
 
 			
@@ -77,7 +77,7 @@ namespace Sen::Kernel::Support::PopCap::CryptData
 				std::string_view key
 			) -> void
 			{
-				auto result = Decrypt::instance().process(DataStreamView{source}, key).toBytes();
+				auto result = Decrypt::instance().process(DataStreamView{source}, key);
 				FileSystem::write_binary(destination, result);
 				return;
 			}

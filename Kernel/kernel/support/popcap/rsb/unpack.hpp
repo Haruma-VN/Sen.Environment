@@ -39,7 +39,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     auto l_temp = sen->readUint32();
                     auto language = std::string{""};
                     if (l_temp != 0) {
-                        language = sen->readString(static_cast<std::uint64_t>(4), static_cast<std::uint64_t>(sen->read_pos - 4));
+                        language = sen->readString(static_cast<std::size_t>(4), static_cast<std::size_t>(sen->read_pos - 4));
                     }
                     auto rsg_id_part3_pos = sen->readInt32();
                     auto resources_number = sen->readInt32();
@@ -185,11 +185,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
             std::string_view packet_folder
             ) const -> void
         {
-            auto packet_pos = sen->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 0x80));
+            auto packet_pos = sen->readUint32(static_cast<std::size_t>(rsg_info_pos + 0x80));
             auto packet_size = sen->readUint32();
-            auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<std::uint64_t>(packet_pos) + packet_size)};
-            rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(static_cast<std::uint64_t>(0x10))};
-            auto ptx_before = sen->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 0xC8));
+            auto packet_sen = DataStreamView{sen->getBytes(packet_pos, static_cast<std::size_t>(packet_pos) + packet_size)};
+            rsg_info.packet_info = RSG_PacketInfo{packet_sen.readUint32(static_cast<std::size_t>(0x10))};
+            auto ptx_before = sen->readUint32(static_cast<std::size_t>(rsg_info_pos + 0xC8));
             read_res_info<int>(packet_sen, rsb_head_info, ptx_before, &rsg_info.packet_info.res);
             if constexpr (write_rsg)
             {
@@ -209,7 +209,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto name_dist_list = std::vector<NameDict<std::uint32_t>>{};
             auto name_path = std::string{};
             // read rsg_file_list_length;
-            auto file_list_lengh = packet_sen.readUint32(static_cast<std::uint64_t>(0x48));
+            auto file_list_lengh = packet_sen.readUint32(static_cast<std::size_t>(0x48));
             // read rsg_file_list_pos;
             auto file_list_pos = packet_sen.readUint32();
             packet_sen.read_pos = file_list_pos;
@@ -240,7 +240,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
                             {"width", packet_sen.readUint32()},
                             {"height", packet_sen.readUint32()}};
                         auto pitch_pos = (rsb_head_info.ptx_info_begin + (ptx_before + id) * rsb_head_info.ptx_info_each_length) + 0x08;
-                        auto pitch = sen->readUint32(static_cast<std::uint64_t>(pitch_pos));
+                        auto pitch = sen->readUint32(static_cast<std::size_t>(pitch_pos));
                         auto format = sen->readUint32();
                         res["ptx_info"]["format"] = format;
                         res["ptx_info"]["pitch"] = pitch;
@@ -373,7 +373,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             for (auto i : Range(rsb_head_info.composite_number))
             {
                 auto composite_start_pos = i * rsb_head_info.composite_info_each_length + rsb_head_info.composite_info_begin;
-                auto composite_name = sen->readStringByEmpty(static_cast<std::uint64_t>(composite_start_pos));
+                auto composite_name = sen->readStringByEmpty(static_cast<std::size_t>(composite_start_pos));
                 auto composite_info_pos = composite_start_pos + 0x80;
                 auto is_composite = composite_name.ends_with("_CompositeShell");
                 if (is_composite)
@@ -384,13 +384,13 @@ namespace Sen::Kernel::Support::PopCap::RSB
                     std::transform(composite_name.begin(), composite_name.end(), composite_name.begin(), ::toupper);
                 }
                 auto rsg_group = RSG_Group<T>{!is_composite};
-                for (auto k : Range(sen->readUint32(static_cast<std::uint64_t>(composite_start_pos + 0x480))))
+                for (auto k : Range(sen->readUint32(static_cast<std::size_t>(composite_start_pos + 0x480))))
                 {
                     auto rsg_info = RSG_Info<T>{};
-                    auto rsg_index = sen->readUint32(static_cast<std::uint64_t>(k * 0x10 + composite_info_pos));
+                    auto rsg_index = sen->readUint32(static_cast<std::size_t>(k * 0x10 + composite_info_pos));
                     read_rsg_category<T, T>(rsb_head_info.version, rsg_info);
                     auto rsg_info_pos = rsg_index * rsb_head_info.rsg_info_each_length + rsb_head_info.rsg_info_begin;
-                    auto rsg_name = sen->readStringByEmpty(static_cast<std::uint64_t>(rsg_info_pos));
+                    auto rsg_name = sen->readStringByEmpty(static_cast<std::size_t>(rsg_info_pos));
                     if constexpr (uppercase_group) {
                         std::transform(rsg_name.begin(), rsg_name.end(), rsg_name.begin(), ::toupper);
                     }

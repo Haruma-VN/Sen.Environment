@@ -12,7 +12,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 
 	// sub information
 
-	struct SubInformation {
+	class SubInformation {
 
 		public:
 

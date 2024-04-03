@@ -35,6 +35,17 @@ namespace Sen::Kernel {
 	}
 
 	/**
+	 * Size
+	*/
+
+	inline constexpr auto operator "" _size(
+		unsigned long long int n
+	) -> size_t
+	{
+    	return static_cast<size_t>(n);
+	}
+
+	/**
 	 * Unsigned long
 	*/
 

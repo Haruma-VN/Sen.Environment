@@ -9,7 +9,7 @@ namespace Sen::Kernel::Definition
     concept CharacterOnView = std::is_same_v<Type, char> || std::is_same_v<Type, unsigned char>;
 
     template <typename Type>
-    concept IsValidArgument = std::is_same<Type, std::uint64_t>::value && true;
+    concept IsValidArgument = std::is_same<Type, std::size_t>::value && true;
 
     namespace Buffer
     {

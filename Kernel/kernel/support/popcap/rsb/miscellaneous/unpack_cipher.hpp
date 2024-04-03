@@ -53,8 +53,8 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			zlib_data->writeUint8(static_cast<std::uint8_t>(0x78));
 			zlib_data->writeUint8(static_cast<std::uint8_t>(0xDA));
 			for (auto index = 2; index != 4096; ++index) {
-				zlib_data->writeUint8(zlib_data->readUint8(static_cast<std::uint64_t>(index))
-					^ key_data[key_index], static_cast<std::uint64_t>(index));
+				zlib_data->writeUint8(zlib_data->readUint8(static_cast<std::size_t>(index))
+					^ key_data[key_index], static_cast<std::size_t>(index));
 				key_data[key_index] ^= index;
 				key_index = (key_index + 5) % 48;
 			}
@@ -100,9 +100,9 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 			auto packet_pos = rsb_data->readUint32();
 			rsb_data->read_pos = static_cast<std::size_t>(rsg_info_pos) + 140;
 			auto packet_bytes = rsb_data->readBytes(32);
-			auto packet_size = rsb_data->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 148)) +
-				rsb_data->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 152)) + 
-				rsb_data->readUint32(static_cast<std::uint64_t>(rsg_info_pos + 168));
+			auto packet_size = rsb_data->readUint32(static_cast<std::size_t>(rsg_info_pos + 148)) +
+				rsb_data->readUint32(static_cast<std::size_t>(rsg_info_pos + 152)) + 
+				rsb_data->readUint32(static_cast<std::size_t>(rsg_info_pos + 168));
 			rsb_data->read_pos = packet_pos;
 			fix_rsg(packet_size, packet_bytes, rsg_name, destination);
 			return;
@@ -252,7 +252,7 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 
 	public:
 
-		auto process(
+		inline auto process(
 			std::string_view destination
 		) -> void
 		{
@@ -270,7 +270,7 @@ namespace Sen::Kernel::Support::PopCap::RSB::Miscellaneous {
 					composite_name = composite_name.substr(0, composite_name.size() - 15);
 				}
 				auto c_info_pos = c_pool + 0x80;
-				auto rsg_number = rsb_data->readUint32(static_cast<std::uint64_t>(c_pool + 0x480));
+				auto rsg_number = rsb_data->readUint32(static_cast<std::size_t>(c_pool + 0x480));
 				for (auto k : Range<std::uint32_t>(rsg_number)) {
 					rsb_data->read_pos = static_cast<size_t>(k * 0x10 + c_info_pos);
 					auto rsg_index = rsb_data->readUint32();

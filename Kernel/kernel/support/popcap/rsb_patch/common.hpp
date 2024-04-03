@@ -112,7 +112,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                 auto rsg_pos = static_cast<std::uint64_t>(data_stream->readInt32());
                 auto rsg_length = data_stream->readInt32();
                 auto rsg_index = data_stream->readInt32();
-                auto ptx_number = data_stream->readInt32(static_cast<std::uint64_t>(start_pos + rsb_head->rsg_info_each_length));
+                auto ptx_number = data_stream->readInt32(static_cast<std::size_t>(start_pos + rsb_head->rsg_info_each_length));
                 auto ptx_before_number = data_stream->readInt32();
                 info->emplace_back(RSGInfo<D>{packet_name, rsg_pos, rsg_length, rsg_index, ptx_number, ptx_before_number});
             }
