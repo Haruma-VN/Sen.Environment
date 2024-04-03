@@ -52,7 +52,6 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward: undefined,
             is_enabled: false,
             configuration: undefined!,
             filter: ["file", /.*/],

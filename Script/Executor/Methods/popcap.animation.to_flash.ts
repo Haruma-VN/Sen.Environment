@@ -84,7 +84,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToFlash {
                 load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 return basic_batch(this, argument, false, { resolution: BigInt(argument.resolution!) });
             },
-            async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /.*\.pam\.json$/i],

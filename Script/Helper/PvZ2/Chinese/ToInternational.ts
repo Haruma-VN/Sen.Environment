@@ -52,15 +52,12 @@ namespace Sen.Script.Helper.PvZ2.Chinese.ToInternational {
 
     export function process({ chinese_manifest, chinese_packet, dummy, international_manifest, international_packet, compression_flag, chinese_res_info, international_res_info }: Prop): void {
         for (const [composite_group, subgroups] of Object.entries(dummy)) {
-            // TODO : Add localization
-            Console.send(`queue: ${composite_group}`);
+            Console.send(`${Kernel.Language.get("script.helper.pvz2.chinese.to_international.in_queue")}: ${composite_group}`, Definition.Console.Color.CYAN);
             if (international_manifest.group[composite_group] !== undefined) {
-                // TODO : Add localization
-                throw new Error(`${composite_group} is already existed`);
+                throw new Error(format(Kernel.Language.get("script.helper.pvz2.chinese.to_international.composite_group_already_existed"), composite_group));
             }
             if (chinese_manifest.group[composite_group] === undefined) {
-                // TODO : Add localization
-                throw new Error(`${composite_group} not found in chinese manifest`);
+                throw new Error(format(Kernel.Language.get("script.helper.pvz2.chinese.to_international.composite_group_is_not_found_in_chinese_manifest"), composite_group));
             }
             international_manifest.group[composite_group] = {
                 is_composite: chinese_manifest.group[composite_group].is_composite,
@@ -88,40 +85,29 @@ namespace Sen.Script.Helper.PvZ2.Chinese.ToInternational {
     }
 
     export function execute(): void {
-        // TODO : Add localization
-        const international_bundle: string = Console.path("input international bundle", "directory");
-        // TODO : Add localization
-        const chinese_bundle: string = Console.path("input chinese bundle", "directory");
-        // TODO : Add localization
-        Console.send("parsing international manifest...");
+        const international_bundle: string = Console.path(Kernel.Language.get("script.helper.pvz2.chinese.to_international.input_international_bundle"), "directory");
+        const chinese_bundle: string = Console.path(Kernel.Language.get("script.helper.pvz2.chinese.to_international.input_chinese_bundle"), "directory");
+        Console.argument(Kernel.Language.get("script.helper.pvz2.chinese.to_international.parsing_international_manifest"));
         const international_manifest: Kernel.Support.PopCap.RSB.Manifest = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${international_bundle}/manifest.json`);
-        // TODO : Add localization
-        Console.finished("done");
-        // TODO : Add localization
-        Console.send("parsing chinese manifest...");
+        Console.finished(Kernel.Language.get("script.helper.pvz2.chinese.to_international.done"));
+        Console.argument(Kernel.Language.get("script.helper.pvz2.chinese.to_international.parsing_chinese_manifest"));
         const chinese_manifest: Kernel.Support.PopCap.RSB.Manifest = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${chinese_bundle}/manifest.json`);
-        // TODO : Add localization
-        Console.finished("done");
+        Console.finished(Kernel.Language.get("script.helper.pvz2.chinese.to_international.done"));
         {
             const dummy: Dummy = {};
             watch(chinese_manifest, dummy);
             const ripe_file = `${chinese_bundle}/group.json`;
             Kernel.JSON.serialize_fs<Dummy>(ripe_file, dummy, 1, false);
-            // TODO : Add localization
-            Console.finished(`dumped file: ${ripe_file}`);
+            Console.finished(`${Kernel.Language.get("script.helper.pvz2.chinese.to_international.dumped_file")}: ${ripe_file}`);
         }
         const ripe_file: string = `${international_bundle}/group.json`;
         Kernel.JSON.serialize_fs<Dummy>(ripe_file, {}, 1, false);
-        // TODO : Add localization
-        Console.finished(`to port 2c content go to group.json in pvz2c bundle and add to this file: ${ripe_file}`);
-        // TODO : Add localization
-        Console.argument("Waiting...");
+        Console.finished(`${Kernel.Language.get("script.helper.pvz2.chinese.to_international.to_port_2c_content_edit_this")}: ${ripe_file}`);
+        Console.argument(Kernel.Language.get("script.helper.pvz2.chinese.to_international.waiting"));
         Kernel.Console.readline();
-        // TODO : Add localization
-        Console.send("parsing chinese res-info...");
+        Console.argument(Kernel.Language.get("script.helper.pvz2.chinese.to_international.parsing_international_res_info"));
         const international_res_info: Kernel.Support.PopCap.ResInfo.Structure = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${international_bundle}/res.json`);
-        // TODO : Add localization
-        Console.send("parsing international res-info...");
+        Console.argument(Kernel.Language.get("script.helper.pvz2.chinese.to_international.parsing_chinese_res_info"));
         const chinese_res_info: Kernel.Support.PopCap.ResInfo.Structure = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${chinese_bundle}/res.json`);
         process({
             chinese_manifest: chinese_manifest,
@@ -133,8 +119,7 @@ namespace Sen.Script.Helper.PvZ2.Chinese.ToInternational {
             international_res_info: international_res_info,
             compression_flag: 3n,
         });
-        // TODO : Add localization
-        Console.send("all process done...");
+        Console.finished(Kernel.Language.get("script.helper.pvz2.chinese.to_international.all_process_has_been_finished"));
         Kernel.JSON.serialize_fs<Kernel.Support.PopCap.RSB.Manifest>(`${international_bundle}/manifest.json`, international_manifest, 1, false);
         Kernel.JSON.serialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${international_bundle}/res.json`, international_res_info, 1, false);
         return;

@@ -39,6 +39,7 @@
 #include "kernel/support/popcap/reanim/encode.hpp"
 #include "kernel/support/popcap/reanim/convert/from_flash.hpp"
 #include "kernel/support/popcap/reanim/convert/to_flash.hpp"
+#include "kernel/support/popcap/reanim/convert/instance.hpp"
 #include "kernel/support/wwise/sound_bank/encode.hpp"
 #include "kernel/support/wwise/sound_bank/decode.hpp"
 

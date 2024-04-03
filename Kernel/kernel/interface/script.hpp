@@ -11624,6 +11624,68 @@ namespace Sen::Kernel::Interface::Script {
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
 				}
+
+				
+
+				namespace Instance {
+
+					/**
+					 * ----------------------------------------
+					 * JavaScript Reanim Decode File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: platform
+					 * @returns: Decoded file
+					 * ----------------------------------------
+					*/
+
+					inline static auto to_flash (
+						JSContext *context, 
+						JSValueConst this_val, 
+						int argc, 
+						JSValueConst *argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_string(context, argv[0]);
+							auto destination = JS::Converter::get_string(context, argv[1]);
+							auto z_platform = JS::Converter::get_string(context, argv[2]);
+							auto platform = get_platform(z_platform);
+							Sen::Kernel::Support::PopCap::Reanim::Convert::InstanceConvert::to_flash(source, destination, platform);
+							return JS::Converter::get_undefined();
+						}, "to_flash"_sv);
+					}
+
+					/**
+					 * ----------------------------------------
+					 * JavaScript Reanim Encode File
+					 * @param argv[0]: source file
+					 * @param argv[1]: destination file
+					 * @param argv[2]: platform
+					 * @returns: Encoded file
+					 * ----------------------------------------
+					*/
+
+					inline static auto from_flash (
+						JSContext *context, 
+						JSValueConst this_val, 
+						int argc, 
+						JSValueConst *argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_string(context, argv[0]);
+							auto destination = JS::Converter::get_string(context, argv[1]);
+							auto z_platform = JS::Converter::get_string(context, argv[2]);
+							auto platform = get_platform(z_platform);
+							Sen::Kernel::Support::PopCap::Reanim::Convert::InstanceConvert::from_flash(source, destination, platform);
+							return JS::Converter::get_undefined();
+						}, "from_flash"_sv);
+					}
+
+				}
 			}
 		}
 

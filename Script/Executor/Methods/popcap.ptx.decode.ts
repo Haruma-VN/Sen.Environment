@@ -148,7 +148,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
             filter: ["file", /(.+)\.ptx$/i],

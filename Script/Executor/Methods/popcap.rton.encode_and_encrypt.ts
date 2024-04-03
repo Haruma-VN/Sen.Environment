@@ -73,24 +73,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.EncodeAndEncrypt {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.EncodeAndEncrypt.BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
-            async_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.EncodeAndEncrypt.AsyncArgument): void {
-                Sen.Script.Executor.clock.start_safe();
-                for (let i = 0n; i < BigInt(argument.parameter.length); i += Setting.setting.thread_limit_count) {
-                    const current_thread: Array<[string, string]> = [
-                        ...argument.parameter.slice(
-                            Number(i),
-                            i + Setting.setting.thread_limit_count <= BigInt(argument.parameter.length) ? Number(i + Setting.setting.thread_limit_count) : argument.parameter.length,
-                        ),
-                    ];
-                    current_thread.forEach((e: [string, string]) => {
-                        Sen.Script.Console.obtained(e[0]);
-                        Sen.Script.Console.output(e[1]);
-                    });
-                }
-                Sen.Script.Executor.clock.stop_safe();
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
-                return;
-            },
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.json$/i],

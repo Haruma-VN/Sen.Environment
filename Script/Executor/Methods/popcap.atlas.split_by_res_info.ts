@@ -104,7 +104,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo {
                 });
                 return;
             },
-            async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
             filter: ["files", /(.+)\.json$/i, /(.+)\.png$/i],

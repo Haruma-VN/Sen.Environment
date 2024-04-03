@@ -104,7 +104,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            async_forward: undefined!,
             batch_forward: undefined!,
             is_enabled: true,
             filter: ["file", /(.+)(\.json|\.txt)$/i],

@@ -27,7 +27,6 @@ namespace Sen.Script.Executor {
         configuration_file: string;
         direct_forward: (argument: Argument) => void;
         batch_forward?: (argument: BatchArgument) => void;
-        async_forward?: (argument: AsyncArgument) => void;
         is_enabled: boolean;
         configuration: Configuration;
         filter: [MethodType, RegExp] | [MethodType, ...Array<RegExp>];
@@ -405,13 +404,6 @@ namespace Sen.Script.Executor {
         worker.configuration = Sen.Kernel.JSON.deserialize_fs<Configuration>(worker.configuration_file);
         Sen.Script.Console.display(`${Sen.Kernel.Language.get("method_loaded")}`, `${Sen.Kernel.Language.get(id)} | ${id}`, Sen.Script.Definition.Console.Color.GREEN);
         switch (forward_type) {
-            case Sen.Script.Executor.Forward.ASYNC: {
-                if (worker.async_forward === undefined) {
-                    throw new Error(Sen.Script.format(Sen.Kernel.Language.get("method_does_not_support_async_implementation"), id));
-                }
-                worker.async_forward(argument);
-                break;
-            }
             case Sen.Script.Executor.Forward.BATCH: {
                 if (worker.batch_forward === undefined) {
                     throw new Error(Sen.Script.format(Sen.Kernel.Language.get("method_does_not_support_batch_implementation"), id));

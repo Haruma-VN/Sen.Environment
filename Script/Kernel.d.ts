@@ -1982,6 +1982,70 @@ declare namespace Sen {
                      */
                     export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "raw-xml" | "tv" | "wp";
 
+                    // Interface to define the structure of a single Reanim transform
+                    export interface ReanimTransform extends Record<string, unknown> {
+                        // X position of the transform
+                        x: number;
+                        // Y position of the transform
+                        y: number;
+                        // X-axis scale
+                        kx: number;
+                        // Y-axis scale
+                        ky: number;
+                        // X-axis shear
+                        sx: number;
+                        // Y-axis shear
+                        sy: number;
+                        // Rotation angle in degrees
+                        a: number;
+                        // Interpolation type (string representation)
+                        i: string;
+                        // Resource name for the transform (optional)
+                        resource?: string;
+                        // Second interpolation type (string representation) - optional
+                        i2?: string;
+                        // Second resource name for the transform (optional)
+                        resource2?: string;
+                        // Font name used for text transform (optional)
+                        font?: string;
+                        // Text content for text transform (optional)
+                        text?: string;
+                    }
+
+                    // Interface to define a Reanim track with its name and associated transforms
+                    export interface ReanimTrack extends Record<string, unknown> {
+                        // Name of the track
+                        name: string;
+                        // Array of ReanimTransform objects defining the animation for this track
+                        transforms: Array<ReanimTransform>;
+                    }
+
+                    // Interface to define overall Reanim information
+                    export interface ReanimInfo extends Record<string, unknown> {
+                        // Scale factor applied during animation playback
+                        do_scale: number;
+                        // Frames per second for the animation
+                        fps: number;
+                        // Array of ReanimTrack objects defining the animation tracks
+                        tracks: Array<ReanimTrack>;
+                    }
+
+                    // Supported platforms for Reanim packs
+                    export const PakPlatformX = ["PC", "Xbox_360", "TV"] as const;
+
+                    // Type alias for PakPlatform to enforce usage of valid platform names
+                    export type PakPlatform = (typeof PakPlatformX)[number];
+
+                    // Interface to define information about a Reanim pack
+                    export interface PakInfo extends Record<string, unknown> {
+                        // Platform the pack is intended for (from PakPlatform enum)
+                        pak_platform: PakPlatform;
+                        // Flag indicating whether to use windows path separators in the pack
+                        windows_path_separate: boolean;
+                        // Flag indicating whether to compress the pack using zlib
+                        zlib_compress: boolean;
+                    }
+
                     /**
                      * Decodes a file system archive from the source path to the destination directory,
                      * targeting a specific platform.
@@ -2003,6 +2067,35 @@ declare namespace Sen {
                      * @returns {void}
                      */
                     export function encode_fs(source: string, destination: string, platform: Platform): void;
+
+                    /**
+                     * Instance namespace for convert method
+                     * Quick adapt
+                     */
+
+                    declare namespace Instance {
+                        /**
+                         * Decodes a file system archive from the source path to the destination directory,
+                         * targeting a specific platform.
+                         *
+                         * @param {string} source - The path to the archive file.
+                         * @param {string} destination - The directory where the extracted files will be placed.
+                         * @param {Platform} platform - The target platform for the decoded files.
+                         * @returns {void}
+                         */
+                        export function to_flash(source: string, destination: string, platform: Platform): void;
+
+                        /**
+                         * Encodes a directory and its contents into a file system archive at the destination path,
+                         * targeting a specific platform.
+                         *
+                         * @param {string} source - The directory to be archived.
+                         * @param {string} destination - The path and filename of the resulting archive.
+                         * @param {Platform} platform - The target platform for the encoded archive.
+                         * @returns {void}
+                         */
+                        export function from_flash(source: string, destination: string, platform: Platform): void;
+                    }
 
                     /**
                      * Namespace for converting file systems to Flash format.

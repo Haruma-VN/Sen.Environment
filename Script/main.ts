@@ -407,6 +407,8 @@ namespace Sen.Script {
             "~/Executor/Methods/wwise.soundbank.encode.js",
             "~/Executor/Methods/popcap.rsg.unpack.js",
             "~/Executor/Methods/popcap.rsg.pack.js",
+            "~/Executor/Methods/popcap.pak.unpack.js",
+            "~/Executor/Methods/popcap.pak.pack.js",
             "~/Executor/Methods/popcap.rsb.unpack.js",
             "~/Executor/Methods/popcap.rsb.pack.js",
             "~/Executor/Methods/popcap.rsb.obfuscate.js",

@@ -113,6 +113,7 @@ add_library(
 	./support/popcap/reanim/definition.hpp
 	./support/popcap/reanim/convert/to_flash.hpp
 	./support/popcap/reanim/convert/from_flash.hpp
+	./support/popcap/reanim/convert/instance.hpp
 	./support/popcap/crypt_data/definition.hpp
 	./support/popcap/crypt_data/encrypt.hpp
 	./support/popcap/crypt_data/decrypt.hpp

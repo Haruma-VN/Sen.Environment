@@ -58,7 +58,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.FromFlash.BatchArgument): void {
                 return basic_batch(this, argument, true);
             },
-            async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.+)\.xfl$/i],

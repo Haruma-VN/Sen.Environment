@@ -7,6 +7,9 @@ namespace Sen::Kernel::Definition
 {
     namespace UTF8Json
     {
+
+        template <typename T> concept HasEmptyMethod = requires(T a) { { a.empty() } -> std::same_as<void>; };
+        
         class JsonConstants
         {
         public:
@@ -40,6 +43,16 @@ namespace Sen::Kernel::Definition
 
             inline static constexpr auto RemoveFlagsBitMask = 0x7FFFFFFF;
 
+            inline static constexpr auto Backspace_Point = 0x08u;
+            inline static constexpr auto Horizontal_Tab_Point = 0x09u;
+            inline static constexpr auto Newline_Point = 0x0Au;
+            inline static constexpr auto Formfeed_Point = 0x0Cu;
+            inline static constexpr auto Carriage_Return_Point = 0x0Du;
+            inline static constexpr auto Quotation_Mark_Point = 0x22u;
+            inline static constexpr auto Reverse_Solidus_Point = 0x5Cu;
+            
+
+            /*
             inline static auto quote_pattern = std::regex("\"");
             inline static auto backslash_pattern = std::regex("\\\\");
             inline static auto newline_pattern = std::regex("\n");
@@ -47,6 +60,7 @@ namespace Sen::Kernel::Definition
             inline static auto tab_pattern = std::regex("\t");
             inline static auto backspace_pattern = std::regex("\b");
             inline static auto formfeed_pattern = std::regex("\f");
+            */
         };
 
         /// This enum defines the various JSON tokens that make up a JSON text and is used by
@@ -108,78 +122,173 @@ namespace Sen::Kernel::Definition
 
         struct JsonWriterHelper
         {
+
+        private:
+            inline static constexpr auto utf8_d = std::array<std::uint8_t, 400>{
+                {
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 00..1F
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20..3F
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40..5F
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60..7F
+                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, // 80..9F
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // A0..BF
+                    8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // C0..DF
+                    0xA, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3, 0x3,                 // E0..EF
+                    0xB, 0x6, 0x6, 0x6, 0x5, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8,                 // F0..FF
+                    0x0, 0x1, 0x2, 0x3, 0x5, 0x8, 0x7, 0x1, 0x1, 0x1, 0x4, 0x6, 0x1, 0x1, 0x1, 0x1,                 // s0..s0
+                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, // s1..s2
+                    1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, // s3..s4
+                    1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 1, 1, 1, // s5..s6
+                    1, 3, 1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // s7..s8
+                }};
+
+
+        protected:
+            inline static auto Decode(
+                std::uint8_t &state,
+                std::uint32_t &codepoint,
+                const std::uint8_t byte
+            ) -> std::uint8_t
+            {
+                assert_conditional(byte < utf8_d.size(), fmt::format("{}", Language::get("json_writer.byte_cannot_smaller_than_utf8_size")), "Decode");
+                const std::uint8_t type = utf8_d[byte];
+                codepoint = (state != 0_byte)
+                                ? (byte & 0x3fu) | (codepoint << 6u)
+                                : (0xFFu >> type) & (byte);
+                auto index = 256u + static_cast<size_t>(state) * 16u + static_cast<size_t>(type);
+                assert_conditional(index < utf8_d.size(), fmt::format("{}", Language::get("json_writer.index_cannot_smaller_than_utf8_size")), "Decode");
+                state = utf8_d[index];
+                return state;
+            }
+
         public:
             // Unnecessary.
+            /*
             inline static auto Validate(std::string propertyName) -> void
             {
                 return;
             }
+            */
 
-            inline static auto EscapeString(std::string &value) -> void
+            inline static auto WriteEscapeString(
+                std::string &output,
+                const std::string &s
+            ) -> void
             {
                 /*
-                std::string output;
-                value.reserve(value.size());
-                for (const char c : value)
-                {
-                    switch (c)
-                    {
-                    case '\a':
-                        output += "\\a";
-                        break;
-                    case '\b':
-                        output += "\\b";
-                        break;
-                    case '\f':
-                        output += "\\f";
-                        break;
-                    case '\n':
-                        output += "\\n";
-                        break;
-                    case '\r':
-                        output += "\\r";
-                        break;
-                    case '\t':
-                        output += "\\t";
-                        break;
-                    case '\v':
-                        output += "\\v";
-                        break;
-                    default:
-                        output += c;
-                        break;
-                    }
-                }
-                value = output;
-                */
-                // faster algorithm, but need hex convertion.
                 if (value.find(JsonConstants::BackSlash) != std::string::npos)
                 {
                     value = std::regex_replace(value, JsonConstants::backslash_pattern, "\\\\");
                 }
-                if (value.find(JsonConstants::Quote) != std::string::npos)
+                */
+                auto codepoint = std::uint32_t{0};
+                auto state = 0_byte;
+                auto bytes = 0;
+                auto string_buffer = std::array<char, 512>{{}};
+                for (const auto &i : Range<size_t>(s.size()))
                 {
-                    value = std::regex_replace(value, JsonConstants::quote_pattern, "\\\"");
+                    const auto byte = static_cast<std::uint8_t>(s[i]);
+                    switch (Decode(state, codepoint, byte))
+                    {
+                    case 0_byte:
+                    {
+                        switch (codepoint)
+                        {
+                        case JsonConstants::Backspace_Point: // backspace
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = 'b';
+                            break;
+                        }
+
+                        case JsonConstants::Horizontal_Tab_Point: // horizontal tab
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = 't';
+                            break;
+                        }
+
+                        case JsonConstants::Newline_Point: // newline
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = 'n';
+                            break;
+                        }
+
+                        case JsonConstants::Formfeed_Point: // formfeed
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = 'f';
+                            break;
+                        }
+
+                        case JsonConstants::Carriage_Return_Point: // carriage return
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = 'r';
+                            break;
+                        }
+
+                        case JsonConstants::Quotation_Mark_Point: // quotation mark
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = '\"';
+                            break;
+                        }
+
+                        case JsonConstants::Reverse_Solidus_Point: // reverse solidus
+                        {
+                            string_buffer[bytes++] = '\\';
+                            string_buffer[bytes++] = '\\';
+                            break;
+                        }
+                        default:
+                            if ((codepoint <= 0x1F))
+                            {
+                                if (codepoint <= 0xFFFF)
+                                {
+                                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+                                    static_cast<void>((std::snprintf)(string_buffer.data() + bytes, 7, "\\u%04x",
+                                                                      static_cast<std::uint16_t>(codepoint)));
+                                    bytes += 6;
+                                }
+                                else
+                                {
+                                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+                                    static_cast<void>((std::snprintf)(string_buffer.data() + bytes, 13, "\\u%04x\\u%04x",
+                                                                      static_cast<std::uint16_t>(0xD7C0u + (codepoint >> 10u)),
+                                                                      static_cast<std::uint16_t>(0xDC00u + (codepoint & 0x3FFu))));
+                                    bytes += 12;
+                                }
+                            }
+                            else
+                            {
+                                string_buffer[bytes++] += s[i];
+                            }
+                            break;
+                        }
+                        if (string_buffer.size() - bytes < 13)
+                        {
+                            output.append(string_buffer.data(), bytes);
+                            bytes = 0;
+                        }
+                        break;
+                    }
+                    case 1_byte:
+                    default:
+                    {
+                        throw Exception(String::format(fmt::format("{}", Language::get("json_writer.invalid_utf8_byte_at_index")), String::decimal_to_hexadecimal(bytes)), std::source_location::current(), "WriteEscapeString");
+                        break;
+                    }
+                    }
                 }
-                if (value.find(JsonConstants::LineFeed) != std::string::npos)
-                {
-                    value = std::regex_replace(value, JsonConstants::newline_pattern, "\\n");
+                if (state == 0_byte) {
+                    if (bytes > 0) {
+                        output.append(string_buffer.data(), bytes);
+                    }
                 }
-                if (value.find(JsonConstants::CarriageReturn) != std::string::npos)
-                {
-                    value = std::regex_replace(value, JsonConstants::carriage_pattern, "\\r");
-                }
-                if (value.find(JsonConstants::Tab) != std::string::npos)
-                {
-                    value = std::regex_replace(value, JsonConstants::tab_pattern, "\\t");
-                }
-                if (value.find(JsonConstants::FormFeed) != std::string::npos)
-                {
-                    value = std::regex_replace(value, JsonConstants::formfeed_pattern, "\\f");
-                }
-                if (value.find(JsonConstants::BackSpace) != std::string::npos)
-                {
-                    value = std::regex_replace(value, JsonConstants::backspace_pattern, "\\b");
+                else {
+                    throw Exception(String::format(fmt::format("{}", Language::get("json_writer.incomplete_utf8_string")), fmt::format("0x{}", String::decimal_to_hexadecimal(bytes))), std::source_location::current(), "WriteEscapeString");
                 }
                 return;
             }
@@ -188,7 +297,7 @@ namespace Sen::Kernel::Definition
             {
                 // Write '\r\n' OR '\n', depending on OS
                 #if LINUX
-                                output += JsonConstants::CarriageReturn;
+                    output += JsonConstants::CarriageReturn;
                 #endif
                 output += JsonConstants::LineFeed;
                 return;
@@ -219,11 +328,11 @@ namespace Sen::Kernel::Definition
             // The highest order bit of _currentDepth is used to discern whether we are writing the first item in a list or not.
             // if (_currentDepth >> 31) == 1, add a list separator before writing the item
             // else, no list separator is needed since we are writing the first item.
-            int mutable _currentDepth = 0;
+            std::size_t mutable _currentDepth = 0;
 
-            int mutable _indentLength = 1;
+            std::size_t mutable _indentLength = 1;
 
-            inline auto WriteStart(std::string token) const -> void
+            inline auto WriteStart(const std::string &token) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -238,7 +347,7 @@ namespace Sen::Kernel::Definition
                     thiz._baseString += token;
                 }
                 thiz._currentDepth &= JsonConstants::RemoveFlagsBitMask;
-                thiz._currentDepth++;
+                ++thiz._currentDepth;
                 return;
             }
 
@@ -246,7 +355,7 @@ namespace Sen::Kernel::Definition
                 Writes the UTF-8 property name (as a JSON string) as the first part of a name/value pair of a JSON object.
             */
 
-            inline auto WriteStringPropertyName(std::string propertyName) const -> void
+            inline auto WriteStringPropertyName(const std::string &propertyName) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -259,7 +368,7 @@ namespace Sen::Kernel::Definition
                         thiz._baseString += JsonConstants::ListSeparator;
                     }
                     thiz._baseString += JsonConstants::Quote;
-                    thiz._baseString += propertyName;
+                    JsonWriterHelper::WriteEscapeString(thiz._baseString, propertyName);
                     thiz._baseString += JsonConstants::Quote;
                     thiz._baseString += JsonConstants::KeyValueSeparator;
                 }
@@ -267,7 +376,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteStringValue(std::string_view value) const -> void
+            inline auto WriteStringValue(const std::string &value) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -280,14 +389,14 @@ namespace Sen::Kernel::Definition
                         thiz._baseString += JsonConstants::ListSeparator;
                     }
                     thiz._baseString += JsonConstants::Quote;
-                    thiz._baseString += value;
+                    JsonWriterHelper::WriteEscapeString(thiz._baseString, value);
                     thiz._baseString += JsonConstants::Quote;
                 }
                 thiz.SetFlagToAddListSeparatorBeforeNextItem();
                 return;
             }
 
-            inline auto WriteSimpleIndented(std::string value) const -> void
+            inline auto WriteSimpleIndented(const std::string &value) const -> void
             {
                 if (thiz._currentDepth < 0)
                 {
@@ -306,7 +415,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteSimpleValue(std::string value) const -> void
+            inline auto WriteSimpleValue(const std::string &value) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -324,7 +433,7 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            inline auto WriteEnd(std::string token) const -> void
+            inline auto WriteEnd(const std::string &token) const -> void
             {
                 if (thiz.WriteIndent)
                 {
@@ -337,12 +446,12 @@ namespace Sen::Kernel::Definition
                 thiz.SetFlagToAddListSeparatorBeforeNextItem();
                 if (thiz._currentDepth != 0)
                 {
-                    thiz._currentDepth--;
+                    --thiz._currentDepth;
                 }
                 return;
             }
 
-            inline auto WriteStringIndented(std::string_view value) const -> void
+            inline auto WriteStringIndented(const std::string &value) const -> void
             {
                 if (thiz._currentDepth < 0)
                 {
@@ -358,12 +467,12 @@ namespace Sen::Kernel::Definition
                     JsonWriterHelper::WriteIndentation(thiz._baseString, indent);
                 }
                 thiz._baseString += JsonConstants::Quote;
-                thiz._baseString += value;
+                JsonWriterHelper::WriteEscapeString(thiz._baseString, value);
                 thiz._baseString += JsonConstants::Quote;
                 return;
             }
 
-            inline auto WriteStringIndentedPropertyName(std::string_view propertyName) const -> void
+            inline auto WriteStringIndentedPropertyName(const std::string &propertyName) const -> void
             {
                 auto indent = thiz._currentDepth & JsonConstants::RemoveFlagsBitMask * thiz._indentLength;
                 if (thiz._currentDepth < 0)
@@ -376,14 +485,14 @@ namespace Sen::Kernel::Definition
                 }
                 JsonWriterHelper::WriteIndentation(thiz._baseString, indent);
                 thiz._baseString += JsonConstants::Quote;
-                thiz._baseString += propertyName;
+                JsonWriterHelper::WriteEscapeString(thiz._baseString, propertyName);
                 thiz._baseString += JsonConstants::Quote;
                 thiz._baseString += JsonConstants::KeyValueSeparator;
                 thiz._baseString += JsonConstants::Space;
                 return;
             }
 
-            inline auto WriteEndIndented(std::string_view token) const -> void
+            inline auto WriteEndIndented(const std::string &token) const -> void
             {
                 if (thiz._tokenType == StartArray || thiz._tokenType == StartObject)
                 {
@@ -426,7 +535,6 @@ namespace Sen::Kernel::Definition
             }
 
         public:
-
             // Prettify Json.
             bool mutable WriteIndent;
             /*
@@ -480,13 +588,8 @@ namespace Sen::Kernel::Definition
                 Writes the property name (as a JSON string) as the first part of a name/value pair of a JSON object.
                 @param[in] properyName The name of the property to write.
             */
-            inline auto WritePropertyName(std::string propertyName) const -> void
+            inline auto WritePropertyName(const std::string &propertyName) const -> void
             {
-                // Throw an error if property name is null.
-                if (propertyName.empty())
-                {
-                }
-                JsonWriterHelper::EscapeString(propertyName);
                 thiz.WriteStringPropertyName(propertyName);
                 thiz._tokenType = PropertyName;
                 return;
@@ -495,15 +598,10 @@ namespace Sen::Kernel::Definition
                 Writes the property name (as a JSON string) as the first part of a name/value pair of a JSON object.
                 @param[in] properyName The name of the property to write.
             */
-            template <typename T> 
+            template <HasEmptyMethod T> 
             inline auto WritePropertyName(T propertyName) const -> void
             {
-                auto name = std::string{"null"};
-                if (!propertyName.empty())
-                {
-                    name = std::to_string(propertyName);
-                }
-                JsonWriterHelper::EscapeString(name);
+                auto name = std::to_string(propertyName);
                 thiz.WriteStringPropertyName(name);
                 thiz._tokenType = PropertyName;
                 return;
@@ -512,9 +610,8 @@ namespace Sen::Kernel::Definition
                 Writes the pre-encoded text value (as a JSON string) as an element of a JSON.
                 @param[in] value The JSON-encoded value to write.
             */
-            inline auto WriteValue(std::string value) const -> void
+            inline auto WriteValue(const std::string &value) const -> void
             {
-                JsonWriterHelper::EscapeString(value);
                 thiz.WriteStringValue(value);
                 thiz._tokenType = String;
                 return;

@@ -18,14 +18,15 @@ namespace Sen::Kernel::Support::PopCap::Reanim::Convert
 		template <auto point, typename T>
 			requires std::is_integral<T>::value or std::is_floating_point<T>::value
 		inline static auto to_fixed(
-			T number) -> std::string
+			T number
+		) -> std::string
 		{
 			static_assert(sizeof(point) == sizeof(int));
 			auto stream = std::ostringstream{};
 			stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
 			return stream.str();
 		}
-		int use_label_name = 0;
+		long use_label_name = 0;
 
 		inline auto get_name_by_id(
 			const std::string& id,
@@ -215,7 +216,8 @@ namespace Sen::Kernel::Support::PopCap::Reanim::Convert
 
 		inline static auto process_fs(
 			std::string_view source,
-			std::string_view destination) -> void
+			std::string_view destination
+		) -> void
 		{
 			auto to_flash = ToFlash{};
 			auto reanim = *FileSystem::read_json(source);

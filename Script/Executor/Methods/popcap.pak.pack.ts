@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Convert {
+namespace Sen.Script.Executor.Methods.PopCap.PAK.Pack {
     /**
      * Argument for the current method
      */
@@ -6,7 +6,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Convert {
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
         destination?: string;
-        layout?: string;
     }
 
     /**
@@ -40,31 +39,31 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Convert {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.Argument,
-            Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.Configuration
+            Sen.Script.Executor.Methods.PopCap.PAK.Pack.Argument,
+            Sen.Script.Executor.Methods.PopCap.PAK.Pack.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.PAK.Pack.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.PAK.Pack.Configuration
         >({
-            id: "popcap.res_info.convert",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.res_info.convert.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.Argument): void {
+            id: "popcap.pak.pack",
+            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.pak.pack.json"),
+            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PAK.Pack.Argument): void {
                 Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.dirname(argument.source)}/resources.json`);
+                defined_or_default<Sen.Script.Executor.Methods.PopCap.PAK.Pack.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.pak`);
                 Sen.Script.Console.output(argument.destination!);
                 Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.ResInfo.convert_fs(argument.source, argument.destination!);
+                Sen.Kernel.Support.PopCap.PAK.pack_fs(argument.source, argument.destination!);
                 Sen.Script.Executor.clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.BatchArgument): void {
-                return basic_batch(this, argument, false);
+            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.PAK.Pack.BatchArgument): void {
+                return basic_batch(this, argument, true);
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.json$/i],
+            filter: ["directory", /(.*)\.data_package$/i],
         });
         return;
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.forward();
+Sen.Script.Executor.Methods.PopCap.PAK.Pack.forward();

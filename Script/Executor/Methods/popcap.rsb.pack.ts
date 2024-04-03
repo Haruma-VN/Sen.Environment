@@ -56,7 +56,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Pack {
                 return;
             },
             batch_forward: undefined!,
-            async_forward: undefined,
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.*)\.bundle$/i],

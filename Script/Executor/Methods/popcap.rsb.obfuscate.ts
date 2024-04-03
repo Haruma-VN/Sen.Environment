@@ -58,7 +58,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate {
             batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
-            async_forward: undefined!,
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.(rsb|obb)$/i],

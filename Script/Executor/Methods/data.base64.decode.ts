@@ -61,11 +61,6 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Decode {
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.Data.Base64.Decode.AsyncArgument<string, string>): void {
-                Sen.Kernel.Encryption.Base64.decode_fs_as_multiple_threads<string, string>(argument.parameter);
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
-                return;
-            },
             is_enabled: false,
             configuration: undefined!,
             filter: ["file", /.*/],

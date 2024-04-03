@@ -765,7 +765,8 @@ namespace Sen::Kernel::Support::PopCap::Reanim
         inline static auto process_fs(
             std::string_view source,
             std::string_view destination,
-            ReanimPlatform platform) -> void
+            ReanimPlatform platform
+        ) -> void
         {
             auto decode = Decode{source};
             auto reanim_info = ReanimInfo{};

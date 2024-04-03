@@ -196,8 +196,7 @@ namespace Sen::Kernel::Definition
                 const std::size_t &pos
             ) const -> void
             {
-                // TODO : Add localization
-                assert_conditional(pos <= thiz.size(), "read position cannot be smaller than size", "position");
+                assert_conditional(pos <= thiz.size(), String::format(fmt::format("{}", Language::get("read_position_cannot_be_smaller_than_size")), std::to_string(pos), std::to_string(thiz.size())), "position");
                 thiz.read_pos = pos;
                 return;
             }

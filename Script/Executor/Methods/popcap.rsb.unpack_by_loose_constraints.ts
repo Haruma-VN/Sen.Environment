@@ -58,7 +58,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints {
             batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
-            async_forward: undefined!,
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.(rsb|obb)$/i],

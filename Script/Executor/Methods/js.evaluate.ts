@@ -71,11 +71,6 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
                 Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
                 return;
             },
-            async_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.AsyncArgument<string, string>): void {
-                // to do
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), argument.parameter.length));
-                return;
-            },
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.js$/i],
