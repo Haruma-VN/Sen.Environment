@@ -151,7 +151,7 @@ namespace Sen::Kernel::Definition
             ) -> std::uint8_t
             {
                 assert_conditional(byte < utf8_d.size(), fmt::format("{}", Language::get("json_writer.byte_cannot_smaller_than_utf8_size")), "Decode");
-                const std::uint8_t type = utf8_d[byte];
+                auto type = static_cast<std::uint8_t>(utf8_d[byte]);
                 codepoint = (state != 0_byte)
                                 ? (byte & 0x3fu) | (codepoint << 6u)
                                 : (0xFFu >> type) & (byte);
@@ -328,7 +328,7 @@ namespace Sen::Kernel::Definition
             // The highest order bit of _currentDepth is used to discern whether we are writing the first item in a list or not.
             // if (_currentDepth >> 31) == 1, add a list separator before writing the item
             // else, no list separator is needed since we are writing the first item.
-            std::size_t mutable _currentDepth = 0;
+            int mutable _currentDepth = 0;
 
             std::size_t mutable _indentLength = 1;
 

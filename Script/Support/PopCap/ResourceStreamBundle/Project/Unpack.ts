@@ -78,7 +78,10 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Unpack {
         let packages: string = undefined!;
         let manifest_group: string = undefined!;
         const setting: Setting = make_setting({
-            rton: { encryption_key: "65bd1b2305f46eb2806b935aab7630bb", iv: "1b2305f46eb2806b935aab76" },
+            rton: {
+                encryption_key: "65bd1b2305f46eb2806b935aab7630bb",
+                iv: "1b2305f46eb2806b935aab76",
+            },
             ptx: {
                 generic: category.generic,
             },

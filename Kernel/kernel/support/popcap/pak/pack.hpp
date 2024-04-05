@@ -84,7 +84,10 @@ namespace Sen::Kernel::Support::PopCap::PAK
             return;
         }
 
-        inline auto fill_0x1000() {
+        inline auto fill_0x1000(
+
+        ) -> void 
+        {
             const auto &pos = static_cast<int>(stream->read_pos & (0x1000 - 1));
             if (pos == 0) {
                 stream->writeUint16(0x1000 - 2);
@@ -104,7 +107,10 @@ namespace Sen::Kernel::Support::PopCap::PAK
             return;
         }
 
-        inline auto fill() {
+        inline auto fill(
+
+        ) -> void 
+        {
             const auto &pos = static_cast<int>(stream->read_pos & 0b111);
             if (pos == 0) {
                 stream->writeUint16(0x6);
@@ -125,7 +131,9 @@ namespace Sen::Kernel::Support::PopCap::PAK
         }
 
     public:
-        explicit Pack() = default;
+        explicit Pack(
+
+        ) = default;
 
         ~Pack(
 
@@ -134,7 +142,8 @@ namespace Sen::Kernel::Support::PopCap::PAK
         inline auto process(
             std::string_view source,
             std::string_view destination,
-            const PakInfo &pak_info) -> void
+            const PakInfo &pak_info
+        ) -> void
         {
             const auto &folder = fmt::format("{}/bundle", source);
             const auto &pak_platform = pak_info.pak_platform;
