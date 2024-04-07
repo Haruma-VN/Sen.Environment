@@ -39,7 +39,7 @@ namespace Sen.Script.Helper.PvZ2.Chinese.ToInternational {
         const packet_info: Kernel.Support.PopCap.RSG.Definition = Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.RSG.Definition>(`${unpacked_source}/packet.json`);
         packet_info.compression_flags = compression_flag;
         packet_info.res.forEach(function process_texture(e): void {
-            const raw_file: string = `${unpacked_source}/${e.path}`;
+            const raw_file: string = `${unpacked_source}/res/${e.path}`;
             const image_file: string = raw_file.replace(/(((\.ptx)))$/i, ".png");
             Kernel.Support.Texture.decode_fs(raw_file, image_file, e.ptx_info!.width, e.ptx_info!.height, Support.Texture.Format.RGBA_PVRTC_4BPP);
             Kernel.Support.Texture.encode_fs(image_file, raw_file, Support.Texture.Format.RGB_ETC1_A_8);
@@ -74,8 +74,8 @@ namespace Sen.Script.Helper.PvZ2.Chinese.ToInternational {
                 } else {
                     process_texture_rsg(`${chinese_packet}/${subgroup}.rsg`, `${international_packet}/${subgroup}.rsg`, current_node.compression_flags);
                     current_node.res.forEach(function rewrite_information(e): void {
-                        delete e.ptx_info?.alpha_format;
-                        delete e.ptx_info?.alpha_size;
+                        delete e.ptx_info!.alpha_format;
+                        delete e.ptx_info!.alpha_size;
                         e.ptx_info!.format = 147n;
                     });
                 }

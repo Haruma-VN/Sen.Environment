@@ -939,10 +939,15 @@ namespace Sen::Kernel {
 			) -> std::string const
 			{
 				auto result = std::string{};
-				for(auto & c : data)
+				for(auto i : Range<std::size_t>(data.size()))
 				{
-					result += c;
-					result += delimiter;
+					result += data[i];
+					if (i == (data.size() - 1)) {
+						break;
+					}
+					else {
+						result += delimiter;
+					}
 				}
 				return result;
 			}
