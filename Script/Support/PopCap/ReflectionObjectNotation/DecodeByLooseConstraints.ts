@@ -1,4 +1,4 @@
-namespace Sen.Script.Support.PopCap.RTON.DecodeByLooseConstraints {
+namespace Sen.Script.Support.PopCap.ReflectionObjectNotation.DecodeByLooseConstraints {
     export type DataStreamView = Kernel.DataStreamView;
 
     let writer: Kernel.JsonWriter = undefined!;
