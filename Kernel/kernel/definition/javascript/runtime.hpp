@@ -116,12 +116,14 @@ namespace Sen::Kernel::Definition::JavaScript
 			{
 				auto result = std::string{};
 				auto exception = JS_GetException(thiz.ctx.get());
-				auto exception_stack = JS_ToCString(thiz.ctx.get(), exception);
-				result += std::string{exception_stack};
+				auto size = std::size_t{};
+				auto exception_stack = JS_ToCStringLen(thiz.ctx.get(), &size, exception);
+				result += std::string{exception_stack, size};
 				if(JS_IsError(thiz.ctx.get(), exception)){
 					auto js_stack = JS_GetPropertyStr(thiz.ctx.get(), exception, "stack");
 					if(JS::not_undefined(js_stack)){
-						auto js_exception = JS_ToCString(thiz.ctx.get(), js_stack);
+						auto res_size = std::size_t{};
+						auto js_exception = JS_ToCStringLen(thiz.ctx.get(), &res_size, js_stack);
 						result += std::string{js_exception};
 						thiz.free_string(js_exception);
 					}

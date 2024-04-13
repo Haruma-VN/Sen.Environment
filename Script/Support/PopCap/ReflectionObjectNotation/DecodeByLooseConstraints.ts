@@ -150,7 +150,7 @@ namespace Sen.Script.Support.PopCap.ReflectionObjectNotation.DecodeByLooseConstr
             catch_error(byte_array, stream, "read_array");
         }
         const array_length = stream.readVarInt32();
-        for (let i = 0; i < array_length; i++) {
+        for (let i = 0; i < array_length; ++i) {
             read_bytecode(stream, stream.readUint8());
         }
         const byte_array_end = stream.readUint8();
