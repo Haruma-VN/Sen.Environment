@@ -306,7 +306,7 @@ namespace Sen.Script.Executor {
      * ----------------------------------------------------------
      */
 
-    export function configurate_or_input<Argument extends Sen.Script.Executor.Base, T>(argument: Argument, key: string, rule: Array<bigint> | Array<[bigint, string, string]>): void {
+    export function configurate_or_input<Argument extends Sen.Script.Executor.Base, T>(argument: Argument, key: keyof Argument, rule: Array<bigint> | Array<[bigint, string, string]>): void {
         if ((argument as any & Argument)[key] === undefined) {
             if (typeof rule[0] === "object") {
                 const new_rule: Array<bigint> = [];

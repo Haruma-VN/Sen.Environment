@@ -14,7 +14,7 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 	 * decode 
 	*/
 
-	struct Decode {
+	class Decode {
 
 		public:
 

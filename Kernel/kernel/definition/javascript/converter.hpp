@@ -12,7 +12,6 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			/**
 			 * JS String to C++ String
 			*/
-
 			inline static auto get_string(
 				JSContext* context,
 				const JSValue & that
@@ -20,7 +19,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 			{
 				auto size = std::size_t{};
 				auto c_str = JS_ToCStringLen(context, &size, that);
-				auto str = std::string{c_str, size};
+				auto str = std::string { c_str, size };
 				JS_FreeCString(context, c_str);
 				return str;
 			}

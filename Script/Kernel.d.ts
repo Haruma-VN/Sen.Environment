@@ -530,39 +530,6 @@ declare namespace Sen {
         }
 
         /**
-         * Console methods from Kernel export to Script through Callback interactive with Shell
-         * Shell methods must implementing this, Script only need to call
-         */
-
-        declare namespace Console {
-            /**
-             * --------------------------------------------------
-             * This method print the message to the debug console
-             * @param title - The title of what you want to print
-             * @param color - Color message
-             * --------------------------------------------------
-             */
-
-            export function print(title: string, message: string, color: Script.Definition.Console.Color): void;
-            /**
-             * --------------------------------------------------
-             * This method print the message to the debug console
-             * @param title - The title of what you want to print
-             * --------------------------------------------------
-             */
-
-            export function print(title: string): void;
-
-            /***
-             * --------------------------------------------------
-             * @returns: Input result
-             * --------------------------------------------------
-             */
-
-            export function readline(): string;
-        }
-
-        /**
          * Custom JSON Serialization and Deserialization
          *
          * This namespace provides functions for custom JSON serialization and deserialization.
@@ -1980,7 +1947,7 @@ declare namespace Sen {
                     /**
                      * Denotes the target platform for file system operations.
                      */
-                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "raw-xml" | "tv" | "wp";
+                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "raw-xml" | "tv";
 
                     // Interface to define the structure of a single Reanim transform
                     export interface ReanimTransform extends Record<string, unknown> {

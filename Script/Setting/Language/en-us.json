@@ -453,5 +453,11 @@
     "popcap.reanim.convert_to_flash": "PopCap Reanim: Reanim to Flash",
     "popcap.reanim.convert_from_flash": "PopCap Reanim: Flash to Reanim",
     "popcap.rsb.unpack_for_modding.packages_not_found": "Packages not found, ignored unpack Packages command",
-    "popcap.rsb.unpack_for_modding.manifest_group_not_found": "MANIFESTGROUP not found, ignored convert command"
+    "popcap.rsb.unpack_for_modding.manifest_group_not_found": "MANIFESTGROUP not found, ignored convert command",
+    "popcap.reanim.platform.pc": "PC",
+    "popcap.reanim.platform.game-console": "Game Console",
+    "popcap.reanim.platform.phone-32": "Mobile phone with 32bit",
+    "popcap.reanim.platform.phone-64": "Mobile phone with 64bit",
+    "popcap.reanim.platform.raw-xml": "Raw XML",
+    "popcap.reanim.platform.tv": "TV"
 }

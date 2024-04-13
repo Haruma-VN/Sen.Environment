@@ -451,5 +451,11 @@
     "popcap.reanim.to_flash": "PopCap Reanim: JSON sang Flash",
     "popcap.reanim.from_flash": "PopCap Reanim: Flash sang JSON",
     "popcap.reanim.convert_to_flash": "PopCap Reanim: Reanim sang Flash",
-    "popcap.reanim.convert_from_flash": "PopCap Reanim: Flash sang Reanim"
+    "popcap.reanim.convert_from_flash": "PopCap Reanim: Flash sang Reanim",
+    "popcap.reanim.platform.pc": "Máy tính",
+    "popcap.reanim.platform.game-console": "Bảng điều khiển trò chơi",
+    "popcap.reanim.platform.phone-32": "Điện thoại 32bit",
+    "popcap.reanim.platform.phone-64": "Điện thoại 64bit",
+    "popcap.reanim.platform.raw-xml": "XML Thô",
+    "popcap.reanim.platform.tv": "TV"
 }

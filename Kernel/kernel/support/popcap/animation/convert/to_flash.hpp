@@ -286,7 +286,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto write_document(
 			const FrameList &frame_list,
-			XMLDocument *document) -> void
+			XMLDocument *document
+		) -> void
 		{
 			auto DOMDocument = document->NewElement("DOMDocument");
 			DOMDocument->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
@@ -297,7 +298,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			DOMDocument->SetAttribute("xflVersion", "2.971");
 			auto folders = document->NewElement("folders");
 			auto folders_list = std::vector<std::string>{"media", "action", "image", "sprite"};
-			for (const auto &folder : folders_list)
+			for (auto &folder : folders_list)
 			{
 				auto DOMFolderItem = document->NewElement("DOMFolderItem");
 				DOMFolderItem->SetAttribute("name", folder.data());
@@ -307,7 +308,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			DOMDocument->InsertEndChild(folders);
 			auto media = document->NewElement("media");
 			auto symbols = document->NewElement("symbols");
-			for (const auto &image : animation.image)
+			for (auto &image : animation.image)
 			{
 				auto DOMBitmapItem = document->NewElement("DOMBitmapItem");
 				DOMBitmapItem->SetAttribute("name", fmt::format("media/{}", image.name).data());

@@ -74,9 +74,10 @@ namespace Sen.Script {
         /**
          * --------------------------------------------------
          * JavaScript send finished message
-         * @param str - string to send
          * @returns The console output
          * --------------------------------------------------
+         * @param subtitle
+         * @param message
          */
 
         export function finished(subtitle: string, message?: string): void {
@@ -214,7 +215,7 @@ namespace Sen.Script {
          */
 
         export function query(path: string): string {
-            return Sen.Kernel.Path.resolve(path.replace(/^~(?=([/]|$))/gm, participant));
+            return Sen.Kernel.Path.resolve(path.replace(/^~(?=(\/|$))/gm, participant));
         }
     }
 
@@ -414,6 +415,10 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rsb.obfuscate.js",
             "~/Executor/Methods/popcap.rsb_patch.decode.js",
             "~/Executor/Methods/popcap.rsb_patch.encode.js",
+            "~/Executor/Methods/popcap.reanim.decode.js",
+            "~/Executor/Methods/popcap.reanim.encode.js",
+            "~/Executor/Methods/popcap.reanim.to_flash.js",
+            "~/Executor/Methods/popcap.reanim.from_flash.js",
             "~/Executor/Methods/popcap.rsb.unpack_by_loose_constraints.js",
             "~/Executor/Methods/popcap.rsb.unpack_for_modding.js",
             "~/Executor/Methods/popcap.rsb.pack_for_modding.js",
