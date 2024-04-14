@@ -655,7 +655,8 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 							auto prop_val = JS_GetProperty(ctx, val, atom);
 							if (JS_IsString(prop_val)) {
 								auto prop_key = JS_AtomToCString(ctx, atom);
-								auto prop_str_val = JS_ToCString(ctx, prop_val);
+								auto str_len = std::strlen(prop_key);
+								auto prop_str_val = JS_ToCStringLen(ctx, &str_len, prop_val);
 								if (prop_key && prop_str_val) {
 									result[prop_key] = prop_str_val;
 								}

@@ -164,7 +164,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         ] as Transform;
     }
 
-    function mix_color(source: Color, change: Color): Color {
+    export function mix_color(source: Color, change: Color): Color {
         return [change[0] * source[0], change[1] * source[1], change[2] * source[2], change[3] * source[3]] as Color;
     }
 

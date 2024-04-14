@@ -507,6 +507,12 @@ namespace Sen::Kernel::Interface::Script {
 				fail:
 					js_free(ctx, s);
 					JS_FreeValue(ctx, obj);
+					if constexpr (T) {
+						JS_ThrowInternalError(ctx, "Failed to initialize DataStreamViewBigEndian");
+					}
+					else {
+						JS_ThrowInternalError(ctx, "Failed to initialize DataStreamView");
+					}
 					return JS_EXCEPTION; 
 				}, "proxy_constructor");
 			}
@@ -2616,6 +2622,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(JS_VALUE_GET_BOOL(argv[0]) == 0 ? false : true);
 					}
 					else {
+						JS_ThrowInternalError(ctx, "Constructor for Boolean class does not match, expected 1 argument");
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -2624,8 +2631,9 @@ namespace Sen::Kernel::Interface::Script {
 					}
 					obj = JS_NewObjectProtoClass(ctx, proto, class_id);
 					JS_FreeValue(ctx, proto);
-					if (JS_IsException(obj))
+					if (JS_IsException(obj)) {
 						goto fail;
+					}
 					JS_SetOpaque(obj, s);
 					return obj;
 				fail:
@@ -2760,6 +2768,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(source, "rb");
 					}
 					else {
+						JS_ThrowInternalError(ctx, "FileInputStream cannot be initialized because argument does not satisfy constructor");
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -2953,6 +2962,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(source, "wb");
 					}
 					else {
+						JS_ThrowInternalError(ctx, "FileOutputStream cannot be initialized because the constructor does not satisfy the argument count");
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -3147,6 +3157,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(source, "w+b");
 					}
 					else {
+						JS_ThrowInternalError(ctx, "FileStream cannot be initialized because expected argument count = 1 but got: %d", argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -3377,6 +3388,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data();
 					}
 					else {
+						JS_ThrowInternalError(ctx, "JsonWriter cannot be initialized because the number of argument is not valid. Expected: %d, got: %d", 0, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -4163,6 +4175,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data{ static_cast<std::size_t>(JS::Converter::get_bigint64(ctx, argv[0])) };
 					}
 					else {
+						JS_ThrowInternalError(ctx, "Size class cannot be initialized because number of argument does not match. Expected: %d, got: %d", 1, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -4912,6 +4925,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(data, data + byteLength);
 					}
 					else {
+						JS_ThrowInternalError(ctx, "BinaryView cannot be initialized because the number of argument does not match. Expected: %d, got: %d", 1, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -5083,6 +5097,7 @@ namespace Sen::Kernel::Interface::Script {
 						s = new Data(static_cast<int>(JS::Converter::get_bigint64(ctx, argv[0])), static_cast<int>(JS::Converter::get_bigint64(ctx, argv[1])));
 					}
 					else {
+						JS_ThrowInternalError(ctx, "Canvas class cannot be initialized because the number of argument does not match. Expected: %d, got: %d", 2, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -6028,8 +6043,15 @@ namespace Sen::Kernel::Interface::Script {
 						auto height_val = JS_GetPropertyStr(ctx, argv[0], "height");
 						auto width = int64_t{};
 						auto height = int64_t{};
-						JS_ToBigInt64(ctx, &width, width_val);
-						JS_ToBigInt64(ctx, &height, height_val);
+						auto v1 = JS_ToBigInt64(ctx, &width, width_val);
+						auto v2 = JS_ToBigInt64(ctx, &height, height_val);
+						if (JS_IsException(v1)) {
+							return JS_EXCEPTION;
+						}
+						if (JS_IsException(v2)) {
+							JS_FreeValue(ctx, width_val);
+							return JS_EXCEPTION;
+						}
 						s = new Data(
 							static_cast<int>(width),
 							static_cast<int>(height)
@@ -6038,6 +6060,7 @@ namespace Sen::Kernel::Interface::Script {
 						JS_FreeValue(ctx, height_val);
 					}
 					else {
+						JS_ThrowInternalError(ctx, "DimensionView cannot be initialized because the number of argument does not match. Expected: %d, got: %d", 1, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -6202,10 +6225,28 @@ namespace Sen::Kernel::Interface::Script {
 						auto height = int64_t{};
 						auto x = int64_t{};
 						auto y = int64_t{};
-						JS_ToBigInt64(ctx, &width, width_val);
-						JS_ToBigInt64(ctx, &height, height_val);
-						JS_ToBigInt64(ctx, &x, x_val);
-						JS_ToBigInt64(ctx, &y, y_val);
+						auto v1 = JS_ToBigInt64(ctx, &width, width_val);
+						if (JS_IsException(v1)) {
+							return JS_EXCEPTION;
+						}
+						auto v2 = JS_ToBigInt64(ctx, &height, height_val);
+						if (JS_IsException(v2)) {
+							JS_FreeValue(ctx, width_val);
+							return JS_EXCEPTION;
+						}
+						auto v3 = JS_ToBigInt64(ctx, &x, x_val);
+						if (JS_IsException(v3)) {
+							JS_FreeValue(ctx, width_val);
+							JS_FreeValue(ctx, height_val);
+							return JS_EXCEPTION;
+						}
+						auto v4 = JS_ToBigInt64(ctx, &y, y_val);
+						if (JS_IsException(v4)) {
+							JS_FreeValue(ctx, width_val);
+							JS_FreeValue(ctx, height_val);
+							JS_FreeValue(ctx, x_val);
+							return JS_EXCEPTION;
+						}
 						s = new Data(
 							x,
 							y,
@@ -6218,6 +6259,7 @@ namespace Sen::Kernel::Interface::Script {
 						JS_FreeValue(ctx, y_val);
 					}
 					else {
+						JS_ThrowInternalError(ctx, "Rectangle cannot be initialized because the number of argument does not match. Expected: %d, got: %d", 1, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
@@ -6438,6 +6480,7 @@ namespace Sen::Kernel::Interface::Script {
 						JS_FreeValue(ctx, data_val);
 					}
 					else {
+						JS_ThrowInternalError(ctx, "ImageView cannot be initialized because the number of argument does not valid. Expected: %d, got: %d", 1, argc);
 						return JS_EXCEPTION;
 					}
 					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
