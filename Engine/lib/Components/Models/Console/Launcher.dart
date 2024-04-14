@@ -19,8 +19,6 @@ class Launcher extends StatefulWidget {
 }
 
 class _LauncherState extends State<Launcher> {
-  int index = 0;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -33,14 +31,24 @@ class _LauncherState extends State<Launcher> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    widget.kernel.run(
-                        "D:/Code/Sen.Environment/Script/build/main.js",
-                        "d", []);
-                    ++index;
-                  });
-                },
+                onPressed: !(Provider.of<MessageModel>(context, listen: true)
+                        .isRunning
+                        .value)
+                    ? () {
+                        setState(() {
+                          widget.kernel.run(
+                              "D:/Code/Sen.Environment/Script/build/main.js",
+                              "d",
+                              ["D:/打包开始/main.850.com.ea.game.pvz2_row.obb"]);
+                        });
+                      }
+                    : () {
+                        setState(() {
+                          Provider.of<MessageModel>(context, listen: false)
+                              .isRunning
+                              .value = false;
+                        });
+                      },
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
                   child: Provider.of<MessageModel>(context).isRunning.value

@@ -79,8 +79,7 @@ class _ApplicationState extends State<Application> {
                           ),
                           child: Launcher(
                             kernel: Kernel.open(
-                              kernelPath:
-                                  "D:/Code/Sen.Environment/Kernel/build/kernel/Release/kernel.dll",
+                              "D:/Code/Sen.Environment/Kernel/build/kernel/Release/kernel.dll",
                             ),
                           )),
                     )

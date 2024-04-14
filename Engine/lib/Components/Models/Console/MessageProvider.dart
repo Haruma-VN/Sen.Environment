@@ -17,20 +17,26 @@ class MessageModel extends ChangeNotifier implements Shell {
   @override
   void sendMessage(String message) {
     _messages.add(MessageWrapper(title: message, icon: Icons.circle_outlined));
-    notifyListeners();
+    notify();
     return;
   }
 
   @override
   void clearMessage() {
     _messages.clear();
-    notifyListeners();
+    notify();
     return;
   }
 
   @override
   void changeLoadingStatus() {
     _isRunning.value = !_isRunning.value;
+    notify();
+    return;
+  }
+
+  @override
+  void notify() {
     notifyListeners();
     return;
   }

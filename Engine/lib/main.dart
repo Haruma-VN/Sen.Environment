@@ -3,7 +3,9 @@ import 'package:engine/Components/Models/Console/MessageProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main(
+  List<String> arguments,
+) {
   runApp(
     ChangeNotifierProvider(
       create: (context) => MessageModel(),

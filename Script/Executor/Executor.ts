@@ -286,12 +286,16 @@ namespace Sen.Script.Executor {
 
     export function input_integer(rule: Array<bigint>): bigint {
         let input: string = undefined!;
-        while (true) {
+        if (Shell.is_gui) {
             input = Sen.Kernel.Console.readline();
-            if (/^\d+$/.test(input) && (rule as Array<bigint>).includes(BigInt(input))) {
-                break;
+        } else {
+            while (true) {
+                input = Sen.Kernel.Console.readline();
+                if (/^\d+$/.test(input) && (rule as Array<bigint>).includes(BigInt(input))) {
+                    break;
+                }
+                Console.error(Sen.Kernel.Language.get("js.invalid_input_value"));
             }
-            Console.error(Sen.Kernel.Language.get("js.invalid_input_value"));
         }
         return BigInt(input);
     }

@@ -1,5 +1,4 @@
-// ignore_for_file: file_names
-
+// ignore: file_names
 abstract class Shell {
   // API interact
   void sendMessage(String message);
@@ -7,4 +6,6 @@ abstract class Shell {
   void clearMessage();
 
   void changeLoadingStatus();
+
+  void notify();
 }

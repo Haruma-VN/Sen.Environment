@@ -7,7 +7,7 @@ import 'package:engine/api/Shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ConsoleView extends StatefulWidget implements Shell {
+class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
   ConsoleView({
     super.key,
     required this.context,
@@ -26,24 +26,32 @@ class ConsoleView extends StatefulWidget implements Shell {
   @override
   void clearMessage() {
     Provider.of<MessageModel>(context, listen: false).clearMessage();
+    notifyListeners();
     return;
   }
 
   @override
-  void sendMessage(String message) {
+  void sendMessage(String message) async {
     Provider.of<MessageModel>(context, listen: false).sendMessage(message);
-    scrollController.animateTo(
+    await scrollController.animateTo(
       scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: Duration(milliseconds: 100),
+      curve: Curves.easeOut,
     );
+    notifyListeners();
     return;
   }
 
   @override
   void changeLoadingStatus() {
     Provider.of<MessageModel>(context, listen: false).changeLoadingStatus();
+    notifyListeners();
     return;
+  }
+
+  @override
+  void notify() {
+    notifyListeners();
   }
 }
 

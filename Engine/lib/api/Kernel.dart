@@ -1,22 +1,28 @@
-// ignore_for_file: unused_import, unnecessary_this, prefer_is_empty, avoid_print, no_leading_underscores_for_local_identifiers, constant_identifier_names, non_constant_identifier_names, file_names
+// ignore_for_file: unused_import, unnecessary_this, prefer_is_empty, avoid_print, no_leading_underscores_for_local_identifiers, constant_identifier_names, non_constant_identifier_names, file_names, avoid_init_to_null, depend_on_referenced_packages
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
 import 'package:engine/Base/Exception.dart';
 import 'package:engine/api/Converter.dart';
 import 'package:engine/api/Interface.dart';
 import 'package:engine/api/Shell.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
+import 'package:async/async.dart';
 
 class Kernel {
   static const version = 1;
 
-  late DynamicLibrary dylib;
+  static DynamicLibrary? dylib;
 
   static late Shell gui;
 
-  static void callback(
+  static SendPort? _sendPort = null;
+
+  static void _callback(
     Pointer<CStringList> list,
     Pointer<CStringView> destination,
     Pointer<Never> proxy,
@@ -30,23 +36,17 @@ class Kernel {
           switch (result.length) {
             case 2:
               {
-                gui.sendMessage(result[1]);
+                _sendPort!.send([result[1]]);
                 break;
               }
             case 3:
               {
-                gui.sendMessage(result[1]);
-                if (result[2] != '') {
-                  gui.sendMessage(result[2]);
-                }
+                _sendPort!.send([result[1], result[2]]);
                 break;
               }
             case 4:
               {
-                gui.sendMessage(result[1]);
-                if (result[2] != '') {
-                  gui.sendMessage(result[2]);
-                }
+                _sendPort!.send([result[1], result[2]]);
                 break;
               }
           }
@@ -54,8 +54,11 @@ class Kernel {
         }
       case 'input':
         {
-          gui.sendMessage('input');
-          print('input');
+          var e = "1";
+          destination.ref
+            ..size = e.length
+            ..value = e.toNativeUtf8();
+          _sendPort!.send([null]);
           break;
         }
       case 'version':
@@ -64,7 +67,8 @@ class Kernel {
           destination.ref
             ..size = _version.length
             ..value = _version.toNativeUtf8();
-          return;
+          _sendPort!.send([null]);
+          break;
         }
       case 'is_gui':
         {
@@ -72,68 +76,111 @@ class Kernel {
           destination.ref
             ..size = _is_gui.length
             ..value = _is_gui.toNativeUtf8();
-          return;
+          _sendPort!.send([null]);
+          break;
         }
+    }
+    sleep(const Duration(milliseconds: 10));
+    return;
+  }
+
+  static _sub(
+    List<dynamic> isolateData,
+  ) async {
+    var mainSendPort = isolateData[0] as SendPort;
+    var kernelPath = isolateData[1];
+    _sendPort = mainSendPort;
+    dylib = DynamicLibrary.open(kernelPath);
+    var execute = dylib!
+        .lookupFunction<KernelExecuteCAPI, KernelExecuteDartAPI>('execute');
+    var subReceivePort = ReceivePort();
+    var subStreamQueue = StreamQueue<dynamic>(subReceivePort);
+    mainSendPort.send(subReceivePort.sendPort);
+    var subEvent = await subStreamQueue.next as List<dynamic>;
+    var scriptPath = subEvent[0] as String;
+    var currentShell = subEvent[1] as String;
+    var additionalArguments = subEvent[2] as List<String>;
+    var script = calloc<CStringView>(1);
+    var scriptNativeString = CStringConverter.toUint8List(scriptPath);
+    var scriptPointer = CStringConverter.utf8ArrayToCString(scriptNativeString);
+    script.ref
+      ..value = scriptPointer
+      ..size = scriptNativeString.length;
+    var argumentList = [
+      currentShell,
+      kernelPath,
+      scriptPath,
+      ...additionalArguments,
+    ];
+    var argument = calloc<CStringView>(argumentList.length);
+    for (var i = 0; i < argumentList.length; ++i) {
+      var currentArgument = CStringConverter.toUint8List(argumentList[i]);
+      var currentArgumentPointer =
+          CStringConverter.utf8ArrayToCString(currentArgument);
+      argument.elementAt(i).ref
+        ..size = currentArgument.length
+        ..value = currentArgumentPointer;
+    }
+    var arguments = calloc<CStringList>(1);
+    arguments.ref
+      ..size = argumentList.length
+      ..value = argument;
+    execute(
+      script,
+      arguments,
+      Pointer.fromFunction(_callback),
+    );
+    for (var i = 0; i < argumentList.length; ++i) {
+      calloc.free(argument.elementAt(i).ref.value.cast<Int8>());
+    }
+    calloc.free(arguments.ref.value);
+    calloc.free(arguments);
+    calloc.free(script.ref.value);
+    calloc.free(script);
+    mainSendPort.send(null);
+    _sendPort = null;
+    return;
+  }
+
+  static String? _kernelPath;
+
+  Kernel.open(String kernelPath) {
+    _kernelPath = kernelPath;
+    dylib = DynamicLibrary.open(_kernelPath!);
+  }
+
+  static void sendMessage(List<dynamic> send) async {
+    for (var e in send) {
+      if (e != null && (e as String).isNotEmpty) {
+        gui.sendMessage(e);
+      }
     }
     return;
   }
 
-  static void test() {}
-
-  final String kernelPath;
-
-  Kernel.open({required this.kernelPath}) {
-    this.dylib = DynamicLibrary.open(kernelPath);
-  }
-
-  Future<BasicException?> run(
+  Future<void> run(
     String scriptPath,
     String currentShell,
     List<String> additionalArguments,
   ) async {
     gui.changeLoadingStatus();
     gui.clearMessage();
-    final KernelExecuteDartAPI execute = this
-        .dylib
-        .lookupFunction<KernelExecuteCAPI, KernelExecuteDartAPI>('execute');
-    final script = calloc<CStringView>(1);
-    script.ref
-      ..value = scriptPath.toNativeUtf8()
-      ..size = scriptPath.length;
-    final argumentList = [
-      currentShell,
-      kernelPath,
-      scriptPath,
-      ...additionalArguments,
-    ];
-    final argument = calloc<CStringView>(argumentList.length);
-    for (var i = 0; i < argumentList.length; ++i) {
-      final e = argumentList[i];
-      argument.elementAt(i).ref
-        ..size = e.length
-        ..value = e.toNativeUtf8();
+    final mainReceivePort = ReceivePort();
+    var mainStreamQueue = StreamQueue<dynamic>(mainReceivePort);
+    await Isolate.spawn(_sub, [mainReceivePort.sendPort, _kernelPath]);
+    var subSendPort = await mainStreamQueue.next as SendPort;
+    subSendPort.send([scriptPath, currentShell, additionalArguments]);
+    while (await mainStreamQueue.hasNext) {
+      var mainEvent = await mainStreamQueue.next as List<dynamic>?;
+      if (mainEvent == null) {
+        mainEvent = await mainStreamQueue.next as List<dynamic>;
+        sendMessage(mainEvent);
+        break;
+      } else {
+        sendMessage(mainEvent);
+      }
     }
-    final arguments = calloc<CStringList>(1);
-    arguments.ref
-      ..size = argumentList.length
-      ..value = argument;
-    BasicException? error;
-    try {
-      execute(
-        script,
-        arguments,
-        Pointer.fromFunction(Kernel.callback),
-      );
-    } catch (e, s) {
-      error = BasicException.from(e.toString(), s);
-    }
-    for (var i = 0; i < argumentList.length; ++i) {
-      calloc.free(argument.elementAt(i).ref.value.cast<Int8>());
-    }
-    calloc.free(arguments);
-    calloc.free(script.ref.value);
-    calloc.free(script);
-    gui.changeLoadingStatus();
-    return error;
+    await mainStreamQueue.cancel();
+    return;
   }
 }
