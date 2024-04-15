@@ -16,7 +16,7 @@ import 'package:async/async.dart';
 class Kernel {
   static const version = 1;
 
-  static DynamicLibrary? dylib;
+  static DynamicLibrary? dylib = null;
 
   static late Shell gui;
 
@@ -142,15 +142,15 @@ class Kernel {
     return;
   }
 
-  static String? _kernelPath;
+  static String? _kernelPath = null;
 
   Kernel.open(String kernelPath) {
     _kernelPath = kernelPath;
     dylib = DynamicLibrary.open(_kernelPath!);
   }
 
-  static void sendMessage(List<dynamic> send) async {
-    for (var e in send) {
+  void sendMessage(List<dynamic> packet) {
+    for (var e in packet) {
       if (e != null && (e as String).isNotEmpty) {
         gui.sendMessage(e);
       }
@@ -165,7 +165,7 @@ class Kernel {
   ) async {
     gui.changeLoadingStatus();
     gui.clearMessage();
-    final mainReceivePort = ReceivePort();
+    var mainReceivePort = ReceivePort();
     var mainStreamQueue = StreamQueue<dynamic>(mainReceivePort);
     await Isolate.spawn(_sub, [mainReceivePort.sendPort, _kernelPath]);
     var subSendPort = await mainStreamQueue.next as SendPort;

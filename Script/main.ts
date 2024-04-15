@@ -233,6 +233,16 @@ namespace Sen.Script {
          */
 
         export function make_stack(stack: string): string {
+            if (Shell.is_gui) {
+                return stack
+                    .replaceAll(" ", "")
+                    .replaceAll("at", `${Kernel.Language.get("at")} `)
+                    .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
+                    .replaceAll("\\", "/")
+                    .split("\n")
+                    .filter((e: string) => !/<eval>/m.test(e))
+                    .join("\n");
+            }
             return stack
                 .replace(/(\s)at(\s)/, ` ${Kernel.Language.get("at")} `)
                 .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
@@ -264,7 +274,8 @@ namespace Sen.Script {
 
         export function make_exception(e: Error): string {
             if (Shell.is_gui) {
-                // TODO
+                Console.error(e.message);
+                Console.send(`${make_stack(e.stack!)}`);
                 return undefined!;
             }
             return make_exception_cli(e);

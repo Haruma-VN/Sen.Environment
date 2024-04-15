@@ -120,7 +120,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            if (Shell.is_gui) {
+                Sen.Kernel.Console.print(argument[key] as string);
+            } else {
+                Sen.Kernel.Console.print(`    ${argument[key]}`);
+            }
             return;
         }
         if ((configuration as any)[key] === "?") {
@@ -128,7 +132,11 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (rule.includes(configuration[key] as unknown as bigint & string)) {
-                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(configuration[key] as string);
+                } else {
+                    Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                }
                 (argument as any & Argument)[key] = configuration[key];
                 return;
             } else {
@@ -159,7 +167,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            if (Shell.is_gui) {
+                Sen.Kernel.Console.print(argument[key] as string);
+            } else {
+                Sen.Kernel.Console.print(`    ${argument[key]}`);
+            }
             return;
         }
         if ((configuration as any)[key] === "?") {
@@ -176,7 +188,11 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (/\d+/.test(configuration[key] as string) && rule[0] <= BigInt(configuration[key] as string) && rule[1] >= BigInt(configuration[key] as string)) {
-                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(configuration[key] as string);
+                } else {
+                    Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                }
                 (argument as any & Argument)[key] = BigInt(configuration[key] as string);
                 return;
             } else {
@@ -207,7 +223,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            if (Shell.is_gui) {
+                Sen.Kernel.Console.print(`${argument[key]}`);
+            } else {
+                Sen.Kernel.Console.print(`    ${argument[key]}`);
+            }
             return;
         }
         if ((configuration as any)[key] === "?") {
@@ -216,12 +236,20 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (!rule) {
-                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(`${configuration[key]}`);
+                } else {
+                    Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                }
                 (argument as any & Argument)[key] = configuration[key];
                 return;
             }
             if (rule.includes(configuration[key] as string)) {
-                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(`${configuration[key]}`);
+                } else {
+                    Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                }
                 (argument as any & Argument)[key] = configuration[key];
                 return;
             } else {
@@ -251,7 +279,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            Sen.Kernel.Console.print(`    ${argument[key]}`);
+            if (Shell.is_gui) {
+                Sen.Kernel.Console.print(`${argument[key]}`);
+            } else {
+                Sen.Kernel.Console.print(`    ${argument[key]}`);
+            }
             return;
         }
         if ((configuration as any)[key] === "?") {
@@ -260,7 +292,11 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (/^(true|false)$/.test(configuration[key] as string)) {
-                Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(`${configuration[key]}`);
+                } else {
+                    Sen.Kernel.Console.print(`    ${configuration[key]}`);
+                }
                 (argument as any & Argument)[key] = Boolean(configuration[key]);
                 return;
             }
@@ -272,8 +308,13 @@ namespace Sen.Script.Executor {
     }
 
     export function input_boolean(): boolean {
-        Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
-        Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+        if (Shell.is_gui) {
+            Kernel.Console.print(`1. ${Kernel.Language.get("input.set_argument_to_true")}`);
+            Kernel.Console.print(`2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+        } else {
+            Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
+            Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+        }
         const result = input_integer([1n, 2n]);
         return result === 1n;
     }
@@ -315,7 +356,11 @@ namespace Sen.Script.Executor {
             if (typeof rule[0] === "object") {
                 const new_rule: Array<bigint> = [];
                 rule.forEach(function make_rule(e: [bigint, string] & any): void {
-                    Sen.Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
+                    if (Shell.is_gui) {
+                        Sen.Kernel.Console.print(`${e[0]}. ${e[2]}`);
+                    } else {
+                        Sen.Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
+                    }
                     new_rule.push(e[0]);
                 });
                 (argument as any)[key] = (rule as Array<[bigint, string, string]>)[Number(input_integer(new_rule) - 1n)][1];
@@ -431,10 +476,20 @@ namespace Sen.Script.Executor {
     export function display_argument(argument: string | string[]): void {
         if (is_string(argument)) {
             Console.send(`${Sen.Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
-            Kernel.Console.print(`    ${argument}`);
+            if (Shell.is_gui) {
+                Kernel.Console.print(`${argument}`);
+            } else {
+                Kernel.Console.print(`    ${argument}`);
+            }
         } else {
             Console.send(`${Sen.Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
-            argument.forEach((e) => Kernel.Console.print(`    ${e}`));
+            argument.forEach(function call_print(e): void {
+                if (Shell.is_gui) {
+                    Kernel.Console.print(e);
+                } else {
+                    Kernel.Console.print(`    ${e}`);
+                }
+            });
         }
         return;
     }
@@ -476,8 +531,12 @@ namespace Sen.Script.Executor {
         });
         display_argument(argument.source as string | string[]);
         Console.send(`${Sen.Kernel.Language.get("execution_argument")}: ${Kernel.Language.get("js.input_an_method_to_start")}`, Definition.Console.Color.CYAN);
-        modules.forEach((name: string, num: bigint) => {
-            Kernel.Console.print(`    ${num}. ${Kernel.Language.get(name)}`);
+        modules.forEach(function print_statement(name: string, num: bigint): void {
+            if (Shell.is_gui) {
+                Kernel.Console.print(`${num}. ${Kernel.Language.get(name)}`);
+            } else {
+                Kernel.Console.print(`    ${num}. ${Kernel.Language.get(name)}`);
+            }
         });
         const view: Array<bigint> = Array.from(modules.keys());
         switch (view.length) {
@@ -505,11 +564,19 @@ namespace Sen.Script.Executor {
                 Kernel.Console.print(`    ${i + 1}. ${e}`);
             });
             Console.send(format(`${Kernel.Language.get("js.obtained_argument")}:`, (argument.source as string).length), Definition.Console.Color.CYAN);
-            Kernel.Console.print(`    ${1n}. ${Kernel.Language.get("js.process_whole")}`);
-            Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
-            Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("js.process_in_script")}`);
-            Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
-            Kernel.Console.print(`    ${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+            if (Shell.is_gui) {
+                Kernel.Console.print(`${1n}. ${Kernel.Language.get("js.process_whole")}`);
+                Kernel.Console.print(`${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
+                Kernel.Console.print(`${3n}. ${Kernel.Language.get("js.process_in_script")}`);
+                Kernel.Console.print(`${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
+                Kernel.Console.print(`${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+            } else {
+                Kernel.Console.print(`    ${1n}. ${Kernel.Language.get("js.process_whole")}`);
+                Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
+                Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("js.process_in_script")}`);
+                Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
+                Kernel.Console.print(`    ${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+            }
             const input: bigint = input_integer([1n, 2n, 3n, 4n, 5n]);
             switch (input) {
                 case 1n: {
