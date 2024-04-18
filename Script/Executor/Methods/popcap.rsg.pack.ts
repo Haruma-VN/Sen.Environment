@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.RSG.Pack {
             Sen.Script.Executor.Methods.PopCap.RSG.Pack.Configuration
         >({
             id: "popcap.rsg.pack",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsg.pack.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSG.Pack.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.RSG.Pack.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.rsg`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.RSG.pack_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rsg.pack.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, true);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.rsg`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.RSG.pack_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSG.Pack.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, true);
             },
             is_enabled: true,

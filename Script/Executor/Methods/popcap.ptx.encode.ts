@@ -13,7 +13,9 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Encode {
      * Argument for batch method
      */
 
-    export interface BatchArgument extends Sen.Script.Executor.Base {}
+    export interface BatchArgument extends Sen.Script.Executor.Base {
+        directory: string;
+    }
 
     /**
      * Async support
@@ -121,17 +123,20 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Encode {
             id: "popcap.ptx.encode",
             configuration_file: Home.query("~/Executor/Configuration/popcap.ptx.encode.json"),
             configuration: undefined!,
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PTX.Encode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.ptx`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_bigint(argument, "format", this.configuration, Detail.format(), Sen.Kernel.Language.get("popcap.ptx.encode.format"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.Texture.encode_fs(argument.source, argument.destination!, Detail.exchange_format(argument.format!));
-                Sen.Script.Executor.clock.stop_safe();
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.ptx`);
+                Console.output(argument.destination!);
+                load_bigint(argument, "format", this.configuration, Detail.format(), Kernel.Language.get("popcap.ptx.encode.format"));
+                clock.start_safe();
+                Kernel.Support.Texture.encode_fs(argument.source, argument.destination!, Detail.exchange_format(argument.format!));
+                clock.stop_safe();
                 return;
             },
-            batch_forward: undefined!,
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, false);
+            },
             is_enabled: true,
             filter: ["file", /(.+)\.png$/i],
         });

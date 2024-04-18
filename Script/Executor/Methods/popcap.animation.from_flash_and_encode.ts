@@ -47,17 +47,18 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode {
             Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.Configuration
         >({
             id: "popcap.animation.from_flash_and_encode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.animation.from_flash_and_encode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.Animation.Instance.from_flash(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.animation.from_flash_and_encode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, true);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.Animation.Instance.from_flash(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

@@ -45,14 +45,15 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Pack {
             Sen.Script.Executor.Methods.PopCap.RSB.Pack.Configuration
         >({
             id: "popcap.rsb.pack",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb.pack.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Pack.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.Pack.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.RSB.pack_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rsb.pack.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, true);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.RSB.pack_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
             batch_forward: undefined!,

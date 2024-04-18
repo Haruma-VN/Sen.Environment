@@ -56,20 +56,18 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             Sen.Script.Executor.Methods.JS.Evaluate.Configuration
         >({
             id: "js.evaluate",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/js.evaluate.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.clock.start_safe();
-                const result: string | undefined = Sen.Kernel.JavaScript.evaluate_fs(argument.source) as unknown & string;
-                Sen.Script.Console.display(Sen.Kernel.Language.get("js.process.done"), result, Sen.Script.Definition.Console.Color.GREEN);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/js.evaluate.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                clock.start_safe();
+                const result: string | undefined = Kernel.JavaScript.evaluate_fs(argument.source) as unknown & string;
+                Console.display(Kernel.Language.get("js.process.done"), result, Definition.Console.Color.GREEN);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.JS.Evaluate.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path) && this.filter[1].test(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, false);
             },
             is_enabled: true,
             configuration: undefined!,

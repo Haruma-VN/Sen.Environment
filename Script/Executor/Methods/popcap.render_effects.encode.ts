@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode {
             Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode.Configuration
         >({
             id: "popcap.render_effects.encode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.render_effects.encode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.popfx`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.RenderEffects.encode_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.render_effects.encode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.popfx`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.RenderEffects.encode_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RenderEffects.Encode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

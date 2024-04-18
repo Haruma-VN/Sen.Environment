@@ -466,5 +466,10 @@
     "script.helper.texture.this_function_only_support_windows_linux_macos": "This method only support Windows, Linux or Macintosh",
     "script.helper.texture.upscaler.input_source": "Input image or image directory to upscale",
     "script.helper.texture.upscaler.input_realesrgan_path": "Input path of real esrgan directory, or leave empty to find in path environment",
-    "script.helper.pvz2.animation.helper_convert.input_source_pam_json": "Input source pam json"
+    "script.helper.pvz2.animation.helper_convert.input_source_pam_json": "Input source pam json",
+    "popcap.animation.from_flash.document_has_no_frame_name": "Document has no frame name",
+    "popcap.animation.from_flash.document_has_no_frames": "Document has no frames",
+    "popcap.animation.from_flash.document_has_no_DOMFrame": "Document has no DOMFrame",
+    "script.invalid_input_data": "Incorrect input data. Please reinput, got: {}",
+    "script.cannot_execute_atlas_split_method": "Cannot execute atlas method, please use Console state instead"
 }

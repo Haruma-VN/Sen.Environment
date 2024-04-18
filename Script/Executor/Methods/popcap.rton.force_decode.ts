@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.ForceDecode {
             Sen.Script.Executor.Methods.PopCap.RTON.ForceDecode.Configuration
         >({
             id: "popcap.rton.force_decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rton.force_decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.ForceDecode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.RTON.ForceDecode.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.json`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rton.force_decode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
+                Console.output(argument.destination!);
+                clock.start_safe();
                 Support.PopCap.ReflectionObjectNotation.DecodeByLooseConstraints.process_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RTON.ForceDecode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

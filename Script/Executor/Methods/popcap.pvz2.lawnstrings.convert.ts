@@ -93,15 +93,16 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
             id: "popcap.pvz2.lawnstrings.convert",
             configuration_file: Home.query("~/Executor/Configuration/popcap.pvz2.lawnstrings.convert.json"),
             configuration: undefined!,
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.load_bigint(argument, "source_type", this.configuration, Detail.type(), Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.convert.source_type"));
-                Sen.Script.Executor.load_bigint(argument, "destination_type", this.configuration, Detail.type(), Sen.Kernel.Language.get("popcap.pvz2.lawnstrings.destination.destination_type"));
-                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.${Detail.extension(argument.destination_type!)}`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Script.Support.PopCap.LawnStrings.Convert.process_fs(argument.source, argument.destination!, argument.source_type!, argument.destination_type!);
-                Sen.Script.Executor.clock.stop_safe();
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                load_bigint(argument, "source_type", this.configuration, Detail.type(), Kernel.Language.get("popcap.pvz2.lawnstrings.convert.source_type"));
+                load_bigint(argument, "destination_type", this.configuration, Detail.type(), Kernel.Language.get("popcap.pvz2.lawnstrings.destination.destination_type"));
+                defined_or_default(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.${Detail.extension(argument.destination_type!)}`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Support.PopCap.LawnStrings.Convert.process_fs(argument.source, argument.destination!, argument.source_type!, argument.destination_type!);
+                Executor.clock.stop_safe();
                 return;
             },
             batch_forward: undefined!,

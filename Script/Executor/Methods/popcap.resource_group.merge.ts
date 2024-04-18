@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Configuration
         >({
             id: "popcap.resource_group.merge",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.resource_group.merge.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.ResourceGroup.merge_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.resource_group.merge.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, true);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.ResourceGroup.merge_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, true);
             },
             is_enabled: true,

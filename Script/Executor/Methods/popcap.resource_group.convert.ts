@@ -46,13 +46,13 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
          * @returns style
          */
 
-        export function exchange_layout(layout: string): Sen.Script.Support.PopCap.ResourceGroup.PathStyle {
+        export function exchange_layout(layout: string): Support.PopCap.ResourceGroup.PathStyle {
             switch (layout) {
                 case "string": {
-                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.WindowStyle;
+                    return Support.PopCap.ResourceGroup.PathStyle.WindowStyle;
                 }
                 case "array": {
-                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.ArrayStyle;
+                    return Support.PopCap.ResourceGroup.PathStyle.ArrayStyle;
                 }
                 default: {
                     throw new Error(format(Kernel.Language.get("popcap.resource_group.convert.cannot_exchange_layout"), layout));
@@ -67,8 +67,8 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
 
         export function style(): Array<[bigint, string, string]> {
             return [
-                [1n, "string", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.string")],
-                [2n, "array", Sen.Kernel.Language.get("popcap.resource_group.convert.layout.array")],
+                [1n, "string", Kernel.Language.get("popcap.resource_group.convert.layout.string")],
+                [2n, "array", Kernel.Language.get("popcap.resource_group.convert.layout.array")],
             ];
         }
     }
@@ -88,18 +88,19 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.Configuration
         >({
             id: "popcap.resource_group.convert",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.resource_group.convert.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
+            configuration_file: Home.query("~/Executor/Configuration/popcap.resource_group.convert.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.dirname(argument.source)}/res.json`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.atlas.split.style"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.ResourceGroup.convert_fs(argument.source, argument.destination!, Detail.exchange_layout(argument.layout!));
-                Sen.Script.Executor.clock.stop_safe();
+                Console.output(argument.destination!);
+                load_bigint(argument, "layout", this.configuration, Detail.style(), Kernel.Language.get("popcap.atlas.split.style"));
+                clock.start_safe();
+                Kernel.Support.PopCap.ResourceGroup.convert_fs(argument.source, argument.destination!, Detail.exchange_layout(argument.layout!));
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

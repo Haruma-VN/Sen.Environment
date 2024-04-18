@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Encode {
             Sen.Script.Executor.Methods.PopCap.CFW2.Encode.Configuration
         >({
             id: "popcap.cfw2.encode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.cfw2.encode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Encode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.CFW2.Encode.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.cfw2`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.CharacterFontWidget2.encode_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.cfw2.encode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.cfw2`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.CharacterFontWidget2.encode_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Encode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

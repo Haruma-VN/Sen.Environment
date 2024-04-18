@@ -1624,6 +1624,19 @@ declare namespace Sen {
                     export function encode_fs(source: string, destination: string): void;
 
                     /**
+                     * Resizes a filesystem to a specified resolution.
+                     *
+                     * @param source - The path to the filesystem to resize.
+                     * @param resolution - The target resolution of the filesystem.
+                     *                    The unit depends on the specific filesystem type.
+                     *
+                     * @throws {Error} -  If an error occurs during resize operation.
+                     *                   (Implementation specific)
+                     */
+
+                    export function resize_fs(source: string, resolution: number): void;
+
+                    /**
                      * Flash Conversion Support
                      *
                      * This namespace provides functions for converting animation data between PopCap and Flash formats.

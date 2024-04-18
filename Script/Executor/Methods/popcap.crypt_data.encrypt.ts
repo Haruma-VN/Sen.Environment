@@ -50,18 +50,19 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt {
             Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.Configuration
         >({
             id: "popcap.crypt_data.encrypt",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.crypt_data.encrypt.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.bin`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.crypt_data.encrypt.key"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.CryptData.encrypt_fs(argument.source, argument.destination!, argument.key!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.crypt_data.encrypt.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.bin`);
+                Console.output(argument.destination!);
+                load_string(argument, "key", this.configuration, Kernel.Language.get("popcap.crypt_data.encrypt.key"));
+                clock.start_safe();
+                Kernel.Support.PopCap.CryptData.encrypt_fs(argument.source, argument.destination!, argument.key!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

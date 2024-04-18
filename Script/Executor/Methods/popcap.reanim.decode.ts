@@ -72,18 +72,19 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
             Sen.Script.Executor.Methods.PopCap.Reanim.Decode.Configuration
         >({
             id: "popcap.reanim.decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.reanim.decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Reanim.Decode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.Reanim.Decode.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
-                Sen.Script.Console.output(argument.destination!);
+            configuration_file: Home.query("~/Executor/Configuration/popcap.reanim.decode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
+                Console.output(argument.destination!);
                 configurate_or_input(argument, "platform", Detail.platform());
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.Reanim.decode_fs(argument.source, argument.destination!, argument.platform!);
-                Sen.Script.Executor.clock.stop_safe();
+                clock.start_safe();
+                Kernel.Support.PopCap.Reanim.decode_fs(argument.source, argument.destination!, argument.platform!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Reanim.Decode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

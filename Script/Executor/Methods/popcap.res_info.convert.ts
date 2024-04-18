@@ -46,17 +46,18 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Convert {
             Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.Configuration
         >({
             id: "popcap.res_info.convert",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.res_info.convert.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
+            configuration_file: Home.query("~/Executor/Configuration/popcap.res_info.convert.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.dirname(argument.source)}/resources.json`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.ResInfo.convert_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.ResInfo.convert_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.ResInfo.Convert.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

@@ -45,7 +45,7 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 
 		protected:
 
-			inline auto resize(
+			inline auto resize_image(
 				const std::string& image_id,
 				XMLDocument* document,
 				float ratio
@@ -54,68 +54,68 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 				auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
 				if (DOMSymbolItem == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto image_child = DOMSymbolItem->FindAttribute("name");
 				if (image_child == nullptr or fmt::format("image/{}", image_id) != std::string{image_child->Value()})
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto timeline = DOMSymbolItem->FirstChildElement("timeline");
 				if (timeline == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_timeline")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_timeline")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto DOMTimeline = timeline->FirstChildElement("DOMTimeline");
 				if (DOMTimeline == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMtimeline")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMtimeline")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto id_name = DOMTimeline->FindAttribute("name");
 				if (id_name == nullptr or image_id != std::string{id_name->Value()})
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto layers = DOMTimeline->FirstChildElement("layers");
 				if (layers == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_layers")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_layers")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto DOMLayer = layers->FirstChildElement("DOMLayer");
 				if (DOMLayer == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto frames = DOMLayer->FirstChildElement("frames");
 				if (frames == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_frames")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_frames")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto DOMFrame = frames->FirstChildElement("DOMFrame");
 				if (DOMFrame == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMframe")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMframe")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto elements = DOMFrame->FirstChildElement("elements");
 				if (elements == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_elements")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_elements")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto DOMBitmapInstance = elements->FirstChildElement("DOMBitmapInstance");
 				if (DOMBitmapInstance == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto image_name = std::string{DOMBitmapInstance->FindAttribute("libraryItemName")->Value()}.substr(6);
 				auto matrix = DOMBitmapInstance->FirstChildElement("matrix");
 				if (matrix == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_matrix")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_matrix")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto Matrix = matrix->FirstChildElement("Matrix");
 				if (Matrix == nullptr)
 				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_matrix")), image_id), std::source_location::current(), "parse_image");
+					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_matrix")), image_id), std::source_location::current(), "resize_image");
 				}
 				auto a_matrix = Matrix->FirstChildElement("a");
 				auto a = double{};
@@ -164,7 +164,7 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 				for (auto& image : image_list) {
 					auto document = XMLDocument{};
 					FileSystem::read_xml(image, &document);
-					resize(Path::getFileName(image), &document, ratio);
+					resize_image(Path::getFileName(image), &document, ratio);
 					FileSystem::write_xml(image, &document);
 				}
 				return;

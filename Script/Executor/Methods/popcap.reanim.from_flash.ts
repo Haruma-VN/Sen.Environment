@@ -45,22 +45,23 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash {
             Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.Configuration
         >({
             id: "popcap.reanim.from_flash",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.reanim.from_flash.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.Reanim.FromFlash.convert_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.reanim.from_flash.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, true);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.Reanim.FromFlash.convert_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.BatchArgument): void {
-                return basic_batch(this, argument, false);
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, true);
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)(\.reanim\.xfl)$/i],
+            filter: ["directory", /(.+)(\.reanim\.xfl)$/i],
         });
         return;
     }

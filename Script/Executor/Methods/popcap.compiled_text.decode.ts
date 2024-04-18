@@ -58,20 +58,21 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
             Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Configuration
         >({
             id: "popcap.compiled_text.decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.compiled_text.decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument, string>(argument, "destination", `${argument.source}.bin`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_string(argument, "key", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.key"));
-                Sen.Script.Executor.load_string(argument, "iv", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.iv"));
-                Sen.Script.Executor.load_boolean(argument, "use_64_bit_variant", this.configuration, Sen.Kernel.Language.get("popcap.compiled_text.decode.key"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.CompiledText.decode_fs(argument.source, argument.destination!, argument.key!, argument.iv!, argument.use_64_bit_variant!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.compiled_text.decode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.bin`);
+                Console.output(argument.destination!);
+                load_string(argument, "key", this.configuration, Kernel.Language.get("popcap.compiled_text.decode.key"));
+                load_string(argument, "iv", this.configuration, Kernel.Language.get("popcap.compiled_text.decode.iv"));
+                load_boolean(argument, "use_64_bit_variant", this.configuration, Kernel.Language.get("popcap.compiled_text.decode.key"));
+                clock.start_safe();
+                Kernel.Support.PopCap.CompiledText.decode_fs(argument.source, argument.destination!, argument.key!, argument.iv!, argument.use_64_bit_variant!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

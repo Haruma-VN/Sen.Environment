@@ -42,15 +42,16 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode {
             Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.Configuration
         >({
             id: "popcap.rsb_patch.encode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb_patch.encode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rsb_patch.encode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
                 argument.after_file = Console.path(Kernel.Language.get("popcap.rsb_patch.encode.after_file"), "file");
-                defined_or_default<Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.rsbp`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.RSBPatch.encode_fs(argument.source, argument.after_file!, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.rsbp`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.RSBPatch.encode_fs(argument.source, argument.after_file!, argument.destination!);
+                clock.stop_safe();
                 return;
             },
             batch_forward: undefined!,

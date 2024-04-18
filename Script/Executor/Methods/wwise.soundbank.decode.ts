@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Decode {
             Sen.Script.Executor.Methods.WWise.SoundBank.Decode.Configuration
         >({
             id: "wwise.soundbank.decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/wwise.soundbank.decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.WWise.SoundBank.Decode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                defined_or_default<Sen.Script.Executor.Methods.WWise.SoundBank.Decode.Argument, string>(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.soundbank`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.WWise.SoundBank.decode_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/wwise.soundbank.decode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.soundbank`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.WWise.SoundBank.decode_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.WWise.SoundBank.Decode.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

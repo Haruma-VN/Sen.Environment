@@ -45,17 +45,18 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate {
             Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.Configuration
         >({
             id: "popcap.rsb.obfuscate",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb.obfuscate.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.Argument, string>(argument, "destination", `${argument.source}.bin`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate.process_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rsb.obfuscate.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.bin`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Support.PopCap.ResourceStreamBundle.Miscellaneous.Obfuscate.process_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

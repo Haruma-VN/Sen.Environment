@@ -115,15 +115,21 @@ namespace Sen.Script.Executor {
         argument: Argument,
         key: keyof Argument & keyof Configuration,
         configuration: Configuration,
-        rule: Array<bigint> | Array<[bigint, string, string]> | Array<string>,
+        rule: Array<bigint> | Array<[bigint, string | bigint, string]> | Array<string>,
         title: string,
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            if (Shell.is_gui) {
-                Sen.Kernel.Console.print(argument[key] as string);
+            if ((rule as Array<[bigint, string, string]>).map((e) => e[1]).includes((argument as any)[key])) {
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(argument[key] as string);
+                } else {
+                    Sen.Kernel.Console.print(`    ${argument[key]}`);
+                }
             } else {
-                Sen.Kernel.Console.print(`    ${argument[key]}`);
+                Console.warning(format(Kernel.Language.get("script.invalid_input_data"), argument[key]));
+                delete (argument as any & Argument)[key];
+                return load_bigint(argument, key, configuration, rule, title);
             }
             return;
         }
@@ -167,10 +173,16 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
-            if (Shell.is_gui) {
-                Sen.Kernel.Console.print(argument[key] as string);
+            if (((argument as any & Argument)[key] as bigint) <= rule[1] && ((argument as any & Argument)[key] as bigint) >= rule[0]) {
+                if (Shell.is_gui) {
+                    Sen.Kernel.Console.print(argument[key] as string);
+                } else {
+                    Sen.Kernel.Console.print(`    ${argument[key]}`);
+                }
             } else {
-                Sen.Kernel.Console.print(`    ${argument[key]}`);
+                Console.warning(format(Kernel.Language.get("script.invalid_input_data"), argument[key]));
+                delete argument[key];
+                return input_range(argument, key, configuration, rule, title);
             }
             return;
         }
@@ -223,6 +235,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
+            if (rule !== undefined && !rule.includes(argument[key] as string)) {
+                Console.warning(format(Kernel.Language.get("script.invalid_input_data"), argument[key]));
+                delete argument[key];
+                return load_string(argument, key, configuration, title, rule);
+            }
             if (Shell.is_gui) {
                 Sen.Kernel.Console.print(`${argument[key]}`);
             } else {
@@ -279,6 +296,11 @@ namespace Sen.Script.Executor {
     ): void {
         Sen.Script.Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
+            if (!(typeof argument[key] === "boolean")) {
+                Console.warning(format(Kernel.Language.get("script.invalid_input_data"), argument[key]));
+                delete argument[key];
+                return load_boolean(argument, key, configuration, title);
+            }
             if (Shell.is_gui) {
                 Sen.Kernel.Console.print(`${argument[key]}`);
             } else {
@@ -556,7 +578,70 @@ namespace Sen.Script.Executor {
         return;
     }
 
+    export type RequireModule = Record<string, unknown> & { method: string };
+
+    export function is_valid_source<Argument extends Base>(argument: Argument, is_directory: boolean): void {
+        if (argument.source === undefined) {
+            argument.source = Console.path(Kernel.Language.get("input_argument"), is_directory ? "directory" : "file");
+            return;
+        }
+        if (typeof argument.source !== "string") {
+            delete argument.source;
+            return is_valid_source(argument, is_directory);
+        }
+        if (is_directory && Kernel.FileSystem.is_file(argument.source as string)) {
+            delete argument.source;
+            return is_valid_source(argument, is_directory);
+        }
+        if (!is_directory && Kernel.FileSystem.is_directory(argument.source)) {
+            delete argument.source;
+            return is_valid_source(argument, is_directory);
+        }
+        return;
+    }
+
+    export function exchange_argument_value<T>(value: string): T {
+        if (/^(((\d+)[f|n]))$/.test(value)) {
+            if (value.endsWith("f")) {
+                return Number(value.substring(0, value.length - 1)) as T;
+            }
+            return BigInt(value.substring(0, value.length - 1)) as T;
+        }
+        if (/(((true|false)))/i.test(value)) {
+            return (value === "true") as T;
+        }
+        return value as T;
+    }
+
+    export function parse_argument<Argument extends Base & { source: Array<string> }>(argument: Argument, temporary: RequireModule): void {
+        let raw = argument.source;
+        for (let i = 0; i < raw.length; ++i) {
+            if (raw[i].startsWith("-")) {
+                temporary[raw[i++].slice(1)] = exchange_argument_value(raw[i]);
+            }
+        }
+        return;
+    }
+
+    export function not_available_atlas_method(value: string): void {
+        if (["popcap.atlas.split_by_resource_group", "popcap.atlas.split_by_res_info"].includes(value)) {
+            throw new Error(Kernel.Language.get("script.cannot_execute_atlas_split_method"));
+        }
+        return;
+    }
+
     export function forward<Argument extends Base>(argument: Argument): void {
+        {
+            const loader: RequireModule = { method: undefined! };
+            parse_argument(argument as Argument & { source: Array<string> }, loader);
+            if (loader.method !== undefined) {
+                const method = loader.method;
+                not_available_atlas_method(method);
+                delete (loader as any).method;
+                execute(loader as Argument, method, Forward.DIRECT);
+                return;
+            }
+        }
         argument.source = (argument.source as Array<string>).map((e: string) => normalize(e));
         if ((argument.source as Array<string>).length > 1) {
             Console.send(`${Kernel.Language.get("js.make_host.argument_obtained")}:`, Definition.Console.Color.CYAN);

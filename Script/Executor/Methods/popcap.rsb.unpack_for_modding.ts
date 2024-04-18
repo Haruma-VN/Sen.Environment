@@ -71,16 +71,16 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
 
         export function style(): Array<[bigint, string, string]> {
             return [
-                [1n, "string", Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.string")],
-                [2n, "array", Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.array")],
+                [1n, "string", Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.string")],
+                [2n, "array", Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.array")],
             ];
         }
 
         export function generic(): Array<[bigint, string, string]> {
             return [
-                [1n, "android", Sen.Kernel.Language.get("android")],
-                [2n, "android-cn", Sen.Kernel.Language.get("pvz2_android_cn")],
-                [3n, "ios", Sen.Kernel.Language.get("ios")],
+                [1n, "android", Kernel.Language.get("android")],
+                [2n, "android-cn", Kernel.Language.get("pvz2_android_cn")],
+                [3n, "ios", Kernel.Language.get("ios")],
             ];
         }
     }
@@ -100,24 +100,25 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Configuration
         >({
             id: "popcap.rsb.unpack_for_modding",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.rsb.unpack_for_modding.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Script.Executor.load_bigint(argument, "layout", this.configuration, Detail.style(), Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
-                Sen.Script.Executor.load_bigint(argument, "generic", this.configuration, Detail.generic(), Sen.Kernel.Language.get("popcap.rsb.unpack_for_modding.generic"));
+            configuration_file: Home.query("~/Executor/Configuration/popcap.rsb.unpack_for_modding.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                load_bigint(argument, "layout", this.configuration, Detail.style(), Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
+                load_bigint(argument, "generic", this.configuration, Detail.generic(), Kernel.Language.get("popcap.rsb.unpack_for_modding.generic"));
                 Support.PopCap.ResourceStreamBundle.Project.Unpack.process_fs(argument.source, argument.destination!, {
                     decode_rton: false,
                     decrypt_rton: false,
                     layout: Detail.exchange_layout(argument.layout as string),
                     generic: argument.generic!,
                 });
-                Sen.Script.Executor.clock.stop_safe();
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding.BatchArgument): void {
+            batch_forward(argument: BatchArgument): void {
                 return basic_batch(this, argument, false);
             },
             is_enabled: true,

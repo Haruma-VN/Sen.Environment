@@ -23,7 +23,9 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
      * Argument for batch method
      */
 
-    export interface BatchArgument extends Sen.Script.Executor.Base {}
+    export interface BatchArgument extends Sen.Script.Executor.Base {
+        directory: string;
+    }
 
     /**
      * Async support
@@ -132,23 +134,26 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
             id: "popcap.ptx.decode",
             configuration_file: Home.query("~/Executor/Configuration/popcap.ptx.decode.json"),
             configuration: undefined!,
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.PTX.Decode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default(argument, "destination", `${Sen.Kernel.Path.except_extension(argument.source)}.png`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.load_bigint(argument, "format", this.configuration, Detail.format(), Sen.Kernel.Language.get("popcap.ptx.decode.format"));
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.png`);
+                Console.output(argument.destination!);
+                load_bigint(argument, "format", this.configuration, Detail.format(), Kernel.Language.get("popcap.ptx.decode.format"));
                 argument.size = {} as any;
-                Sen.Script.Executor.input_range(argument.size as any, "width", this.configuration.size as Dimension, [1n, 16384n], Kernel.Language.get("popcap.ptx.decode.width"));
+                input_range(argument.size as any, "width", this.configuration.size as Dimension, [1n, 16384n], Kernel.Language.get("popcap.ptx.decode.width"));
                 if (argument.format === "rgb_pvrtc4_a_8") {
                     (this.configuration.size as Dimension).height = argument.size!.width;
                 }
-                Sen.Script.Executor.input_range(argument.size as any, "height", this.configuration.size as Dimension, [1n, 16384n], Sen.Kernel.Language.get("popcap.ptx.decode.height"));
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.Texture.decode_fs(argument.source, argument.destination!, argument!.size!.width, argument!.size!.height, Detail.exchange_format(argument.format!));
-                Sen.Script.Executor.clock.stop_safe();
+                input_range(argument.size as any, "height", this.configuration.size as Dimension, [1n, 16384n], Kernel.Language.get("popcap.ptx.decode.height"));
+                clock.start_safe();
+                Kernel.Support.Texture.decode_fs(argument.source, argument.destination!, argument!.size!.width, argument!.size!.height, Detail.exchange_format(argument.format!));
+                clock.stop_safe();
                 return;
             },
-            batch_forward: undefined!,
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, false);
+            },
             is_enabled: true,
             filter: ["file", /(.+)\.ptx$/i],
         });

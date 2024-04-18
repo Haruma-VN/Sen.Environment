@@ -45,21 +45,19 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
             Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Configuration
         >({
             id: "popcap.cfw2.decode",
-            configuration_file: Sen.Script.Home.query("~/Executor/Configuration/popcap.cfw2.decode.json"),
-            direct_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument): void {
-                Sen.Script.Console.obtained(argument.source);
-                Sen.Script.Executor.defined_or_default<Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument, string>(argument, "destination", `${argument.source}.json`);
-                Sen.Script.Console.output(argument.destination!);
-                Sen.Script.Executor.clock.start_safe();
-                Sen.Kernel.Support.PopCap.CharacterFontWidget2.decode_fs(argument.source, argument.destination!);
-                Sen.Script.Executor.clock.stop_safe();
+            configuration_file: Home.query("~/Executor/Configuration/popcap.cfw2.decode.json"),
+            direct_forward(argument: Argument): void {
+                is_valid_source(argument, false);
+                Console.obtained(argument.source);
+                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.json`);
+                Console.output(argument.destination!);
+                clock.start_safe();
+                Kernel.Support.PopCap.CharacterFontWidget2.decode_fs(argument.source, argument.destination!);
+                clock.stop_safe();
                 return;
             },
-            batch_forward(argument: Sen.Script.Executor.Methods.PopCap.CFW2.Decode.BatchArgument): void {
-                const files: Array<string> = Sen.Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => Sen.Kernel.FileSystem.is_file(path));
-                files.forEach((source: string) => this.direct_forward({ source: source }));
-                Sen.Script.Console.finished(Sen.Script.format(Sen.Kernel.Language.get("batch.process.count"), files.length));
-                return;
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, false);
             },
             is_enabled: true,
             configuration: undefined!,
