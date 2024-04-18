@@ -104,6 +104,7 @@ add_library(
 	./support/popcap/animation/convert/definition.hpp
 	./support/popcap/animation/convert/to_flash.hpp
 	./support/popcap/animation/convert/from_flash.hpp
+	./support/popcap/animation/convert/resize.hpp
 	./support/popcap/animation/convert/instance.hpp
 	./support/popcap/pak/definition.hpp
 	./support/popcap/pak/unpack.hpp

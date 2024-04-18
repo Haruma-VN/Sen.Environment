@@ -277,7 +277,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline auto parse_image(
 			const std::string &image_id,
 			const RecordInfo &record,
-			XMLDocument *document) -> void
+			XMLDocument *document
+		) -> void
 		{
 			auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
 			if (DOMSymbolItem == nullptr)
@@ -380,18 +381,15 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			assert_conditional(DOMLayer_Flow != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMLayer")), "get_action_index");
 			assert_conditional((std::string{DOMLayer_Flow->FindAttribute("name")->Value()} == "flow"), fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_document_flow")), "get_action_index");
 			auto frames = DOMLayer_Flow->FirstChildElement("frames");
-			// add to language;
 			assert_conditional(frames != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frames")), "get_action_index");
 			for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame != nullptr; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
 			{
-				// add to language;
 				assert_conditional(DOMFrame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_DOMFrame")), "get_action_index");
 
 				const auto &frame_index = std::stoi(DOMFrame->FindAttribute("index")->Value());
 				auto m_duration = DOMFrame->FindAttribute("duration");
 				const auto &frame_duration = std::stoi((m_duration ? m_duration->Value() : "1"));
 				auto frame_name = DOMFrame->FindAttribute("name");
-				// add to language;
 				assert_conditional(frame_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_frame_name")), "get_action_index");
 				auto labelType = DOMFrame->FindAttribute("labelType");
 				assert_conditional(labelType != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_action_label")), "get_action_index");

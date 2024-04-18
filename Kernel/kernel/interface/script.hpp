@@ -11368,6 +11368,31 @@ namespace Sen::Kernel::Interface::Script {
 				}
 
 				/**
+				 * ----------------------------------------
+				 * JavaScript Resize Flash
+				 * @param argv[0]: source file
+				 * @param argv[1]: resolution
+				 * @returns
+				 * ----------------------------------------
+				*/
+
+				inline static auto resize_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto resolution = JS::Converter::get_float32(context, argv[1]);
+						Sen::Kernel::Support::PopCap::Animation::Resize::process_fs(source, resolution);
+						return JS::Converter::get_undefined();
+					}, "resize_fs"_sv);
+				}
+
+				/**
 				 * ToFlash convert support
 				*/
 
@@ -11505,7 +11530,7 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Sen::Kernel::Support::PopCap::Animation::Encode::encode_fs(source, destination);

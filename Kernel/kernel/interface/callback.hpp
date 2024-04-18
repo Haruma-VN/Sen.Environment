@@ -50,7 +50,7 @@ namespace Sen::Kernel::Interface {
 			/**
 			 * Prepare the script
 			*/
-			auto prepare(
+			inline auto prepare(
 			) -> void
 			{
 				// kernel adapter : adapt -> javascript self-assign 
@@ -495,6 +495,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "to_flash"_sv);
 					// from_flash
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
+					// resize_fs
+					javascript->add_proxy(Script::Support::PopCap::Animation::resize_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "resize_fs"_sv);
 				}
 				// reanim
 				{
