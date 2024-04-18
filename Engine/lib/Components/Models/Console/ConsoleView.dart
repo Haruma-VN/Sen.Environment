@@ -53,17 +53,52 @@ class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
   void notify() {
     notifyListeners();
   }
+
+  @override
+  void sendMessageWithSubtitle(String title, String message) async {
+    Provider.of<MessageModel>(context, listen: false)
+        .sendMessageWithSubtitle(title, message);
+    await scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 100),
+      curve: Curves.easeOut,
+    );
+    notifyListeners();
+    return;
+  }
+
+  @override
+  void sendMessageWithSubtitleAndColor(
+    String title,
+    String message,
+    String color,
+  ) async {
+    Provider.of<MessageModel>(context, listen: false)
+        .sendMessageWithSubtitleAndColor(title, message, color);
+    await scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 100),
+      curve: Curves.easeOut,
+    );
+    notifyListeners();
+  }
 }
 
 class _ConsoleViewState extends State<ConsoleView> {
   Widget _makeExpanderCard(BuildContext context, MessageWrapper e) {
-    if (e.message != null) {
+    if (e.message != null && e.message!.isNotEmpty) {
       return Row(
         children: [
           Expanded(
             child: Text(
               e.message!,
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              e.message!,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ],

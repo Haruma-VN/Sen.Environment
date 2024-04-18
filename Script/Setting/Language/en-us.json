@@ -459,5 +459,12 @@
     "popcap.reanim.platform.phone-32": "Mobile phone with 32bit",
     "popcap.reanim.platform.phone-64": "Mobile phone with 64bit",
     "popcap.reanim.platform.raw-xml": "Raw XML",
-    "popcap.reanim.platform.tv": "TV"
+    "popcap.reanim.platform.tv": "TV",
+    "script.helper.texture.upscaler.failed_to_upscale": "Failed to upscale",
+    "script.helper.texture.upscaler.debug": "only realesr-animevideov3 supports scale, otherwise is 4",
+    "script.helper.texture.cannot_find_real_esrgan": "Cannot find realesrgan",
+    "script.helper.texture.this_function_only_support_windows_linux_macos": "This method only support Windows, Linux or Macintosh",
+    "script.helper.texture.upscaler.input_source": "Input image or image directory to upscale",
+    "script.helper.texture.upscaler.input_realesrgan_path": "Input path of real esrgan directory, or leave empty to find in path environment",
+    "script.helper.pvz2.animation.helper_convert.input_source_pam_json": "Input source pam json"
 }

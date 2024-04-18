@@ -40,4 +40,41 @@ class MessageModel extends ChangeNotifier implements Shell {
     notifyListeners();
     return;
   }
+
+  @override
+  void sendMessageWithSubtitle(String title, String message) {
+    _messages.add(MessageWrapper(
+        title: title, icon: Icons.circle_outlined, message: message));
+    notify();
+    return;
+  }
+
+  Color _exchangeColor(String color) {
+    return switch (color) {
+      'red' => Colors.red,
+      'green' => Colors.green,
+      'yellow' => Colors.yellow,
+      'cyan' => Colors.cyan,
+      'default' => Colors.transparent,
+      _ => Colors.amber,
+    };
+  }
+
+  @override
+  void sendMessageWithSubtitleAndColor(
+    String title,
+    String message,
+    String color,
+  ) {
+    _messages.add(
+      MessageWrapper(
+        title: title,
+        icon: Icons.circle_outlined,
+        message: message,
+        color: _exchangeColor(color),
+      ),
+    );
+    notify();
+    return;
+  }
 }

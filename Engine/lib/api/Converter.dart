@@ -9,9 +9,8 @@ import 'dart:convert' as convert;
 class CStringConverter {
   /// Convert C String to Dart String
 
-  static String toDartString(Pointer<CStringView> stringview) {
-    var charCodes =
-        stringview.ref.value.cast<Uint8>().asTypedList(stringview.ref.size);
+  static String toDartString(Pointer<CStringView> str) {
+    var charCodes = str.ref.value.cast<Uint8>().asTypedList(str.ref.size);
     return String.fromCharCodes(charCodes);
   }
 
@@ -27,7 +26,7 @@ class CStringConverter {
 
   /// Convert Dart String to CStringView
 
-  static Pointer<Utf8> utf8ArrayToCString(Uint8List units) {
+  static Pointer<Utf8> utf8ListToCString(Uint8List units) {
     final Pointer<Uint8> result = calloc<Uint8>(units.length + 1);
     final Uint8List list = result.asTypedList(units.length + 1);
     list.setAll(0, units);

@@ -136,7 +136,7 @@ namespace Sen.Script {
 
         // Path type
 
-        export type Path = "file" | "directory";
+        export type Path = "file" | "directory" | "any";
 
         /**
          * Path input
@@ -173,6 +173,9 @@ namespace Sen.Script {
                                 break loop;
                             }
                             Console.warning(format(Kernel.Language.get("directory_not_found"), destination));
+                        }
+                        if (type === "any") {
+                            break loop;
                         }
                     }
                 }

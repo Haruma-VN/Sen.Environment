@@ -46,7 +46,7 @@ class Kernel {
               }
             case 4:
               {
-                _sendPort!.send([result[1], result[2]]);
+                _sendPort!.send([result[1], result[2], result[3]]);
                 break;
               }
           }
@@ -102,7 +102,7 @@ class Kernel {
     var additionalArguments = subEvent[2] as List<String>;
     var script = calloc<CStringView>(1);
     var scriptNativeString = CStringConverter.toUint8List(scriptPath);
-    var scriptPointer = CStringConverter.utf8ArrayToCString(scriptNativeString);
+    var scriptPointer = CStringConverter.utf8ListToCString(scriptNativeString);
     script.ref
       ..value = scriptPointer
       ..size = scriptNativeString.length;
@@ -116,7 +116,7 @@ class Kernel {
     for (var i = 0; i < argumentList.length; ++i) {
       var currentArgument = CStringConverter.toUint8List(argumentList[i]);
       var currentArgumentPointer =
-          CStringConverter.utf8ArrayToCString(currentArgument);
+          CStringConverter.utf8ListToCString(currentArgument);
       argument.elementAt(i).ref
         ..size = currentArgument.length
         ..value = currentArgumentPointer;
@@ -150,10 +150,25 @@ class Kernel {
   }
 
   void sendMessage(List<dynamic> packet) {
-    for (var e in packet) {
-      if (e != null && (e as String).isNotEmpty) {
-        gui.sendMessage(e);
-      }
+    if (packet[0] == null) {
+      return;
+    }
+    switch (packet.length) {
+      case 1:
+        {
+          gui.sendMessage(packet[0]);
+          break;
+        }
+      case 2:
+        {
+          gui.sendMessageWithSubtitle(packet[0], packet[1]);
+          break;
+        }
+      case 3:
+        {
+          gui.sendMessageWithSubtitleAndColor(packet[0], packet[1], packet[2]);
+          break;
+        }
     }
     return;
   }
