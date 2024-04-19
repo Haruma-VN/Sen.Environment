@@ -6,7 +6,7 @@ import 'package:engine/Components/Models/Theme.dart';
 import 'package:engine/Components/NavigationBar/NavigationBarView.dart';
 import 'package:engine/Components/NavigationBar/NavigationItem.dart';
 import 'package:engine/Components/common.dart';
-import 'package:engine/api/Kernel.dart';
+import 'package:engine/Api/Kernel.dart';
 import 'package:flutter/material.dart';
 
 class Application extends StatefulWidget {
@@ -19,14 +19,16 @@ class Application extends StatefulWidget {
 class _ApplicationState extends State<Application> {
   int currentPage = 0;
   List<WidgetCallback> pages = [
-    (BuildContext context, ScrollController scrollView) => ConsoleView(
+    (BuildContext context, ScrollController scrollView, Launcher launcher) =>
+        ConsoleView(
           context: context,
           scrollController: scrollView,
+          launcher: launcher,
         ),
-    (_, __) => SliverToBoxAdapter(
+    (_, __, ___) => SliverToBoxAdapter(
           child: Container(),
         ),
-    (_, __) => SliverToBoxAdapter(
+    (_, __, ___) => SliverToBoxAdapter(
           child: Container(),
         ),
   ];
@@ -35,7 +37,12 @@ class _ApplicationState extends State<Application> {
 
   @override
   Widget build(BuildContext context) {
-    final myPage = pages[currentPage](context, customScrollView);
+    var launcher = Launcher(
+      kernel: Kernel.open(
+        "D:/Code/Sen.Environment/Kernel/build/kernel/Release/kernel.dll",
+      ),
+    );
+    final myPage = pages[currentPage](context, customScrollView, launcher);
     return MaterialApp(
       theme: BasicTheme.lightMode,
       darkTheme: BasicTheme.darkMode,
@@ -71,17 +78,14 @@ class _ApplicationState extends State<Application> {
                       left: 0,
                       right: 0,
                       child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 5.0,
-                            right: 10.0,
-                            left: 10.0,
-                            bottom: 16.0,
-                          ),
-                          child: Launcher(
-                            kernel: Kernel.open(
-                              "D:/Code/Sen.Environment/Kernel/build/kernel/Release/kernel.dll",
-                            ),
-                          )),
+                        padding: const EdgeInsets.only(
+                          top: 5.0,
+                          right: 10.0,
+                          left: 10.0,
+                          bottom: 16.0,
+                        ),
+                        child: launcher,
+                      ),
                     )
                   : Container(),
             ],

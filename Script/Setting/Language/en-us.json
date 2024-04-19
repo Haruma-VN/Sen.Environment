@@ -461,7 +461,7 @@
     "popcap.reanim.platform.raw-xml": "Raw XML",
     "popcap.reanim.platform.tv": "TV",
     "script.helper.texture.upscaler.failed_to_upscale": "Failed to upscale",
-    "script.helper.texture.upscaler.debug": "only realesr-animevideov3 supports scale, otherwise is 4",
+    "script.helper.texture.upscaler.debug": "Only realesr-animevideov3 has scale, rest are 4",
     "script.helper.texture.cannot_find_real_esrgan": "Cannot find realesrgan",
     "script.helper.texture.this_function_only_support_windows_linux_macos": "This method only support Windows, Linux or Macintosh",
     "script.helper.texture.upscaler.input_source": "Input image or image directory to upscale",
@@ -471,5 +471,6 @@
     "popcap.animation.from_flash.document_has_no_frames": "Document has no frames",
     "popcap.animation.from_flash.document_has_no_DOMFrame": "Document has no DOMFrame",
     "script.invalid_input_data": "Incorrect input data. Please reinput, got: {}",
-    "script.cannot_execute_atlas_split_method": "Cannot execute atlas method, please use Console state instead"
+    "script.cannot_execute_atlas_split_method": "Cannot execute atlas method, please use Console state instead",
+    "missing_key": "Missing key"
 }

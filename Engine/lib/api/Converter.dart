@@ -2,7 +2,7 @@
 
 import 'dart:ffi';
 import 'dart:typed_data';
-import 'package:engine/api/Interface.dart';
+import 'package:engine/Api/Interface.dart';
 import 'package:ffi/ffi.dart';
 import 'dart:convert' as convert;
 

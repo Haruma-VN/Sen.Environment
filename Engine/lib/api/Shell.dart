@@ -1,4 +1,10 @@
 // ignore: file_names
+// ignore_for_file: unused_import
+
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+import 'package:engine/Api/Interface.dart';
+
 abstract class Shell {
   // API interact
   void sendMessage(String message);
@@ -13,4 +19,12 @@ abstract class Shell {
   void changeLoadingStatus();
 
   void notify();
+
+  void pushNotification(String message);
+
+  void setFinishedState();
+
+  void inputStringState();
+
+  Future<void> execute(Pointer<CStringView> arg);
 }

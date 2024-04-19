@@ -6,7 +6,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo {
     export interface Argument extends Sen.Script.Executor.Base {
         source: [string, ...Array<string>];
         destination?: string;
-        method?: Sen.Script.Support.PopCap.Atlas.Structure.TypicalMethod;
+        split_method?: Sen.Script.Support.PopCap.Atlas.Structure.TypicalMethod;
         style?: Sen.Script.Support.PopCap.Atlas.Structure.PathStyle;
     }
 
@@ -27,7 +27,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo {
      */
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
-        method: "?" | "path" | "id";
+        split_method: "?" | "path" | "id";
         style: "?" | "string" | "array";
     }
 
@@ -97,9 +97,9 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.SplitByResInfo {
                     category.forEach((e: string) => Console.obtained(e));
                     defined_or_default(argument, "destination", `${Kernel.Path.except_extension(json)}.sprite`);
                     Console.output(argument.destination!);
-                    load_bigint(argument, "method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
+                    load_bigint(argument, "split_method", this.configuration, Detail.method(), Kernel.Language.get("popcap.atlas.split.method"));
                     clock.start_safe();
-                    Support.PopCap.Atlas.Split.ResInfo.process_fs(category, argument.destination!, argument.method!);
+                    Support.PopCap.Atlas.Split.ResInfo.process_fs(category, argument.destination!, argument.split_method!);
                     clock.stop_safe();
                 });
                 return;

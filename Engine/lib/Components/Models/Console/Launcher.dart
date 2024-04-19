@@ -1,24 +1,46 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, must_be_immutable
 
 import 'package:engine/Components/Models/Console/MessageProvider.dart';
-import 'package:engine/api/Kernel.dart';
+import 'package:engine/Components/Models/Console/State.dart';
+import 'package:engine/Api/Kernel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:engine/Components/ProgressBar/ProgressBar.dart';
 
 class Launcher extends StatefulWidget {
-  const Launcher({
+  Launcher({
     super.key,
     required this.kernel,
   });
 
   final Kernel kernel;
 
+  final textEditingController = TextEditingController();
+
+  static Function()? onPressed;
+
   @override
   State<Launcher> createState() => _LauncherState();
 }
 
 class _LauncherState extends State<Launcher> {
+  Widget _exchangeState(MyState state) {
+    switch (state) {
+      case MyState.launch:
+        {
+          return const Text('LAUNCH');
+        }
+      case MyState.finish:
+        {
+          return const Text('FINISHED');
+        }
+      default:
+        {
+          return Container();
+        }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -51,9 +73,11 @@ class _LauncherState extends State<Launcher> {
                       },
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
-                  child: Provider.of<MessageModel>(context).isRunning.value
-                      ? const Text("FINISHED")
-                      : const Text("LAUNCH"),
+                  child: Row(
+                    children: [
+                      _exchangeState(Provider.of<MessageModel>(context).state)
+                    ],
+                  ),
                 ),
               ),
             )

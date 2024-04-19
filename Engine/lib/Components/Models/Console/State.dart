@@ -1,8 +1,10 @@
 // ignore_for_file: file_names
 
-enum State {
+enum MyState {
   inputString,
   inputFile,
   inputDirectory,
   choose,
+  launch,
+  finish,
 }

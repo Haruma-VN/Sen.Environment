@@ -1,9 +1,15 @@
 // ignore_for_file: file_names, prefer_const_constructors, unnecessary_this, must_be_immutable
+import 'dart:ffi';
+
+import 'package:engine/Api/Interface.dart';
 import 'package:engine/Components/Message/Message.dart';
 import 'package:engine/Components/Message/MessageWrapper.dart';
+import 'package:engine/Components/Models/Console/Launcher.dart';
 import 'package:engine/Components/Models/Console/MessageProvider.dart';
-import 'package:engine/api/Kernel.dart';
-import 'package:engine/api/Shell.dart';
+import 'package:engine/Components/Models/Controller/NotificationService.dart';
+import 'package:engine/Api/Kernel.dart';
+import 'package:engine/Api/Shell.dart';
+import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,11 +18,14 @@ class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
     super.key,
     required this.context,
     required this.scrollController,
+    required this.launcher,
   }) {
     Kernel.gui = this;
   }
 
   final ScrollController scrollController;
+
+  final Launcher launcher;
 
   @override
   State<ConsoleView> createState() => _ConsoleViewState();
@@ -52,6 +61,7 @@ class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
   @override
   void notify() {
     notifyListeners();
+    return;
   }
 
   @override
@@ -81,6 +91,41 @@ class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
       curve: Curves.easeOut,
     );
     notifyListeners();
+    return;
+  }
+
+  @override
+  void pushNotification(String message) {
+    NotificationService.push('Sen: Environment', message);
+    return;
+  }
+
+  @override
+  void setFinishedState() {
+    Provider.of<MessageModel>(context, listen: false).setFinishedState();
+    notifyListeners();
+    return;
+  }
+
+  @override
+  void inputStringState() {
+    Provider.of<MessageModel>(context, listen: false).inputStringState();
+    notifyListeners();
+    return;
+  }
+
+  String _inputString() {
+    return this.launcher.textEditingController.text;
+  }
+
+  @override
+  Future<void> execute(Pointer<CStringView> arg) async {
+    await Future.delayed(Duration(minutes: 1));
+    var e = '1';
+    arg.ref
+      ..size = e.length
+      ..value = e.toNativeUtf8();
+    return;
   }
 }
 
@@ -93,12 +138,6 @@ class _ConsoleViewState extends State<ConsoleView> {
             child: Text(
               e.message!,
               style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              e.message!,
-              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ],

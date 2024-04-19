@@ -1,8 +1,12 @@
 // ignore_for_file: prefer_final_fields, file_names
 
+import 'dart:ffi';
+
+import 'package:engine/Api/Interface.dart';
 import 'package:engine/Base/Boolean.dart';
 import 'package:engine/Components/Message/MessageWrapper.dart';
-import 'package:engine/api/Shell.dart';
+import 'package:engine/Components/Models/Console/State.dart';
+import 'package:engine/Api/Shell.dart';
 import 'package:flutter/material.dart';
 
 class MessageModel extends ChangeNotifier implements Shell {
@@ -13,6 +17,10 @@ class MessageModel extends ChangeNotifier implements Shell {
   List<MessageWrapper> get messages => _messages;
 
   Boolean get isRunning => _isRunning;
+
+  MyState _state = MyState.launch;
+
+  MyState get state => _state;
 
   @override
   void sendMessage(String message) {
@@ -38,6 +46,11 @@ class MessageModel extends ChangeNotifier implements Shell {
   @override
   void notify() {
     notifyListeners();
+    return;
+  }
+
+  @override
+  void pushNotification(String message) {
     return;
   }
 
@@ -76,5 +89,24 @@ class MessageModel extends ChangeNotifier implements Shell {
     );
     notify();
     return;
+  }
+
+  @override
+  void setFinishedState() {
+    _state = MyState.finish;
+    notify();
+    return;
+  }
+
+  @override
+  void inputStringState() {
+    _state = MyState.inputString;
+    notify();
+    return;
+  }
+
+  @override
+  Future<void> execute(Pointer<CStringView> arg) async {
+    notify();
   }
 }

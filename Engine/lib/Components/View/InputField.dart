@@ -33,19 +33,12 @@ class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.only(
-          left: 10.0,
-          right: 16.0,
-          bottom: 2.0,
-        ),
-        child: TextField(
-          controller: widget.controller,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            labelText: widget.placeholder,
-            suffixIcon: widget.icon,
-          ),
+      child: TextField(
+        controller: widget.controller,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: widget.placeholder,
+          suffixIcon: widget.icon,
         ),
       ),
     );

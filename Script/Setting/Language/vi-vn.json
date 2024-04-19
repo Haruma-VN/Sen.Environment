@@ -457,5 +457,20 @@
     "popcap.reanim.platform.phone-32": "Điện thoại 32bit",
     "popcap.reanim.platform.phone-64": "Điện thoại 64bit",
     "popcap.reanim.platform.raw-xml": "XML Thô",
-    "popcap.reanim.platform.tv": "TV"
+    "popcap.reanim.platform.tv": "TV",
+    "script.helper.texture.upscaler.failed_to_upscale": "Không thể phóng to",
+    "script.helper.texture.upscaler.debug": "Chỉ realesr-animevideov3 hỗ trợ nâng cấp, các phương pháp khác mặc định 4",
+    "script.helper.texture.cannot_find_real_esrgan": "Không tìm thấy realesrgan",
+    "script.helper.texture.this_function_only_support_windows_linux_macos": "Tính năng này chỉ hỗ trợ Windows, Linux hoặc Macintosh",
+    "script.helper.texture.upscaler.input_source": "Nhập ảnh hoặc thư mục ảnh cần nâng chất lượng",
+    "script.helper.texture.upscaler.input_realesrgan_path": "Đường dẫn thư mục realesrgan, hoặc để trống để tìm kiếm trong môi trường",
+    "script.helper.pvz2.animation.helper_convert.input_source_pam_json": "Nhập nguồn pam json",
+    "popcap.animation.from_flash.document_has_no_frame_name": "Tài liệu không có tên khung hình",
+    "popcap.animation.from_flash.document_has_no_frames": "Tài liệu không có khung hình",
+    "popcap.animation.from_flash.document_has_no_DOMFrame": "Tài liệu không có DOMFrame",
+    "script.invalid_input_data": "Dữ liệu đầu vào không hợp lệ. Vui lòng nhập lại, nhận được: {}",
+    "script.cannot_execute_atlas_split_method": "Không thể thực hiện phương thức tách atlas, vui lòng sử dụng Console",
+    "popcap.rsb.unpack_for_modding.packages_not_found": "Packages không tìm thấy, bỏ qua lệnh giải nén Packages",
+    "popcap.rsb.unpack_for_modding.manifest_group_not_found": "MANIFESTGROUP không tìm thấy, bỏ qua lệnh chuyển đổi",
+    "missing_key": "Thiếu thuộc tính"
 }

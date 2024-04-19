@@ -5,10 +5,14 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:engine/Api/Interface.dart';
+import 'package:engine/Base/BasicString.dart';
+import 'package:engine/Base/Boolean.dart';
 import 'package:engine/Base/Exception.dart';
-import 'package:engine/api/Converter.dart';
-import 'package:engine/api/Interface.dart';
-import 'package:engine/api/Shell.dart';
+import 'package:engine/Components/Models/Console/Launcher.dart';
+import 'package:engine/Api/Converter.dart';
+import 'package:engine/Api/Interface.dart';
+import 'package:engine/Api/Shell.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
@@ -36,17 +40,17 @@ class Kernel {
           switch (result.length) {
             case 2:
               {
-                _sendPort!.send([result[1]]);
+                _sendPort!.send(['display', result[1]]);
                 break;
               }
             case 3:
               {
-                _sendPort!.send([result[1], result[2]]);
+                _sendPort!.send(['display', result[1], result[2]]);
                 break;
               }
             case 4:
               {
-                _sendPort!.send([result[1], result[2], result[3]]);
+                _sendPort!.send(['display', result[1], result[2], result[3]]);
                 break;
               }
           }
@@ -54,11 +58,13 @@ class Kernel {
         }
       case 'input':
         {
-          var e = "1";
-          destination.ref
-            ..size = e.length
-            ..value = e.toNativeUtf8();
-          _sendPort!.send([null]);
+          var state = calloc<Bool>();
+          state.value = false;
+          _sendPort!.send(['input', state.address, destination.address]);
+          while (!state.value) {
+            sleep(const Duration(milliseconds: 10));
+          }
+          calloc.free(state);
           break;
         }
       case 'version':
@@ -77,6 +83,17 @@ class Kernel {
             ..size = _is_gui.length
             ..value = _is_gui.toNativeUtf8();
           _sendPort!.send([null]);
+          break;
+        }
+      case 'push_notification':
+        {
+          assert(result.length >= 2);
+          _sendPort!.send(['push_notification', result[1]]);
+          break;
+        }
+      case 'finish':
+        {
+          _sendPort!.send(['finish']);
           break;
         }
     }
@@ -149,10 +166,53 @@ class Kernel {
     dylib = DynamicLibrary.open(_kernelPath!);
   }
 
-  void sendMessage(List<dynamic> packet) {
-    if (packet[0] == null) {
+  void queryCommand(List<dynamic> event) {
+    var first = event.removeAt(0);
+    if (first == null) {
       return;
     }
+    switch (first) {
+      case 'display':
+        {
+          _sendMessage(event);
+          break;
+        }
+      case 'push_notification':
+        {
+          _pushNotification(event[0]);
+          break;
+        }
+      case 'finish':
+        {
+          _setFinishState();
+          break;
+        }
+      case 'input':
+        {
+          _setInputString();
+          break;
+        }
+    }
+
+    return;
+  }
+
+  void _setInputString() {
+    gui.inputStringState();
+    return;
+  }
+
+  void _setFinishState() {
+    gui.setFinishedState();
+    return;
+  }
+
+  void _pushNotification(String message) {
+    gui.pushNotification(message);
+    return;
+  }
+
+  void _sendMessage(List<dynamic> packet) {
     switch (packet.length) {
       case 1:
         {
@@ -189,12 +249,19 @@ class Kernel {
       var mainEvent = await mainStreamQueue.next as List<dynamic>?;
       if (mainEvent == null) {
         mainEvent = await mainStreamQueue.next as List<dynamic>;
-        sendMessage(mainEvent);
         break;
       } else {
-        sendMessage(mainEvent);
+        if (mainEvent[0] != null && mainEvent[0] == 'input') {
+          var callbackState = Pointer<Bool>.fromAddress(mainEvent[1]);
+          var destination = Pointer<CStringView>.fromAddress(mainEvent[2]);
+          await gui.execute(destination);
+          callbackState.value = true;
+        } else {
+          queryCommand(mainEvent);
+        }
       }
     }
+    gui.setFinishedState();
     await mainStreamQueue.cancel();
     return;
   }
