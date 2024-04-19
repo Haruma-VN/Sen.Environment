@@ -162,6 +162,9 @@ namespace Sen.Script {
                     }
                 }
             } while (true);
+            if (destination !== "") {
+                Console.finished(Kernel.Language.get("argument_got"), destination);
+            }
             return destination;
         }
     }
@@ -286,6 +289,7 @@ namespace Sen.Script {
         const result: string = launch();
         Console.error(result);
         Console.finished(Kernel.Language.get("method_are_succeeded"));
+        Shell.callback(["finish"]);
         return;
     }
 

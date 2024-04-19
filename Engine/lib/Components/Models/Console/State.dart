@@ -4,7 +4,10 @@ enum MyState {
   inputString,
   inputFile,
   inputDirectory,
+  inputEnumeration,
+  inputBoolean,
   choose,
   launch,
   finish,
+  idle,
 }

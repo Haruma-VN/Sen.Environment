@@ -24,9 +24,6 @@ class _InputFieldState extends State<InputField> {
   @override
   void dispose() {
     super.dispose();
-    if (widget.controller != null) {
-      widget.controller!.dispose();
-    }
     return;
   }
 

@@ -47,7 +47,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
             id: "popcap.rsb.pack_for_modding",
             configuration_file: Home.query("~/Executor/Configuration/popcap.rsb.pack_for_modding.json"),
             direct_forward(argument: Argument): void {
-                is_valid_source(argument, false);
+                is_valid_source(argument, true);
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
                 Console.output(argument.destination!);

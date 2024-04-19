@@ -46,7 +46,7 @@ class _ApplicationState extends State<Application> {
     return MaterialApp(
       theme: BasicTheme.lightMode,
       darkTheme: BasicTheme.darkMode,
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: Builder(
         builder: (context) => Scaffold(

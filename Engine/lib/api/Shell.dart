@@ -27,4 +27,15 @@ abstract class Shell {
   void inputStringState();
 
   Future<void> execute(Pointer<CStringView> arg);
+
+  Future<void> inputEnumeration(
+    Pointer<CStringView> dest,
+    List<String> arguments,
+  );
+
+  Future<void> inputBoolean(
+    Pointer<CStringView> dest,
+  );
+
+  void setIdle();
 }

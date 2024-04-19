@@ -149,7 +149,6 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Pack {
             Console.finished(Kernel.Language.get("popcap.rsb.pack_for_modding.converted_res_info_to_resource_group"));
         } else {
             Kernel.JSON.deserialize_fs<Kernel.Support.PopCap.ResInfo.Structure>(`${source}/res.json`);
-            Console.send(manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json"));
             Kernel.Support.PopCap.ResourceGroup.convert_fs(
                 `${source}/resource/${manifest.group[manifest_group].subgroup[manifest_group].packet_info.res.at(0)?.path.replace(/((\.rton|\.newton))$/i, ".json")}`,
                 `${source}/res.json`,

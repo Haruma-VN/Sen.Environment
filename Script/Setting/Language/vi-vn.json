@@ -472,5 +472,7 @@
     "script.cannot_execute_atlas_split_method": "Không thể thực hiện phương thức tách atlas, vui lòng sử dụng Console",
     "popcap.rsb.unpack_for_modding.packages_not_found": "Packages không tìm thấy, bỏ qua lệnh giải nén Packages",
     "popcap.rsb.unpack_for_modding.manifest_group_not_found": "MANIFESTGROUP không tìm thấy, bỏ qua lệnh chuyển đổi",
-    "missing_key": "Thiếu thuộc tính"
+    "missing_key": "Thiếu thuộc tính",
+    "script.input_any_path_to_continue": "Nhập bất kì đường dẫn để tiếp tục...",
+    "argument_got": "Thu được đối số"
 }

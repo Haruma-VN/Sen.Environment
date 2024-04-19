@@ -331,14 +331,14 @@ namespace Sen.Script.Executor {
 
     export function input_boolean(): boolean {
         if (Shell.is_gui) {
-            Kernel.Console.print(`1. ${Kernel.Language.get("input.set_argument_to_true")}`);
-            Kernel.Console.print(`2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+            const result = Shell.callback(["input_boolean"]);
+            return result === "1";
         } else {
             Kernel.Console.print(`    1. ${Kernel.Language.get("input.set_argument_to_true")}`);
             Kernel.Console.print(`    2. ${Kernel.Language.get("input.set_argument_to_false")}`);
+            const result = input_integer([1n, 2n]);
+            return result === 1n;
         }
-        const result = input_integer([1n, 2n]);
-        return result === 1n;
     }
 
     /**
@@ -350,14 +350,14 @@ namespace Sen.Script.Executor {
     export function input_integer(rule: Array<bigint>): bigint {
         let input: string = undefined!;
         if (Shell.is_gui) {
-            input = Kernel.Console.readline();
+            input = Shell.callback(["input_enumeration", ...rule.map((e) => e.toString())]);
         } else {
             while (true) {
                 input = Kernel.Console.readline();
                 if (/^\d+$/.test(input) && (rule as Array<bigint>).includes(BigInt(input))) {
                     break;
                 }
-                Console.error(Sen.Kernel.Language.get("js.invalid_input_value"));
+                Console.warning(Sen.Kernel.Language.get("js.invalid_input_value"));
             }
         }
         return BigInt(input);
@@ -650,6 +650,18 @@ namespace Sen.Script.Executor {
         return;
     }
 
+    export function input_path<Argument extends Base & { source: Array<string> }>(argument: Argument): void {
+        let input: string = undefined!;
+        while (true) {
+            input = Console.path(Kernel.Language.get("script.input_any_path_to_continue"), "any");
+            if (input === "") {
+                break;
+            }
+            argument.source.push(input);
+        }
+        return;
+    }
+
     export function forward<Argument extends Base>(argument: Argument): void {
         {
             const loader: ModuleLoader = { method: undefined! };
@@ -665,6 +677,9 @@ namespace Sen.Script.Executor {
                 execute(loader as Argument, method, Forward.DIRECT);
                 return;
             }
+        }
+        if ((argument.source as Array<string>).empty()) {
+            input_path(argument as any);
         }
         argument.source = (argument.source as Array<string>).map((e: string) => normalize(e));
         if ((argument.source as Array<string>).length > 1) {

@@ -22,6 +22,8 @@ class MessageModel extends ChangeNotifier implements Shell {
 
   MyState get state => _state;
 
+  set state(value) => _state = value;
+
   @override
   void sendMessage(String message) {
     _messages.add(MessageWrapper(title: message, icon: Icons.circle_outlined));
@@ -93,7 +95,7 @@ class MessageModel extends ChangeNotifier implements Shell {
 
   @override
   void setFinishedState() {
-    _state = MyState.finish;
+    _state = MyState.launch;
     notify();
     return;
   }
@@ -108,5 +110,29 @@ class MessageModel extends ChangeNotifier implements Shell {
   @override
   Future<void> execute(Pointer<CStringView> arg) async {
     notify();
+  }
+
+  @override
+  void setIdle() {
+    _state = MyState.idle;
+    notify();
+    return;
+  }
+
+  @override
+  Future<void> inputEnumeration(
+    Pointer<CStringView> dest,
+    List<String> arguments,
+  ) async {
+    _state = MyState.inputEnumeration;
+    notify();
+    return;
+  }
+
+  @override
+  Future<void> inputBoolean(Pointer<CStringView> dest) async {
+    _state = MyState.inputBoolean;
+    notify();
+    return;
   }
 }

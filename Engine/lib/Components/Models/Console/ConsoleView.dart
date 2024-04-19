@@ -1,6 +1,8 @@
-// ignore_for_file: file_names, prefer_const_constructors, unnecessary_this, must_be_immutable
+// ignore_for_file: file_names, prefer_const_constructors, unnecessary_this, must_be_immutable, unused_import
+import 'dart:async';
 import 'dart:ffi';
 
+import 'package:engine/Api/Converter.dart';
 import 'package:engine/Api/Interface.dart';
 import 'package:engine/Components/Message/Message.dart';
 import 'package:engine/Components/Message/MessageWrapper.dart';
@@ -114,17 +116,65 @@ class ConsoleView extends StatefulWidget with ChangeNotifier implements Shell {
     return;
   }
 
-  String _inputString() {
-    return this.launcher.textEditingController.text;
+  @override
+  void setIdle() {
+    Provider.of<MessageModel>(context, listen: false).setIdle();
+    notifyListeners();
+    return;
   }
 
   @override
   Future<void> execute(Pointer<CStringView> arg) async {
-    await Future.delayed(Duration(minutes: 1));
-    var e = '1';
+    var completer = Completer<String?>();
+    this.inputStringState();
+    launcher.completer = completer;
+    var e = await completer.future;
+    this.sendMessage(e!);
+    this.setIdle();
+    var units = CStringConverter.toUint8List(e);
+    var utf8Str = CStringConverter.utf8ListToCString(units);
     arg.ref
-      ..size = e.length
-      ..value = e.toNativeUtf8();
+      ..size = units.length
+      ..value = utf8Str;
+    await WidgetsBinding.instance.endOfFrame;
+    return;
+  }
+
+  @override
+  Future<void> inputEnumeration(
+      Pointer<CStringView> dest, List<String> arguments) async {
+    var completer = Completer<String?>();
+    Provider.of<MessageModel>(context, listen: false)
+        .inputEnumeration(dest, arguments);
+    notifyListeners();
+    Launcher.enumeration = arguments;
+    launcher.completer = completer;
+    var e = (await completer.future)!;
+    this.sendMessage(e);
+    this.setIdle();
+    var units = CStringConverter.toUint8List(e);
+    var utf8Str = CStringConverter.utf8ListToCString(units);
+    dest.ref
+      ..size = units.length
+      ..value = utf8Str;
+    await WidgetsBinding.instance.endOfFrame;
+    return;
+  }
+
+  @override
+  Future<void> inputBoolean(Pointer<CStringView> arg) async {
+    var completer = Completer<String?>();
+    Provider.of<MessageModel>(context, listen: false).inputBoolean(arg);
+    launcher.completer = completer;
+    var e = await completer.future;
+    this.setIdle();
+    this.sendMessage(e! == '1' ? "True" : "False");
+    var units = CStringConverter.toUint8List(e);
+    var utf8Str = CStringConverter.utf8ListToCString(units);
+    arg.ref
+      ..size = units.length
+      ..value = utf8Str;
+    await WidgetsBinding.instance.endOfFrame;
     return;
   }
 }

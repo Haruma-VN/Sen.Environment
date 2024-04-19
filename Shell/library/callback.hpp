@@ -228,6 +228,9 @@ namespace Sen::Shell {
 			tinyfd_notifyPopup(result[1].data(), result[2].data(), "info");
 			return;
 		}
+		if (result[0] == "finish") {
+			return;
+		}
 		return;
 	}
 

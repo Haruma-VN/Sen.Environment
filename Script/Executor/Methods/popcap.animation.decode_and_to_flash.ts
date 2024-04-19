@@ -76,7 +76,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.DecodeAndToFlash {
                 Console.output(argument.destination!);
                 load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 clock.start_safe();
-                Console.send(typeof argument.resolution!);
                 Kernel.Support.PopCap.Animation.Instance.to_flash(argument.source, argument.destination!, argument.resolution!);
                 clock.stop_safe();
                 return;

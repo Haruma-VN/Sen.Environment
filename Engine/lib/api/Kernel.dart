@@ -11,7 +11,6 @@ import 'package:engine/Base/Boolean.dart';
 import 'package:engine/Base/Exception.dart';
 import 'package:engine/Components/Models/Console/Launcher.dart';
 import 'package:engine/Api/Converter.dart';
-import 'package:engine/Api/Interface.dart';
 import 'package:engine/Api/Shell.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
@@ -33,24 +32,25 @@ class Kernel {
   ) {
     var result = CStringConverter.toList(list.ref);
     assert(result.length >= 1, "result must be greater or equals 1");
-    switch (result[0]) {
+    var command = result.removeAt(0);
+    switch (command) {
       case 'display':
         {
-          assert(result.length >= 2, "argument must be greater than 2");
+          assert(result.length >= 1, "argument must be greater than 1");
           switch (result.length) {
+            case 1:
+              {
+                _sendPort!.send(['display', result[0]]);
+                break;
+              }
             case 2:
               {
-                _sendPort!.send(['display', result[1]]);
+                _sendPort!.send(['display', result[0], result[1]]);
                 break;
               }
             case 3:
               {
-                _sendPort!.send(['display', result[1], result[2]]);
-                break;
-              }
-            case 4:
-              {
-                _sendPort!.send(['display', result[1], result[2], result[3]]);
+                _sendPort!.send(['display', result[0], result[1], result[2]]);
                 break;
               }
           }
@@ -60,7 +60,35 @@ class Kernel {
         {
           var state = calloc<Bool>();
           state.value = false;
-          _sendPort!.send(['input', state.address, destination.address]);
+          _sendPort!.send(['input_string', state.address, destination.address]);
+          while (!state.value) {
+            sleep(const Duration(milliseconds: 10));
+          }
+          calloc.free(state);
+          break;
+        }
+      case 'input_boolean':
+        {
+          var state = calloc<Bool>();
+          state.value = false;
+          _sendPort!
+              .send(['input_boolean', state.address, destination.address]);
+          while (!state.value) {
+            sleep(const Duration(milliseconds: 10));
+          }
+          calloc.free(state);
+          break;
+        }
+      case 'input_enumeration':
+        {
+          var state = calloc<Bool>();
+          state.value = false;
+          _sendPort!.send([
+            'input_enumeration',
+            state.address,
+            destination.address,
+            [...result]
+          ]);
           while (!state.value) {
             sleep(const Duration(milliseconds: 10));
           }
@@ -88,7 +116,7 @@ class Kernel {
       case 'push_notification':
         {
           assert(result.length >= 2);
-          _sendPort!.send(['push_notification', result[1]]);
+          _sendPort!.send(['push_notification', result[0], result[1]]);
           break;
         }
       case 'finish':
@@ -101,7 +129,7 @@ class Kernel {
     return;
   }
 
-  static _sub(
+  static Future<void> _sub(
     List<dynamic> isolateData,
   ) async {
     var mainSendPort = isolateData[0] as SendPort;
@@ -204,6 +232,7 @@ class Kernel {
 
   void _setFinishState() {
     gui.setFinishedState();
+    gui.changeLoadingStatus();
     return;
   }
 
@@ -251,10 +280,29 @@ class Kernel {
         mainEvent = await mainStreamQueue.next as List<dynamic>;
         break;
       } else {
-        if (mainEvent[0] != null && mainEvent[0] == 'input') {
+        if (mainEvent[0] != null &&
+            (mainEvent[0] as String).contains('input')) {
           var callbackState = Pointer<Bool>.fromAddress(mainEvent[1]);
           var destination = Pointer<CStringView>.fromAddress(mainEvent[2]);
-          await gui.execute(destination);
+          statement:
+          switch (mainEvent[0]) {
+            case 'input_string':
+              {
+                await gui.execute(destination);
+                break statement;
+              }
+            case 'input_enumeration':
+              {
+                var restStatement = (mainEvent[3] as List<String>);
+                await gui.inputEnumeration(destination, restStatement);
+                break statement;
+              }
+            case 'input_boolean':
+              {
+                await gui.inputBoolean(destination);
+                break statement;
+              }
+          }
           callbackState.value = true;
         } else {
           queryCommand(mainEvent);
