@@ -656,7 +656,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			if (has_duplicates(sprite_list) != -1)
 			{
-				throw Exception("sprite_duplicates: " + sprite_list[static_cast<std::size_t>(has_duplicates(sprite_list))], std::source_location::current(), "process");
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.convert.to_flash.sprite_duplicate"), sprite_list[static_cast<std::size_t>(has_duplicates(sprite_list))]), std::source_location::current(), "process");
 			}
 			auto frame_list = FrameList{};
 			decode_frame_list<true>(animation.main_sprite, frame_list);

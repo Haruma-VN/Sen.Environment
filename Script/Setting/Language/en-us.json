@@ -474,5 +474,6 @@
     "script.cannot_execute_atlas_split_method": "Cannot execute atlas method, please use Console state instead",
     "missing_key": "Missing key",
     "script.input_any_path_to_continue": "Input any path to continue...",
-    "argument_got": "Argument got"
+    "argument_got": "Argument got",
+    "popcap.animation.convert.to_flash.sprite_duplicate": "Sprite duplicate"
 }

@@ -39,7 +39,7 @@ namespace Sen.Script {
 
         export function error(str: string | undefined): void {
             if (str !== undefined) {
-                Console.display(`${Kernel.Language.get("runtime_error")}`, str, Definition.Console.Color.RED);
+                Console.display(`${Kernel.Language.get("runtime_error")}:`, str, Definition.Console.Color.RED);
             }
             return;
         }
@@ -232,7 +232,7 @@ namespace Sen.Script {
                     .join("\n");
             }
             return stack
-                .replace(/(\s)at(\s)/, ` ${Kernel.Language.get("at")} `)
+                .replaceAll("at", `${Kernel.Language.get("at")}`)
                 .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
                 .replaceAll("\\", "/")
                 .split("\n")
@@ -247,7 +247,7 @@ namespace Sen.Script {
          */
 
         export function make_exception_cli(e: Error): string {
-            let result: string = `\n    ${e.message}`;
+            let result: string = `${e.message}`;
             result += `\n● ${Kernel.Language.get("stack")}:\n`;
             result += make_stack(e.stack!);
             result = result.replace(/\n$/, "");
