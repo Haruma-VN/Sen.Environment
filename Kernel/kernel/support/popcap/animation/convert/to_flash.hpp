@@ -664,7 +664,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			write_action(frame_list, action_node_list);
 			if (has_duplicates(frame_list.action_name_list) != -1)
 			{
-				throw Exception("label_duplicates: " + frame_list.action_name_list[has_duplicates(frame_list.action_name_list)], std::source_location::current(), "process");
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.convert.to_flash.label_duplicate"), frame_list.action_name_list[has_duplicates(frame_list.action_name_list)]), std::source_location::current(), "process");
 			}
 			for (const auto &label : frame_list.action_name_list)
 			{

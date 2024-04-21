@@ -1,6 +1,5 @@
 namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     export type Canvas = Kernel.Canvas;
-
     export interface Setting {
         use_image_id: boolean;
         image_reslution: bigint;
@@ -27,6 +26,11 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         y_pos: Array<number>;
     }
 
+    export interface FrameList {
+        frame_node_list: FrameNodeList;
+        action_list: ActionList;
+    }
+
     export interface FrameStruct {
         resource: bigint | null;
         is_sprite: boolean;
@@ -49,7 +53,11 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
 
     export type SourceLayerData = Array<Kernel.Dimension.Image>;
 
-    export function read_image(image: Structure.AnimationImage, index: bigint): FrameStruct {
+    const initial_transform: number[] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+
+        const initial_color: number[] = [1.0, 1.0, 1.0, 1.0];
+
+    export function read_image(image: AnimationImage, index: bigint): FrameStruct {
         return {
             resource: index,
             is_sprite: false,
@@ -89,6 +97,240 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         return;
     }
 
+    export function check_base_frame(transform: number[], color: number[], resource: bigint | null): boolean {
+        for (let i = 0; i < transform.length; ++i) {
+            if (transform[i] !== initial_transform[i]) {
+                return true;
+            }
+        }
+        for (let i = 0; i < color.length; ++i) {
+            if (color[i] !== initial_color[i]) {
+                return true;
+            }
+        }
+        if (resource !== null) {
+            return true;
+        }
+        return false;
+    }
+
+    export function variant_to_standard(transform: number[]): number[] {
+        switch (transform.length) {
+            case 2: {
+                return [1.0, 0.0, 0.0, 1.0, transform[0], transform[1]];
+            }
+            case 3: {
+                const cos: number = Math.cos(transform[0]);
+                const sin: number = Math.sin(transform[0]);
+                return [cos, sin, -sin, cos, transform[1], transform[2]];
+            }
+            case 6: {
+                return [...transform];
+            }
+            default: {
+                throw new Error(Kernel.Language.get("popcap.animation.from_animation.invalid_transform"));
+            }
+        }
+    }
+
+    export function decode_frame_list(animation_sprite: AnimationSprite, animation: SexyAnimation): FrameList {
+        const sprite_model: SpriteModel = {};
+        const frame_node_list: FrameNodeList = {
+            "0": [
+                {
+                    index: 0n,
+                    duration: BigInt(animation_sprite["frame"].length),
+                    resource: null,
+                    sprite: false,
+                    transform: [...initial_transform],
+                    color: [...initial_color],
+                },
+            ],
+        };
+        const frame_length: number = animation_sprite["frame"].length;
+        let main_label: string = "";
+        const action_list: ActionList = {};
+        for (let i = 0; i < frame_length; ++i) {
+            const label: string = animation_sprite["frame"][i]["label"];
+            if (label !== null && label !== "") {
+                if (main_label !== "") {
+                    action_list[main_label]["duration"] = BigInt(i);
+                }
+                main_label = label;
+            }
+            if (main_label !== "") {
+                if (!action_list.hasOwnProperty(main_label)) {
+                    action_list[main_label] = {
+                        start_index: BigInt(i),
+                        duration: 0n,
+                        frame_index: [],
+                    };
+                }
+                if (i === frame_length - 1) {
+                    action_list[main_label]["duration"] = BigInt(i + 1);
+                }
+            }
+            const frame_removes: bigint[] = animation_sprite["frame"][i]["remove"];
+            for (let k = 0; k < frame_removes.length; ++k) {
+                sprite_model[`${frame_removes[k]}`]["state"] = false;
+            }
+            const frame_additives: AnimationAppend[] = animation_sprite["frame"][i]["append"];
+            for (let k = 0; k < frame_additives.length; ++k) {
+                sprite_model[`${frame_additives[k]["index"]}`] = {
+                    state: null,
+                    resource: frame_additives[k]["resource"],
+                    sprite: frame_additives[k]["sprite"],
+                    transform: [...initial_transform],
+                    color: [...initial_color],
+                    frame_start: BigInt(i),
+                    frame_duration: BigInt(i),
+                };
+                frame_node_list[`${frame_additives[k]["index"] + 1n}`] = [];
+                if (i > 0) {
+                    frame_node_list[`${frame_additives[k]["index"] + 1n}`].push({
+                        index: 0n,
+                        duration: BigInt(i),
+                        resource: null,
+                        sprite: false,
+                        transform: [...initial_transform],
+                        color: [...initial_color],
+                    });
+                }
+            }
+            const frame_moves: AnimationMove[] = animation_sprite["frame"][i]["change"];
+            for (let k = 0; k < frame_moves.length; ++k) {
+                const frame_change: AnimationMove = frame_moves[k];
+                const layers: Model = sprite_model[`${frame_change["index"]}`];
+                layers["state"] = true;
+                const static_transform: number[] = variant_to_standard(frame_change["transform"]);
+                layers["transform"] = static_transform;
+                if (
+                    frame_change["color"] !== null &&
+                    (frame_change["color"][0] !== initial_color[0] ||
+                        frame_change["color"][1] !== initial_color[1] ||
+                        frame_change["color"][2] !== initial_color[2] ||
+                        frame_change["color"][3] !== initial_color[3])
+                ) {
+                    layers["color"] = frame_change["color"];
+                }
+            }
+            const model_keys: string[] = Object.keys(sprite_model);
+            for (let k = 0; k < model_keys.length; ++k) {
+                const layers_index: bigint = BigInt(model_keys[k]);
+                if (main_label !== "") {
+                    if (!action_list[main_label]["frame_index"].includes(layers_index + 1n)) {
+                        action_list[main_label]["frame_index"].push(layers_index + 1n);
+                    }
+                }
+                const layers: Model = sprite_model[`${layers_index}`];
+                const frame_node: FrameNode[] = frame_node_list[`${layers_index + 1n}`];
+                if (layers["state"] !== null) {
+                    if (frame_node.length > 0) {
+                        frame_node[`${frame_node.length - 1}`]["duration"] = layers["frame_duration"];
+                    }
+                }
+                if (layers["state"] === true) {
+                    let first_frame: bigint = layers["sprite"] ? (BigInt(i) - layers["frame_start"]) % BigInt(animation.sprite[Number(layers["resource"])]["frame"].length) : 0n;
+                    frame_node.push({
+                        index: BigInt(i),
+                        duration: 0n,
+                        resource: layers["resource"],
+                        sprite: layers["sprite"],
+                        first_frame: first_frame,
+                        transform: layers["transform"],
+                        color: layers["color"],
+                    });
+                    layers["state"] = null;
+                    layers["frame_duration"] = 0n;
+                }
+                if (layers["state"] === false) {
+                    delete sprite_model[`${layers_index}`];
+                }
+                ++layers["frame_duration"];
+            }
+        }
+        const model_keys: string[] = Object.keys(sprite_model);
+        for (let i = 0; i < model_keys.length; ++i) {
+            const layers_index: bigint = BigInt(model_keys[i]);
+            const layer: Model = sprite_model[`${layers_index}`];
+            const frame_node: FrameNode[] = frame_node_list[`${layers_index + 1n}`];
+            frame_node[`${frame_node.length - 1}`]["duration"] = layer["frame_duration"];
+            delete sprite_model[`${layers_index}`];
+        }
+        return {
+            frame_node_list: frame_node_list,
+            action_list: action_list,
+        };
+    }
+
+    export function write_action(frame_list: FrameList): Record<string, Record<string, FrameNode[]>> {
+        const action_list: ActionList = frame_list["action_list"];
+        const action_keys: string[] = Object.keys(action_list);
+        const action_node_list: Record<string, Record<string, FrameNode[]>> = {};
+        const frame_node_list: FrameNodeList = frame_list["frame_node_list"];
+        const frame_keys: string[] = Object.keys(frame_node_list);
+        for (let label of action_keys) {
+            const action_node: Action = action_list[label];
+            const start_index: bigint = action_node["start_index"];
+            const action_duration: bigint = action_node["duration"];
+            action_node_list[label] = { "0": [] };
+            const last_frames_list: bigint[] = [];
+            let last_index: number = 0;
+            for (let i = 0; i < frame_keys.length; ++i) {
+                if (!action_node["frame_index"].includes(BigInt(i))) continue;
+                const action_frame_node: FrameNode[] = [];
+                const frame_node: FrameNode[] = frame_node_list[i];
+                for (let k = 0; k < frame_node.length; ++k) {
+                    const index: bigint = frame_node[k]["index"];
+                    const duration: bigint = frame_node[k]["duration"];
+                    if (index + duration <= start_index) continue;
+                    if (index >= action_duration) break;
+                    const frame_node_template = Kernel.Miscellaneous.make_copy<FrameNode>(frame_node[k]);
+                    if (index + duration > action_duration) {
+                        if (index < action_duration) {
+                            if (index < start_index) {
+                                frame_node_template["index"] = start_index;
+                                frame_node_template["duration"] -= duration - action_duration - index + start_index;
+                            } else {
+                                frame_node_template["duration"] -= duration + index - action_duration;
+                            }
+                        }
+                        frame_node_template["index"] -= start_index;
+                        action_frame_node.push(frame_node_template);
+                    } else {
+                        if (index < start_index) {
+                            frame_node_template["index"] = start_index;
+                            frame_node_template["duration"] -= start_index - index;
+                        }
+                        frame_node_template["index"] -= start_index;
+                        action_frame_node.push(frame_node_template);
+                    }
+                    last_frames_list.push(frame_node_template["index"] + frame_node_template["duration"]);
+                }
+                action_node_list[label][`${i}`] = action_frame_node;
+                last_index = i;
+            }
+            const last_frame: bigint = BigIntMax(...last_frames_list);
+            if (last_frame < action_duration - start_index) {
+                action_node_list[label][`${last_index + 1}`] = [
+                    {
+                        index: 0n,
+                        duration: action_duration - start_index,
+                        resource: null,
+                        sprite: false,
+                        transform: [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                        color: [1.0, 1.0, 1.0, 1.0],
+                    },
+                ];
+            }
+        }
+        return action_node_list;
+    }
+
+    function BigIntMax(...args: bigint[]): bigint {
+        return args.reduce((m, e) => (e > m ? e : m));
+    }
+
     export function read_sprite_for_action(
         frame_node_list: FrameNodeList,
         image_max_area: AreaList,
@@ -109,7 +351,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                 const transform = frame_node[k].transform;
                 const color = frame_node[k].color;
                 const resource = frame_node[k].resource;
-                if (FromAnimation.check_base_frame(transform, color, resource)) {
+                if (check_base_frame(transform, color, resource)) {
                     frame_struct.resource = resource;
                     frame_struct.transform_list = to_transform(transform);
                     frame_struct.color_list = to_color(color);
@@ -139,7 +381,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                 const transform = frame_node[k].transform;
                 const color = frame_node[k].color;
                 const resource = frame_node[k].resource;
-                if (FromAnimation.check_base_frame(transform, color, resource)) {
+                if (check_base_frame(transform, color, resource)) {
                     frame_struct.resource = resource;
                     frame_struct.transform_list = to_transform(transform);
                     frame_struct.color_list = to_color(color);
@@ -308,14 +550,14 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             animation_struct.source_layer.push(read_image(image, image_index++));
         }
         for (let sprite of animation.sprite) {
-            const frame_list = FromAnimation.decode_frame_list(sprite, animation);
+            const frame_list = decode_frame_list(sprite, animation);
             animation_struct.sprite_layer.push({
                 name: sprite.name,
                 frame: read_sprite(frame_list.frame_node_list),
             });
         }
-        const frame_list = FromAnimation.decode_frame_list(animation.main_sprite, animation);
-        const action_node_list = FromAnimation.write_action(frame_list);
+        const frame_list = decode_frame_list(animation.main_sprite, animation);
+        const action_node_list = write_action(frame_list);
         for (const [key, value] of Object.entries(action_node_list)) {
             const action = read_sprite_for_action(value, image_max_area, image_source_list, animation_struct);
             animation_struct.action_layer[key] = action;

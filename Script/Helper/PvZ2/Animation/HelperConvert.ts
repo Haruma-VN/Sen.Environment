@@ -18,8 +18,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
         stop: boolean;
         command: Array<AnimationCommandHelper>;
         remove: Array<AnimationRemoveHelper>;
-        append: Array<Animation.Structure.AnimationAppend>;
-        change: Array<Animation.Structure.AnimationMove>;
+        append: Array<Animation.AnimationAppend>;
+        change: Array<Animation.AnimationMove>;
     }
 
     export interface AnimationSpriteHelper {
@@ -40,7 +40,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
     }
 
     export function convert(animation: SexyAnimation): SexyAnimationHelper {
-        const rewrite_sprite = (e: Animation.Structure.AnimationSprite) => {
+        const rewrite_sprite = (e: Animation.AnimationSprite) => {
             const sprite: AnimationSpriteHelper = {
                 name: e.name,
                 description: e.description,
