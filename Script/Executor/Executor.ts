@@ -497,11 +497,7 @@ namespace Sen.Script.Executor {
 
     export function display_argument(argument: string | string[]): void {
         if (is_string(argument)) {
-            if (Shell.is_gui) {
-                Console.display(`${Kernel.Language.get("execution_argument")}:`, `${argument}`, Definition.Console.Color.CYAN);
-            } else {
-                Console.display(`${Kernel.Language.get("execution_argument")}:`, `    ${argument}`, Definition.Console.Color.CYAN);
-            }
+            Console.display(`${Kernel.Language.get("execution_argument")}:`, argument, Definition.Console.Color.CYAN);
         } else {
             Console.send(`${Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
             argument.forEach(function call_print(e): void {
@@ -685,7 +681,8 @@ namespace Sen.Script.Executor {
         if ((argument.source as Array<string>).length > 1) {
             Console.send(`${Kernel.Language.get("js.make_host.argument_obtained")}:`, Definition.Console.Color.CYAN);
             (argument.source as Array<string>).forEach((e, i) => {
-                Kernel.Console.print(`    ${i + 1}. ${e}`);
+                if (Shell.is_gui) Kernel.Console.print(`${i + 1}. ${e}`);
+                else Kernel.Console.print(`    ${i + 1}. ${e}`);
             });
             Console.send(format(`${Kernel.Language.get("js.obtained_argument")}:`, (argument.source as string).length), Definition.Console.Color.CYAN);
             if (Shell.is_gui) {

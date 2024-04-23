@@ -75,7 +75,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				auto content = nlohmann::ordered_json{};
 				for(auto & c : resource["groups"])
 				{
-					if(c.find("resources") != c.end())
+					if (c.find("resources") != c.end())
 					{
 						for(auto & e : c["resources"])
 						{
@@ -84,7 +84,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					}
 					if((c.find("resources") != c.end()) && (c.find("parent") != c.end()))
 					{
-						FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"]), c);
+						FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"].get<std::string>()), c);
 					}
 					if((c.find("subgroups") != c.end()) || (c.find("resources") != c.end() && c.find("parent") == c.end())){
 						if(c.find("subgroups") != c.end())
@@ -103,7 +103,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 									}}
 								}}
 							};
-							FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"]), c);
+							FileSystem::write_json(fmt::format("{}/subgroup/{}.json", destination, c["id"].get<std::string>()), c);
 						}
 					}
 				}
