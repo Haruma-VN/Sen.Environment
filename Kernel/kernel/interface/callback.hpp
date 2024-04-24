@@ -497,6 +497,12 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
 					// resize_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::resize_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "resize_fs"_sv);
+					// dump_document
+					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::dump_document, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "dump_document"_sv);
+					// generate_image
+					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::generate_image, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "generate_image"_sv);
+					// generate_sprite
+					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::generate_sprite, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "generate_sprite"_sv);
 				}
 				// reanim
 				{
@@ -618,6 +624,10 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::FileOutputStream::register_class);
 				// FileStream
 				javascript->register_object(Script::Class::FileStream::register_class);
+				// Image
+				javascript->register_object(Script::Class::Image::register_class);
+				// Sprite
+				javascript->register_object(Script::Class::Sprite::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;

@@ -56,7 +56,7 @@ declare namespace Sen {
          *
          * @param params An optional array of strings passed as additional arguments.
          */
-        export function test(...params: Array<string>): void;
+        export function test(param: Record<string, unknown>): void;
 
         /**
          * Sub-namespace for XML processing functionalities within the kernel.
@@ -1665,9 +1665,160 @@ declare namespace Sen {
                         export function convert_fs(source: string, destination: string): void;
                     }
 
+                    /**
+                     * Namespace for miscellaneous document, image, and sprite utilities
+                     */
+                    declare namespace Miscellaneous {
+                        /**
+                         * Interface representing the structure of a document
+                         */
+                        export interface Document {
+                            /** Array of paths to sprites */
+                            sprite: Array<string>;
+                            /** Array of paths to images */
+                            image: Array<string>;
+                            /** Array of paths to media files */
+                            media: Array<string>;
+                            /** Array of action definitions (likely for user interactions) */
+                            action: Array<string>;
+                        }
+
+                        /**
+                         * Type representing a transformation matrix (used for positioning and manipulation)
+                         */
+                        export type Matrix = [number, number, number, number, number, number];
+
+                        /**
+                         * Type representing a color with RGBA values
+                         */
+                        export type Color = [number, number, number, number];
+
+                        /**
+                         * Class encapsulating information about an image
+                         */
+                        declare class Image {
+                            /** Name of the image */
+                            private _name: string;
+                            /** ID of the image (possibly unique within the document) */
+                            private _id: string;
+                            /** Transformation matrix for the image */
+                            private _transform: Matrix;
+
+                            /**
+                             * Constructor for the Image class
+                             * @param name  Name of the image
+                             * @param id    ID of the image (possibly unique within the document)
+                             * @param transform Transformation matrix for the image
+                             */
+                            constructor(name: string, id: string, transform: Matrix);
+
+                            /** Getter for the image name */
+                            get name(): string;
+                            /** Setter for the image name */
+                            set name(name: string);
+
+                            /** Getter for the image ID */
+                            get id(): string;
+                            /** Setter for the image ID */
+                            set id(id: string);
+
+                            /** Getter for the image transformation matrix */
+                            get transform(): Matrix;
+                            /** Setter for the image transformation matrix */
+                            set transform(matrix: Matrix);
+                        }
+
+                        /**
+                         * Class encapsulating information about a sprite
+                         */
+                        declare class Sprite {
+                            /** Name of the sprite */
+                            private _name: string;
+                            /** Link to the image data for the sprite */
+                            private _link: string;
+                            /** Transformation matrix for the sprite */
+                            private _transform: Matrix;
+                            /** Color of the sprite */
+                            private _color: Color;
+
+                            /**
+                             * Constructor for the Sprite class
+                             * @param name  Name of the sprite
+                             * @param link   Link to the image data for the sprite
+                             * @param transform Transformation matrix for the sprite
+                             * @param color  Color of the sprite
+                             */
+                            constructor(name: string, link: string, transform: Matrix, color: Color);
+
+                            /** Getter for the sprite name */
+                            get name(): string;
+                            /** Setter for the sprite name */
+                            set name(name: string);
+
+                            /** Getter for the sprite image link */
+                            get link(): string;
+                            /** Setter for the sprite image link */
+                            set link(id: string);
+
+                            /** Getter for the sprite transformation matrix */
+                            get transform(): Matrix;
+                            /** Setter for the sprite transformation matrix */
+                            set transform(matrix: Matrix);
+
+                            /** Getter for the sprite color */
+                            get color(): Color;
+                            /** Setter for the sprite color */
+                            set color(color: Color);
+                        }
+
+                        /**
+                         * Function to save a document object to a specified location
+                         * @param source  Path to the source document
+                         * @param document The document object to be saved
+                         */
+                        export function dump_document(source: string, document: Document): void;
+
+                        /**
+                         * Function to create an image file based on an Image object
+                         * @param destination Path to save the generated image file
+                         * @param image  The Image object containing the image data
+                         */
+                        export function generate_image(destination: string, image: Image): void;
+
+                        /**
+                         * Function to create a sprite image file based on a Sprite object
+                         * @param destination Path to save the generated sprite file
+                         * @param sprite  The Sprite object containing the sprite data
+                         */
+                        export function generate_sprite(destination: string, sprite: Sprite): void;
+
+                        // TODO : Add this function
+
+                        /**
+                         * Function to append a sprite to an existing image or sprite sheet (likely at a specified layer)
+                         * @param destination Path of the target image or sprite sheet where the sprite will be appended
+                         * @param sprite  A Sprite object with an additional `layer` property of type `bigint` (a large integer) to specify the layer for placement.
+                         */
+                        export function append_sprite(destination: string, sprite: Sprite & { layer: bigint }): void;
+                    }
+
+                    /**
+                     * Namespace for potential conversion to/from a specific game engine or development tool (possibly Flash)
+                     */
                     declare namespace Instance {
+                        /**
+                         * Function to convert data from the project's format to Flash (likely for export)
+                         * @param source  Path to the source data file
+                         * @param destination Path to save the converted data in Flash format
+                         * @param resolution Resolution for the converted data (likely in pixels)
+                         */
                         export function to_flash(source: string, destination: string, resolution: bigint): void;
 
+                        /**
+                         * Function to convert data from Flash format to the project's format (likely for import)
+                         * @param source  Path to the source data file in Flash format
+                         * @param destination Path to save the converted data in the project's format
+                         */
                         export function from_flash(source: string, destination: string): void;
                     }
                 }

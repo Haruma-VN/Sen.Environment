@@ -1,5 +1,4 @@
-// ignore: file_names
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, file_names
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';

@@ -308,6 +308,8 @@ namespace Sen.Script {
             Module.load();
             Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Setting.load();
+            let u = new Kernel.Support.PopCap.Animation.Miscellaneous.Image("hello", "world", [1, 2, 3, 4, 5, 6]);
+            let t = new Kernel.Support.PopCap.Animation.Miscellaneous.Sprite("hello", "hello", [1, 2, 3, 4, 5, 6], [1, 2, 3, 4]);
             Console.finished(Kernel.Language.get("current_status"), format(Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
             Executor.forward({ source: Kernel.arguments });
         } catch (e: any) {

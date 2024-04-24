@@ -476,5 +476,10 @@
     "script.input_any_path_to_continue": "Input any path to continue...",
     "argument_got": "Argument got",
     "popcap.animation.convert.to_flash.sprite_duplicate": "Sprite duplicate",
-    "popcap.animation.convert.to_flash.label_duplicate": "Label duplicate"
+    "popcap.animation.convert.to_flash.label_duplicate": "Label duplicate",
+    "popcap.animation.miscellaneous.symbols_is_null": "symbols property is null in DOMDocument",
+    "popcap.animation.miscellaneous.media_is_null": "media property is null in DOMDocument",
+    "popcap.animation.miscellaneous.invalid_media": "Invalid media",
+    "popcap.animation.miscellaneous.document_is_null": "Invalid DOMDocument, DOMDocument property is null",
+    "popcap.animation.miscellaneous.argument_must_be_object": "argument must be object"
 }

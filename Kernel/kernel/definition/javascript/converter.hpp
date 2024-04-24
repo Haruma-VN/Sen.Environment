@@ -338,6 +338,22 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					}
 					return m_list;
 				}
+				else if constexpr (std::is_same<T, float>::value){
+					auto m_list = std::vector<float>{};
+					for (auto i : Range<int>(length)) {
+						auto val = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(Converter::get_float32(context, val));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, double>::value){
+					auto m_list = std::vector<double>{};
+					for (auto i : Range<int>(length)) {
+						auto val = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(Converter::get_float64(context, val));
+					}
+					return m_list;
+				}
 				else {
 					auto m_list = std::vector<JSValue>{};
 					for (auto i : Range<int>(length)) {
@@ -398,6 +414,22 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, float>::value) {
+					auto m_list = std::vector<float>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_float32(context, value)));
+					}
+					return m_list;
+				}
+				else if constexpr (std::is_same<T, double>::value) {
+					auto m_list = std::vector<double>{};
+					for (auto i : Range<int>(length)) {
+						auto value = JS_GetPropertyUint32(context, that, i);
+						m_list.emplace_back(static_cast<T>(JS::Converter::get_float64(context, value)));
 					}
 					return m_list;
 				}
@@ -481,6 +513,38 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				auto js_array = JS_NewArray(ctx);
 				for (auto i : Range<size_t>(vec.size())) {
 					JS_SetPropertyUint32(ctx, js_array, i, JS_NewBigInt64(ctx, static_cast<int64_t>(vec[i])));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
+				JSContext* ctx,
+				const std::vector<float>& vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewFloat64(ctx, static_cast<float>(vec[i])));
+				}
+				return js_array;
+			}
+
+			/**
+			 * Convert Vector to JS Array
+			*/
+
+			inline static auto to_array(
+				JSContext* ctx,
+				const std::vector<double>& vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewFloat64(ctx, static_cast<double>(vec[i])));
 				}
 				return js_array;
 			}

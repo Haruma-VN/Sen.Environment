@@ -36,6 +36,7 @@
 #include "kernel/support/popcap/animation/convert/to_flash.hpp"
 #include "kernel/support/popcap/animation/convert/instance.hpp"
 #include "kernel/support/popcap/animation/convert/resize.hpp"
+#include "kernel/support/popcap/animation/miscellaneous/dump.hpp"
 #include "kernel/support/popcap/reanim/decode.hpp"
 #include "kernel/support/popcap/reanim/encode.hpp"
 #include "kernel/support/popcap/reanim/convert/from_flash.hpp"

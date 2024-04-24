@@ -2600,7 +2600,7 @@ namespace Sen::Kernel::Interface::Script {
 				JSValue val
 			) -> void
 			{
-				auto s = (Data*)JS_GetOpaque(val, class_id);
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
 				if (s != nullptr) {
 					delete s;
 				}
@@ -2729,6 +2729,352 @@ namespace Sen::Kernel::Interface::Script {
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				return;
+			}
+
+		}
+
+		namespace Image {
+
+			using Data = Kernel::Support::PopCap::Animation::Miscellaneous::Image;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+
+			using Matrix = std::array<double, 6>;
+
+			auto constexpr matrix_from_transform(Matrix& matrix, std::vector<double>& transform) -> void {
+				matrix = { transform[0], transform[1], transform[2], transform[3], transform[4], transform[5] };
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					auto s = static_cast<Data*>(nullptr);
+					auto obj = JS_UNDEFINED;
+					auto proto = JSElement::Prototype{};
+					if (argc == 3) {
+						auto name = JS::Converter::get_string(ctx, argv[0]);
+						auto id = JS::Converter::get_string(ctx, argv[1]);
+						auto transform = JS::Converter::get_vector<double>(ctx, argv[2]);
+						auto matrix = Matrix{};
+						matrix_from_transform(matrix, transform);
+						s = new Data(name, id, matrix);
+					}
+					else {
+						JS_ThrowInternalError(ctx, "Constructor for Image class does not match, expected 3 argument, got: %d", argc);
+						return JS_EXCEPTION;
+					}
+					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+					if (JS_IsException(proto)) {
+						goto fail;
+					}
+					obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						goto fail;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+				fail:
+					js_free(ctx, s);
+					JS_FreeValue(ctx, obj);
+					return JS_EXCEPTION;
+					}, "proxy_constructor");
+			}
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Image",
+				.finalizer = finalizer,
+			};
+
+			enum class Value : uint8_t {
+				name,
+				id,
+				transform,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Value>(magic)) {
+					case Value::name: {
+						return JS::Converter::to_string(ctx, s->name);
+					}
+					case Value::id: {
+						return JS::Converter::to_string(ctx, s->id);
+					}
+					case Value::transform: {
+						return JS::Converter::to_array(ctx, std::vector<double>{s->transform.begin(), s->transform.end()});
+					}
+				}
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Value>(magic)) {
+					case Value::name: {
+						s->name = JS::Converter::get_string(ctx, val);
+					}
+					case Value::id: {
+						s->id = JS::Converter::get_string(ctx, val);
+					}
+					case Value::transform: {
+						auto transform = JS::Converter::get_array<double>(ctx, val);
+						matrix_from_transform(s->transform, transform);
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("name", getter, setter, static_cast<int>(Value::name)),
+				JS_CPPGETSET_MAGIC_DEF("id", getter, setter, static_cast<int>(Value::id)),
+				JS_CPPGETSET_MAGIC_DEF("transform", getter, setter, static_cast<int>(Value::transform)),
+			};
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Image class register failed", "register_class");
+				auto class_name = "Image"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj3, obj2, "Support"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
+				JS_SetPropertyStr(ctx, obj6, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, obj3);
+				JS_FreeValue(ctx, obj4);
+				JS_FreeValue(ctx, obj5);
+				JS_FreeValue(ctx, obj6);
+				return;
+			}
+
+		}
+
+		namespace Sprite {
+
+			using Data = Kernel::Support::PopCap::Animation::Miscellaneous::Sprite;
+
+			inline static JSClassID class_id;
+
+			inline static auto finalizer(
+				JSRuntime* rt,
+				JSValue val
+			) -> void
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque(val, class_id));
+				if (s != nullptr) {
+					delete s;
+				}
+				return;
+			}
+
+
+			using Matrix = std::array<double, 6>;
+
+			using Color = std::array<double, 4>;
+
+			auto constexpr matrix_from_transform(Matrix& matrix, std::vector<double>& transform) -> void {
+				matrix = { transform.at(0), transform.at(1), transform.at(2), transform.at(3), transform.at(4), transform.at(5) };
+			};
+
+			auto constexpr color_from_transform(Color& matrix, std::vector<double>& transform) -> void {
+				matrix = { transform.at(0), transform.at(1), transform.at(2), transform.at(3) };
+			};
+
+			inline static auto constructor(
+				JSContext* ctx,
+				JSValueConst new_target,
+				int argc,
+				JSValueConst* argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					auto s = static_cast<Data*>(nullptr);
+					auto obj = JS_UNDEFINED;
+					auto proto = JSElement::Prototype{};
+					if (argc == 4) {
+						auto name = JS::Converter::get_string(ctx, argv[0]);
+						auto link = JS::Converter::get_string(ctx, argv[1]);
+						auto transform = JS::Converter::get_vector<double>(ctx, argv[2]);
+						auto color = JS::Converter::get_vector<double>(ctx, argv[3]);
+						auto matrix = Matrix{};
+						auto basic_color = Color{};
+						matrix_from_transform(matrix, transform);
+						color_from_transform(basic_color, color);
+						s = new Data(name, link, matrix, basic_color);
+					}
+					else {
+						JS_ThrowInternalError(ctx, "Constructor for Sprite class does not match, expected 4 argument, got: %d", argc);
+						return JS_EXCEPTION;
+					}
+					proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+					if (JS_IsException(proto)) {
+						goto fail;
+					}
+					obj = JS_NewObjectProtoClass(ctx, proto, class_id);
+					JS_FreeValue(ctx, proto);
+					if (JS_IsException(obj)) {
+						goto fail;
+					}
+					JS_SetOpaque(obj, s);
+					return obj;
+				fail:
+					js_free(ctx, s);
+					JS_FreeValue(ctx, obj);
+					return JS_EXCEPTION;
+					}, "proxy_constructor");
+			}
+
+			inline static auto this_class = JSClassDef{
+				.class_name = "Image",
+				.finalizer = finalizer,
+			};
+
+			enum class Value : uint8_t {
+				name,
+				link,
+				transform,
+				color,
+			};
+
+			inline static auto getter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				int magic
+			) -> JSElement::any
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Value>(magic)) {
+					case Value::name: {
+						return JS::Converter::to_string(ctx, s->name);
+					}
+					case Value::link: {
+						return JS::Converter::to_string(ctx, s->link);
+					}
+					case Value::transform: {
+						return JS::Converter::to_array(ctx, std::vector<double>{s->transform.begin(), s->transform.end()});
+					}
+					case Value::color: {
+						return JS::Converter::to_array(ctx, std::vector<double>{s->color.begin(), s->color.end()});
+					}
+				}
+			}
+
+			inline static auto setter(
+				JSContext* ctx,
+				JSValueConst this_val,
+				JSValueConst val,
+				int magic
+			) -> JSElement::undefined
+			{
+				auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, class_id));
+				if (s == nullptr) {
+					return JS_EXCEPTION;
+				}
+				switch (static_cast<Value>(magic)) {
+					case Value::name: {
+						s->name = JS::Converter::get_string(ctx, val);
+					}
+					case Value::link: {
+						s->link = JS::Converter::get_string(ctx, val);
+					}
+					case Value::transform: {
+						auto transform = JS::Converter::get_array<double>(ctx, val);
+						matrix_from_transform(s->transform, transform);
+					}
+					case Value::color: {
+						auto color = JS::Converter::get_array<double>(ctx, val);
+						color_from_transform(s->color, color);
+					}
+				}
+				return JS_UNDEFINED;
+			}
+
+			inline static const JSCFunctionListEntry proto_functions[] = {
+				JS_CPPGETSET_MAGIC_DEF("name", getter, setter, static_cast<int>(Value::name)),
+				JS_CPPGETSET_MAGIC_DEF("link", getter, setter, static_cast<int>(Value::link)),
+				JS_CPPGETSET_MAGIC_DEF("transform", getter, setter, static_cast<int>(Value::transform)),
+				JS_CPPGETSET_MAGIC_DEF("color", getter, setter, static_cast<int>(Value::color)),
+			};
+
+
+			inline static auto register_class(
+				JSContext* ctx
+			) -> void
+			{
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Image class register failed", "register_class");
+				auto class_name = "Sprite"_sv;
+				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+				auto proto = JS_NewObject(ctx);
+				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+				JS_SetConstructor(ctx, point_ctor, proto);
+				auto global_obj = JS_GetGlobalObject(ctx);
+				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj3, obj2, "Support"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
+				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
+				JS_SetPropertyStr(ctx, obj6, class_name.data(), point_ctor);
+				JS_FreeValue(ctx, global_obj);
+				JS_FreeValue(ctx, obj1);
+				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, obj3);
+				JS_FreeValue(ctx, obj4);
+				JS_FreeValue(ctx, obj5);
+				JS_FreeValue(ctx, obj6);
 				return;
 			}
 
@@ -11422,6 +11768,72 @@ namespace Sen::Kernel::Interface::Script {
 							return JS::Converter::get_undefined();
 						}, "convert_fs"_sv);
 					}
+				}
+
+				namespace Miscellaneous {
+
+					inline static auto dump_document(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSValue
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto source = JS::Converter::get_string(context, argv[0]);
+							try_assert(JS_IsObject(argv[1]), fmt::format("{}", Kernel::Language::get("popcap.animation.miscellaneous.argument_must_be_object")));
+							auto destination = argv[1];
+							auto doc = Sen::Kernel::Support::PopCap::Animation::Miscellaneous::BasicDocument{};
+							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Dump::process_fs(source, doc);
+							JS_SetPropertyStr(context, destination, "sprite", JS::Converter::to_array(context, doc.sprite));
+							JS_SetPropertyStr(context, destination, "image", JS::Converter::to_array(context, doc.image));
+							JS_SetPropertyStr(context, destination, "media", JS::Converter::to_array(context, doc.media));
+							JS_SetPropertyStr(context, destination, "action", JS::Converter::to_array(context, doc.action));
+							return JS::Converter::get_undefined();
+						}, "dump_document"_sv);
+					}
+
+					inline static auto generate_image(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSElement::undefined
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto destination = JS::Converter::get_string(context, argv[0]);
+							try_assert(JS_IsObject(argv[1]), fmt::format("{}", Kernel::Language::get("popcap.animation.miscellaneous.argument_must_be_object")));
+							auto source = static_cast<Class::Image::Data*>(JS_GetOpaque2(context, argv[1], Class::Image::class_id));
+							if (source == nullptr) {
+								return JS_EXCEPTION;
+							}
+							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Generator::generate_image(destination, source);
+							return JS::Converter::get_undefined();
+						}, "generate_image"_sv);
+					}
+
+					inline static auto generate_sprite(
+						JSContext* context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst* argv
+					) -> JSElement::undefined
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto destination = JS::Converter::get_string(context, argv[0]);
+							try_assert(JS_IsObject(argv[1]), fmt::format("{}", Kernel::Language::get("popcap.animation.miscellaneous.argument_must_be_object")));
+							auto source = static_cast<Class::Sprite::Data*>(JS_GetOpaque2(context, argv[1], Class::Sprite::class_id));
+							if (source == nullptr) {
+								return JS_EXCEPTION;
+							}
+							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Generator::generate_sprite(destination, source);
+							return JS::Converter::get_undefined();
+						}, "generate_sprite"_sv);
+					}
+
 				}
 
 				/**
