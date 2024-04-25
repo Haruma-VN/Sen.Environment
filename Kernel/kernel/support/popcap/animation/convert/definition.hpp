@@ -35,7 +35,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	struct RecordInfo
 	{
 		int version;
-		std::map<std::string, ImageInfo> group;
+		std::map<std::string, ImageInfo> image;
+		std::map<std::string, std::vector<std::string>> sprite;
 	};
 
 	inline auto static to_json(
@@ -43,7 +44,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		const RecordInfo &nlohmann_json_t) -> void
 	{
 		nlohmann_json_j["version"] = nlohmann_json_t.version;
-		nlohmann_json_j["group"] = nlohmann_json_t.group;
+		nlohmann_json_j["image"] = nlohmann_json_t.image;
+		nlohmann_json_j["sprite"] = nlohmann_json_t.sprite;
 		return;
 	}
 
@@ -52,7 +54,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		RecordInfo &nlohmann_json_t) -> void
 	{
 		nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
-		nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
+		nlohmann_json_j.at("image").get_to(nlohmann_json_t.image);
+		nlohmann_json_j.at("sprite").get_to(nlohmann_json_t.sprite);
 		return;
 	};
 

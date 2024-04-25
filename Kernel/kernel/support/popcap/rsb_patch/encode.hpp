@@ -54,7 +54,6 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
             auto md5_rsb_old = Encryption::MD5::hash(rsb_before_section_byte);
             Common::test_hash(rsb_after_section_byte, md5_rsb_old);
             auto information_section_patch_exist = !std::equal(rsb_before_section_byte.begin(), rsb_before_section_byte.end(), rsb_after_section_byte.begin());
-
             result->writeString("pbsr"_sv);
             result->writeInt32(1);
             result->writeInt32(2);
@@ -103,6 +102,7 @@ namespace Sen::Kernel::Support::PopCap::RSBPatch
                 auto packet_after = std::vector<uint8_t>{};
                 if constexpr (use_raw_packet)
                 {
+                    // TODO : Implement this line
                 }
                 else
                 {

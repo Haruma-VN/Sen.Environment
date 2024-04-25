@@ -49,7 +49,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert {
 			auto decode = Decode{source};
 			decode.process();
 			auto to_flash = ToFlash{decode.json};
-			to_flash.process(destination, resolution);
+			auto record = RecordInfo{};
+			to_flash.process(destination, record, resolution);
+			FileSystem::write_json(fmt::format("{}/record.json", destination), record);
 			return;
 		}
 
@@ -59,7 +61,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert {
 		) -> void
 		{
 			auto from_flash = FromFlash{};
-			from_flash.process(source);
+			auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
+			from_flash.process(source, record_info);
 			auto encode = Encode{from_flash.animation};
 			encode.process();
 			encode.sen->out_file(destination);

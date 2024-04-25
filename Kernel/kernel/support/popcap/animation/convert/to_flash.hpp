@@ -175,6 +175,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline auto write_sprite(
 			const std::string &name,
 			std::map<int, std::vector<FrameNode>> &frame_node_list,
+			const std::vector<std::string> &sprite_name_list,
 			XMLDocument *document) -> void
 		{
 			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
@@ -214,7 +215,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
 						if (node.sprite)
 						{
-							DOMSymbolInstance->SetAttribute("libraryItemName", fmt::format("sprite/{}", animation.sprite[resource].name).data());
+							DOMSymbolInstance->SetAttribute("libraryItemName", fmt::format("sprite/{}", sprite_name_list[resource]).data());
 							DOMSymbolInstance->SetAttribute("firstFrame", fmt::format("{}", node.first_frame).data());
 						}
 						else
@@ -286,6 +287,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto write_document(
 			const FrameList &frame_list,
+			const std::vector<std::string> & sprite_name_list,
 			XMLDocument *document
 		) -> void
 		{
@@ -319,10 +321,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				symbols->InsertEndChild(Include);
 			}
 			DOMDocument->InsertEndChild(media);
-			for (const auto &sprite : animation.sprite)
+			for (const auto &sprite_name : sprite_name_list)
 			{
 				auto Include = document->NewElement("Include");
-				Include->SetAttribute("href", fmt::format("sprite/{}.xml", sprite.name).data());
+				Include->SetAttribute("href", fmt::format("sprite/{}.xml", sprite_name).data());
 				symbols->InsertEndChild(Include);
 			}
 			auto flow_layer = document->NewElement("DOMLayer");
@@ -632,31 +634,41 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto process(
 			std::string_view destination,
+			RecordInfo &record,
 			int resolution) -> void
 		{
 			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
-			auto record = RecordInfo{
-				.version = animation.version};
+			record.version = animation.version;
+			std::filesystem::remove_all(fmt::format("{}/library", destination));
 			for (const auto &image : animation.image)
 			{
-				record.group[image.id] = ImageInfo{.name = image.name, .size = image.size};
+				record.image[image.id] = ImageInfo{.name = image.name, .size = image.size};
 				auto image_document = XMLDocument{};
 				write_image<float>(image, &image_document, scale_ratio);
 				FileSystem::write_xml(fmt::format("{}/library/image/{}.xml", destination, image.id), &image_document);
 			}
-			auto sprite_list = std::vector<std::string>{};
-			for (const auto &sprite : animation.sprite)
+			auto sprite_name_list = std::vector<std::string>{};
+			for (const auto &sprite : animation.sprite) {
+				sprite_name_list.emplace_back(sprite.name);
+			}
+			for (const auto &i : Range(animation.sprite.size()))
 			{
 				auto frame_list = FrameList{};
-				decode_frame_list<false>(sprite, frame_list);
+				decode_frame_list<false>(animation.sprite[i], frame_list);
+				auto &sprite_name = sprite_name_list[i];
+				if (std::filesystem::exists(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name)) || sprite_name.empty()) {
+					if (!record.sprite.contains(animation.sprite[i].name)) {
+						record.sprite[animation.sprite[i].name] = std::vector<std::string>{};
+					}
+					if (sprite_name.empty()) {
+						sprite_name = "sprite";
+					} 
+					sprite_name = fmt::format("{}_{}", sprite_name, record.sprite[animation.sprite[i].name].size() + 1); 
+					record.sprite[animation.sprite[i].name].emplace_back(sprite_name);
+				}
 				auto sprite_document = XMLDocument{};
-				write_sprite<false>(sprite.name, frame_list.frame_node_list, &sprite_document);
-				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite.name), &sprite_document);
-				sprite_list.emplace_back(sprite.name);
-			}
-			if (has_duplicates(sprite_list) != -1)
-			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.convert.to_flash.sprite_duplicate"), sprite_list[static_cast<std::size_t>(has_duplicates(sprite_list))]), std::source_location::current(), "process");
+				write_sprite<false>(sprite_name, frame_list.frame_node_list, sprite_name_list, &sprite_document);
+				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), &sprite_document);
 			}
 			auto frame_list = FrameList{};
 			decode_frame_list<true>(animation.main_sprite, frame_list);
@@ -669,16 +681,15 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			for (const auto &label : frame_list.action_name_list)
 			{
 				auto action_document = XMLDocument{};
-				write_sprite<true>(label, action_node_list.at(label), &action_document);
+				write_sprite<true>(label, action_node_list.at(label), sprite_name_list, &action_document);
 				FileSystem::write_xml(fmt::format("{}/library/action/{}.xml", destination, label), &action_document);
 			}
 			{
 				auto dom_document = XMLDocument{};
-				write_document(frame_list, &dom_document);
+				write_document(frame_list, sprite_name_list, &dom_document);
 				FileSystem::write_xml(fmt::format("{}/DomDocument.xml", destination), &dom_document);
 			}
 			FileSystem::write_file(fmt::format("{}/main.xfl", destination), "PROXY-CS5");
-			FileSystem::write_json(fmt::format("{}/record.json", destination), record);
 			FileSystem::create_directory(fmt::format("{}/library/media", destination));
 			return;
 		}
@@ -690,7 +701,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		) -> void
 		{
 			auto convert = ToFlash{*FileSystem::read_json(source)};
-			convert.process(destination, resolution);
+			auto record = RecordInfo{};
+			convert.process(destination, record, resolution);
+			FileSystem::write_json(fmt::format("{}/record.json", destination), record);
 			return;
 		}
 	};

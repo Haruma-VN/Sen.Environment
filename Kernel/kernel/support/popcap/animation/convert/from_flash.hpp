@@ -339,7 +339,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_id), std::source_location::current(), "parse_image");
 			}
 			auto image_name = std::string{DOMBitmapInstance->FindAttribute("libraryItemName")->Value()}.substr(6);
-			auto animation_image_name = record.group.at(image_id).name;
+			auto animation_image_name = record.image.at(image_id).name;
 			if (!image_name.starts_with("TMP"))
 			{
 				if (image_name != animation_image_name)
@@ -360,7 +360,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto animation_image = AnimationImage{};
 			animation_image.name = animation_image_name;
 			animation_image.id = image_id;
-			animation_image.size = record.group.at(image_id).size;
+			animation_image.size = record.image.at(image_id).size;
 			copy_transform_for_image(animation_image.transform, Matrix);
 			animation.image.emplace_back(animation_image);
 			return;
@@ -770,17 +770,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			-> FromFlash & = delete;
 
 		inline auto process(
-			std::string_view source)
+			std::string_view source,
+			const RecordInfo &record_info)
 			-> void
 		{
 			auto dom_document = XMLDocument{};
 			FileSystem::read_xml(fmt::format("{}/DomDocument.xml", source), &dom_document);
 			auto dom_symbol_list = DocumentSymbol{};
 			read_symbols_include(dom_symbol_list, &dom_document);
-			auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
-			if (record_info["version"] > 6 || record_info["version"] < 1)
+			
+			if (record_info.version > 6 || record_info.version < 1)
 			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_version"), record_info["version"]), std::source_location::current(), "process");
+				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_version"), record_info.version), std::source_location::current(), "process");
 			}
 			for (const auto &image_id : dom_symbol_list.image)
 			{
@@ -809,9 +810,19 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto action_index = tsl::ordered_map<std::string, ActionFrameNode>{};
 			get_action_index(action_index, &dom_document);
 			merge_action(action_map, action_index);
-			animation.version = record_info["version"];
+			animation.version = record_info.version;
 			animation.main_sprite.work_area.duration = animation.main_sprite.frame.size();
 			parse_dom_document(action_index, &dom_document);
+			for (auto &[name, list]: record_info.sprite) {
+				for (auto &sprite_name : list) {
+					for (auto &sprite : animation.sprite) {
+						if (sprite_name == sprite.name) {
+							sprite.name = name;
+							break;
+						}
+					}
+				}
+			}
 			return;
 		}
 
@@ -821,7 +832,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		) -> void
 		{
 			auto convert = FromFlash{};
-			convert.process(source);
+			auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
+			convert.process(source, record_info);
 			FileSystem::write_json(destination, convert.animation);
 			return;
 		}
