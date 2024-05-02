@@ -481,5 +481,7 @@
     "popcap.animation.miscellaneous.media_is_null": "media property is null in DOMDocument",
     "popcap.animation.miscellaneous.invalid_media": "Invalid media",
     "popcap.animation.miscellaneous.document_is_null": "Invalid DOMDocument, DOMDocument property is null",
-    "popcap.animation.miscellaneous.argument_must_be_object": "argument must be object"
+    "popcap.animation.miscellaneous.argument_must_be_object": "argument must be object",
+    "wwise.soundbank.encode.unsupported_bank_version": "Unsupported BNK version, should be greater than 26, got: {}",
+    "wwise.soundbank.encode.invalid_type": "Unsupported type, got: {}"
 }

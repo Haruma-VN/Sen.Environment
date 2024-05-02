@@ -44,6 +44,10 @@
 #include "kernel/support/popcap/reanim/convert/instance.hpp"
 #include "kernel/support/wwise/sound_bank/encode.hpp"
 #include "kernel/support/wwise/sound_bank/decode.hpp"
+#include "kernel/support/popcap/pvz2/decode.hpp"
+#include "kernel/support/popcap/pvz2/encode.hpp"
+#include "kernel/support/popcap/pvz2/unpack.hpp"
+#include "kernel/support/popcap/pvz2/pack.hpp"
 
 namespace Sen::Kernel::Support {
 	
