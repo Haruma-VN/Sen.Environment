@@ -7,7 +7,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 {
     using namespace Definition;
 
-    template <typename T> requires std::is_integral<T>::value
+    template <typename T>
     class Decode
     {
 
@@ -22,7 +22,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
         template <typename ...Args> requires (std::is_integral<Args>::value && ...)
         inline auto read_sprite(
             AnimationSprite &sprite,
-            Args... index) const -> void
+            Args... index
+        ) const -> void
         {
             static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "index can only be 0 or 1");
             [[maybe_unused]] auto sprite_name = std::string{};
@@ -294,6 +295,16 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
         }
 
+        explicit Decode(
+           const std::vector<uint8_t> &data) : sen(std::make_unique<DataStreamView>(data))
+        {
+        }
+
+        ~Decode(
+
+            ) = default;
+
+
         inline auto process(
 
         ) const -> void
@@ -330,15 +341,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             return;
         }
 
-        explicit Decode(
-            DataStreamView &it) : sen(&it)
-        {
-        }
-
-        ~Decode(
-
-            ) = default;
-
+        
         inline static auto decode_fs(
             std::string_view source,
             std::string_view destination) -> void

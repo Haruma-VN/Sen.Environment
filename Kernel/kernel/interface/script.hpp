@@ -11951,6 +11951,76 @@ namespace Sen::Kernel::Interface::Script {
 				}
 			}
 
+
+
+			namespace PvZ2 {
+
+				inline static auto decode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::PvZ2::Decode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+						}, "decode_fs"_sv);
+				}
+
+				inline static auto unpack_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::PvZ2::Unpack::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+						}, "unpack_fs"_sv);
+				}
+
+				inline static auto pack_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::PvZ2::Pack::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+						}, "pack_fs"_sv);
+				}
+
+				inline static auto encode_fs(
+					JSContext* context,
+					JSValueConst this_val,
+					int argc,
+					JSValueConst* argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Sen::Kernel::Support::PopCap::PvZ2::Encode::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+						}, "pack_fs"_sv);
+				}
+
+			}
+
 				/**
 			 * JavaScript REANIM Supportive
 			*/
@@ -12038,7 +12108,7 @@ namespace Sen::Kernel::Interface::Script {
 					) -> JSValue
 					{
 						M_JS_PROXY_WRAPPER(context, {
-							try_assert(argc == 2, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 							auto source = JS::Converter::get_string(context, argv[0]);
 							auto destination = JS::Converter::get_string(context, argv[1]);
 							Sen::Kernel::Support::PopCap::Reanim::Convert::ToFlash::process_fs(source, destination);
@@ -12095,7 +12165,7 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						auto z_platform = JS::Converter::get_string(context, argv[2]);
@@ -12155,7 +12225,7 @@ namespace Sen::Kernel::Interface::Script {
 					) -> JSValue
 					{
 						M_JS_PROXY_WRAPPER(context, {
-							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 							auto source = JS::Converter::get_string(context, argv[0]);
 							auto destination = JS::Converter::get_string(context, argv[1]);
 							auto z_platform = JS::Converter::get_string(context, argv[2]);

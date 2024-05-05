@@ -147,13 +147,13 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         {
             auto animation_decode = Animation::Decode<uint32_t>{res.data};
             animation_decode.process();
-            auto popanim_decode = Animation::Convert::ToFlash{animation_decode.json};
             auto path_list = String{res.path}.split("/");
             path_list[1] = "1536";
             path_list.erase(path_list.end() - 1);
             const auto popanim_destination = fmt::format("{}/{}", resources_folder, String::join(path_list, "/"));
             FileSystem::create_directory(popanim_destination);
             auto record = Animation::Convert::RecordInfo{};
+            auto popanim_decode = Animation::Convert::ToFlash{animation_decode.json};
             popanim_decode.process(popanim_destination, record, 1536); // always 1536.
             FileSystem::write_json(fmt::format("{}/record.json", popanim_destination), record);
             return;
@@ -360,8 +360,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
             ) = default;
 
-        inline auto decode(
-            std::string_view destination) const -> void
+        inline auto process(
+            std::string_view destination
+        ) const -> void
         {
             auto data_info = Info{};
             FileSystem::create_directory(destination);
@@ -370,12 +371,13 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             return;
         }
 
-        inline static auto decode_fs(
+        inline static auto process_fs(
             std::string_view source,
-            std::string_view destination) -> void
+            std::string_view destination
+        ) -> void
         {
             auto decode = Decode{source};
-            decode.decode(destination);
+            decode.process(destination);
             return;
         }
     };

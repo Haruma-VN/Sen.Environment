@@ -1267,6 +1267,13 @@ declare namespace Sen {
              * Notation (RTON) processing.
              */
             declare namespace PopCap {
+                declare namespace PvZ2 {
+                    export function decode_fs(source: string, destination: string): void;
+                    export function encode_fs(source: string, destination: string): void;
+                    export function unpack_fs(source: string, destination: string): void;
+                    export function pack_fs(source: string, destination: string): void;
+                }
+
                 /**
                  * Namespace for Reflection Object Notation (RTON) processing.
                  *

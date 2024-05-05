@@ -280,8 +280,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
             ) = default;
 
-        inline auto unpack(
-            std::string_view destination) const -> void
+        inline auto process_whole(
+            std::string_view destination
+        ) const -> void
         {
 
             FileSystem::create_directory(destination);
@@ -289,12 +290,13 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             return;
         }
 
-        inline static auto unpack_fs(
+        inline static auto process_fs(
             std::string_view source,
-            std::string_view destination) -> void
+            std::string_view destination
+        ) -> void
         {
             auto unpack = Unpack{source};
-            unpack.unpack(destination);
+            unpack.process_whole(destination);
             return;
         }
     };
