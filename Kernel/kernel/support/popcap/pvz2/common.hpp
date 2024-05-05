@@ -7,7 +7,7 @@
 
 namespace Sen::Kernel::Support::PopCap::PvZ2
 {
-    
+
     using namespace Definition;
     class Common
     {
@@ -17,10 +17,50 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
     protected:
     public:
+        inline static auto write_image(
+            const std::string &path, 
+            const Definition::Image<int> &data
+        ) -> void
+        {
+            FileSystem::create_directory(Path::getParents(path));
+            ImageIO::write_png(path, data);
+            return;
+        }
+
+        inline static auto write_bytes(
+            const std::string &path,
+            const std::vector<uint8_t> data
+        ) -> void
+        {
+            FileSystem::create_directory(Path::getParents(path));
+            FileSystem::write_binary(path, data);
+            return;
+        }
+
+        inline static auto write_text_file(
+            const std::string &path,
+            const std::string &content
+        ) -> void
+        {
+            FileSystem::create_directory(Path::getParents(path));
+            FileSystem::write_file(path, content);
+            return;
+        }
+
+        inline static auto write_json(
+            const std::string &path,
+            const nlohmann::ordered_json & content
+        ) -> void
+        {
+            FileSystem::create_directory(Path::getParents(path));
+            FileSystem::write_json(path, content);
+            return;
+        }
 
         inline static auto rsg_unpack(
             const std::vector<uint8_t> data,
-            PacketInfo<uint32_t> *packet_info) -> void
+            PacketInfo<uint32_t> *packet_info
+        ) -> void
         {
             auto stream = DataStreamView{data};
             auto rsg_head_info = RSG::RSG_HeadInfo{};

@@ -33,7 +33,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto it = std::find_if(res.begin(), res.end(), find_res(path));
             if (it == res.end())
             {
-                throw Exception("cannot_find_path");
+                throw Exception("cannot_find_path", std::source_location::current(), "find_path_in_res");
             }
             return std::distance(res.begin(), it);
             ;
@@ -68,7 +68,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         {
             auto rton_decode = RTON::Decode{res.data};
             const auto json_path = res.path.substr(0, res.path.size() - 5) + ".json";
-            FileSystem::write_file(fmt::format("{}/{}", resources_folder, json_path), rton_decode.decode_rton());
+            Common::write_text_file(fmt::format("{}/{}", resources_folder, json_path), rton_decode.decode_rton());
             return;
         }
 
@@ -80,9 +80,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto info = WWise::SoundBank::SoundBankInformation{};
             auto soundbank_decode = WWise::SoundBank::Decode{res.data};
             const auto destination = fmt::format("{}/{}", resources_folder, res.path.substr(0, res.path.size() - 4));
-            FileSystem::create_directory(destination);
             soundbank_decode.process(destination, &info);
-            FileSystem::write_json(fmt::format("{}/definition.json", destination, res.path), info);
+            Common::write_json(fmt::format("{}/definition.json", destination, res.path), info);
             return;
         }
 
@@ -98,7 +97,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             const auto subgroup_name = stream->readStringByEmpty();
             auto packet_info = PacketInfo<uint32_t>{};
             Common::rsg_unpack(rsg_data, &packet_info);
-            auto& p_info = data_info.groups[subgroup_name];
+            auto &p_info = data_info.groups[subgroup_name];
             p_info.compression_flags = CompressionFlag(packet_info.flags);
             p_info.type = get_type(res_info["packet"]["type"].get<std::string>());
             for (const auto &[id, packet] : res_info["packet"]["data"].items())
@@ -113,7 +112,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 const auto ext_name = Path::getExtension(path);
                 const auto i = find_path_in_res(packet_info.res, path);
                 packet_info.res[i].path = path; //
-                if (packet_type == File && compare_string(ext_name, ".rton")) {
+                if (packet_type == File && compare_string(ext_name, ".rton"))
+                {
                     decode_rton(resources_folder, packet_info.res[i]);
                 }
                 else if (packet_type == SoundBank || packet_type == DecodedSoundBank)
@@ -124,15 +124,16 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     }
                     else
                     {
-                        throw Exception("not_a_soundbank"); // TODO add localization;
+                        throw Exception("not_a_soundbank", std::source_location::current(), "decode_file"); // TODO add localization;
                     }
                 }
-                else if (packet_type == File || packet_type == PrimeFont || packet_type == RenderEffect || packet_type == PopAnim || packet_type == Image) {
-                    FileSystem::write_binary(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
+                else if (packet_type == File || packet_type == PrimeFont || packet_type == RenderEffect || packet_type == PopAnim || packet_type == Image)
+                {
+                    Common::write_bytes(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
                 }
                 else
                 {
-                    throw Exception("invaild_packet_type"); // TODO add localization;
+                    throw Exception("invaild_packet_type", std::source_location::current(), "decode_file"); // TODO add localization;
                 }
                 p_info.data[id] = data_res_info;
                 packet_info.res.erase(packet_info.res.begin() + i);
@@ -155,7 +156,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto record = Animation::Convert::RecordInfo{};
             auto popanim_decode = Animation::Convert::ToFlash{animation_decode.json};
             popanim_decode.process(popanim_destination, record, 1536); // always 1536.
-            FileSystem::write_json(fmt::format("{}/record.json", popanim_destination), record);
+            Common::write_json(fmt::format("{}/record.json", popanim_destination), record);
             return;
         }
 
@@ -200,7 +201,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             }
             default:
             {
-                throw Exception("invaild_image_format");
+                throw Exception("invaild_image_format", std::source_location::current(), "decode_image");
             }
             }
         }
@@ -212,14 +213,11 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             const Definition::Image<int> &image) const -> void
         {
             auto rectangle = std::vector<Definition::RectangleFileIO<int>>{};
-            
+
             for (const auto &[id, info] : data.items())
             {
                 const auto packet_type = get_type(info["type"].get<std::string>());
-                if (packet_type != Image)
-                {
-                    throw Exception("invaild_sprite_image_type"); // TODO add localization.
-                }
+                assert_conditional(packet_type == Image, "invaild_sprite_image_type", "split_image"); // TODO add localization.
                 const auto path = info["path"].get<std::string>();
                 auto data_res_info = DataResInfo{packet_type, path};
                 const auto sprite_path = fmt::format("{}/{}/library/media/{}.png", resources_folder, Path::getParents(path), Path::getFileNameWithoutExtension(path));
@@ -230,11 +228,11 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                         info["default"]["aw"].get<int>(),
                         info["default"]["ah"].get<int>(),
                         sprite_path));
-                        data_res_info.ptx_default_info = DataPTXinfo{info["default"]["x"].get<int>(), info["default"]["y"].get<int>()};
-                        p_info.data[id] = data_res_info;
+                data_res_info.ptx_default_info = DataPTXinfo{info["default"]["x"].get<int>(), info["default"]["y"].get<int>()};
+                p_info.data[id] = data_res_info;
             }
             std::for_each(rectangle.begin(), rectangle.end(), [&](auto c)
-                          { ImageIO::write_png(c.destination, Definition::Image<int>::cut(image, c)); });
+                          { Common::write_image(c.destination, Definition::Image<int>::cut(image, c)); });
             return;
         }
 
@@ -252,7 +250,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             const auto subgroup_name = stream->readStringByEmpty();
             auto packet_info = PacketInfo<uint32_t>{};
             Common::rsg_unpack(rsg_data, &packet_info);
-            auto& p_info = data_info.groups[subgroup_name];
+            auto &p_info = data_info.groups[subgroup_name];
             p_info.compression_flags = CompressionFlag(packet_info.flags);
             const auto type = res_info["type"];
             if (type != nullptr)
@@ -262,21 +260,12 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 {
                     const auto path = packet["path"].get<std::string>();
                     const auto packet_type = get_type(packet["type"].get<std::string>());
-                    if (path == "!program")
-                    {
-                        throw Exception("invaild_image_path"); // TODO add localization.
-                    }
+                    assert_conditional(path != "!program", "invaild_image_path", "split_image"); // TODO add localization.
                     const auto i = find_path_in_res(packet_info.res, path + ".ptx");
-                    packet_info.res[i].path = path; //
-                    if (packet_type == Image)
-                    {
-                        auto image = decode_image(resources_folder, packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
-                        split_image(resources_folder, p_info, packet["data"], image);
-                    }
-                    else
-                    {
-                        throw Exception("not_a_image"); // TODO add localization;
-                    }
+                    packet_info.res[i].path = path;                                         
+                    assert_conditional(packet_type == Image, "not_a_image", "split_image"); // TODO add localization.
+                    auto image = decode_image(resources_folder, packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
+                    split_image(resources_folder, p_info, packet["data"], image);
                     packet_info.res.erase(packet_info.res.begin() + i);
                 }
             }
@@ -301,8 +290,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     }
                     else
                     {
-                        FileSystem::write_binary(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
-                       //  throw Exception("not_a_popanim"); // TODO add localization;
+                        Common::write_bytes(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
                     }
                     packet_info.res.erase(packet_info.res.begin() + i);
                     p_info.data[id] = data_res_info;
@@ -315,17 +303,10 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             std::string_view destination,
             Info &data_info) const -> void
         {
-            if (stream->readString(4) != data_magic)
-            {
-                throw Exception("invaild_data_magic"); // TODO add localizaiton;
-            }
-            if (stream->readUint32() != 1)
-            {
-                throw Exception("invaild_data_version"); // TODO add localizaiton;
-            }
+            assert_conditional(stream->readString(4) == data_magic, "invaild_data_magic", "process"); // TODO add localizaiton;
+            assert_conditional(stream->readUint32() == 1, "invaild_data_version", "process");         // TODO add localizaiton;
             stream->read_pos += 8;
             const auto resources_folder = fmt::format("{}/resources", destination);
-            // FileSystem::create_directory(resources_folder);
             const auto num_packet = stream->readUint32();
             for (const auto &i : Range(num_packet))
             {
@@ -340,7 +321,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
                 else
                 {
-                    throw Exception("invaild_data_type"); // TODO add localizaiton;
+                    throw Exception("invaild_data_type", std::source_location::current(), "process"); // TODO add localizaiton;
                 }
             }
             return;
@@ -362,20 +343,17 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             ) = default;
 
         inline auto process(
-            std::string_view destination
-        ) const -> void
+            std::string_view destination) const -> void
         {
             auto data_info = Info{};
-            FileSystem::create_directory(destination);
             process(destination, data_info);
-            FileSystem::write_json(fmt::format("{}/info.json", destination), data_info);
+            Common::write_json(fmt::format("{}/info.json", destination), data_info);
             return;
         }
 
         inline static auto process_fs(
             std::string_view source,
-            std::string_view destination
-        ) -> void
+            std::string_view destination) -> void
         {
             auto decode = Decode{source};
             decode.process(destination);

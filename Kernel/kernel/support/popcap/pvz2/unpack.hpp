@@ -32,10 +32,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
             }
             const auto version = stream->readUint32();
-            if (version != 4)
-            {
-                throw Exception("rsb_must_be_version_4"); // TODO add localization.
-            }
+            assert_conditional(version == 4, "rsb_must_be_version_4", "read_head"); // TODO add localization.
             rsb_headinfo->version = version;
             stream->read_pos += 4;
             rsb_headinfo->file_offset = stream->readUint32();
@@ -77,7 +74,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Common::rsg_unpack(file_data, &packet_info);
             for (const auto &data : packet_info.res)
             {
-                FileSystem::write_binary(fmt::format("{}/Resources/{}", destination, data.path), data.data);
+                const auto file_path = fmt::format("{}/Resources/{}", destination, data.path);
+                Common::write_bytes(file_path, data.data);
             }
             return;
         }
@@ -257,10 +255,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             const auto manifest_name = process_composite(destination, head_info, group_list, use_argb8888_for_ios);
             if (manifest_name.empty())
             {
-                throw Exception("cannot_find_manifest"); // TODO add localization;
+                throw Exception("cannot_find_manifest", std::source_location::current(), "process"); // TODO add localization;
             }
             const auto packet_folder = fmt::format("{}/{}", destination, "Packet");
-            FileSystem::create_directory(packet_folder);
             process_group(packet_folder, group_list, manifest_name, use_argb8888_for_ios);
             return;
         }
@@ -284,8 +281,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             std::string_view destination
         ) const -> void
         {
-
-            FileSystem::create_directory(destination);
             process(destination);
             return;
         }

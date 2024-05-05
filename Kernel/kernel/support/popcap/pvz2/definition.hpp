@@ -8,14 +8,14 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
     enum DataType
     {
-        File,            // 0
-        Image,           // 1 - ptx
-        PopAnim,         // 2 - pam
-        Data,            // 3 - rton
-        SoundBank,       // 4 - bank
+        File,             // 0
+        Image,            // 1 - ptx
+        PopAnim,          // 2 - pam
+        Data,             // 3 - rton
+        SoundBank,        // 4 - bank
         DecodedSoundBank, // 5 - bank
-        PrimeFont,       // 6 - font
-        RenderEffect     // 7 effect
+        PrimeFont,        // 6 - font
+        RenderEffect      // 7 effect
     };
 
     enum class CompressionFlag : uint8_t
@@ -117,41 +117,44 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     inline auto static get_type(
         const std::string &type) -> DataType
     {
-        if (type == "Image")
+        switch (hash_sv(type))
+        {
+        case (hash_sv("Image")):
         {
             return Image;
         }
-        else if (type == "PopAnim")
+        case (hash_sv("PopAnim")):
         {
             return PopAnim;
         }
-        else if (type == "Data")
+        case (hash_sv("Data")):
         {
             return Data;
         }
-        else if (type == "SoundBank")
+        case (hash_sv("SoundBank")):
         {
             return SoundBank;
         }
-        else if (type == "DecodedSoundBank")
+        case (hash_sv("DecodedSoundBank")):
         {
             return DecodedSoundBank;
         }
-        else if (type == "PrimeFont")
+        case (hash_sv("PrimeFont")):
         {
             return PrimeFont;
         }
-        else if (type == "RenderEffect")
+        case (hash_sv("RenderEffect")):
         {
             return RenderEffect;
         }
-        else if (type == "File")
+        case (hash_sv("File")):
         {
             return File;
         }
-        else
+        default:
         {
             throw Exception("invaild_data_type"); // TODO add localization.
+        }
         }
     }
 
@@ -184,6 +187,78 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         return;
     };
 
+    inline auto static format_to_string(
+        uint32_t format) -> std::string
+    {
+        switch (format)
+        {
+        case 0x00000000:
+        {
+            return "rgba_8888";
+        }
+        case 0xFFFFFFFF:
+        {
+            return "argb_8888";
+        }
+        case 0x0000001E:
+        {
+            return "rgba_pvrtc4";
+        }
+        case 0x00000093:
+        {
+            return "rgb_etc1_a_8";
+        }
+        case 0x00000092:
+        {
+            return "rgb_etc1_a_palette";
+        }
+        case 0x00000094:
+        {
+            return "rgb_pvrtc4_a_8";
+        }
+        default:
+        {
+            throw Exception("invaild_image_format"); // TODO add localization.
+        }
+        }
+    }
+
+    inline auto static get_format(
+        const std::string &format) -> uint32_t
+    {
+        switch (hash_sv(format))
+        {
+        case (hash_sv("rgba_8888")):
+        {
+            return 0x00000000;
+        }
+        case (hash_sv("argb_8888")):
+        {
+            return 0xFFFFFFFF;
+        }
+        case (hash_sv("rgba_pvrtc4")):
+        {
+            return 0x0000001E;
+        }
+        case (hash_sv("rgb_etc1_a_8")):
+        {
+            return 0x00000093;
+        }
+        case (hash_sv("rgb_etc1_a_palette")):
+        {
+            return 0x00000092;
+        }
+        case (hash_sv("rgb_pvrtc4_a_8")):
+        {
+            return 0x00000094;
+        }
+        default:
+        {
+            throw Exception("invaild_image_format"); // TODO add localization.
+        }
+        }
+    }
+
     struct DataInfo
     {
     public:
@@ -191,7 +266,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         CompressionFlag compression_flags;
         uint32_t format;
         std::map<std::string, DataResInfo> data;
-
     };
 
     inline auto static to_json(
@@ -202,7 +276,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         nlohmann_json_j["compression_flags"] = nlohmann_json_t.compression_flags;
         if (nlohmann_json_t.type == Image)
         {
-            nlohmann_json_j["format"] = nlohmann_json_t.format;
+            nlohmann_json_j["format"] = format_to_string(nlohmann_json_t.format);
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
         return;
@@ -217,7 +291,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         nlohmann_json_j.at("compression_flags").get_to(nlohmann_json_t.compression_flags);
         if (nlohmann_json_t.type == Image)
         {
-            nlohmann_json_j.at("format").get_to(nlohmann_json_t.format);
+            nlohmann_json_t.format = get_format(nlohmann_json_j.at("format").get<std::string>());
         }
         nlohmann_json_j.at("data").get_to(nlohmann_json_t.data);
         return;
@@ -247,10 +321,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         nlohmann_json_j.at("groups").get_to(nlohmann_json_t.groups);
         return;
     };
-
-
-
-   
 
     template <typename T>
         requires std::is_integral<T>::value
