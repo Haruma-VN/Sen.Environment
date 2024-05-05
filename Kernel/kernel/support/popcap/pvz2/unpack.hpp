@@ -207,7 +207,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                             data.writeUint32(data.write_pos + 16);
                             if (use_argb8888_for_ios && map_subgroup.format == 0)
                             {
-                                data.writeUint32(31); // custom format for argb8888.
+                                data.writeUint32(0xFFFFFFFF); // argb8888.
                             }
                             else
                             {

@@ -162,26 +162,31 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         inline auto decode_image(
             const std::string &resources_folder,
             const ResInfo<uint32_t> &res,
-            uint32_t format,
+            uint32_t &format,
             uint32_t width,
             uint32_t height) const -> Definition::Image<int>
         {
             switch (format)
             {
-            case 0:
+            case 0x00000000:
             { // RGBA_8888
 
                 return Texture::Decode::rgba_8888(res.data, width, height);
             }
-            case 31:
+            case 0xFFFFFFFF:
             { // ARGB_8888
                 return Texture::Decode::argb_8888(res.data, width, height);
             }
-            case 147:
+            case 0x0000001E:
+            { // RGBA_PVRTC_4BPP
+                return Texture::Decode::rgba_pvrtc_4bpp(res.data, width, height);
+            }
+            case 0x00000093:
             { // RGB_ETC1_A_8 || RGB_ETC1_A_PALETTE
                 const auto data_size = res.data.size();
                 if (data_size == width * height / 4)
                 {
+                    format -= 1;
                     return Texture::Decode::rgb_etc1_a_palette(res.data, width, height);
                 }
                 else
@@ -189,11 +194,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     return Texture::Decode::rgb_etc1_a_8(res.data, width, height);
                 }
             }
-            case 30:
-            { // RGBA_PVRTC_4BPP
-                return Texture::Decode::rgba_pvrtc_4bpp(res.data, width, height);
-            }
-            case 148:
+            case 0x00000094:
             {
                 return Texture::Decode::rgb_pvrtc_4bpp_a_8(res.data, width, height);
             }
@@ -244,7 +245,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             data_info.is_composite = true;
             const auto rsg_data_size = stream->readUint32();
             const auto rsg_pos = stream->readUint32();
-            const auto format = stream->readUint32();
+            auto format = stream->readUint32();
             auto rsg_data = stream->getBytes(rsg_pos, rsg_pos + rsg_data_size);
             const auto res_size = stream->readUint32();
             auto res_info = nlohmann::ordered_json::parse(stream->readString(res_size, static_cast<std::size_t>(stream->readUint32())));
