@@ -10,31 +10,12 @@ namespace Sen::Kernel::Support::WWise::SoundBank
     {
 
     private:
-        std::map<uint32_t, std::string> wisename_hash;
 
-    private:
-        inline auto get_wisename_hash() -> void
-        {
-            auto wisename_list = *FileSystem::read_json("C:/Users/Shift/Desktop/Sen.Environment-master/Script/Setting/Wisenames.json"); // TODO change wisenames path.
-            for (const auto &name : wisename_list.items())
-            {
-                const auto name_str = name.value().get<std::string>();
-                const auto hash = fnv_hash(name_str);
-                wisename_hash[hash] = name_str;
-            }
-            return;
-        }
+    public:
 
-        inline auto get_name(uint32_t id) -> std::string
-        {
-            if (wisename_hash.contains(id))
-            {
-                return wisename_hash[id];
-            }
-            return std::string{};
-        }
-
-        inline auto fnv_hash(const std::string &name) -> uint32_t
+        inline static auto fnv_hash(
+            const std::string &name
+        ) -> uint32_t
         {
             auto hash = uint32_t{2166136261};
             for (const auto &c : name)
@@ -43,6 +24,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             }
             return hash;
         }
+
+    private:
 
         inline auto create_hex_string(
             const std::vector<uint8_t> &buffer) -> std::string
@@ -125,6 +108,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             }
             const auto data_chuck_size = stream.readUint32();
             const auto data_start_pos = stream.read_pos;
+            FileSystem::create_directory(fmt::format("{}/{}", destination, "embedded_audio"));
             for (const auto &i : Range(data_list.size()))
             {
                 const auto pos = static_cast<size_t>(data_list[i].pos) + data_start_pos;
@@ -177,7 +161,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 const auto default_transition_time = stream.readUint32();
                 auto state = STMGStageGroup{
                     .id = id,
-                    .name = get_name(id)};
+                    .name = "",
+                };
                 if (version < 52)
                 {
                     throw Exception("");
@@ -201,7 +186,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 const auto id = stream.readUint32();
                 auto stmg_switch = STMGSwitchGroup{
                     .id = id,
-                    .name = get_name(id),
+                    .name = "",
                 };
                 stmg_switch.data.rtpc_id = stream.readUint32();
                 if (version > 89)
@@ -227,7 +212,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 const auto id = stream.readUint32();
                 auto gp = STMGGameParameter{
                     .id = id,
-                    .name = get_name(id)};
+                    .name = "",
+                };
                 gp.data.value = stream.readFloat();
                 if (version > 89)
                 {
@@ -251,7 +237,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     const auto id = stream.readUint32();
                     auto texture = STMGAcousticTexture{
                         .id = id,
-                        .name = get_name(id)};
+                        .name = "",
+                    };
                     texture.data.on_off_band[0] = stream.readUint16();
                     texture.data.on_off_band[1] = stream.readUint16();
                     texture.data.on_off_band[2] = stream.readUint16();
@@ -279,7 +266,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     const auto id = stream.readUint32();
                     auto texture = STMGAcousticTexture{
                         .id = id,
-                        .name = get_name(id)};
+                        .name = "",
+                    };
                     texture.data.absorption_offset = stream.readFloat();
                     texture.data.absorption_low = stream.readFloat();
                     texture.data.absorption_mid_low = stream.readFloat();
@@ -302,7 +290,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     const auto id = stream.readUint32();
                     auto diffuse = STMGDiffuseReverberator{
                         .id = id,
-                        .name = get_name(id)};
+                        .name = "",
+                    };
                     diffuse.data.time = stream.readFloat();
                     diffuse.data.hf_ratio = stream.readFloat();
                     diffuse.data.dry_level = stream.readFloat();
@@ -466,7 +455,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 const auto str_type = get_hierarchy_type(hirc_type);
                 auto hirc = HIRC{
                     .id = id,
-                    .name = get_name(id),
+                    .name = "",
                     .type = str_type};
                 if (str_type == "event"_sv)
                 {
@@ -596,7 +585,6 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_bnk_magic")), std::source_location::current(), "process");
             }
             stream.read_pos = 0;
-            get_wisename_hash();
             FileSystem::create_directory(destination);
             while (stream.read_pos < stream.size())
             {

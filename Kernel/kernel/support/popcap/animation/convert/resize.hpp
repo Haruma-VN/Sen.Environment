@@ -12,7 +12,7 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 			using XMLDocument = tinyxml2::XMLDocument;
 
 		protected:
-			inline static auto constexpr resolution_ratio_list = std::array<double, 6>{ 0.78125, 1.5625, 1.875, 3.125, 1 };
+			// inline static auto constexpr resolution_ratio_list = std::array<double, 6>{ 0.78125, 1.5625, 1.875, 3.125, 1 };
 
 			template <auto point, typename T>
 				requires std::is_integral<T>::value or std::is_floating_point<T>::value
@@ -48,7 +48,8 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 			inline auto resize_image(
 				const std::string& image_id,
 				XMLDocument* document,
-				float ratio
+				float ratio,
+				float old_ratio
 			) -> void
 			{
 				auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
@@ -120,27 +121,21 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 				auto a_matrix = Matrix->FirstChildElement("a");
 				auto a = double{};
 				if (a_matrix != nullptr) {
-					a = std::stof(a_matrix->GetText());
+					a = std::stod(a_matrix->GetText());
 				}
 				else {
-					a = 1.0;
-				}
-				if (std::find(resolution_ratio_list.begin(), resolution_ratio_list.end(), a) != resolution_ratio_list.end()) {
 					a = 1.0;
 				}
 				auto d_matrix = Matrix->FirstChildElement("d");
 				auto d = double{};
 				if (d_matrix != nullptr) {
-					d = std::stof(d_matrix->GetText());
+					d = std::stod(d_matrix->GetText());
 				}
 				else {
 					d = 1.0;
 				}
-				if (std::find(resolution_ratio_list.begin(), resolution_ratio_list.end(), d) != resolution_ratio_list.end()) {
-					d = 1.0;
-				}
-				a_matrix->SetText(to_fixed<6>((a * ratio)).data());
-				d_matrix->SetText(to_fixed<6>((d * ratio)).data());
+				a_matrix->SetText(to_fixed<6>(((a / old_ratio) * ratio)).data());
+				d_matrix->SetText(to_fixed<6>(((d / old_ratio) * ratio)).data());
 				return;
 			}
 
@@ -159,14 +154,18 @@ namespace Sen::Kernel::Support::PopCap::Animation {
 				float resolution
 			) -> void
 			{
+				auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
 				auto image_list = FileSystem::read_directory_only_file(fmt::format("{}/library/image", source));
 				auto ratio = calculate_ratio<double>(resolution);
+				auto old_ratio = calculate_ratio<double>(record_info["resolution"].get<double>());
 				for (auto& image : image_list) {
 					auto document = XMLDocument{};
 					FileSystem::read_xml(image, &document);
-					resize_image(Path::getFileName(image), &document, ratio);
+					resize_image(Path::getFileName(image), &document, ratio, old_ratio);
 					FileSystem::write_xml(image, &document);
 				}
+				record_info["resolution"] = resolution;
+				FileSystem::write_json(fmt::format("{}/record.json", source), record_info);
 				return;
 			}
 			

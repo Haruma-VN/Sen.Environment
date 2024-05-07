@@ -99,25 +99,28 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		template <typename T>
 		inline static auto parse_transform_for_image(
 			std::vector<T> &transform,
-			XMLElement *Matrix) -> void
+			XMLElement *Matrix,
+			int resolution) -> void
 		{
 			static_assert(sizeof(T) <= sizeof(double));
-			const auto &resolution_list = std::vector<double>{0.78125, 1.5625, 1.875, 3.125, 1.0};
-			auto a = Matrix->FindAttribute("a");
-			auto a_matrix = std::stod((a ? a->Value() : "1"));
+			// const auto &resolution_list = std::vector<double>{0.78125, 1.5625, 1.875, 3.125, 1.0};
+			
+			/*
 			if (includes(resolution_list, a_matrix)) {
 				a_matrix = 1.0;
 			}
-			auto d = Matrix->FindAttribute("d");
-			auto d_matrix = std::stod((d ? d->Value() : "1"));
 			if (includes(resolution_list, d_matrix)) {
 				d_matrix = 1.0;
 			}
+			*/
+		    auto scale_ratio = 1200.0f / static_cast<float>(resolution);
+			auto a = Matrix->FindAttribute("a");
 			auto b = Matrix->FindAttribute("b");
 			auto c = Matrix->FindAttribute("c");
+			auto d = Matrix->FindAttribute("d");
 			auto tx = Matrix->FindAttribute("tx");
 			auto ty = Matrix->FindAttribute("ty");
-			transform = {a_matrix, std::stod((b ? b->Value() : "0")), std::stod((c ? c->Value() : "0")), d_matrix, std::stod((tx ? tx->Value() : "0")), std::stod((ty ? ty->Value() : "0"))};
+			transform = {(std::stod((a ? (a->Value()) : "1")) / scale_ratio), std::stod((b ? b->Value() : "0")), std::stod((c ? c->Value() : "0")), (std::stod((d ? (d->Value()) : "1")) / scale_ratio), std::stod((tx ? tx->Value() : "0")), std::stod((ty ? ty->Value() : "0"))};
 			return;
 		}
 		inline static auto constexpr copy_transform_for_image = parse_transform_for_image<double>;
@@ -361,7 +364,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			animation_image.name = animation_image_name;
 			animation_image.id = image_id;
 			animation_image.size = record.image.at(image_id).size;
-			copy_transform_for_image(animation_image.transform, Matrix);
+			copy_transform_for_image(animation_image.transform, Matrix, record.resolution);
 			animation.image.emplace_back(animation_image);
 			return;
 		}
@@ -813,8 +816,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			animation.version = record_info.version;
 			animation.main_sprite.work_area.duration = animation.main_sprite.frame.size();
 			parse_dom_document(action_index, &dom_document);
-			for (auto &[name, list]: record_info.sprite) {
-				for (auto &sprite_name : list) {
+			for (const auto &[name, list]: record_info.sprite) {
+				for (const auto &sprite_name : list) {
 					for (auto &sprite : animation.sprite) {
 						if (sprite_name == sprite.name) {
 							sprite.name = name;

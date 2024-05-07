@@ -525,6 +525,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::WWise::SoundBank::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "decode_fs"_sv);
 					// encode_fs
 					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "encode_fs"_sv);
+					// hash
+					javascript->add_proxy(Script::Support::WWise::SoundBank::hash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "hash"_sv);
 				}
 				// resource group
 				{

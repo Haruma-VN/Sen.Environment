@@ -678,19 +678,19 @@ namespace Sen::Kernel::Definition {
 			) -> void
 			{
 				#if WINDOWS
-				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(fmt::format("\\\\?\\{}", filepath)).data(), L"wb"), Language::close_file);
+				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(_wfopen(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style({filepath.data(), filepath.size()}))).data(), L"wb"), Language::close_file);
 				#else
 				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(filepath.data(), "wb"), Language::close_file);
 				#endif
-				if(!fp){
+				if(fp == nullptr){
 					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), filepath), std::source_location::current(), "write_png");
 				}
 				auto png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-				if(!png_ptr){
+				if(png_ptr == nullptr){
 					throw Exception(fmt::format("{}: {}", Language::get("image.png_pointer_init_failed"), filepath), std::source_location::current(), "write_png");
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);
-				if (!info_ptr) {
+				if (info_ptr == nullptr) {
 					png_destroy_write_struct(&png_ptr, NULL);
 					throw Exception(fmt::format("{}: {}", Language::get("image.info_pointer_init_failed"), filepath), std::source_location::current(), "write_png");
 				}
@@ -698,7 +698,7 @@ namespace Sen::Kernel::Definition {
 				if (setjmp(png_jmpbuf(png_ptr)))  \
 				{ \
 					png_destroy_write_struct(&png_ptr, &info_ptr);   \
-					fclose(fp);     \
+					std::fclose(fp);     \
 					throw Exception(fmt::format("{}: {}", Language::get("image.unknown_error"), filepath), std::source_location::current(), "write_png");\
 				}
 				PNG_WRITE_SETJMP(png_ptr, info_ptr, fp.get());

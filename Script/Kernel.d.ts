@@ -2624,6 +2624,7 @@ declare namespace Sen {
                      * @returns {void} - Doesn't return any data, creates a WWise sound bank file at the specified destination.
                      */
                     export function encode_fs(source: string, destination: string): void;
+                    export function hash(source: string, destination: UInteger32): void;
                 }
             }
         }

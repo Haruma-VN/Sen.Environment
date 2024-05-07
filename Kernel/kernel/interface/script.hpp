@@ -6349,6 +6349,7 @@ namespace Sen::Kernel::Interface::Script {
 		}
 
 		// Because Image is duplicated with the namespace
+		// Maybe this can be unused in future
 
 		namespace DimensionView {
 
@@ -12292,12 +12293,31 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Kernel::Support::WWise::SoundBank::Encode::process_fs(source, destination);
 						return JS::Converter::get_undefined();
 					}, "encode_fs"_sv);
+				}
+
+				inline static auto hash(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					using namespace Class::Number;
+					using Uinteger32 = NumberID<std::uint32_t>;
+					using Uinteger32C = Data<std::uint32_t>;
+					M_JS_PROXY_WRAPPER(context, {
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = static_cast<Uinteger32C*>(JS_GetOpaque2(context, argv[1], Uinteger32::class_id));
+						destination->value = Kernel::Support::WWise::SoundBank::Decode::fnv_hash(source);
+						return JS::Converter::get_undefined();
+					}, "decode_fs"_sv);
 				}
 			}
 		}
