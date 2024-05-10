@@ -75,6 +75,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			if (version > 141)
 			{
 				stream.writeUint32(info.head_info.soundbank_type);
+				stream.writeBytes(convert_hex_string(info.head_info.bank_hash));
 			}
 			stream.writeNull(info.head_info.padding);
 			write_chuck_size();

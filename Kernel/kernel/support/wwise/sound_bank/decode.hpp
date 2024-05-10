@@ -47,13 +47,14 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         uint32_t version;
 
         inline auto decode_bank_header(
-            SoundBankInformation *info) -> void
+            SoundBankInformation *info
+        ) -> void
         {
             const auto chuck_size = stream.readUint32();
             const auto bank_version = stream.readUint32();
             if (bank_version <= 26)
             {
-                throw Exception("unsupported_bank_version"); // TODO add localization.
+                throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(bank_version)), std::source_location::current(), "decode_bank_header");
             }
             version = bank_version;
             info->bank_header.version = bank_version;
@@ -67,6 +68,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             if (version > 141)
             {
                 info->bank_header.head_info.soundbank_type = stream.readUint32();
+                info->bank_header.head_info.bank_hash = create_hex_string(stream.readBytes(0x10));
             }
             auto gap_size = 0;
             if (version <= 76)
@@ -79,7 +81,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             }
             else
             {
-                gap_size = chuck_size;
+                gap_size = chuck_size - 0x14 - 0x04 - 0x10;
             }
             info->bank_header.head_info.padding = gap_size;
             stream.read_pos += gap_size;
@@ -420,7 +422,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             {
                 if (!hirc_type_126.contains(type_id))
                 {
-                    throw Exception("invaild_type_id"); // TODO add localization;
+                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.invalid_type_id")), std::to_string(type_id)), std::source_location::current(), "get_hierarchy_type");
                 }
                 return hirc_type_126[type_id];
             }
@@ -428,7 +430,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             {
                 if (!hirc_type_128.contains(type_id))
                 {
-                    throw Exception("invaild_type_id"); // TODO add localization;
+                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.invalid_type_id")), std::to_string(type_id)), std::source_location::current(), "get_hierarchy_type");
                 }
                 return hirc_type_128[type_id];
             }

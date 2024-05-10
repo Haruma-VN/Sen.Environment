@@ -12354,7 +12354,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						return js_array;
 					}
-					else if (JS_IsObject(value)) {
+					if (JS_IsObject(value)) {
 						auto json = JS_NewObject(context);
 						auto* tab = static_cast<JSPropertyEnum*>(nullptr);
 						auto tab_size = uint32_t{};
@@ -12370,9 +12370,7 @@ namespace Sen::Kernel::Interface::Script {
 						}
 						return json;
 					}
-					else {
-						throw Exception("Unknown type");
-					}
+					throw Exception("Unknown type");
 				}
 				case JS_TAG_STRING: {
 					auto size = std::size_t{};

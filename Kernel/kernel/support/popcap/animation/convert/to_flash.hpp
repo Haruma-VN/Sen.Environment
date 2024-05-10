@@ -615,7 +615,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						action_node_list[label][(last_index + 1)] = std::vector<FrameNode>{FrameNode{0, end_index - start_index, -1}};
 					}
 				}
-				else {
+				else
+				{
 					action_node_list[label][(last_index + 1)] = std::vector<FrameNode>{FrameNode{0, end_index - start_index, -1}};
 				}
 			}
@@ -646,7 +647,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
 			record.version = animation.version;
 			record.resolution = resolution;
-			std::filesystem::remove_all(fmt::format("{}/library/sprite", destination));
 			for (const auto &image : animation.image)
 			{
 				record.image[image.id] = ImageInfo{.name = image.name, .size = image.size};
@@ -659,12 +659,29 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				sprite_name_list.emplace_back(sprite.name);
 			}
+			auto sprite_writed_bank = std::vector<std::string>{};
 			for (const auto &i : Range(animation.sprite.size()))
 			{
 				auto frame_list = FrameList{};
 				decode_frame_list<false>(animation.sprite[i], frame_list);
 				auto &sprite_name = sprite_name_list[i];
-				if (std::filesystem::exists(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name)) || sprite_name.empty())
+				try
+				{
+					FileSystem::write_file(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), "test");
+				}
+				catch (Exception e)
+				{
+					if (!record.sprite.contains(animation.sprite[i].name))
+					{
+						record.sprite[animation.sprite[i].name] = std::vector<std::string>{};
+					}
+					sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), [](char c)
+													 { return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|';}),
+									  sprite_name.end());
+					sprite_name = fmt::format("{}_{}", sprite_name, record.sprite[animation.sprite[i].name].size() + 1);
+					record.sprite[animation.sprite[i].name].emplace_back(sprite_name);
+				}
+				if (check_element_in_vector<std::string, std::string>(sprite_writed_bank, sprite_name) || sprite_name.empty())
 				{
 					if (!record.sprite.contains(animation.sprite[i].name))
 					{
@@ -680,6 +697,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				auto sprite_document = XMLDocument{};
 				write_sprite<false>(sprite_name, frame_list.frame_node_list, sprite_name_list, &sprite_document);
 				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), &sprite_document);
+				sprite_writed_bank.emplace_back(sprite_name);
 			}
 			auto frame_list = FrameList{};
 			decode_frame_list<true>(animation.main_sprite, frame_list);

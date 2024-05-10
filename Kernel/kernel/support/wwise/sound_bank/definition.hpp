@@ -12,6 +12,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         uint32_t values;
         uint32_t project_id;
         uint32_t soundbank_type = 0;
+        std::string bank_hash;
         uint32_t padding = 0;
     };
 
@@ -21,7 +22,14 @@ namespace Sen::Kernel::Support::WWise::SoundBank
     {
         nlohmann_json_j["values"] = nlohmann_json_t.values;
         nlohmann_json_j["project_id"] = nlohmann_json_t.project_id;
-        nlohmann_json_j["soundbank_type"] = nlohmann_json_t.soundbank_type;
+        if (!nlohmann_json_t.soundbank_type != 0)
+        {
+            nlohmann_json_j["soundbank_type"] = nlohmann_json_t.soundbank_type;
+        }
+        if (!nlohmann_json_t.bank_hash.empty())
+        {
+            nlohmann_json_j["bank_hash"] = nlohmann_json_t.bank_hash;
+        }
         nlohmann_json_j["padding"] = nlohmann_json_t.padding;
         return;
     }
@@ -32,7 +40,20 @@ namespace Sen::Kernel::Support::WWise::SoundBank
     {
         nlohmann_json_j.at("values").get_to(nlohmann_json_t.values);
         nlohmann_json_j.at("project_id").get_to(nlohmann_json_t.project_id);
-        nlohmann_json_j.at("soundbank_type").get_to(nlohmann_json_t.soundbank_type);
+        try
+        {
+            nlohmann_json_j.at("soundbank_type").get_to(nlohmann_json_t.soundbank_type);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("bank_hash").get_to(nlohmann_json_t.bank_hash);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         nlohmann_json_j.at("padding").get_to(nlohmann_json_t.padding);
         return;
     }
@@ -154,7 +175,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const STMGStageGroup &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
@@ -236,7 +258,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const STMGSwitchGroup &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
@@ -297,7 +320,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const STMGGameParameter &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
@@ -379,7 +403,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const STMGAcousticTexture &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
@@ -450,7 +475,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const STMGDiffuseReverberator &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["data"] = nlohmann_json_t.data;
@@ -508,19 +534,28 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const nlohmann::ordered_json &nlohmann_json_j,
         STMG &nlohmann_json_t) -> void
     {
-        try {
+        try
+        {
             nlohmann_json_j.at("filter_behavior").get_to(nlohmann_json_t.filter_behavior);
         }
-        catch (nlohmann::ordered_json::exception &e) {}
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         nlohmann_json_j.at("volume_threshold").get_to(nlohmann_json_t.volume_threshold);
-        try {
+        try
+        {
             nlohmann_json_j.at("max_num_voices_limit_internal").get_to(nlohmann_json_t.max_num_voices_limit_internal);
         }
-        catch (nlohmann::ordered_json::exception &e) {}
-        try {
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
             nlohmann_json_j.at("max_num_dangerous_virt_voices_limit_internal").get_to(nlohmann_json_t.max_num_dangerous_virt_voices_limit_internal);
         }
-        catch (nlohmann::ordered_json::exception &e) {}
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         nlohmann_json_j.at("state_group").get_to(nlohmann_json_t.state_group);
         nlohmann_json_j.at("switch_group").get_to(nlohmann_json_t.switch_group);
         nlohmann_json_j.at("game_parameter").get_to(nlohmann_json_t.game_parameter);
@@ -575,7 +610,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         const HIRC &nlohmann_json_t) -> void
     {
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        if (!nlohmann_json_t.name.empty()) {
+        if (!nlohmann_json_t.name.empty())
+        {
             nlohmann_json_j["#name"] = nlohmann_json_t.name;
         }
         nlohmann_json_j["type"] = nlohmann_json_t.type;
