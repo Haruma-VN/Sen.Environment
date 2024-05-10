@@ -67,7 +67,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
         inline auto process_packages(
             std::string_view destination,
-            const SubgroupInfo<uint32_t> &group) const -> void
+            const SubgroupInfo<uint32_t> &group) const -> bool
         {
             auto file_data = stream->readBytes(group.size, static_cast<std::size_t>(group.pos));
             auto packet_info = PacketInfo<uint32_t>{};
@@ -77,11 +77,12 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 const auto file_path = fmt::format("{}/Resources/{}", destination, data.path);
                 Common::write_bytes(file_path, data.data);
             }
-            return;
+            return packet_info.res.size();
         }
 
         inline auto process_composite(
             std::string_view destination,
+            ManifestInfo &info,
             const RSB_HeadInfo<uint32_t> &head_info,
             std::map<std::string, GroupInfo<uint32_t>> &group_list,
             bool &use_argb8888_for_ios) const -> std::string
@@ -97,7 +98,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 {
                     composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
-                
+
                 for (const auto &k : Range(stream->readUint32(static_cast<std::size_t>(composite_start_pos + 0x480))))
                 {
                     const auto rsg_index = stream->readUint32(static_cast<std::size_t>(k * 0x10 + composite_info_pos));
@@ -128,7 +129,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
                 if (std::regex_match(composite_name, packages_regex))
                 {
-                    process_packages(destination, group_list[composite_name].subgroup[composite_name]);
+                    info.use_packages = process_packages(destination, group_list[composite_name].subgroup[composite_name]);
                     group_list.erase(composite_name);
                     continue;
                 }
@@ -137,6 +138,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     manifest_name = composite_name;
                     continue;
                 }
+                info.group.emplace_back(composite_name);
             }
             return manifest_name;
         }
@@ -181,7 +183,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto res_info = process_manifest(group_list.at(manifest_name).subgroup.at(manifest_name));
             for (const auto &[name, group] : res_info["groups"].items())
             {
-                if (name == manifest_name) {
+                if (name == manifest_name)
+                {
                     continue;
                 }
                 if (std::regex_match(name, packages_regex))
@@ -195,6 +198,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 auto num_subgroup = 0;
                 for (const auto &[s_name, subgroup] : group["subgroup"].items())
                 {
+                    if (!group_list.at(name).subgroup.contains(s_name)) {
+                        continue;
+                    }
                     const auto &map_subgroup = group_list.at(name).subgroup.at(s_name);
                     if (group["is_composite"].get<bool>())
                     {
@@ -246,13 +252,15 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             return;
         }
 
-        inline auto process(std::string_view destination) const -> void
+        inline auto process(std::string_view destination,
+                            ManifestInfo &info) const -> void
         {
             auto head_info = RSB_HeadInfo<uint32_t>{};
             read_head(&head_info);
+            info.ptx_info_size = head_info.ptx_info_each_length;
             auto group_list = std::map<std::string, GroupInfo<uint32_t>>{};
             auto use_argb8888_for_ios = false;
-            const auto manifest_name = process_composite(destination, head_info, group_list, use_argb8888_for_ios);
+            const auto manifest_name = process_composite(destination, info, head_info, group_list, use_argb8888_for_ios);
             if (manifest_name.empty())
             {
                 throw Exception("cannot_find_manifest", std::source_location::current(), "process"); // TODO add localization;
@@ -278,20 +286,21 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             ) = default;
 
         inline auto process_whole(
-            std::string_view destination
-        ) const -> void
+            std::string_view destination,
+            ManifestInfo &info) const -> void
         {
-            process(destination);
+            process(destination, info);
             return;
         }
 
         inline static auto process_fs(
             std::string_view source,
-            std::string_view destination
-        ) -> void
+            std::string_view destination) -> void
         {
             auto unpack = Unpack{source};
-            unpack.process_whole(destination);
+            auto info = ManifestInfo{};
+            unpack.process_whole(destination, info);
+            FileSystem::write_json(fmt::format("{}/info.json", destination), info);
             return;
         }
     };

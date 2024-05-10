@@ -6,10 +6,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 {
     using namespace Definition;
 
-    struct Decode
+    class Decode
     {
-
-    private:
 
     public:
 
@@ -28,7 +26,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
     private:
 
         inline auto create_hex_string(
-            const std::vector<uint8_t> &buffer) -> std::string
+            const std::vector<uint8_t> &buffer
+        ) -> std::string
         {
             auto oss = std::ostringstream{};
             for (const auto &byte : buffer)

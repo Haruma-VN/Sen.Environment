@@ -7,9 +7,15 @@
 namespace Sen::Kernel::Support::PopCap::PvZ2 {
 
 	using namespace Definition;
-
-	
 	class Pack {
+
+		protected:
+			std::unique_ptr<DataStreamView> stream;
+		
+		protected:
+			inline auto pack_packages() -> void {
+
+			}
 
 		public:
 
@@ -30,7 +36,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2 {
 			) = delete;
 
 			inline auto process(
-				
+				std::string_view source
 			) -> void
 			{
 				return;
@@ -43,7 +49,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2 {
 			{
 				using Pack = Pack;
 				auto pack = Pack{};
-				pack.process();
+				pack.process(source);
+				pack.stream->out_file(destination);
 				return;
 			}
 

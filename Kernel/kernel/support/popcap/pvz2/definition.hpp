@@ -435,4 +435,69 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         std::map<std::string, SubgroupInfo<T>> subgroup;
     };
 
+    struct PackagesSetting 
+    {
+        bool auto_convert_json;
+        bool rton_encryted;
+    };
+
+    inline auto static to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const PackagesSetting &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["auto_convert_json"] = nlohmann_json_t.auto_convert_json;
+        nlohmann_json_j["rton_encryted"] = nlohmann_json_t.rton_encryted;
+        return;
+    }
+
+    inline auto static from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        PackagesSetting &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("auto_convert_json").get_to(nlohmann_json_t.auto_convert_json);
+        nlohmann_json_j.at("rton_encryted").get_to(nlohmann_json_t.rton_encryted);
+        return;
+    }
+
+    struct ManifestInfo
+    {
+        uint32_t ptx_info_size;
+        bool use_packages;
+        PackagesSetting packages_setting;
+        std::vector<std::string> group;
+    };
+
+    inline auto static to_json(
+        nlohmann::ordered_json &nlohmann_json_j,
+        const ManifestInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j["ptx_info_size"] = nlohmann_json_t.ptx_info_size;
+        nlohmann_json_j["use_packages"] = nlohmann_json_t.use_packages;
+        if (nlohmann_json_t.use_packages)
+        {
+            nlohmann_json_j["packages_setting"] = nlohmann_json_t.packages_setting;
+        }
+        nlohmann_json_j["group"] = nlohmann_json_t.group;
+        return;
+    }
+
+    inline auto static from_json(
+        const nlohmann::ordered_json &nlohmann_json_j,
+        ManifestInfo &nlohmann_json_t) -> void
+    {
+        nlohmann_json_j.at("ptx_info_size").get_to(nlohmann_json_t.ptx_info_size);
+        nlohmann_json_j.at("use_packages").get_to(nlohmann_json_t.use_packages);
+        if (nlohmann_json_t.use_packages)
+        {
+            try
+            {
+                nlohmann_json_j.at("packages_setting").get_to(nlohmann_json_t.packages_setting);
+            }
+            catch (nlohmann::ordered_json::exception &e)
+            {
+            }
+        }
+        nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
+        return;
+    }
 }

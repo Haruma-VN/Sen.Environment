@@ -15,7 +15,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 	inline static auto constexpr IsCustomConstraints = true;
 
-	struct Encode
+	class Encode
 	{
 
 	private:
