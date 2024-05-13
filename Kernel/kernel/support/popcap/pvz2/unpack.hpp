@@ -16,6 +16,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     protected:
         std::unique_ptr<DataStreamView> stream;
 
+        int mutable use_newton = int32_t{-1};
+
         inline static auto packages_regex = std::regex("packages", std::regex_constants::icase);
 
         inline static auto manifestgroup_regex = std::regex("manifestgroup", std::regex_constants::icase);
@@ -74,7 +76,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Common::rsg_unpack(file_data, &packet_info);
             for (const auto &data : packet_info.res)
             {
-                const auto file_path = fmt::format("{}/Resources/{}", destination, data.path);
+                const auto file_path = fmt::format("{}/resources/{}", destination, data.path);
                 Common::write_bytes(file_path, data.data);
             }
             return packet_info.res.size();
@@ -98,7 +100,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 {
                     composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
-
                 for (const auto &k : Range(stream->readUint32(static_cast<std::size_t>(composite_start_pos + 0x480))))
                 {
                     const auto rsg_index = stream->readUint32(static_cast<std::size_t>(k * 0x10 + composite_info_pos));
@@ -150,7 +151,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto file_data = stream->readBytes(group.size, static_cast<std::size_t>(group.pos));
             auto packet_info = PacketInfo<uint32_t>{};
             Common::rsg_unpack(file_data, &packet_info);
-            auto use_newton = -1;
+            
             for (const auto &i : Range(packet_info.res.size()))
             {
                 if (packet_info.res[i].path.ends_with(".NEWTON"_sv))
@@ -183,11 +184,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto res_info = process_manifest(group_list.at(manifest_name).subgroup.at(manifest_name));
             for (const auto &[name, group] : res_info["groups"].items())
             {
-                if (name == manifest_name)
-                {
-                    continue;
-                }
-                if (std::regex_match(name, packages_regex))
+                if (name == manifest_name || std::regex_match(name, packages_regex))
                 {
                     continue;
                 }
@@ -257,7 +254,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         {
             auto head_info = RSB_HeadInfo<uint32_t>{};
             read_head(&head_info);
-            info.ptx_info_size = head_info.ptx_info_each_length;
             auto group_list = std::map<std::string, GroupInfo<uint32_t>>{};
             auto use_argb8888_for_ios = false;
             const auto manifest_name = process_composite(destination, info, head_info, group_list, use_argb8888_for_ios);
@@ -265,8 +261,10 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             {
                 throw Exception("cannot_find_manifest", std::source_location::current(), "process"); // TODO add localization;
             }
-            const auto packet_folder = fmt::format("{}/{}", destination, "Packet");
+            const auto packet_folder = fmt::format("{}/{}", destination, "packet");
             process_group(packet_folder, group_list, manifest_name, use_argb8888_for_ios);
+            info.ptx_info_size = head_info.ptx_info_each_length;
+            info.use_newton = use_newton != -1;
             return;
         }
 

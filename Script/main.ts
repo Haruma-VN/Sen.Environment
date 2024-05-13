@@ -426,6 +426,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.atlas.split_by_res_info.js",
             "~/Executor/Methods/popcap.atlas.pack_by_res_info.js",
             "~/Executor/Methods/popcap.pvz2.lawnstrings.convert.js",
+            "~/Executor/Methods/pvz2.project.create.js",
+            "~/Executor/Methods/pvz2.project.compile.js",
         ];
     }
 }

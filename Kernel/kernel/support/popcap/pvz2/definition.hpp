@@ -462,6 +462,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     struct ManifestInfo
     {
         uint32_t ptx_info_size;
+        bool use_newton;
         bool use_packages;
         PackagesSetting packages_setting;
         std::vector<std::string> group;
@@ -472,6 +473,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         const ManifestInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j["ptx_info_size"] = nlohmann_json_t.ptx_info_size;
+        nlohmann_json_j["use_newton"] = nlohmann_json_t.use_newton;
         nlohmann_json_j["use_packages"] = nlohmann_json_t.use_packages;
         if (nlohmann_json_t.use_packages)
         {
@@ -486,6 +488,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         ManifestInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("ptx_info_size").get_to(nlohmann_json_t.ptx_info_size);
+        nlohmann_json_j.at("use_newton").get_to(nlohmann_json_t.use_newton);
         nlohmann_json_j.at("use_packages").get_to(nlohmann_json_t.use_packages);
         if (nlohmann_json_t.use_packages)
         {

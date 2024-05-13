@@ -485,5 +485,7 @@
     "wwise.soundbank.encode.unsupported_bank_version": "Unsupported BNK version, should be greater than 26, got: {}",
     "wwise.soundbank.encode.invalid_type": "Unsupported type, got: {}",
     "wwise.soundbank.decode.invalid_type_id": "Invalid type ID, got: {}",
-    "wwise.soundbank.decode.unsupported_bank_version": "Unsupported bank version, version too low, got: {}"
+    "wwise.soundbank.decode.unsupported_bank_version": "Unsupported bank version, version too low, got: {}",
+    "pvz2.project.compile": "PvZ2 Project: Compile",
+    "pvz2.project.create": "PvZ2 Project: Create"
 }

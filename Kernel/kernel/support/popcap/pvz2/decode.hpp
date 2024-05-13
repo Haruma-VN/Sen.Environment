@@ -16,46 +16,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     class Decode
     {
     private:
-        struct find_res
-        {
-            std::string path;
-            find_res(const std::string &path) : path(path) {}
-            bool operator()(const ResInfo<uint32_t> &e) const
-            {
-                return compare_string(path, e.path);
-            }
-        };
-
-        inline static auto find_path_in_res(
-            const std::vector<ResInfo<uint32_t>> res,
-            const std::string &path) -> int
-        {
-            auto it = std::find_if(res.begin(), res.end(), find_res(path));
-            if (it == res.end())
-            {
-                throw Exception("cannot_find_path", std::source_location::current(), "find_path_in_res");
-            }
-            return std::distance(res.begin(), it);
-            ;
-        }
-
-        inline static auto compare_string(
-            const std::string &a,
-            const std::string &b) -> bool
-        {
-            if (a.size() != b.size())
-            {
-                return false;
-            }
-            for (const auto &i : Range(a.size()))
-            {
-                if (tolower(a[i]) != tolower(b[i]))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
+        
 
     protected:
         std::unique_ptr<DataStreamView> stream;
@@ -110,16 +71,18 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     continue;
                 }
                 const auto ext_name = Path::getExtension(path);
-                const auto i = find_path_in_res(packet_info.res, path);
-                packet_info.res[i].path = path; //
-                if (packet_type == File && compare_string(ext_name, ".rton"))
+                const auto i = Common::find_path_in_res(packet_info.res, path);
+                if (packet_type == File && Common::compare_string(ext_name, ".rton"))
                 {
+                    data_res_info.type = Data;
+                    data_res_info.path = fmt::format("{}/{}.json", Path::getParents(path), Path::getFileNameWithoutExtension(path));
                     decode_rton(resources_folder, packet_info.res[i]);
                 }
                 else if (packet_type == SoundBank || packet_type == DecodedSoundBank)
                 {
-                    if (compare_string(ext_name, ".bnk"))
+                    if (Common::compare_string(ext_name, ".bnk"))
                     {
+                        data_res_info.path = fmt::format("{}/{}", Path::getParents(path), Path::getFileNameWithoutExtension(path));
                         decode_soundbank(resources_folder, packet_info.res[i]);
                     }
                     else
@@ -129,7 +92,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
                 else if (packet_type == File || packet_type == PrimeFont || packet_type == RenderEffect || packet_type == PopAnim || packet_type == Image)
                 {
-                    Common::write_bytes(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
+                    Common::write_bytes(fmt::format("{}/{}", resources_folder, path), packet_info.res[i].data);
                 }
                 else
                 {
@@ -144,14 +107,17 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
         inline auto decode_popanim(
             const std::string &resources_folder,
-            const ResInfo<uint32_t> &res) const -> void
+            ResInfo<uint32_t> &res) const -> void
         {
             auto animation_decode = Animation::Decode<uint32_t>{res.data};
             animation_decode.process();
             auto path_list = String{res.path}.split("/");
-            path_list[1] = "1536";
+            path_list.erase(path_list.begin() + 1);
+            // path_list[1] = "1536";
             path_list.erase(path_list.end() - 1);
-            const auto popanim_destination = fmt::format("{}/{}", resources_folder, String::join(path_list, "/"));
+            const auto new_path = String::join(path_list, "/");
+            res.path = new_path;
+            const auto popanim_destination = fmt::format("{}/{}", resources_folder, new_path);
             FileSystem::create_directory(popanim_destination);
             auto record = Animation::Convert::RecordInfo{};
             auto popanim_decode = Animation::Convert::ToFlash{animation_decode.json};
@@ -161,7 +127,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         }
 
         inline auto decode_image(
-            const std::string &resources_folder,
             const ResInfo<uint32_t> &res,
             uint32_t &format,
             uint32_t width,
@@ -218,9 +183,13 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             {
                 const auto packet_type = get_type(info["type"].get<std::string>());
                 assert_conditional(packet_type == Image, "invaild_sprite_image_type", "split_image"); // TODO add localization.
-                const auto path = info["path"].get<std::string>();
+                auto path_list = String{info["path"].get<std::string>()}.split("/");
+                path_list.erase(path_list.begin() + 1);
+                // path_list[1] = "1536";
+                path_list.emplace_back(fmt::format("library/media/{}.png", path_list.back()));
+                auto path = String::join(path_list, "/");
                 auto data_res_info = DataResInfo{packet_type, path};
-                const auto sprite_path = fmt::format("{}/{}/library/media/{}.png", resources_folder, Path::getParents(path), Path::getFileNameWithoutExtension(path));
+                const auto sprite_path = fmt::format("{}/{}", resources_folder, path);
                 rectangle.emplace_back(
                     Definition::RectangleFileIO<int>(
                         info["default"]["ax"].get<int>(),
@@ -261,10 +230,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     const auto path = packet["path"].get<std::string>();
                     const auto packet_type = get_type(packet["type"].get<std::string>());
                     assert_conditional(path != "!program", "invaild_image_path", "split_image"); // TODO add localization.
-                    const auto i = find_path_in_res(packet_info.res, path + ".ptx");
-                    packet_info.res[i].path = path;                                         
+                    const auto i = Common::find_path_in_res(packet_info.res, path + ".ptx");
                     assert_conditional(packet_type == Image, "not_a_image", "split_image"); // TODO add localization.
-                    auto image = decode_image(resources_folder, packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
+                    auto image = decode_image(packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
                     split_image(resources_folder, p_info, packet["data"], image);
                     packet_info.res.erase(packet_info.res.begin() + i);
                 }
@@ -282,15 +250,15 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                         p_info.data[id] = data_res_info;
                         continue;
                     }
-                    const auto i = find_path_in_res(packet_info.res, path);
-                    packet_info.res[i].path = path; //
+                    const auto i = Common::find_path_in_res(packet_info.res, path);
                     if (packet_type == PopAnim)
                     {
+                        data_res_info.path = fmt::format("{}/{}", Path::getParents(path), Path::getFileNameWithoutExtension(path));
                         decode_popanim(resources_folder, packet_info.res[i]);
                     }
                     else
                     {
-                        Common::write_bytes(fmt::format("{}/{}", resources_folder, packet_info.res[i].path), packet_info.res[i].data);
+                        Common::write_bytes(fmt::format("{}/{}", resources_folder, path), packet_info.res[i].data);
                     }
                     packet_info.res.erase(packet_info.res.begin() + i);
                     p_info.data[id] = data_res_info;
@@ -342,7 +310,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
             ) = default;
 
-        inline auto process(
+        inline auto process_whole(
             std::string_view destination) const -> void
         {
             auto data_info = Info{};
@@ -356,7 +324,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             std::string_view destination) -> void
         {
             auto decode = Decode{source};
-            decode.process(destination);
+            decode.process_whole(destination);
             return;
         }
     };

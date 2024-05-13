@@ -47,8 +47,6 @@ namespace Sen::Kernel::Support::PopCap::RSG
         using Zlib = Definition::Compression::Zlib;
 
     public:
-        DataStreamView sen;
-
         DataStreamView atlas_group;
 
         int atlas_pos;
@@ -58,7 +56,6 @@ namespace Sen::Kernel::Support::PopCap::RSG
         int data_pos;
 
     protected:
-
         inline auto rewrite_path_list(
             std::vector<PathList> &path_list,
             const std::vector<ResInfo> &res_info) const -> void
@@ -71,9 +68,8 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 path_list.emplace_back(PathList{new_path, i});
             }
             path_list.emplace_back(PathList{std::string{""}, 0});
-            std::sort(path_list.begin(), path_list.end(), [](const PathList &a, const PathList &b) -> int {
-                return a.path < b.path;
-            });
+            std::sort(path_list.begin(), path_list.end(), [](const PathList &a, const PathList &b) -> int
+                      { return a.path < b.path; });
             return;
         }
 
@@ -122,19 +118,26 @@ namespace Sen::Kernel::Support::PopCap::RSG
             return;
         }
 
-        template <auto use_res_folder>
+        template <auto use_res_folder, typename... Args>
+            requires(std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value && ...)
         inline auto write_rsg(
             const std::vector<PathTemp> &path_temp_list,
             CompressionFlag compression_flags,
-            std::string_view source
-        ) -> void
+            std::string_view source,
+            Args ...bank) -> void
         {
             static_assert(use_res_folder == true || use_res_folder == false, "use_res_folder can only be true or false");
+            static_assert(sizeof...(Args) == 1 or sizeof...(Args) == 0, "rsg bank can only have one");
             auto path_temp_length = path_temp_list.size();
             auto file_list_begin = sen.write_pos;
             if (file_list_begin != 0x5C)
             {
                 throw Exception(fmt::format("{} 0x{:X}", Language::get("popcap.rsg.pack.invalid_file_list"), 0x5C), std::source_location::current(), "write_rsg");
+            }
+            auto packet_bank = std::map<std::string, std::vector<uint8_t>>{};
+            if constexpr (sizeof...(Args) == 1)
+            {
+                packet_bank = std::get<0>(std::make_tuple(bank...));
             }
             for (auto i : Range<int>(path_temp_length))
             {
@@ -147,14 +150,22 @@ namespace Sen::Kernel::Support::PopCap::RSG
                     sen.writeUint24(path_temp_list[i].positions[h].position, static_cast<std::size_t>((begin_pos + path_temp_list[i].positions[h].offset * 4 + 1)));
                 }
                 auto item_data = std::vector<uint8_t>{};
-                if constexpr (use_res_folder)
+                if constexpr (sizeof...(Args) == 1)
                 {
-                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/res/{}", source, packet_res_info.path));
+                    item_data = packet_bank.at(packet_res_info.path);
                 }
-                else
+                if constexpr (sizeof...(Args) == 0)
                 {
-                    item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/{}", source, packet_res_info.path));
+                    if constexpr (use_res_folder)
+                    {
+                        item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/res/{}", source, packet_res_info.path));
+                    }
+                    else
+                    {
+                        item_data = FileSystem::read_binary<uint8_t>(fmt::format("{}/{}", source, packet_res_info.path));
+                    }
                 }
+
                 auto append_size = beautify_length<std::size_t, true>(item_data.size());
                 if (path_temp_list[i].is_atlas)
                 {
@@ -196,8 +207,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
         inline auto write_data(
             const std::vector<uint8_t> &data_bytes,
             CompressionFlag compression_flags,
-            bool is_atlas
-        ) -> void
+            bool is_atlas) -> void
         {
             auto part0_pos = sen.write_pos;
             auto part0_size = data_bytes.size();
@@ -342,13 +352,17 @@ namespace Sen::Kernel::Support::PopCap::RSG
         auto operator=(
             Pack &&that) -> Pack & = delete;
 
-        template <auto use_res_folder>
+        DataStreamView sen;
+
+        template <auto use_res_folder, typename... Args>
+            requires(std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value && ...)
         inline auto process(
             std::string_view source,
-            const PacketInfo &packet_info
-        ) -> void
+            const PacketInfo &packet_info,
+            Args... bank) -> void
         {
             static_assert(use_res_folder == true || use_res_folder == false, "use_res_folder can only be true or false");
+            static_assert(sizeof...(Args) == 1 or sizeof...(Args) == 0, "rsg bank can only have one");
             auto version = packet_info.version;
             if (version != 3 && version != 4)
             {
@@ -363,21 +377,27 @@ namespace Sen::Kernel::Support::PopCap::RSG
             auto path_temp_list = std::vector<PathTemp>{};
             auto res_list = packet_info.res;
             file_list_pack(res_list, path_temp_list);
-            if constexpr (use_res_folder)
+            if constexpr (sizeof...(Args) == 1)
             {
-                write_rsg<true>(path_temp_list, compression_flags, source);
+                write_rsg<false>(path_temp_list, compression_flags, source, bank...);
             }
-            else
+            if constexpr (sizeof...(Args) == 0)
             {
-                write_rsg<false>(path_temp_list, compression_flags, source);
+                if constexpr (use_res_folder)
+                {
+                    write_rsg<true>(path_temp_list, compression_flags, source);
+                }
+                else
+                {
+                    write_rsg<false>(path_temp_list, compression_flags, source);
+                }
             }
             return;
         }
 
         inline static auto pack_fs(
             std::string_view source,
-            std::string_view destination
-        ) -> void
+            std::string_view destination) -> void
         {
             auto pack = Pack{};
             auto packet_info = *FileSystem::read_json(fmt::format("{}/packet.json", source));

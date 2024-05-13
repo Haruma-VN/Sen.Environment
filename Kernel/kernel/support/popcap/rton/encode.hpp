@@ -68,18 +68,6 @@ namespace Sen::Kernel::Support::PopCap::RTON
             int r0x92_index;
 
         protected:
-        inline auto encode_rton(
-            ondemand::document &json
-        ) -> void
-        {
-            sen->close();
-            sen->writeString(RTON_head);
-            sen->writeUint32(RTON_vesion);
-            auto object = static_cast<ondemand::object>(json.get_object());
-            write_object(object);
-            sen->writeString(RTON_end);
-            return;
-        }
 
         inline auto write_object(
             ondemand::object object
@@ -428,6 +416,20 @@ namespace Sen::Kernel::Support::PopCap::RTON
         ) = default;
 
         // ---------------------------------------------
+
+        
+        inline auto encode_rton(
+            ondemand::document &json
+        ) -> void
+        {
+            sen->close();
+            sen->writeString(RTON_head);
+            sen->writeUint32(RTON_vesion);
+            auto object = static_cast<ondemand::object>(json.get_object());
+            write_object(object);
+            sen->writeString(RTON_end);
+            return;
+        }
 
         inline static auto encode_fs(
             std::string_view source,

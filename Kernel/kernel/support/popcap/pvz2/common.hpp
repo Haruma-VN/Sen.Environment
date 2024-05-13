@@ -13,10 +13,48 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     {
 
     protected:
-        // RSGUnpack
-
-    protected:
     public:
+        struct find_res
+        {
+            std::string path;
+            find_res(const std::string &path) : path(path) {}
+            bool operator()(const ResInfo<uint32_t> &e) const
+            {
+                return compare_string(path, e.path);
+            }
+        };
+
+        inline static auto find_path_in_res(
+            const std::vector<ResInfo<uint32_t>> res,
+            const std::string &path) -> int
+        {
+            auto it = std::find_if(res.begin(), res.end(), find_res(path));
+            if (it == res.end())
+            {
+                throw Exception("cannot_find_path", std::source_location::current(), "find_path_in_res");
+            }
+            return std::distance(res.begin(), it);
+            ;
+        }
+
+        inline static auto compare_string(
+            const std::string &a,
+            const std::string &b) -> bool
+        {
+            if (a.size() != b.size())
+            {
+                return false;
+            }
+            for (const auto &i : Range(a.size()))
+            {
+                if (tolower(a[i]) != tolower(b[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         inline static auto write_image(
             const std::string &path, 
             const Definition::Image<int> &data

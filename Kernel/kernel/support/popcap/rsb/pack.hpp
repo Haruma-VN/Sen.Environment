@@ -44,7 +44,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
     public:
         Pack(
 
-        ) : sen(std::make_shared<DataStreamView>())
+            ) : sen(std::make_shared<DataStreamView>())
         {
         }
 
@@ -68,8 +68,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
     protected:
         inline auto write_head(
-            const RSB_HeadInfo<uint32_t> &head_info
-        ) const -> void
+            const RSB_HeadInfo<uint32_t> &head_info) const -> void
         {
             sen->writeUint32(head_info.file_offset, 12_size);
             sen->writeUint32(head_info.file_list_length);
@@ -287,8 +286,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
 
         inline auto get_packet_info(
             DataStreamView &rsg_file,
-            PacketInfo &packet_info
-        ) -> void
+            PacketInfo &packet_info) -> void
         {
             packet_info.compression_flags = rsg_file.readUint32(0x10_size);
             auto file_list_length = rsg_file.readUint32(0x48_size);
@@ -318,7 +316,8 @@ namespace Sen::Kernel::Support::PopCap::RSB
                         current_character = 0x2F;
                     key += static_cast<char>(current_character);
                 }
-                if (key.empty()) {
+                if (key.empty())
+                {
                     break;
                 }
                 auto is_atlas = rsg_file.readUint32() == 1;
@@ -343,8 +342,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
             const std::string &type,
             const T &modify,
             const T &rsg,
-            const std::string &name
-        ) -> void
+            const std::string &name) -> void
         {
             throw Exception(fmt::format("{} {}. manifest: {}. rsg: {}. {} {}", Language::get("invalid"), type, modify, rsg, Language::get("at"), name));
         }
@@ -352,8 +350,7 @@ namespace Sen::Kernel::Support::PopCap::RSB
         inline auto compare_packet_info(
             const RSG_PacketInfo<uint32_t> &modify_packet_info,
             PacketInfo &rsg_packet_info,
-            const std::string packet_name
-        ) -> void
+            const std::string packet_name) -> void
         {
             if (modify_packet_info.compression_flags != rsg_packet_info.compression_flags)
             {
@@ -365,15 +362,27 @@ namespace Sen::Kernel::Support::PopCap::RSB
             }
             auto modify_res = modify_packet_info.res;
             std::sort(modify_res.begin(), modify_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
-                      { return a.path < b.path; });
+                      {
+                          for (auto c = 0; c < a.path.size() and c < b.path.size(); ++c)
+                          {
+                              if (std::tolower(a.path[c]) != std::tolower(b.path[c]))
+                                  return (std::tolower(a.path[c]) < std::tolower(b.path[c]));
+                          }
+                          return a.path.size() < b.path.size();
+                      });
             auto &rsg_original_res = rsg_packet_info.res;
             std::sort(rsg_original_res.begin(), rsg_original_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
-                      { return a.path < b.path; });
+                      { for (auto c = 0; c < a.path.size() and c < b.path.size(); ++c)
+                          {
+                              if (std::tolower(a.path[c]) != std::tolower(b.path[c]))
+                                  return (std::tolower(a.path[c]) < std::tolower(b.path[c]));
+                          }
+                          return a.path.size() < b.path.size(); });
             for (auto i : Range<int>(modify_res.size()))
             {
-                if (modify_res[i]["path"].get<std::string>() != rsg_original_res[i].path)
+                if (toupperback(modify_res[i]["path"].get<std::string>()) != rsg_original_res[i].path)
                 {
-                    throw_packet_error("item_path", modify_res[i]["path"].get<std::string>(), rsg_original_res[i].path, packet_name);
+                    throw_packet_error("item_path", toupperback(modify_res[i]["path"].get<std::string>()), rsg_original_res[i].path, packet_name);
                 }
                 if (rsg_original_res[i].use_ptx_info)
                 {
@@ -394,17 +403,71 @@ namespace Sen::Kernel::Support::PopCap::RSB
             return;
         }
 
+        inline auto compare_packet_info_and_fix_id(
+            RSG_PacketInfo<uint32_t> &modify_packet_info,
+            PacketInfo &rsg_packet_info,
+            const std::string packet_name) -> void
+        {
+            if (modify_packet_info.compression_flags != rsg_packet_info.compression_flags)
+            {
+                throw_packet_error("compression_flag", modify_packet_info.compression_flags, rsg_packet_info.compression_flags, packet_name);
+            }
+            if (modify_packet_info.res.size() != rsg_packet_info.res.size())
+            {
+                throw_packet_error("res_length", modify_packet_info.res.size(), rsg_packet_info.res.size(), packet_name);
+            }
+            auto &modify_res = modify_packet_info.res;
+            std::sort(modify_res.begin(), modify_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
+                      {
+                          for (auto c = 0; c < a.path.size() and c < b.path.size(); ++c)
+                          {
+                              if (std::tolower(a.path[c]) != std::tolower(b.path[c]))
+                                  return (std::tolower(a.path[c]) < std::tolower(b.path[c]));
+                          }
+                          return a.path.size() < b.path.size();
+                      });
+            auto &rsg_original_res = rsg_packet_info.res;
+            std::sort(rsg_original_res.begin(), rsg_original_res.end(), [](const RSG::ResInfo &a, const RSG::ResInfo &b) -> int
+                      { for (auto c = 0; c < a.path.size() and c < b.path.size(); ++c)
+                          {
+                              if (std::tolower(a.path[c]) != std::tolower(b.path[c]))
+                                  return (std::tolower(a.path[c]) < std::tolower(b.path[c]));
+                          }
+                          return a.path.size() < b.path.size(); });
+            for (auto i : Range<int>(modify_res.size()))
+            {
+                if (toupperback(modify_res[i]["path"].get<std::string>()) != rsg_original_res[i].path)
+                {
+                    throw_packet_error("item_path", toupperback(modify_res[i]["path"].get<std::string>()), rsg_original_res[i].path, packet_name);
+                }
+                if (rsg_original_res[i].use_ptx_info)
+                {
+                    if (modify_res[i]["ptx_info"]["id"].get<uint32_t>() != rsg_original_res[i].ptx_info.id)
+                    {
+                        modify_res[i]["ptx_info"]["id"] = rsg_original_res[i].ptx_info.id;
+                    }
+                    if (modify_res[i]["ptx_info"]["width"].get<uint32_t>() != rsg_original_res[i].ptx_info.width)
+                    {
+                        throw_packet_error("item_width", modify_res[i]["ptx_info"]["width"].get<uint32_t>(), rsg_original_res[i].ptx_info.width, packet_name);
+                    }
+                    if (modify_res[i]["ptx_info"]["height"].get<uint32_t>() != rsg_original_res[i].ptx_info.height)
+                    {
+                        throw_packet_error("item_height", modify_res[i]["ptx_info"]["height"].get<uint32_t>(), rsg_original_res[i].ptx_info.height, packet_name);
+                    }
+                }
+            }
+            return;
+        }
+
         inline auto toupper(
-            std::string &str
-        ) -> void
+            std::string &str) -> void
         {
             std::transform(str.begin(), str.end(), str.begin(), ::toupper);
             return;
         }
 
         inline auto toupperback(
-            const std::string &str
-        ) -> std::string
+            const std::string &str) -> std::string
         {
             auto upper_str = std::string{str.data(), str.size()};
             std::transform(upper_str.begin(), upper_str.end(), upper_str.begin(), ::toupper);
@@ -412,14 +475,16 @@ namespace Sen::Kernel::Support::PopCap::RSB
         }
 
     public:
-        template <auto check_packet>
+        template <auto check_packet, typename... Args>
+            requires(std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value && ...)
         inline auto process(
             std::string_view source,
-            const Manifest<std::uint32_t> &manifest
-        ) -> void
+            const Manifest<std::uint32_t> &manifest,
+            Args... bank) -> void
         {
             static_assert(check_packet == true || check_packet == false, "check_packet can only be true or false");
             static_assert(sizeof(check_packet) == sizeof(bool));
+            static_assert(sizeof...(Args) == 1 or sizeof...(Args) == 0, "rsg bank can only have one");
             sen->writeString("1bsr"_sv);
             auto version = manifest.version;
             if (version != 3 and version != 4)
@@ -447,6 +512,11 @@ namespace Sen::Kernel::Support::PopCap::RSB
             auto packet_index = 0;
             auto ptx_before_number = 0;
             auto pool_index = 0;
+            auto rsg_bank = std::map<std::string, std::vector<uint8_t>>{};
+            if constexpr (sizeof...(Args) == 1)
+            {
+                rsg_bank = std::get<0>(std::make_tuple(bank...));
+            }
             for (const auto &[composite_key, composite_packet] : manifest.group)
             {
                 auto composite_name = composite_packet.is_composite ? composite_key : fmt::format("{}_CompositeShell", composite_key);
@@ -459,22 +529,38 @@ namespace Sen::Kernel::Support::PopCap::RSB
                 {
                     auto rsg_composite = false;
                     rsg_packet_map.emplace(toupperback(subgroup_key), packet_index);
-                    auto rsg_file = DataStreamView{fmt::format("{}/packet/{}.rsg", source, subgroup_key)};
+                    auto rsg_file = DataStreamView{};
+                    if constexpr (sizeof...(Args) == 1)
+                    {
+                        rsg_file.writeBytes(rsg_bank.at(subgroup_key));
+                    }
+                    if constexpr (sizeof...(Args) == 0)
+                    {
+                        rsg_file.writeBytes(FileSystem::read_binary<uint8_t>(fmt::format("{}/packet/{}.rsg", source, subgroup_key)));
+                    }
+                    auto subgroup_packet_info = subgroup_value.packet_info;
                     if constexpr (check_packet)
                     {
                         auto rsg_packet_info = PacketInfo{};
                         get_packet_info(rsg_file, rsg_packet_info);
-                        compare_packet_info(subgroup_value.packet_info, rsg_packet_info, subgroup_key);
+                        if constexpr (sizeof...(Args) == 1)
+                        {
+                            compare_packet_info_and_fix_id(subgroup_packet_info, rsg_packet_info, subgroup_key);
+                        }
+                        if constexpr (sizeof...(Args) == 0)
+                        {
+                            compare_packet_info(subgroup_packet_info, rsg_packet_info, subgroup_key);
+                        }
                     }
                     auto ptx_number = 0;
-                    for (const auto &i : Range<std::size_t>(subgroup_value.packet_info.res.size()))
+                    for (const auto &i : Range<std::size_t>(subgroup_packet_info.res.size()))
                     {
-                        auto item_path = subgroup_value.packet_info.res[i]["path"].get<std::string>();
+                        auto item_path = subgroup_packet_info.res[i]["path"].get<std::string>();
                         item_path = std::regex_replace(item_path, std::regex("/"), "\\");
                         item_packet_map.emplace(toupperback(item_path), packet_index);
                         try
                         {
-                            auto &ptx_info = subgroup_value.packet_info.res[i].at("ptx_info");
+                            const auto &ptx_info = subgroup_packet_info.res[i].at("ptx_info");
                             if (!composite_packet.is_composite)
                             {
                                 throw Exception(fmt::format("{}: {}", Language::get("popcap.rsb.pack.invalid_packet_composite"), subgroup_key), std::source_location::current(), "process");

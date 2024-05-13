@@ -52,8 +52,11 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			return;
 		}
 
-	protected:
+	public:
+	
 		DataStreamView stream;
+
+	protected:
 
 		uint32_t version;
 
@@ -452,7 +455,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 	public:
 		explicit Encode(
 
-			) : stream()
+		) : stream()
 		{
 		}
 
