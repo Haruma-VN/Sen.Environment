@@ -476,5 +476,16 @@
     "script.input_any_path_to_continue": "Nhập bất kì đường dẫn để tiếp tục...",
     "argument_got": "Thu được đối số",
     "popcap.animation.convert.to_flash.sprite_duplicate": "Lỗi trùng lặp sprite",
-    "popcap.animation.convert.to_flash.label_duplicate": "Lỗi trùng lặp label"
+    "popcap.animation.convert.to_flash.label_duplicate": "Lỗi trùng lặp label",
+    "popcap.animation.miscellaneous.symbols_is_null": "Thuộc tính symbols bị null trong DOMDocument",
+    "popcap.animation.miscellaneous.media_is_null": "Thuộc tính media bị null trong DOMDocument",
+    "popcap.animation.miscellaneous.invalid_media": "media không hợp lệ",
+    "popcap.animation.miscellaneous.document_is_null": "Thuộc tính DOMDocument, DOMDocument không hợp lệ vì null",
+    "popcap.animation.miscellaneous.argument_must_be_object": "Đối số phải là object",
+    "wwise.soundbank.encode.unsupported_bank_version": "Phiên bản BNK không được hỗ trợ, chỉ hỗ trợ phiên bản lớn hơn 26, nhận được: {}",
+    "wwise.soundbank.encode.invalid_type": "type không được hỗ trợ, nhận được: {}",
+    "wwise.soundbank.decode.invalid_type_id": "type id không được hỗ trợ:, nhận được {}",
+    "wwise.soundbank.decode.unsupported_bank_version": "Phiên bản soundbank không được hỗ trợ, phiên bản quá thấp, nhận được: {}",
+    "pvz2.project.compile": "PvZ2 Project: Biên dịch",
+    "pvz2.project.create": "PvZ2 Project: Tạo"
 }

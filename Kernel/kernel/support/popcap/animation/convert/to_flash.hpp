@@ -665,18 +665,15 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				auto frame_list = FrameList{};
 				decode_frame_list<false>(animation.sprite[i], frame_list);
 				auto &sprite_name = sprite_name_list[i];
-				try
-				{
-					FileSystem::write_file(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), "test");
-				}
-				catch (Exception e)
-				{
+				auto it = std::find_if(sprite_name.begin(), sprite_name.end(), [](char c)
+				{return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|' || c == '\''; });
+				if (it != sprite_name.end()) {
 					if (!record.sprite.contains(animation.sprite[i].name))
 					{
 						record.sprite[animation.sprite[i].name] = std::vector<std::string>{};
 					}
 					sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), [](char c)
-													 { return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|';}),
+													 { return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|' || c == '\''; }),
 									  sprite_name.end());
 					sprite_name = fmt::format("{}_{}", sprite_name, record.sprite[animation.sprite[i].name].size() + 1);
 					record.sprite[animation.sprite[i].name].emplace_back(sprite_name);
