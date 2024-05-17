@@ -76,7 +76,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Common::rsg_unpack(file_data, &packet_info);
             for (const auto &data : packet_info.res)
             {
-                const auto file_path = fmt::format("{}/resources/{}", destination, data.path);
+                const auto file_path = fmt::format("{}/Resources/{}", destination, data.path);
                 Common::write_bytes(file_path, data.data);
             }
             return packet_info.res.size();
@@ -151,7 +151,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             auto file_data = stream->readBytes(group.size, static_cast<std::size_t>(group.pos));
             auto packet_info = PacketInfo<uint32_t>{};
             Common::rsg_unpack(file_data, &packet_info);
-            
+
             for (const auto &i : Range(packet_info.res.size()))
             {
                 if (packet_info.res[i].path.ends_with(".NEWTON"_sv))
@@ -195,15 +195,17 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 auto num_subgroup = 0;
                 for (const auto &[s_name, subgroup] : group["subgroup"].items())
                 {
-                    if (!group_list.at(name).subgroup.contains(s_name)) {
+                    if (!group_list.at(name).subgroup.contains(s_name))
+                    {
                         continue;
                     }
                     const auto &map_subgroup = group_list.at(name).subgroup.at(s_name);
                     if (group["is_composite"].get<bool>())
                     {
-                        if (s_name.ends_with("_1536"_sv) || s_name.ends_with("_Common"_sv))
+                        if (s_name.ends_with("_1536"_sv))
                         {
-                            data.writeUint32(1);
+                            data.writeUint32(1); // composite true 
+                            data.writeUint32(1); // type
                             data.writeUint32(map_subgroup.size);
                             data.writeUint32(data.write_pos + 16);
                             if (use_argb8888_for_ios && map_subgroup.format == 0)
@@ -225,10 +227,27 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                             data.writeStringByEmpty(s_name);
                             num_subgroup++;
                         }
+                        else if (s_name.ends_with("_Common"_sv))
+                        {
+                            data.writeUint32(1); // composite true
+                            data.writeUint32(0); // type
+                            data.writeUint32(map_subgroup.size);
+                            data.writeUint32(data.write_pos + 12);
+                            const auto before_pos = data.write_pos;
+                            data.writeNull(8);
+                            data.writeBytes(stream->getBytes(map_subgroup.pos, map_subgroup.pos + map_subgroup.size));
+                            const auto current_pos = data.write_pos;
+                            auto subgroup_info = subgroup.dump();
+                            data.writeUint32(subgroup_info.size(), before_pos);
+                            data.writeUint32(current_pos);
+                            data.writeString(subgroup_info, current_pos);
+                            data.writeStringByEmpty(s_name);
+                            num_subgroup++;
+                        }
                     }
                     else
                     {
-                        data.writeUint32(0);
+                        data.writeUint32(0); // composite false
                         data.writeUint32(map_subgroup.size);
                         data.writeUint32(data.write_pos + 12);
                         const auto before_pos = data.write_pos;
@@ -261,7 +280,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             {
                 throw Exception("cannot_find_manifest", std::source_location::current(), "process"); // TODO add localization;
             }
-            const auto packet_folder = fmt::format("{}/{}", destination, "packet");
+            const auto packet_folder = fmt::format("{}/{}", destination, "Packet");
             process_group(packet_folder, group_list, manifest_name, use_argb8888_for_ios);
             info.ptx_info_size = head_info.ptx_info_each_length;
             info.use_newton = use_newton != -1;

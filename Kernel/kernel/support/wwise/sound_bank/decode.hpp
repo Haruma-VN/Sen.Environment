@@ -10,10 +10,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
     {
 
     public:
-
         inline static auto fnv_hash(
-            const std::string &name
-        ) -> uint32_t
+            const std::string &name) -> uint32_t
         {
             auto hash = uint32_t{2166136261};
             for (const auto &c : name)
@@ -24,10 +22,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         }
 
     private:
-
         inline auto create_hex_string(
-            const std::vector<uint8_t> &buffer
-        ) -> std::string
+            const std::vector<uint8_t> &buffer) -> std::string
         {
             auto oss = std::ostringstream{};
             for (const auto &byte : buffer)
@@ -46,12 +42,11 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         uint32_t version;
 
         inline auto decode_bank_header(
-            SoundBankInformation *info
-        ) -> void
+            SoundBankInformation *info) -> void
         {
             const auto chuck_size = stream.readUint32();
             const auto bank_version = stream.readUint32();
-            if (bank_version <= 26)
+            if (bank_version <= 52)
             {
                 throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(bank_version)), std::source_location::current(), "decode_bank_header");
             }
@@ -164,9 +159,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     .id = id,
                     .name = "",
                 };
-                if (version < 52)
+                if (version <= 52)
                 {
-                    throw Exception("");
+                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(version)), std::source_location::current(), "decode_bank_header");
                 }
                 const auto transitions_count = stream.readUint32();
                 state.data.default_transition_time = default_transition_time;
@@ -175,8 +170,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     state.data.state_transition.emplace_back(StateTransition{
                         .state_from = stream.readUint32(),
                         .state_to = stream.readUint32(),
-                        .transition_time = stream.readUint32()
-                    });
+                        .transition_time = stream.readUint32()});
                 }
                 state_group.emplace_back(state);
             }

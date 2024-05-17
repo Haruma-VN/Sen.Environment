@@ -66,7 +66,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			stream.writeString("BKHD"_sv);
 			set_chuck_pos();
 			stream.writeUint32(info.version);
-			assert_conditional(info.version > 26, String::format(fmt::format("{}", Language::get("wwise.soundbank.encode.unsupported_bank_version")), std::to_string(info.version)), "encode_bank_header");
+			assert_conditional(info.version > 52, String::format(fmt::format("{}", Language::get("wwise.soundbank.encode.unsupported_bank_version")), std::to_string(info.version)), "encode_bank_header");
 			version = info.version;
 			stream.writeUint32(info.soundbank_id);
 			stream.writeUint32(info.language_id);
@@ -166,10 +166,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			{
 				stream.writeUint32(state_group.id);
 				stream.writeUint32(state_group.data.default_transition_time);
-				if (version < 52)
-				{
-					throw Exception("");
-				}
+				assert_conditional(version > 52, String::format(fmt::format("{}", Language::get("wwise.soundbank.encode.unsupported_bank_version")), std::to_string(version)), "encode_bank_header");
 				stream.writeUint32(state_group.data.state_transition.size());
 				for (const auto &state_transition : state_group.data.state_transition)
 				{

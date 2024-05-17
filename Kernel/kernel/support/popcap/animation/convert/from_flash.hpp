@@ -593,7 +593,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				close_current_model(model, frame_list);
 			}
 			frame_node.layer_length = use_empty_last_layer ? layer_count - 1 : layer_count;
-			frame_list.pop_back();
+			if (frame_list.size() > 0) {
+				frame_list.pop_back();
+			}
 			return;
 		}
 
@@ -781,7 +783,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			FileSystem::read_xml(fmt::format("{}/DomDocument.xml", source), &dom_document);
 			auto dom_symbol_list = DocumentSymbol{};
 			read_symbols_include(dom_symbol_list, &dom_document);
-			
 			if (record_info.version > 6 || record_info.version < 1)
 			{
 				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.from_flash.invalid_version"), record_info.version), std::source_location::current(), "process");

@@ -152,6 +152,7 @@ namespace Sen::Kernel::Support::PopCap::RSG
                 auto item_data = std::vector<uint8_t>{};
                 if constexpr (sizeof...(Args) == 1)
                 {
+                    debug(packet_res_info.path);
                     item_data = packet_bank.at(packet_res_info.path);
                 }
                 if constexpr (sizeof...(Args) == 0)

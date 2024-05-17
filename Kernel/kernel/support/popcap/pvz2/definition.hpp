@@ -31,6 +31,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     public:
         int x = 0;
         int y = 0;
+        int cols = 0;
+        int rows = 0;
         explicit DataPTXinfo(
 
             ) = default;
@@ -47,6 +49,14 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     {
         nlohmann_json_j["x"] = nlohmann_json_t.x;
         nlohmann_json_j["y"] = nlohmann_json_t.y;
+        if (nlohmann_json_t.cols != 0)
+        {
+            nlohmann_json_j["cols"] = nlohmann_json_t.y;
+        }
+        if (nlohmann_json_t.rows != 0)
+        {
+            nlohmann_json_j["rows"] = nlohmann_json_t.rows;
+        }
         return;
     }
 
@@ -56,6 +66,20 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     {
         nlohmann_json_j.at("x").get_to(nlohmann_json_t.x);
         nlohmann_json_j.at("y").get_to(nlohmann_json_t.y);
+        try
+        {
+            nlohmann_json_j.at("cols").get_to(nlohmann_json_t.cols);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("rows").get_to(nlohmann_json_t.rows);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         return;
     };
 
@@ -190,6 +214,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     inline auto static format_to_string(
         uint32_t format) -> std::string
     {
+        debug(format);
         switch (format)
         {
         case 0x00000000:
@@ -226,6 +251,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     inline auto static get_format(
         const std::string &format) -> uint32_t
     {
+        debug(format);
         switch (hash_sv(format))
         {
         case (hash_sv("rgba_8888")):
@@ -435,7 +461,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         std::map<std::string, SubgroupInfo<T>> subgroup;
     };
 
-    struct PackagesSetting 
+    struct PackagesSetting
     {
         bool auto_convert_json;
         bool rton_encryted;

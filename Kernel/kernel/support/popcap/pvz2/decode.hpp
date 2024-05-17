@@ -16,8 +16,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     class Decode
     {
     private:
-        
-
     protected:
         std::unique_ptr<DataStreamView> stream;
 
@@ -106,18 +104,11 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         }
 
         inline auto decode_popanim(
-            const std::string &resources_folder,
+            const std::string &popanim_destination,
             ResInfo<uint32_t> &res) const -> void
         {
             auto animation_decode = Animation::Decode<uint32_t>{res.data};
             animation_decode.process();
-            auto path_list = String{res.path}.split("/");
-            path_list.erase(path_list.begin() + 1);
-            // path_list[1] = "1536";
-            path_list.erase(path_list.end() - 1);
-            const auto new_path = String::join(path_list, "/");
-            res.path = new_path;
-            const auto popanim_destination = fmt::format("{}/{}", resources_folder, new_path);
             FileSystem::create_directory(popanim_destination);
             auto record = Animation::Convert::RecordInfo{};
             auto popanim_decode = Animation::Convert::ToFlash{animation_decode.json};
@@ -161,7 +152,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
             }
             case 0x00000094:
-            {
+            { // RGBA_PVRTC_4BPP_A8
                 return Texture::Decode::rgb_pvrtc_4bpp_a_8(res.data, width, height);
             }
             default:
@@ -186,7 +177,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 auto path_list = String{info["path"].get<std::string>()}.split("/");
                 path_list.erase(path_list.begin() + 1);
                 // path_list[1] = "1536";
-                path_list.emplace_back(fmt::format("library/media/{}.png", path_list.back()));
+                auto file_name = fmt::format("library/media/{}.png", path_list.back());
+                path_list.erase(path_list.end() - 1);
+                path_list.emplace_back(file_name);
                 auto path = String::join(path_list, "/");
                 auto data_res_info = DataResInfo{packet_type, path};
                 const auto sprite_path = fmt::format("{}/{}", resources_folder, path);
@@ -210,9 +203,10 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Info &data_info) const -> void
         {
             data_info.is_composite = true;
+            const auto type = stream->readUint32();
             const auto rsg_data_size = stream->readUint32();
             const auto rsg_pos = stream->readUint32();
-            auto format = stream->readUint32();
+            auto format = type == 1 ? stream->readUint32() : -1;
             auto rsg_data = stream->getBytes(rsg_pos, rsg_pos + rsg_data_size);
             const auto res_size = stream->readUint32();
             auto res_info = nlohmann::ordered_json::parse(stream->readString(res_size, static_cast<std::size_t>(stream->readUint32())));
@@ -221,8 +215,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Common::rsg_unpack(rsg_data, &packet_info);
             auto &p_info = data_info.groups[subgroup_name];
             p_info.compression_flags = CompressionFlag(packet_info.flags);
-            const auto type = res_info["type"];
-            if (type != nullptr)
+            if (type == 1)
             {
                 p_info.type = Image;
                 for (const auto &[id, packet] : res_info["packet"].items())
@@ -236,6 +229,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     split_image(resources_folder, p_info, packet["data"], image);
                     packet_info.res.erase(packet_info.res.begin() + i);
                 }
+                p_info.format = format;
             }
             else
             {
@@ -253,8 +247,13 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     const auto i = Common::find_path_in_res(packet_info.res, path);
                     if (packet_type == PopAnim)
                     {
-                        data_res_info.path = fmt::format("{}/{}", Path::getParents(path), Path::getFileNameWithoutExtension(path));
-                        decode_popanim(resources_folder, packet_info.res[i]);
+                        auto path_list = String{path}.split("/");
+                        path_list.erase(path_list.begin() + 1);
+                        // path_list[1] = "1536";
+                        path_list.pop_back(); 
+                        const auto new_path = String::join(path_list, "/");
+                        data_res_info.path = fmt::format("{}/{}", Path::getParents(new_path), Path::getFileNameWithoutExtension(new_path));
+                        decode_popanim(fmt::format("{}/{}", resources_folder, new_path), packet_info.res[i]);
                     }
                     else
                     {

@@ -18,6 +18,7 @@
 #include "kernel/definition/basic/system.hpp"
 #include "kernel/definition/basic/thread.hpp"
 #include "kernel/definition/basic/apng_maker.hpp"
+#include "kernel/definition/basic/max_rects_lite.hpp"
 
 #include "kernel/definition/encryption/md5.hpp"
 #include "kernel/definition/encryption/sha224.hpp"
