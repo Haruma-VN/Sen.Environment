@@ -133,8 +133,8 @@ namespace Sen::Kernel::Definition
             int mutable padding = 0;
             int mutable maxWidth = EDGE_MAX_VALUE;
             int mutable maxHeight = EDGE_MAX_VALUE;
-            std::vector<Rectangle> mutable freeRects = std::vector<Rectangle>{};
-            std::vector<Rectangle> mutable rects = std::vector<Rectangle>{};
+            std::vector<Rectangle> mutable freeRects;
+            std::vector<Rectangle> mutable rects;
             Option mutable options;
             int mutable border = 0;
             bool mutable verticalExpand = false;
@@ -164,20 +164,21 @@ namespace Sen::Kernel::Definition
 
             ~MaxRectsBin() = default;
 
-            inline auto add(const Rectangle &rect) const -> Rectangle
+            inline auto add(Rectangle &rect) const -> bool
             {
-                auto result = place(rect);
-                if (result.rect_used)
+                place(rect);
+                if (rect.rect_used)
                 {
-                    rects.emplace_back(result);
+                    rects.emplace_back(rect);
                 }
-                return result;
+                return rect.rect_used;
             }
 
         protected:
-            inline auto place(const Rectangle &rect) const -> Rectangle
+            inline auto place(Rectangle &rect) const -> void
             {
-                auto node = findNode(rect.width + padding, rect.height + padding);
+                auto node = Rectangle{};
+                findNode(rect.width + padding, rect.height + padding, node);
                 if (node.rect_used)
                 {
                     updateBinSize(node);
@@ -197,14 +198,15 @@ namespace Sen::Kernel::Definition
                     verticalExpand = width > height ? true : false;
                     rect.x = node.x;
                     rect.y = node.y;
-                    return rect;
+                    return;
                 }
                 else if (!verticalExpand)
                 {
                     if (updateBinSize(Rectangle(rect.width + padding, rect.height + padding, width + padding - border, border, rect.source)) ||
                         updateBinSize(Rectangle(rect.width + padding, rect.height + padding, border, height + padding - border, rect.source)))
                     {
-                        return place(rect);
+                        place(rect);
+                        return;
                     }
                 }
                 else
@@ -212,18 +214,23 @@ namespace Sen::Kernel::Definition
                     if (updateBinSize(Rectangle(rect.width + padding, rect.height + padding, border, height + padding - border, rect.source)) ||
                         updateBinSize(Rectangle(rect.width + padding, rect.height + padding, width + padding - border, border, rect.source)))
                     {
-                        return place(rect);
+                        place(rect);
+                        return;
                     }
                 }
-                return Rectangle{};
+                rect.rect_used = false;
+                return;
             }
 
             
-            inline auto findNode(int width, int height) const -> Rectangle
+            inline auto findNode(
+                int width, 
+                int height, 
+                Rectangle& bestNode
+            ) const -> void
             {
                 auto score = 1.7976931348623157e+308;
                 auto areaFit = 0;
-                auto bestNode = Rectangle{};
                 for (auto &r : freeRects)
                 {
                     if (r.width >= width && r.height >= height)
@@ -236,7 +243,7 @@ namespace Sen::Kernel::Definition
                         }
                     }
                 }
-                return bestNode;
+                return;
             }
 
             inline auto splitNode(const Rectangle &freeRect, const Rectangle &usedNode) const -> bool
@@ -383,11 +390,17 @@ namespace Sen::Kernel::Definition
         public:
             int mutable width = EDGE_MAX_VALUE;
             int mutable height = EDGE_MAX_VALUE;
-            int mutable padding = 0;
+            int mutable padding = 1;
             Option mutable options;
-            std::vector<MaxRectsBin> mutable bins = std::vector<MaxRectsBin>{};
+            std::vector<MaxRectsBin> mutable bins;
 
             MaxRectsPacker() = default;
+
+            MaxRectsPacker(
+                int width,
+                int height) : width(width), height(height)
+            {
+            }
 
             MaxRectsPacker(
                 int width,
@@ -418,7 +431,7 @@ namespace Sen::Kernel::Definition
              * @returns
              * @memberof MaxRectsPacker
              */
-            inline auto sort(std::vector<Rectangle> rects, PACKING_LOGIC logic) const -> std::vector<Rectangle>
+            inline auto sort(std::vector<Rectangle> &rects, PACKING_LOGIC logic) const -> void
             {
 
                 if (logic == PACKING_LOGIC::MAX_EDGE)
@@ -431,9 +444,10 @@ namespace Sen::Kernel::Definition
                     std::sort(rects.begin(), rects.end(), [](const Rectangle &a, const Rectangle &b)
                               { return b.width * b.height < a.width * a.height; });
                 }
-                return rects;
+                return;
             }
 
+            /*
             template <typename T>
             inline auto slice(
                 std::vector<T> &t,
@@ -447,6 +461,7 @@ namespace Sen::Kernel::Definition
                 }
                 return new_t;
             }
+            */
 
         public:
             /**
@@ -455,27 +470,25 @@ namespace Sen::Kernel::Definition
              * @param {Rectangle} rect the rect object add to the packer bin
              * @memberof MaxRectsPacker
              */
-            inline auto add(const Rectangle &rect) const -> Rectangle
+            inline auto add(Rectangle &rect) const -> void
             {
                 if (rect.width > width || rect.height > height)
                 {
-                    throw Exception("rect size greater than packer size");
+                    throw Exception("rect size greater than packer size"); // TODO add localization
                 }
                 else
                 {
                     for (auto &bin : bins)
                     {
-                        auto r = bin.add(rect);
-                        if (r.rect_used)
-                        {
-                            return r;
+                        if (bin.add(rect)) {
+                            return;
                         }
                     }
                     auto bin = MaxRectsBin(width, height, padding, options);
                     bin.add(rect);
                     bins.emplace_back(bin);
                 }
-                return rect;
+                return;
             }
 
             /**
@@ -486,10 +499,10 @@ namespace Sen::Kernel::Definition
              * @param {Rectangle[]} rects Array of bin/rectangles
              * @memberof MaxRectsPacker
              */
-            inline auto addArray(const std::vector<Rectangle> &rects) const -> void
+            inline auto addArray(std::vector<Rectangle> &rects) const -> void
             {
-                auto newRects = sort(rects, options.logic);
-                for (const auto &rect : newRects)
+                sort(rects, options.logic);
+                for (auto &rect : rects)
                 {
                     add(rect);
                 }

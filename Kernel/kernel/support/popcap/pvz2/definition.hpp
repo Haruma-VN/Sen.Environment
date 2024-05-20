@@ -214,7 +214,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     inline auto static format_to_string(
         uint32_t format) -> std::string
     {
-        debug(format);
         switch (format)
         {
         case 0x00000000:
@@ -251,7 +250,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
     inline auto static get_format(
         const std::string &format) -> uint32_t
     {
-        debug(format);
         switch (hash_sv(format))
         {
         case (hash_sv("rgba_8888")):

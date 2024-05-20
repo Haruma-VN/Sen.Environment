@@ -22,11 +22,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		using FrameList = FrameList;
 
 	public:
-
 		Animation animation;
 
 	protected:
-
 		struct DocumentSymbol
 		{
 			std::vector<std::string> image;
@@ -104,7 +102,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(sizeof(T) <= sizeof(double));
 			// const auto &resolution_list = std::vector<double>{0.78125, 1.5625, 1.875, 3.125, 1.0};
-			
+
 			/*
 			if (includes(resolution_list, a_matrix)) {
 				a_matrix = 1.0;
@@ -113,7 +111,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				d_matrix = 1.0;
 			}
 			*/
-		    auto scale_ratio = 1200.0f / static_cast<float>(resolution);
+			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
 			auto a = Matrix->FindAttribute("a");
 			auto b = Matrix->FindAttribute("b");
 			auto c = Matrix->FindAttribute("c");
@@ -226,8 +224,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto trim_left_in_place(
-			std::string &str
-		) -> std::string
+			std::string &str) -> std::string
 		{
 			auto i = 0;
 			while (i < str.size() && isspace(str[i]))
@@ -238,10 +235,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto trim(
-			const std::string &str
-		) -> std::string
+			const std::string &str) -> std::string
 		{
-			return std::regex_replace(str, std::regex("(^[ ]+)|([ ]+$)"),"");
+			return std::regex_replace(str, std::regex("(^[ ]+)|([ ]+$)"), "");
 		}
 
 	protected:
@@ -280,25 +276,24 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline auto parse_image(
 			const std::string &image_id,
 			const RecordInfo &record,
-			XMLDocument *document
-		) -> void
+			XMLDocument *document) -> void
 		{
 			auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
 			if (DOMSymbolItem == nullptr)
 			{
-				
+
 				throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem")), image_id), std::source_location::current(), "parse_image");
 			}
 			auto image_child = DOMSymbolItem->FindAttribute("name");
 			if (image_child == nullptr or fmt::format("image/{}", image_id) != std::string{image_child->Value()})
 			{
-				
+
 				throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "parse_image");
 			}
 			auto timeline = DOMSymbolItem->FirstChildElement("timeline");
 			if (timeline == nullptr)
 			{
-				
+
 				throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_timeline")), image_id), std::source_location::current(), "parse_image");
 			}
 			auto DOMTimeline = timeline->FirstChildElement("DOMTimeline");
@@ -371,8 +366,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto get_action_index(
 			tsl::ordered_map<std::string, ActionFrameNode> &frame_node,
-			XMLDocument *document
-		) -> void
+			XMLDocument *document) -> void
 		{
 			auto timelines_elements = document->FirstChildElement("DOMDocument")->FirstChildElement("timelines");
 			assert_conditional(timelines_elements != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.document_has_no_timelines")), "get_action_index");
@@ -452,8 +446,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			AnimFrameNode &frame_node,
 			const std::string &name,
 			XMLDocument *document,
-			const DocumentSymbol &dom_symbol_list
-		) -> void
+			const DocumentSymbol &dom_symbol_list) -> void
 		{
 			static_assert(is_action == true or is_action == false, "is_action must be true or false");
 			static_assert(sizeof(is_action) == sizeof(bool), "is_action must be boolean wrapper");
@@ -497,11 +490,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					auto DOMSymbolInstance = elements->FirstChildElement("DOMSymbolInstance");
 					if (DOMSymbolInstance == nullptr)
 					{
-						if (DOMLayer->PreviousSiblingElement("DOMLayer") == nullptr) {
+						if (DOMLayer->PreviousSiblingElement("DOMLayer") == nullptr)
+						{
 							const auto &read_blank_duration = frame_duration - frame_list.size() + 1;
-							if (read_blank_duration > 0 and DOMFrame->NextSiblingElement("DOMFrame") == nullptr) {
+							if (read_blank_duration > 0 and DOMFrame->NextSiblingElement("DOMFrame") == nullptr)
+							{
 								use_empty_last_layer = true;
-								for (const auto &i : Range<int>(read_blank_duration)) {
+								for (const auto &i : Range<int>(read_blank_duration))
+								{
 									frame_list.emplace_back(AnimationFrame{});
 								}
 								continue;
@@ -514,7 +510,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					auto name_match = std::regex("(image|sprite)");
 					auto match_result = std::smatch{};
 					auto regex_result = std::regex_search(libraryItemName, match_result, name_match);
-					assert_conditional(regex_result,String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_name_match")), name), "parse_sprite");
+					assert_conditional(regex_result, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_name_match")), name), "parse_sprite");
 					assert_conditional(match_result[0] == match_result[1], String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.mismatch_name_match")), name), "parse_sprite");
 					auto is_sprite = match_result[0].str() == "sprite";
 					auto resource_name = libraryItemName.substr(match_result[0].str().size() + 1);
@@ -593,7 +589,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				close_current_model(model, frame_list);
 			}
 			frame_node.layer_length = use_empty_last_layer ? layer_count - 1 : layer_count;
-			if (frame_list.size() > 0) {
+			if (frame_list.size() > 0)
+			{
 				frame_list.pop_back();
 			}
 			return;
@@ -621,8 +618,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto merge_action(
 			std::map<std::string, AnimFrameNode> &action_map,
-			const tsl::ordered_map<std::string, ActionFrameNode> &action_index
-		) -> void
+			const tsl::ordered_map<std::string, ActionFrameNode> &action_index) -> void
 		{
 			auto label_remove = 0;
 			auto start_index = 0;
@@ -705,8 +701,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline auto parse_dom_document(
 			const tsl::ordered_map<std::string, ActionFrameNode> &action_index,
-			XMLDocument *document
-		) -> void
+			XMLDocument *document) -> void
 		{
 			auto frameRate = document->FirstChildElement("DOMDocument")->FindAttribute("frameRate");
 			animation.frame_rate = std::stoi(frameRate ? frameRate->Value() : "24");
@@ -725,16 +720,21 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			assert_conditional("command" == std::string{DOMLayer_command->FindAttribute("name")->Value()}, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_command")), "parse_dom_document");
 			auto frames = DOMLayer_command->FirstChildElement("frames");
 			const auto &last_frames = std::stoi(frames->LastChildElement("DOMFrame")->FindAttribute("index")->Value());
-			for (const auto &i : Range<int>(last_frames - (animation.main_sprite.frame.size() - 1)))
+			auto num_frames_add = last_frames - static_cast<int>(animation.main_sprite.frame.size() - 1);
+			if (num_frames_add > 0)
 			{
-				animation.main_sprite.frame.emplace_back(AnimationFrame{});
+				for (const auto &i : Range(num_frames_add))
+				{
+					animation.main_sprite.frame.emplace_back(AnimationFrame{});
+				}
 			}
 			for (auto DOMFrame = frames->FirstChildElement("DOMFrame"); DOMFrame; DOMFrame = DOMFrame->NextSiblingElement("DOMFrame"))
 			{
 				assert_conditional(DOMFrame, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "parse_dom_document");
 				const auto &frame_index = std::stoi(DOMFrame->FindAttribute("index")->Value());
 				auto Actionscript = DOMFrame->FirstChildElement("Actionscript");
-				if (Actionscript == nullptr) {
+				if (Actionscript == nullptr)
+				{
 					continue;
 				}
 				auto script = Actionscript->FirstChildElement("script");
@@ -756,6 +756,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					assert_conditional(match_result, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_command")), command), "parse_dom_document");
 					animation.main_sprite.frame[frame_index].command.emplace_back(AnimationCommand{matches[1], matches[2]});
 				}
+			}
+			if (!animation.main_sprite.frame.back().stop) {
+				animation.main_sprite.frame.back().stop = true; // fix last stop to true
 			}
 			return;
 		}
@@ -817,10 +820,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			animation.version = record_info.version;
 			animation.main_sprite.work_area.duration = animation.main_sprite.frame.size();
 			parse_dom_document(action_index, &dom_document);
-			for (const auto &[name, list]: record_info.sprite) {
-				for (const auto &sprite_name : list) {
-					for (auto &sprite : animation.sprite) {
-						if (sprite_name == sprite.name) {
+			for (const auto &[name, list] : record_info.sprite)
+			{
+				for (const auto &sprite_name : list)
+				{
+					for (auto &sprite : animation.sprite)
+					{
+						if (sprite_name == sprite.name)
+						{
 							sprite.name = name;
 							break;
 						}
@@ -832,8 +839,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline static auto process_fs(
 			std::string_view source,
-			std::string_view destination
-		) -> void
+			std::string_view destination) -> void
 		{
 			auto convert = FromFlash{};
 			auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));

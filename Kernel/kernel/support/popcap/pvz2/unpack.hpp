@@ -84,12 +84,12 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
         inline auto process_composite(
             std::string_view destination,
+            nlohmann::ordered_json &res_info,
             ManifestInfo &info,
             const RSB_HeadInfo<uint32_t> &head_info,
             std::map<std::string, GroupInfo<uint32_t>> &group_list,
-            bool &use_argb8888_for_ios) const -> std::string
+            bool &use_argb8888_for_ios) const -> void
         {
-            auto manifest_name = std::string{};
             for (const auto &i : Range(head_info.composite_number))
             {
                 const auto composite_start_pos = i * head_info.composite_info_each_length + head_info.composite_info_begin;
@@ -106,7 +106,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     const auto rsg_info_pos = rsg_index * head_info.rsg_info_each_length + head_info.rsg_info_begin;
                     const auto rsg_name = stream->readStringByEmpty(static_cast<std::size_t>(rsg_info_pos));
                     //
-
                     const auto packet_pos = stream->readUint32(static_cast<std::size_t>(rsg_info_pos + 0x80));
                     const auto packet_size = stream->readUint32();
                     auto subgroup = SubgroupInfo<uint32_t>{
@@ -126,26 +125,27 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                             subgroup.format = format;
                         }
                     }
+                    if (std::regex_match(rsg_name, packages_regex))
+                    {
+                        info.use_packages = process_packages(destination, subgroup);
+                        group_list.erase(composite_name);
+                        continue;
+                    }
+                    if (std::regex_search(rsg_name, manifestgroup_regex))
+                    {
+                        process_manifest(subgroup, res_info);
+                        continue;
+                    }
                     group_list[composite_name].subgroup[rsg_name] = subgroup;
-                }
-                if (std::regex_match(composite_name, packages_regex))
-                {
-                    info.use_packages = process_packages(destination, group_list[composite_name].subgroup[composite_name]);
-                    group_list.erase(composite_name);
-                    continue;
-                }
-                if (std::regex_search(composite_name, manifestgroup_regex))
-                {
-                    manifest_name = composite_name;
-                    continue;
                 }
                 info.group.emplace_back(composite_name);
             }
-            return manifest_name;
+            return;
         }
 
         inline auto process_manifest(
-            const SubgroupInfo<uint32_t> &group) const -> nlohmann::ordered_json
+            const SubgroupInfo<uint32_t> &group,
+            nlohmann::ordered_json &res_info) const -> void
         {
 
             auto file_data = stream->readBytes(group.size, static_cast<std::size_t>(group.pos));
@@ -160,31 +160,41 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     break;
                 }
             }
-            auto result = nlohmann::ordered_json{};
+
             if (use_newton != -1)
             {
-                auto converter = ResourceGroup::Convert<true>{};
                 auto view = Newton::Decode{packet_info.res.at(use_newton).data};
-                result = converter.convert_whole(view.process());
+                auto converter = ResourceGroup::Convert<true>{};
+                res_info = converter.convert_whole(view.process());
             }
             else
             {
-                auto converter = ResourceGroup::Convert<false>{};
                 auto view = RTON::Decode{packet_info.res.at(0).data};
-                result = converter.convert_whole(nlohmann::ordered_json::parse(view.decode_rton()));
+                auto data = nlohmann::ordered_json::parse(view.decode_rton());
+                try
+                {
+                    auto converter = ResourceGroup::Convert<false>{};
+                    res_info = converter.convert_whole(data);
+                }
+                catch (nlohmann::ordered_json::exception &e)
+                {
+                    auto converter = ResourceGroup::Convert<true>{};
+                    res_info = converter.convert_whole(data);
+                    use_newton = 0;
+                }
             }
-            return result;
+            return;
         }
 
         inline auto process_group(const std::string &packet_folder,
+                                  nlohmann::ordered_json &res_info,
                                   const std::map<std::string, GroupInfo<uint32_t>> &group_list,
-                                  const std::string &manifest_name,
                                   bool use_argb8888_for_ios) const -> void
         {
-            auto res_info = process_manifest(group_list.at(manifest_name).subgroup.at(manifest_name));
+
             for (const auto &[name, group] : res_info["groups"].items())
             {
-                if (name == manifest_name || std::regex_match(name, packages_regex))
+                if (std::regex_match(name, manifestgroup_regex) || std::regex_match(name, packages_regex))
                 {
                     continue;
                 }
@@ -204,7 +214,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     {
                         if (s_name.ends_with("_1536"_sv))
                         {
-                            data.writeUint32(1); // composite true 
+                            data.writeUint32(1); // composite true
                             data.writeUint32(1); // type
                             data.writeUint32(map_subgroup.size);
                             data.writeUint32(data.write_pos + 16);
@@ -275,13 +285,10 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             read_head(&head_info);
             auto group_list = std::map<std::string, GroupInfo<uint32_t>>{};
             auto use_argb8888_for_ios = false;
-            const auto manifest_name = process_composite(destination, info, head_info, group_list, use_argb8888_for_ios);
-            if (manifest_name.empty())
-            {
-                throw Exception("cannot_find_manifest", std::source_location::current(), "process"); // TODO add localization;
-            }
+            auto res_info = nlohmann::ordered_json{};
+            process_composite(destination, res_info, info, head_info, group_list, use_argb8888_for_ios);
             const auto packet_folder = fmt::format("{}/{}", destination, "Packet");
-            process_group(packet_folder, group_list, manifest_name, use_argb8888_for_ios);
+            process_group(packet_folder, res_info, group_list, use_argb8888_for_ios);
             info.ptx_info_size = head_info.ptx_info_each_length;
             info.use_newton = use_newton != -1;
             return;

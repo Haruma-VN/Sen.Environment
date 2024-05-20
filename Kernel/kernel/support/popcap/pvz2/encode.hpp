@@ -21,9 +21,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 	{
 
 	private:
-		inline static auto constexpr packer_max_width = 4096;
-		inline static auto constexpr packer_max_height = 4096;
-		inline static auto constexpr packer_padding = 1;
 		inline static auto constexpr log2e = 1.4426950408889634;
 
 	protected:
@@ -199,8 +196,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			auto images_map = std::map<std::string, Definition::Image<int>>{};
 			auto packer_list = std::vector<MaxRectsAlgorithm::Rectangle>{};
 
-			auto temp_width = packer_max_width;
-			auto temp_height = packer_max_height;
+			auto temp_width = MaxRectsAlgorithm::EDGE_MAX_VALUE;
+			auto temp_height = MaxRectsAlgorithm::EDGE_MAX_VALUE;
 			for (const auto &[id, data] : info)
 			{
 				const auto path = fmt::format("{}/{}", source, data.path);
@@ -218,7 +215,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			}
 			temp_width = std::pow(2, std::ceil(std::log(temp_width) * log2e));
 			temp_height = std::pow(2, std::ceil(std::log(temp_height) * log2e));
-			auto packer = MaxRectsAlgorithm::MaxRectsPacker(temp_width, temp_height, packer_padding);
+			auto packer = MaxRectsAlgorithm::MaxRectsPacker(temp_width, temp_height);
 			packer.addArray(packer_list);
 			auto &bins = packer.bins;
 			auto image_list = std::vector<Definition::Image<int>>{};
@@ -276,6 +273,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 				auto res_info = RSG::ResInfo{path, true};
 				res_info.ptx_info = RSG::PTXInfo{static_cast<uint32_t>(i), static_cast<uint32_t>(bin.width), static_cast<uint32_t>(bin.height)};
 				rsg_info.emplace_back(res_info);
+				image_list.clear();
 			}
 			auto subgroup = nlohmann::ordered_json{};
 			subgroup["type"] = "1536";
