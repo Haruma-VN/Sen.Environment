@@ -15,32 +15,40 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 
     class Decode
     {
-    private:
     protected:
         std::unique_ptr<DataStreamView> stream;
+
+        struct ImagePosInfo
+        {
+            size_t pos;
+            uint32_t data_size;
+            uint32_t data_pos;
+            uint32_t format;
+            uint32_t info_size;
+            uint32_t info_pos;
+            std::string subgroup_name;
+        };
 
     protected:
         // rton
         inline auto decode_rton(
-            const std::string &resources_folder,
+            const std::string &path,
             const ResInfo<uint32_t> &res) const -> void
         {
             auto rton_decode = RTON::Decode{res.data};
-            const auto json_path = res.path.substr(0, res.path.size() - 5) + ".json";
-            Common::write_text_file(fmt::format("{}/{}", resources_folder, json_path), rton_decode.decode_rton());
+            Common::write_text_file(path, rton_decode.decode_rton());
             return;
         }
 
         // soundbank
         inline auto decode_soundbank(
-            const std::string &resources_folder,
+            const std::string &path,
             const ResInfo<uint32_t> &res) const -> void
         {
             auto info = WWise::SoundBank::SoundBankInformation{};
             auto soundbank_decode = WWise::SoundBank::Decode{res.data};
-            const auto destination = fmt::format("{}/{}", resources_folder, res.path.substr(0, res.path.size() - 4));
-            soundbank_decode.process(destination, &info);
-            Common::write_json(fmt::format("{}/definition.json", destination, res.path), info);
+            soundbank_decode.process(path, &info);
+            Common::write_json(fmt::format("{}/definition.json", path), info);
             return;
         }
 
@@ -63,7 +71,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             {
                 const auto path = packet["path"].get<std::string>();
                 const auto packet_type = get_type(packet["type"].get<std::string>());
-                auto data_res_info = DataResInfo{packet_type, path};
+                auto data_res_info = DataResInfo{packet_type, path, ""};
                 if (path == "!program")
                 {
                     continue;
@@ -73,15 +81,15 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 if (packet_type == File && Common::compare_string(ext_name, ".rton"))
                 {
                     data_res_info.type = Data;
-                    data_res_info.path = fmt::format("{}/{}.json", Path::getParents(path), Path::getFileNameWithoutExtension(path));
-                    decode_rton(resources_folder, packet_info.res[i]);
+                    data_res_info.items_path = fmt::format("{}.json", Path::getFileNameWithoutExtension(path));
+                    decode_rton(fmt::format("{}/{}", resources_folder, data_res_info.items_path), packet_info.res[i]);
                 }
                 else if (packet_type == SoundBank || packet_type == DecodedSoundBank)
                 {
                     if (Common::compare_string(ext_name, ".bnk"))
                     {
-                        data_res_info.path = fmt::format("{}/{}", Path::getParents(path), Path::getFileNameWithoutExtension(path));
-                        decode_soundbank(resources_folder, packet_info.res[i]);
+                        data_res_info.items_path = Path::getFileNameWithoutExtension(path);
+                        decode_soundbank(fmt::format("{}/{}", resources_folder, data_res_info.items_path), packet_info.res[i]);
                     }
                     else
                     {
@@ -90,7 +98,8 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
                 else if (packet_type == File || packet_type == PrimeFont || packet_type == RenderEffect || packet_type == PopAnim || packet_type == Image)
                 {
-                    Common::write_bytes(fmt::format("{}/{}", resources_folder, path), packet_info.res[i].data);
+                    data_res_info.items_path = Path::getFileName(path);
+                    Common::write_bytes(fmt::format("{}/{}", resources_folder, data_res_info.items_path), packet_info.res[i].data);
                 }
                 else
                 {
@@ -165,24 +174,25 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         inline auto split_image(
             const std::string &resources_folder,
             DataInfo &p_info,
+            std::vector<std::string> parents_pam,
             nlohmann::ordered_json &data,
             const Definition::Image<int> &image) const -> void
         {
             auto rectangle = std::vector<Definition::RectangleFileIO<int>>{};
-
             for (const auto &[id, info] : data.items())
             {
                 const auto packet_type = get_type(info["type"].get<std::string>());
                 assert_conditional(packet_type == Image, "invaild_sprite_image_type", "split_image"); // TODO add localization.
-                auto path_list = String{info["path"].get<std::string>()}.split("/");
-                path_list.erase(path_list.begin() + 1);
-                // path_list[1] = "1536";
-                auto file_name = fmt::format("library/media/{}.png", path_list.back());
-                path_list.erase(path_list.end() - 1);
-                path_list.emplace_back(file_name);
-                auto path = String::join(path_list, "/");
-                auto data_res_info = DataResInfo{packet_type, path};
-                const auto sprite_path = fmt::format("{}/{}", resources_folder, path);
+                auto path = info["path"].get<std::string>();
+                auto parent_path = Path::getNearestParent(path);
+                for (const auto &e : parents_pam) {
+                    if (Common::compare_string(parent_path, e)) {
+                        parent_path += "/library/media";
+                        break;
+                    }
+                }
+                auto data_res_info = DataResInfo{packet_type, path, fmt::format("{}/{}.png", parent_path, Path::getFileNameWithoutExtension(path))};
+                const auto sprite_path = fmt::format("{}/{}", resources_folder, data_res_info.items_path);
                 rectangle.emplace_back(
                     Definition::RectangleFileIO<int>(
                         info["default"]["ax"].get<int>(),
@@ -198,15 +208,49 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             return;
         }
 
-        inline auto decode_composite_group(
+        inline auto decode_texture(
+            const std::string &resources_folder,
+            Info &data_info, 
+            const ImagePosInfo& image_pos) const -> void
+        {
+            auto format = image_pos.format;
+            auto rsg_data = stream->getBytes(image_pos.data_pos, image_pos.data_pos + image_pos.data_size);
+            auto res_info = nlohmann::ordered_json::parse(stream->readString(image_pos.info_size, static_cast<std::size_t>(image_pos.info_pos)));
+            auto packet_info = PacketInfo<uint32_t>{};
+            Common::rsg_unpack(rsg_data, &packet_info);
+            auto parents_pam = std::vector<std::string>{};
+            for (const auto &[id, value]: data_info.groups) {
+                if (id.ends_with("_Common")) {
+                    for (const auto &[data_id, data_value] : data_info.groups[id].data) {
+                        if (Common::compare_string(Path::getExtension(data_value.path), ".pam")) {
+                            parents_pam.emplace_back(data_value.items_path);
+                        }
+                    }
+                }
+            }
+            auto &p_info = data_info.groups[image_pos.subgroup_name];
+            p_info.compression_flags = CompressionFlag(packet_info.flags);
+            p_info.type = Image;
+            for (const auto &[id, packet] : res_info["packet"].items())
+            {
+                const auto path = packet["path"].get<std::string>();
+                const auto packet_type = get_type(packet["type"].get<std::string>());
+                assert_conditional(path != "!program", "invaild_image_path", "split_image"); // TODO add localization.
+                const auto i = Common::find_path_in_res(packet_info.res, path + ".ptx");
+                assert_conditional(packet_type == Image, "not_a_image", "split_image"); // TODO add localization.
+                auto image = decode_image(packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
+                split_image(resources_folder, p_info, parents_pam, packet["data"], image);
+                packet_info.res.erase(packet_info.res.begin() + i);
+            }
+            p_info.format = format;
+        }
+
+        inline auto decode_animation(
             const std::string &resources_folder,
             Info &data_info) const -> void
         {
-            data_info.is_composite = true;
-            const auto type = stream->readUint32();
             const auto rsg_data_size = stream->readUint32();
             const auto rsg_pos = stream->readUint32();
-            auto format = type == 1 ? stream->readUint32() : -1;
             auto rsg_data = stream->getBytes(rsg_pos, rsg_pos + rsg_data_size);
             const auto res_size = stream->readUint32();
             auto res_info = nlohmann::ordered_json::parse(stream->readString(res_size, static_cast<std::size_t>(stream->readUint32())));
@@ -215,54 +259,57 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             Common::rsg_unpack(rsg_data, &packet_info);
             auto &p_info = data_info.groups[subgroup_name];
             p_info.compression_flags = CompressionFlag(packet_info.flags);
+            p_info.type = get_type(res_info["packet"]["type"].get<std::string>());
+            for (const auto &[id, packet] : res_info["packet"]["data"].items())
+            {
+                const auto path = packet["path"].get<std::string>();
+                const auto packet_type = get_type(packet["type"].get<std::string>());
+                auto data_res_info = DataResInfo{packet_type, path, ""};
+                if (path == "!program")
+                {
+                    p_info.data[id] = data_res_info;
+                    continue;
+                }
+                const auto i = Common::find_path_in_res(packet_info.res, path);
+                if (packet_type == PopAnim)
+                {
+                    data_res_info.items_path = Path::getFileNameWithoutExtension(path);
+                    decode_popanim(fmt::format("{}/{}", resources_folder, data_res_info.items_path), packet_info.res[i]);
+                }
+                else
+                {
+                    data_res_info.items_path = Path::getFileName(path);
+                    Common::write_bytes(fmt::format("{}/{}", resources_folder, data_res_info.items_path), packet_info.res[i].data);
+                }
+                packet_info.res.erase(packet_info.res.begin() + i);
+                p_info.data[id] = data_res_info;
+            }
+            return;
+        }
+
+        inline auto decode_composite_group(
+            const std::string &resources_folder,
+            Info &data_info,
+            std::vector<ImagePosInfo> &image_pos_info) const -> void
+        {
+            data_info.is_composite = true;
+            const auto type = stream->readUint32();
             if (type == 1)
             {
-                p_info.type = Image;
-                for (const auto &[id, packet] : res_info["packet"].items())
-                {
-                    const auto path = packet["path"].get<std::string>();
-                    const auto packet_type = get_type(packet["type"].get<std::string>());
-                    assert_conditional(path != "!program", "invaild_image_path", "split_image"); // TODO add localization.
-                    const auto i = Common::find_path_in_res(packet_info.res, path + ".ptx");
-                    assert_conditional(packet_type == Image, "not_a_image", "split_image"); // TODO add localization.
-                    auto image = decode_image(packet_info.res[i], format, packet["dimension"]["width"].get<uint32_t>(), packet["dimension"]["height"].get<uint32_t>());
-                    split_image(resources_folder, p_info, packet["data"], image);
-                    packet_info.res.erase(packet_info.res.begin() + i);
-                }
-                p_info.format = format;
+                auto image_pos = ImagePosInfo{
+                    .pos = stream->read_pos,
+                    .data_size = stream->readUint32(),
+                    .data_pos = stream->readUint32(),
+                    .format = stream->readUint32(),
+                    .info_size = stream->readUint32(),
+                    .info_pos = stream->readUint32()};
+                stream->read_pos = image_pos.info_pos + image_pos.info_size;
+                image_pos.subgroup_name = stream->readStringByEmpty();
+                image_pos_info.emplace_back(image_pos);
+                // data_info.groups[image_pos.subgroup_name] = nlohmann::ordered_json{};
+                return;
             }
-            else
-            {
-                p_info.type = get_type(res_info["packet"]["type"].get<std::string>());
-                for (const auto &[id, packet] : res_info["packet"]["data"].items())
-                {
-                    const auto path = packet["path"].get<std::string>();
-                    const auto packet_type = get_type(packet["type"].get<std::string>());
-                    auto data_res_info = DataResInfo{packet_type, path};
-                    if (path == "!program")
-                    {
-                        p_info.data[id] = data_res_info;
-                        continue;
-                    }
-                    const auto i = Common::find_path_in_res(packet_info.res, path);
-                    if (packet_type == PopAnim)
-                    {
-                        auto path_list = String{path}.split("/");
-                        path_list.erase(path_list.begin() + 1);
-                        // path_list[1] = "1536";
-                        path_list.pop_back(); 
-                        const auto new_path = String::join(path_list, "/");
-                        data_res_info.path = fmt::format("{}/{}", Path::getParents(new_path), Path::getFileNameWithoutExtension(new_path));
-                        decode_popanim(fmt::format("{}/{}", resources_folder, new_path), packet_info.res[i]);
-                    }
-                    else
-                    {
-                        Common::write_bytes(fmt::format("{}/{}", resources_folder, path), packet_info.res[i].data);
-                    }
-                    packet_info.res.erase(packet_info.res.begin() + i);
-                    p_info.data[id] = data_res_info;
-                }
-            }
+            decode_animation(resources_folder, data_info);
             return;
         }
 
@@ -273,8 +320,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             assert_conditional(stream->readString(4) == data_magic, "invaild_data_magic", "process"); // TODO add localizaiton;
             assert_conditional(stream->readUint32() == 1, "invaild_data_version", "process");         // TODO add localizaiton;
             stream->read_pos += 8;
-            const auto resources_folder = fmt::format("{}/resources", destination);
+            const auto resources_folder = fmt::format("{}/Resources", destination);
             const auto num_packet = stream->readUint32();
+            auto image_pos_info = std::vector<ImagePosInfo>{};
             for (const auto &i : Range(num_packet))
             {
                 const auto type = stream->readUint32();
@@ -284,12 +332,17 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 }
                 else if (type == 1)
                 {
-                    decode_composite_group(resources_folder, data_info);
+                    data_info.is_composite = true;
+                    decode_composite_group(resources_folder, data_info, image_pos_info);
                 }
                 else
                 {
                     throw Exception("invaild_data_type", std::source_location::current(), "process"); // TODO add localizaiton;
                 }
+            }
+            for (const auto &image_pos : image_pos_info)
+            {
+                decode_texture(resources_folder, data_info, image_pos);
             }
             return;
         }

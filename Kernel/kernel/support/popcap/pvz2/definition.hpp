@@ -83,22 +83,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         return;
     };
 
-    struct DataResInfo
-    {
-    public:
-        DataType type;
-        // std::string name;
-        std::string path;
-        DataPTXinfo ptx_default_info;
-        explicit DataResInfo(
-
-            ) = default;
-
-        explicit DataResInfo(
-            DataType type, const std::string &path) : type(type), path(path)
-        {
-        }
-    };
+    
 
     inline auto static type_to_string(
         DataType type) -> std::string
@@ -182,6 +167,24 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         }
     }
 
+    struct DataResInfo
+    {
+    public:
+        DataType type;
+        // std::string name;
+        std::string path;
+        std::string items_path;
+        DataPTXinfo ptx_default_info;
+        explicit DataResInfo(
+
+            ) = default;
+
+        explicit DataResInfo(
+            DataType type, const std::string &path, const std::string &items_path) : type(type), path(path), items_path(items_path)
+        {
+        }
+    };
+
     inline auto static to_json(
         nlohmann::ordered_json &nlohmann_json_j,
         const DataResInfo &nlohmann_json_t) -> void
@@ -189,6 +192,12 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         nlohmann_json_j["type"] = type_to_string(nlohmann_json_t.type);
         // nlohmann_json_j["name"] = nlohmann_json_t.name;
         nlohmann_json_j["path"] = nlohmann_json_t.path;
+        if (nlohmann_json_t.items_path.empty()) {
+            nlohmann_json_j["items_path"] = nullptr;
+        }
+        else {
+            nlohmann_json_j["items_path"] = nlohmann_json_t.items_path;
+        }
         if (nlohmann_json_t.type == Image)
         {
             nlohmann_json_j["default"] = nlohmann_json_t.ptx_default_info;
@@ -204,6 +213,9 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
         nlohmann_json_t.type = get_type(type);
         // nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
+        if (nlohmann_json_j.at("items_path") != nullptr) {
+            nlohmann_json_j.at("items_path").get_to(nlohmann_json_t.items_path);
+        }
         if (nlohmann_json_t.type == Image)
         {
             nlohmann_json_j.at("default").get_to(nlohmann_json_t.ptx_default_info);

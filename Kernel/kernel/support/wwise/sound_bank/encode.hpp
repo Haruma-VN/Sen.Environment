@@ -376,6 +376,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             if (version <= 126)
             {
 				assert_conditional(hirc_type_126.contains(type_str), String::format(fmt::format("{}", Language::get("wwise.soundbank.encode.invalid_type"), type_str)), "get_hierarchy_type");
+				return hirc_type_126[type_str];
             }
             else
             {
@@ -427,6 +428,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 		inline auto encode_string_mapping(
 			const STID & info
 		) -> void {
+			stream.writeString("STID"_sv);
 			set_chuck_pos();
 			stream.writeUint32(info.type);
 			stream.writeUint32(info.data.size());

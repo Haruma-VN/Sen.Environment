@@ -73,7 +73,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			return animation_encode->sen->toBytes();
 		}
 
-		template <auto write_type>
+		template<auto write_type>
 		inline auto encode_file(
 			std::string_view source,
 			const DataInfo &info) const -> void
@@ -89,30 +89,31 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			auto rsg_info = std::vector<RSG::ResInfo>{};
 			for (const auto &[id, packet] : info.data)
 			{
-				auto path = packet.path;
-				const auto packet_type = packet.type;
+				auto &path = packet.path;
+				auto packet_type = packet.type;
 				if (path == "!program")
 				{
 					data[id] = nlohmann::ordered_json{{"type", type_to_string(packet_type)}, {"path", path}};
 					continue;
 				}
-				const auto data_path = fmt::format("{}/{}", source, path);
+				const auto data_path = fmt::format("{}/{}", source, packet.items_path);
 				if (packet_type == Data)
 				{
-					path = fmt::format("{}/{}.rton", Path::getParents(path), Path::getFileNameWithoutExtension(path));
+					packet_type = File;
 					packet_bank[path] = std::move(encode_rton(data_path));
 				}
 				else if (packet_type == SoundBank || packet_type == DecodedSoundBank)
 				{
-					path = fmt::format("{}/{}.bnk", Path::getParents(path), Path::getFileNameWithoutExtension(path));
 					packet_bank[path] = std::move(encode_soundbank(data_path));
 				}
 				else if (packet_type == PopAnim)
 				{
-					auto path_list = String{path}.split("/");
-					path_list.insert(path_list.begin() + 1, "768"); // 768
-					path = fmt::format("{}.pam", String::join(path_list, "/"));
-					packet_bank[path] = std::move(encode_popanim(data_path));
+					if constexpr (write_type == true) {
+						packet_bank[path] = std::move(encode_popanim(data_path));
+					}
+					else {
+						packet_bank[path] = std::move(FileSystem::read_binary<uint8_t>(data_path));
+					}
 				}
 				else if (packet_type == File || packet_type == PrimeFont || packet_type == RenderEffect || packet_type == PopAnim || packet_type == Image)
 				{
@@ -129,10 +130,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			subgroup["packet"] = nlohmann::ordered_json{{"type", type_to_string(type)}, {"data", data}};
 			auto rsg_pack = RSG::Pack{};
 			rsg_pack.process<false>("", packet_info, packet_bank);
-			if constexpr (write_type)
-			{
-				stream.writeUint32(0);
-			}
 			auto rsg_data = rsg_pack.sen.toBytes();
 			stream.writeUint32(rsg_data.size());
 			stream.writeUint32(stream.write_pos + 12);
@@ -200,7 +197,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			auto temp_height = MaxRectsAlgorithm::EDGE_MAX_VALUE;
 			for (const auto &[id, data] : info)
 			{
-				const auto path = fmt::format("{}/{}", source, data.path);
+				const auto path = fmt::format("{}/{}", source, data.items_path);
 				auto image = Definition::ImageIO::read_png(path);
 				images_map.emplace(id, image);
 				packer_list.emplace_back(MaxRectsAlgorithm::Rectangle(image.width, image.height, id));
@@ -235,15 +232,6 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 				for (auto &rect : bin.rects)
 				{
 					auto &info_data = info.at(rect.source);
-					auto sprite_path_list = String{info_data.path}.split("/");
-					sprite_path_list.insert(sprite_path_list.begin() + 1, "1536");
-					auto length = sprite_path_list.size();
-					if (length - 2 >= 0 && sprite_path_list.at(length - 2) == "media") {
-						sprite_path_list.erase(sprite_path_list.end() - 2); // delete media
-					}
-					if (length - 3 >= 0 && sprite_path_list.at(length - 3) == "libray") {
-						sprite_path_list.erase(sprite_path_list.end() - 3); // delete libray
-					}
 					auto ptx_default = nlohmann::ordered_json{
 						{"ax", rect.x}, {"ay", rect.y}, {"aw", rect.width}, {"ah", rect.height}, {"x", info_data.ptx_default_info.x}, {"y", info_data.ptx_default_info.y}};
 					if (info_data.ptx_default_info.cols != 0)
@@ -256,7 +244,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 					}
 					packet[packet_id]["data"][rect.source] = nlohmann::ordered_json{
 						{"type", "Image"},
-						{"path", String::join(sprite_path_list, "/")},
+						{"path", info_data.path},
 						{"default", ptx_default}};
 					auto &image = images_map.at(rect.source);
 					image_list.emplace_back(image);
@@ -314,10 +302,12 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
 			{
 				auto format = info.format;
 				const auto compression_flags = static_cast<std::uint32_t>(info.compression_flags);
+				stream.writeUint32(1);
 				encode_image(source, s_name, format, compression_flags, info.data);
 			}
 			else if (type == File)
 			{
+				stream.writeUint32(0);
 				encode_file<true>(source, info);
 			}
 			else

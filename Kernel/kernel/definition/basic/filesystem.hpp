@@ -482,8 +482,18 @@ namespace Sen::Kernel::FileSystem
 		tinyxml2::XMLDocument* xml
 	) -> void
 	{
-		auto data = FileSystem::read_file(source);
-		auto status_code = xml->Parse(data.data(), data.size());
+		#if WINDOWS
+		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data());
+		#else
+		auto file = std::ifstream(source.data());
+		#endif
+        if (!file.is_open()) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(source.data())), std::source_location::current(), "read_json");
+        }
+        auto buffer = std::stringstream{};
+        buffer << file.rdbuf();
+		auto status_code = xml->Parse(buffer.str().data(), buffer.str().size());
 		assert_conditional(status_code == tinyxml2::XML_SUCCESS, fmt::format("{}: {}", Kernel::Language::get("xml.read_error"), String::view(String::to_posix_style(source.data()))), "read_xml");
 		return;
 	}

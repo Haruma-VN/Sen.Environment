@@ -65,6 +65,12 @@ namespace Sen::Kernel::Support::PopCap::Newton {
 			{
 			}
 
+			explicit Encode(
+				const nlohmann::ordered_json & source
+			) : resource(source), sen(std::make_unique<DataStreamView>())
+			{
+			}
+
 			/**
 			 * ---------------------
 			 * Process method

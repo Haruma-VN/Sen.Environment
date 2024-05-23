@@ -75,7 +75,8 @@ namespace Sen::Kernel::Support::PopCap::RTON
         {
             for (auto field : object)
             {
-                write_string(field.unescaped_key());
+                auto key = static_cast<std::string_view>(field.unescaped_key());
+                write_string(key);
                 write_value(field.value());
             }
             sen->writeUint8(object_end);
@@ -133,7 +134,15 @@ namespace Sen::Kernel::Support::PopCap::RTON
             {
                 if (element.is_integer())
                 {
-                    write_num(static_cast<int64_t>(element.get_int64()));
+                    try 
+                    {
+                        write_num(static_cast<int64_t>(element.get_int64()));
+                    }
+                    catch (const simdjson::simdjson_error &e)
+                    {
+                        write_num_uint64(static_cast<uint64_t>(element.get_uint64()));
+                    }
+                    
                 }
                 else
                 {
@@ -169,6 +178,32 @@ namespace Sen::Kernel::Support::PopCap::RTON
                     sen->writeUint8(0x42);
                     sen->writeDouble(num);
                 }
+            }
+            return;
+        }
+
+        inline auto constexpr write_num_uint64(
+            uint64_t num
+        ) -> void
+        {
+            if (num == 0)
+            {
+                sen->writeUint8(0x21);
+            }
+            else if (0 <= num and num > 9223372036854775807)
+            {
+                sen->writeUint8(0x46);
+                sen->writeUint64(num);
+            }
+            else if (0 <= num)
+            {
+                sen->writeUint8(0x44);
+                sen->writeZigZag32(num);
+            }
+            else
+            {
+                sen->writeUint8(0x45);
+                sen->writeZigZag64(num);
             }
             return;
         }

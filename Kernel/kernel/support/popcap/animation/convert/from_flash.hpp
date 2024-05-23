@@ -683,7 +683,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				}
 				if (write_frame)
 				{
-					for (const auto &i : Range<int>(label_remove, start_index, 1))
+					for (auto i = label_remove; i < start_index; ++i)
 					{
 						if (!check_element_in_vector<int>(action_frames[0].remove, i) && !check_element_in_vector<int>(remove_list, i))
 						{

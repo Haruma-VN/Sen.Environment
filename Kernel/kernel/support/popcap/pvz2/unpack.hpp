@@ -90,6 +90,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
             std::map<std::string, GroupInfo<uint32_t>> &group_list,
             bool &use_argb8888_for_ios) const -> void
         {
+            auto skip = false;
             for (const auto &i : Range(head_info.composite_number))
             {
                 const auto composite_start_pos = i * head_info.composite_info_each_length + head_info.composite_info_begin;
@@ -100,6 +101,7 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                 {
                     composite_name = composite_name.substr(0, composite_name.size() - 15);
                 }
+                skip = false;
                 for (const auto &k : Range(stream->readUint32(static_cast<std::size_t>(composite_start_pos + 0x480))))
                 {
                     const auto rsg_index = stream->readUint32(static_cast<std::size_t>(k * 0x10 + composite_info_pos));
@@ -129,16 +131,20 @@ namespace Sen::Kernel::Support::PopCap::PvZ2
                     {
                         info.use_packages = process_packages(destination, subgroup);
                         group_list.erase(composite_name);
+                        skip = true;
                         continue;
                     }
                     if (std::regex_search(rsg_name, manifestgroup_regex))
                     {
                         process_manifest(subgroup, res_info);
+                        skip = true;
                         continue;
                     }
                     group_list[composite_name].subgroup[rsg_name] = subgroup;
                 }
-                info.group.emplace_back(composite_name);
+                if (!skip) {
+                    info.group.emplace_back(composite_name);
+                }
             }
             return;
         }

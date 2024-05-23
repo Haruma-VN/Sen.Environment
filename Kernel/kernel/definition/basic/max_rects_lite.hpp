@@ -164,18 +164,19 @@ namespace Sen::Kernel::Definition
 
             ~MaxRectsBin() = default;
 
-            inline auto add(Rectangle &rect) const -> bool
+            inline auto add(const Rectangle &rect) const -> bool
             {
-                place(rect);
-                if (rect.rect_used)
+                auto result = Rectangle{};
+                place(rect, result);
+                if (result.rect_used)
                 {
-                    rects.emplace_back(rect);
+                    rects.emplace_back(result);
                 }
-                return rect.rect_used;
+                return result.rect_used;
             }
 
         protected:
-            inline auto place(Rectangle &rect) const -> void
+            inline auto place(const Rectangle &rect, Rectangle &placeNode) const -> void
             {
                 auto node = Rectangle{};
                 findNode(rect.width + padding, rect.height + padding, node);
@@ -198,6 +199,7 @@ namespace Sen::Kernel::Definition
                     verticalExpand = width > height ? true : false;
                     rect.x = node.x;
                     rect.y = node.y;
+                    placeNode = rect;
                     return;
                 }
                 else if (!verticalExpand)
@@ -205,7 +207,7 @@ namespace Sen::Kernel::Definition
                     if (updateBinSize(Rectangle(rect.width + padding, rect.height + padding, width + padding - border, border, rect.source)) ||
                         updateBinSize(Rectangle(rect.width + padding, rect.height + padding, border, height + padding - border, rect.source)))
                     {
-                        place(rect);
+                        place(rect, placeNode);
                         return;
                     }
                 }
@@ -214,20 +216,15 @@ namespace Sen::Kernel::Definition
                     if (updateBinSize(Rectangle(rect.width + padding, rect.height + padding, border, height + padding - border, rect.source)) ||
                         updateBinSize(Rectangle(rect.width + padding, rect.height + padding, width + padding - border, border, rect.source)))
                     {
-                        place(rect);
+                        place(rect, placeNode);
                         return;
                     }
                 }
-                rect.rect_used = false;
                 return;
             }
 
             
-            inline auto findNode(
-                int width, 
-                int height, 
-                Rectangle& bestNode
-            ) const -> void
+            inline auto findNode(int width, int height, Rectangle& bestNode) const -> void
             {
                 auto score = 1.7976931348623157e+308;
                 auto areaFit = 0;
@@ -390,7 +387,7 @@ namespace Sen::Kernel::Definition
         public:
             int mutable width = EDGE_MAX_VALUE;
             int mutable height = EDGE_MAX_VALUE;
-            int mutable padding = 1;
+            int mutable padding = 0;
             Option mutable options;
             std::vector<MaxRectsBin> mutable bins;
 
@@ -470,7 +467,7 @@ namespace Sen::Kernel::Definition
              * @param {Rectangle} rect the rect object add to the packer bin
              * @memberof MaxRectsPacker
              */
-            inline auto add(Rectangle &rect) const -> void
+            inline auto add(const Rectangle &rect) const -> bool
             {
                 if (rect.width > width || rect.height > height)
                 {
@@ -481,14 +478,14 @@ namespace Sen::Kernel::Definition
                     for (auto &bin : bins)
                     {
                         if (bin.add(rect)) {
-                            return;
+                            return true;
                         }
                     }
                     auto bin = MaxRectsBin(width, height, padding, options);
                     bin.add(rect);
                     bins.emplace_back(bin);
                 }
-                return;
+                return rect.rect_used;
             }
 
             /**
@@ -502,7 +499,7 @@ namespace Sen::Kernel::Definition
             inline auto addArray(std::vector<Rectangle> &rects) const -> void
             {
                 sort(rects, options.logic);
-                for (auto &rect : rects)
+                for (const auto &rect : rects)
                 {
                     add(rect);
                 }
