@@ -611,8 +611,8 @@ namespace Sen::Kernel::Definition
                 {
                     thiz.write_pos = std::get<0>(std::make_tuple(args...));
                 }
-                auto num = 0;
-                for (num = (uint64_t)value; num >= 128; num >>= 7)
+                uint64_t num = 0;
+                for (num = static_cast<uint64_t>(value); num >= 128; num >>= 7)
                 {
                     thiz.writeUint8((uint8_t)(num | 0x80));
                 }
@@ -1511,9 +1511,9 @@ namespace Sen::Kernel::Definition
                                        "readVarInt64");
                     thiz.read_pos = view;
                 }
-                auto num = 0;
+                int64_t num = 0;
                 auto num_2 = 0;
-                auto byte = 0;
+                uint8_t byte = 0;
                 do
                 {
                     if (num_2 == 70)
@@ -1522,7 +1522,7 @@ namespace Sen::Kernel::Definition
                                         std::source_location::current(), "readVarInt64");
                     }
                     byte = thiz.readUint8();
-                    num |= ((byte & 0x7F) << num_2);
+                    num |= (static_cast<int64_t>(byte & 0x7F) << num_2);
                     num_2 += 7;
                 } while ((byte & 0x80) != 0);
                 return num;
