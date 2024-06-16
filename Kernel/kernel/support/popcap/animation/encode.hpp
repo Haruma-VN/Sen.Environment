@@ -6,410 +6,302 @@
 namespace Sen::Kernel::Support::PopCap::Animation
 {
     using namespace Definition;
-    class Encode
+
+    using namespace Sen::Kernel::Support::Miscellaneous::Shared;
+    
+    struct Encode : Common
     {
-
-    public:
-        SexyAnimation json;
-        int mutable version;
-        int mutable frame_rate;
-        inline auto process (
-
-        ) const -> void
-        {
-            version = json.version;
-            frame_rate = json.frame_rate;
-            sen->writeUint32(Definition::magic);
-            auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
-            if (index == Definition::version.end())
-            {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "animation_encode");
-            }
-            sen->writeUint32(version);
-            sen->writeUint8(frame_rate);
-            sen->writeUint16(json.position.x * 20);
-            sen->writeUint16(json.position.y * 20);
-            if (json.size.width != -1 and json.size.height != -1)
-            {
-                sen->writeUint16(json.size.width * 20);
-                sen->writeUint16(json.size.height * 20);
-            }
-            else
-            {
-                sen->writeUint16(-1);
-                sen->writeUint16(-1);
-            }
-            auto& image = json.image;
-            sen->writeUint16(image.size());
-            for (const auto &image_value : image) {
-                auto image_name = fmt::format("{}|{}", image_value.name, image_value.id);
-                sen->writeStringByUint16(image_name);
-                write_image(image_value);
-            }
-            auto& sprite = json.sprite;
-            sen->writeUint16(sprite.size());
-            for (const auto &sprite_value: sprite) {
-                if (version >= 4) {
-                    sen->writeStringByUint16(sprite_value.name);
-                    write_sprite(sprite_value);
-                }
-            }
-            if (version <= 3) {
-                write_sprite(json.main_sprite); 
-            }
-            else {
-                sen->writeBoolean(true);
-                sen->writeStringByUint16("");
-                write_sprite(json.main_sprite);
-            }
-            return;
-        }
-
     protected:
 
-        inline auto write_sprite(const AnimationSprite & sprite) const -> void {
-            if (version >= 4) {
-                if (version >= 6) {
-                    sen->writeStringByUint16(sprite.description);
-                }
-                sen->writeUint32(frame_rate * 65536);
-            }
-            auto work_area = sprite.work_area;
-            if (version >= 5) {
-                sen->writeUint16(work_area.duration);
-                sen->writeUint16(work_area.index);
-                sen->writeUint16(work_area.index + work_area.duration - 1);
-            }
-            else {
-                sen->writeUint16(work_area.duration);
-            }
-            for (auto& frame : sprite.frame) {
-                write_frame_info(frame);
-            }
-            return;
-        }
-
-        inline auto write_frame_info(const AnimationFrame & frame) const -> void {
-            auto flag = 0;
-            auto write_pos = sen->write_pos;
-            sen->writeUint8(0xff);
-            auto count = 0;
-            auto& remove = frame.remove;
-            if (remove.size() > 0) {
-                flag |= FrameFlags::remove;
-                count = remove.size();
-                if ((count < 255) and (count >= 0)) {
-                    sen->writeUint8(count);
-                }
-                else {
-                    sen->writeUint8(255);
-                    sen->writeUint16(count);
-                }
-                for (auto i : Range(count)) {
-                    write_remove(remove[i]);
-                }
-            }
-            auto& append = frame.append;
-            if (append.size() > 0) {
-                flag |= FrameFlags::append;
-                count = append.size();
-                if ((count < 255) and (count >= 0)) {
-                    sen->writeUint8(count);
-                }
-                else {
-                    sen->writeUint8(255);
-                    sen->writeUint16(count);
-                }
-                for (auto i : Range(count)) {
-                    write_append(append[i]);
-                }
-            }
-            auto& change = frame.change;
-            if (change.size() > 0) {
-                flag |= FrameFlags::change;
-                count = change.size();
-                if ((count < 255) and (count >= 0)) {
-                    sen->writeUint8(count);
-                }
-                else {
-                    sen->writeUint8(255);
-                    sen->writeUint16(count);
-                }
-                for (auto i : Range(count)) {
-                    write_move(change[i]);
-                }
-            }
-            if (!frame.label.empty() || frame.label != "") {
-                flag |= FrameFlags::label;
-                sen->writeStringByUint16(frame.label);
-            }
-            if (frame.stop) {
-                flag |= FrameFlags::stop;
-            }
-            auto& command = frame.command;
-            if (command.size() > 0) {
-                flag |= FrameFlags::command;
-                count = command.size();
-                if ((count < 255) and (count >= 0)) {
-                    sen->writeUint8(count);
-                }
-                else {
-                    sen->writeUint8(255);
-                    sen->writeUint16(count);
-                }
-                for (auto i : Range(count)) {
-                    write_command(command[i]);
-                }
-            }
-            auto thiz_pos = sen->write_pos;
-            sen->writeUint8(flag, static_cast<std::size_t>(write_pos));
-            sen->write_pos = thiz_pos;
-            return;
-        }
-
-        inline auto write_remove(
-            int index
-        ) const -> void {
-            if (index >= 2047) {
-                sen->writeUint16(2047);
-                sen->writeUint32(index);
-            }
-            else {
-                sen->writeUint16(index);
-            }
-            return;
-        }
-
-        inline auto write_append(const AnimationAppend & append) const -> void {
-            auto write_pos = sen->write_pos;
-            sen->writeUint16(0);
-            auto flag = 0;
-            auto index = append.index;
-            if (index >= 2047 || index < 0) {
-                flag |= 2047;
-                sen->writeUint32(index);
-            }
-            else {
-                flag |= index;
-            }
-            flag |= append.sprite ? 32768 : 0;
-            flag |= append.additive ? 16384 : 0;
-            auto resource = append.resource;
-            if (version >= 6) {
-                if (resource >= 255 || resource < 0) {
-                    sen->writeUint8(255);
-                    sen->writeUint16(resource);
-                }
-                else {
-                    sen->writeUint8(resource);
-                }
-            }
-            if (append.preload_frame != 0) {
-                flag |= 8192;
-                sen->writeUint16(append.preload_frame);
-            }
-            if (append.name != "" and append.name.empty()) {
-                flag |= 4096;
-                sen->writeStringByUint16(append.name);
-            }
-            if (append.time_scale != 1) {
-                flag |= 2048;
-                sen->writeUint32(append.time_scale * 65536);
-            }
-            auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, static_cast<std::size_t>(write_pos));
-            sen->write_pos = thiz_pos;
-            return;
-        }
-
-        inline auto write_move(
-            const AnimationMove & move
-        ) const -> void {
-            auto write_pos = sen->write_pos;
-            sen->writeUint16(0);
-            auto flag = 0;
-            auto index = move.index;
-            if (index >= 1023 || index < 0) {
-                flag |= 1023;
-                sen->writeUint32(index);
-            }
-            else {
-                flag |= index;
-            }
-            auto num_flag = 0;
-            auto& transform = move.transform;
-            auto transform_size = transform.size();
-            if (transform_size == 6) {
-                num_flag = MoveFlags::matrix;
-                sen->writeInt32(std::round(transform[0] * 65536.0));
-                sen->writeInt32(std::round(transform[2] * 65536.0));
-                sen->writeInt32(std::round(transform[1] * 65536.0));
-                sen->writeInt32(std::round(transform[3] * 65536.0));
-            } 
-            else if (transform_size == 3) {
-                num_flag |= MoveFlags::rotate;
-                sen->writeInt16(std::round(transform[0] * 1000.0));
-            }
-            auto y = std::round(transform[transform_size - static_cast<size_t>(2)] * 20.0);
-            auto x = std::round(transform[transform_size - static_cast<size_t>(1)] * 20.0);
-            if (version >= 5) {
-                num_flag |= MoveFlags::long_coords;
-                sen->writeInt32(y);
-                sen->writeInt32(x);
-            }
-            else {
-                sen->writeInt16(y);
-                sen->writeInt16(x);
-            }
-            auto& source_rectangle = move.source_rectangle;
-            if (!source_rectangle.empty() && source_rectangle.size() == 4) {
-                num_flag |= MoveFlags::src_react;
-                sen->writeInt16(source_rectangle[0] * 20);
-                sen->writeInt16(source_rectangle[1] * 20);
-                sen->writeInt16(source_rectangle[2] * 20);
-                sen->writeInt16(source_rectangle[3] * 20);
-            }
-            auto& color = move.color;
-            if (!color.empty() && color.size() == 4) {
-                num_flag |= MoveFlags::color;
-                sen->writeUint8(color[0] * 255);
-                sen->writeUint8(color[1] * 255);
-                sen->writeUint8(color[2] * 255);
-                sen->writeUint8(color[3] * 255);
-            }
-            if (move.sprite_frame_number != 0) {
-                num_flag |= MoveFlags::sprite_frame_number;
-                sen->writeUint8(move.sprite_frame_number);
-            };
-            flag |= num_flag;
-            auto thiz_pos = sen->write_pos;
-            sen->writeUint16(flag, static_cast<std::size_t>(write_pos));
-            sen->write_pos = thiz_pos;
-            return;
-        }
-
-        inline auto write_command(const AnimationCommand & command) const -> void {
-            sen->writeStringByUint16(command.parameter);
-            sen->writeStringByUint16(command.command);
-            return;
-        }
-
-
-        inline auto write_image(
-            const AnimationImage & image
-            ) const -> void
+        template <typename RawShortValue, typename RawLongValue, auto flag_count> requires std::is_arithmetic_v<RawShortValue> && std::is_arithmetic_v<RawLongValue>
+        inline static auto exchange_integer_variant_with_flag(
+            DataStreamView & stream,
+            int const & value,
+            std::bitset<flag_count> & flag
+        ) -> void
         {
-            if (version >= 4)
-            {
-                sen->writeUint16(image.size.width);
-                sen->writeUint16(image.size.height);
+            auto value_short_bit_count = static_cast<size_t>(sizeof(RawShortValue) * size_t{8} - static_cast<size_t>(flag_count));
+            auto value_short_maximum = static_cast<RawShortValue>((std::numeric_limits<RawShortValue>::max)() >> flag_count); 
+            auto value_long = static_cast<RawLongValue>(value);
+            auto value_flag = static_cast<RawShortValue>(flag.to_ullong());
+            auto value_short_with_flag = value_flag << value_short_bit_count;
+            if (value_long < static_cast<RawLongValue>(value_short_maximum)) {
+                value_short_with_flag |= static_cast<RawShortValue>(value_long);
+                stream.write_of<RawShortValue>(value_short_with_flag);
             }
-            else
-            {
-                sen->writeUint16(-1);
-                sen->writeUint16(-1);
+            else {
+                value_short_with_flag |= value_short_maximum;
+                stream.write_of<RawShortValue>(value_short_with_flag);
+                stream.write_of<RawLongValue>(value_long);
             }
-            if (version == 1)
-            {
-                if (image.transform.size() < 2)
-                {
-                    sen->writeInt16(0);
-                    sen->writeInt16(0);
-                    sen->writeInt16(0);
-                }
-                else if (image.transform.size() >= 6)
-                {
-                    auto acos = std::round(std::acos(image.transform[0]));
-                    if ((image.transform[1] * (version == 2 ? -1 : 1)) < 0)
-                    {
-                        acos = -acos;
-                    }
-                    sen->writeInt16(acos);
-                    sen->writeInt16(std::round(image.transform[4] * 20.0));
-                    sen->writeInt16(std::round(image.transform[5] * 20.0));
-                }
-                else if (image.transform.size() >= 4)
-                {
-                    auto acos = std::round(std::acos(image.transform[0]));
-                    if ((image.transform[1] * (version == 2 ? -1 : 1)) < 0)
-                    {
-                        acos = -acos;
-                    }
-                    sen->writeInt16(acos);
-                    sen->writeInt16(0);
-                    sen->writeInt16(0);
-                }
-                else if (image.transform.size() >= 2)
-                {
-                    sen->writeInt16(0);
-                    sen->writeInt16(std::round(image.transform[0] * 20.0));
-                    sen->writeInt16(std::round(image.transform[1] * 20.0));
-                }
+            return;
+        }
+
+        template <typename RawShortValue, typename RawLongValue> requires std::is_arithmetic_v<RawShortValue> && std::is_arithmetic_v<RawLongValue>
+        inline static auto exchange_integer_variant(
+            DataStreamView & stream,
+            int const & value
+        ) -> void
+        {
+            auto value_short_maximum = static_cast<RawShortValue>((std::numeric_limits<RawShortValue>::max)());
+            auto value_long = static_cast<RawLongValue>(value);
+            if (value_long < static_cast<RawLongValue>(value_short_maximum)) {
+                stream.write_of<RawShortValue>(static_cast<RawShortValue>(value_long));
             }
-            else
-            {
-                if (image.transform.size() < 2)
-                {
-                    sen->writeInt32(1310720);
-                    sen->writeInt32(0);
-                    sen->writeInt32(0);
-                    sen->writeInt32(1310720);
-                    sen->writeInt16(0);
-                    sen->writeInt16(0);
-                }
-                else if (image.transform.size() >= 6)
-                {
-                    sen->writeInt32(std::round(image.transform[0] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[2] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[1] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[3] * 1310720.0));
-                    sen->writeInt16(std::round(image.transform[4] * 20.0));
-                    sen->writeInt16(std::round(image.transform[5] * 20.0));
-                }
-                else if (image.transform.size() >= 4)
-                {
-                    sen->writeInt32(std::round(image.transform[0] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[2] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[1] * 1310720.0));
-                    sen->writeInt32(std::round(image.transform[3] * 1310720.0));
-                    sen->writeInt16(0);
-                    sen->writeInt16(0);
-                }
-                else if (image.transform.size() >= 2)
-                {
-                    sen->writeInt32(1310720);
-                    sen->writeInt32(0);
-                    sen->writeInt32(0);
-                    sen->writeInt32(1310720);
-                    sen->writeInt16(std::round(image.transform[0] * 20.0));
-                    sen->writeInt16(std::round(image.transform[1] * 20.0));
-                }
+            else {
+                stream.write_of<RawShortValue>(value_short_maximum);
+                stream.write_of<RawLongValue>(value_long);
             }
+            return;
+        }
+
+        inline static auto exchange_image(
+            DataStreamView &stream,
+            typename AnimationImage const &value
+        ) -> void
+        {
+            stream.writeStringByUint16(String::join(std::vector<std::string>{ value.name, value.id}, vertical_bar));
+            if (k_version >= 4_ui) {
+                stream.writeInt16(value.size.width);
+                stream.writeInt16(value.size.height);
+            }
+            if (k_version == 1_ui) {
+                exchange_floater_with_rate<int16_t, ValueRate::angle>(value.transform[0], stream);
+            }
+            if (k_version >= 2_ui) {
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(value.transform[0], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(value.transform[1], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(value.transform[2], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(value.transform[3], stream);
+            }
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.transform[value.transform.size() - 2_size], stream);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.transform[value.transform.size() - 1_size], stream);
+            return;
+        }
+
+        inline static auto exchange_layer_remove(
+            DataStreamView &stream,
+            typename int const &value
+        ) -> void
+        {
+            auto flag = std::bitset<LayerRemoveFlag::k_count>{};
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value, flag);
+            return;
+        }
+
+        inline static auto exchange_layer_append(
+            DataStreamView &stream,
+            typename AnimationAppend const & value
+        ) -> void
+        {
+            auto flag = std::bitset<LayerAppendFlag::k_count>{};
+            if (value.time_scale != static_cast<double>(1.0)) {
+                flag.set(LayerAppendFlag::time_scale);
+            }
+            if (!value.name.empty()) {
+                flag.set(LayerAppendFlag::name);
+            }
+            if (value.preload_frame != static_cast<int16_t>(0)) {
+                flag.set(LayerAppendFlag::preload_frame);
+            }
+            if (value.additive) {
+                flag.set(LayerAppendFlag::additive);
+            }
+            if (value.sprite) {
+                flag.set(LayerAppendFlag::sprite);
+            }
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
+            if (k_version >= 6_ui) {
+                exchange_integer_variant<uint8_t, uint16_t>(stream, value.resource);
+            }
+            else {
+                stream.writeUint8(value.resource);
+            }
+            if (value.preload_frame != static_cast<int16_t>(0)) {
+                stream.writeInt16(value.preload_frame);
+            }
+            if (!value.name.empty()) {
+                stream.writeStringByUint16(value.name);
+            }
+            if (value.time_scale != 1.0) {
+                exchange_floater_with_rate<int, ValueRate::time>(value.time_scale, stream);
+            }
+            return;
+        }
+
+        inline static auto exchange_layer_change(
+            DataStreamView &stream,
+            typename AnimationChange const & value
+        ) -> void
+        {
+            auto flag = std::bitset<LayerChangeFlag::k_count>{};
+            if (value.sprite_frame_number != static_cast<int16_t>(0)) {
+                flag.set(LayerChangeFlag::sprite_frame_number);
+            }
+            if (!(value.color.at(0) == 0.0 && value.color.at(1) == 0.0 && value.color.at(2) == 0.0 && value.color.at(3) == 0.0)) {
+                flag.set(LayerChangeFlag::color);
+            }
+            if (!(value.source_rectangle.at(0) == 0.0 && value.source_rectangle.at(1) == 0.0 && value.source_rectangle.at(2) == 0.0 && value.source_rectangle.at(3) == 0.0)) {
+                flag.set(LayerChangeFlag::source_rectangle);
+            }
+            if (value.transform.size() == 3_size) {
+                flag.set(LayerChangeFlag::rotate);
+            }
+            if (value.transform.size() == 6_size) {
+                flag.set(LayerChangeFlag::matrix);
+            }
+            flag.set(LayerChangeFlag::long_coord);
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
+            if (flag.test(LayerChangeFlag::rotate)) {
+                exchange_floater_with_rate<int16_t, ValueRate::angle>(value.transform[0], stream);
+            }
+            if (flag.test(LayerChangeFlag::matrix)) {
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(value.transform[0], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(value.transform[2], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(value.transform[1], stream);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(value.transform[3], stream);
+            }
+            exchange_floater_with_rate<int32_t, ValueRate::size>(value.transform[value.transform.size() - 2_size], stream);
+            exchange_floater_with_rate<int32_t, ValueRate::size>(value.transform[value.transform.size() - 1_size], stream);
+            if (flag.test(LayerChangeFlag::source_rectangle)) {
+                exchange_floater_with_rate<int16_t, ValueRate::size>(value.source_rectangle[0], stream);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(value.source_rectangle[1], stream);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(value.source_rectangle[2], stream);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(value.source_rectangle[3], stream);
+            }
+            if (flag.test(LayerChangeFlag::color)) {
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(value.color[0], stream);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(value.color[1], stream);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(value.color[2], stream);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(value.color[3], stream);
+            }
+            if (flag.test(LayerChangeFlag::sprite_frame_number)) {
+                stream.writeInt16(value.sprite_frame_number);
+            }
+            return;
+        }
+
+        inline static auto exchange_layer_command(
+            DataStreamView &stream,
+            typename AnimationCommand const &value 
+        ) -> void
+        {
+            stream.writeStringByUint16(value.command);
+            stream.writeStringByUint16(value.argument);
+            return;
+        }
+
+        inline static auto exchange_frame(
+            DataStreamView &stream,
+            typename AnimationFrame const &value 
+        ) -> void
+        {
+            auto flag = std::bitset<FrameFlag::k_count>{};
+            if (!value.remove.empty()) {
+                flag.set(FrameFlag::remove);
+            }
+            if (!value.append.empty()) {
+                flag.set(FrameFlag::append);
+            }
+            if (!value.change.empty()) {
+                flag.set(FrameFlag::change);
+            }
+            if (!value.label.empty()) {
+                flag.set(FrameFlag::label);
+            }
+            if (value.stop) {
+                flag.set(FrameFlag::stop);
+            }
+            if (!value.command.empty()) {
+                flag.set(FrameFlag::command);
+            }
+            stream.writeUint8(static_cast<uint8_t>(flag.to_ullong()));
+            if (flag.test(FrameFlag::remove)) {
+                exchange_integer_variant<uint8_t, uint16_t>(stream, value.remove.size());
+                exchange_list<false, uint16_t>(stream, value.remove, &exchange_layer_remove);
+            }
+            if (flag.test(FrameFlag::append)) {
+                exchange_integer_variant<uint8_t, uint16_t>(stream, value.append.size());
+                exchange_list<false, uint16_t>(stream, value.append, &exchange_layer_append);
+            }
+            if (flag.test(FrameFlag::change)) {
+                exchange_integer_variant<uint8_t, uint16_t>(stream, value.change.size());
+                exchange_list<false, uint16_t>(stream, value.change, &exchange_layer_change);
+            }
+            if (flag.test(FrameFlag::label)) {
+                stream.writeStringByUint16(value.label);
+            }
+            if (flag.test(FrameFlag::command)) {
+                stream.writeUint8(value.command.size());
+                exchange_list<false, uint16_t>(stream, value.command, &exchange_layer_command);
+            }
+            return;
+        }   
+
+        inline static auto exchange_sprite(
+            DataStreamView &stream,
+            typename AnimationSprite const &value
+        ) -> void
+        {
+            if (k_version >= 4_size) {
+                stream.writeStringByUint16(value.name);
+                if (k_version >= 6_size) {
+                    stream.writeNull(2_size);
+                }
+                exchange_floater_with_rate<int32_t, ValueRate::time>(k_frame_rate, stream);
+            }
+            stream.writeUint16(static_cast<uint16_t>(value.frame.size()));
+            if (k_version >= 5_size) {
+                stream.writeInt16(value.work_area.start);
+                stream.writeInt16(value.work_area.duration);
+            }
+            exchange_list<false, uint16_t>(stream, value.frame, &exchange_frame);
+            return;
+        }
+
+        inline static auto exchange_animation(
+            DataStreamView &stream,
+            typename SexyAnimation const &value
+        ) -> void
+        {
+            stream.writeUint8(value.frame_rate);
+            k_frame_rate = static_cast<double>(value.frame_rate);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.position.x, stream);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.position.y, stream);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.size.width, stream);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(value.size.height, stream);
+            exchange_list<true, uint16_t>(stream, value.image, &exchange_image);
+            exchange_list<true, uint16_t>(stream, value.sprite, &exchange_sprite);
+            if (k_version >= 4_size) {
+                stream.writeBoolean(true);
+            }
+            exchange_sprite(stream, value.main_sprite);
             return;
         }
 
     public:
-        std::unique_ptr<DataStreamView> sen;
-        
-        explicit Encode(
-            const SexyAnimation & json
-        ) : json(json), sen(std::make_unique<DataStreamView>())
+
+        inline static auto process_whole(
+            DataStreamView &stream,
+            typename SexyAnimation const &definition
+        ) -> void
         {
+            stream.writeUint32(k_magic_identifier);
+            stream.writeUint32(static_cast<uint32_t>(definition.version));
+            k_version = static_cast<uint32_t>(definition.version);
+            exchange_animation(stream, definition);
+            return;
         }
 
-        ~Encode(
-
-        ) = default;
-
-        inline static auto encode_fs(
+        inline static auto proces_fs(
             std::string_view source,
             std::string_view destination
             ) -> void
         {
-            auto json = *FileSystem::read_json(source);
-            auto c = std::make_unique<Encode>(json);
-            c->process();
-            c->sen->out_file(destination);
+            auto animation = *FileSystem::read_json(source);
+            auto stream = DataStreamView{};
+            process_whole(stream, animation);
+            stream.out_file(destination);
             return;
         }
     };

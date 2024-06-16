@@ -2,353 +2,337 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/popcap/animation/definition.hpp"
+#include "kernel/support/popcap/animation/common.hpp"
 
 namespace Sen::Kernel::Support::PopCap::Animation
 {
     using namespace Definition;
 
-    template <typename T>
-    class Decode
+    using namespace Sen::Kernel::Support::Miscellaneous::Shared;
+
+    struct Decode : Common
     {
-
-    public:
-        SexyAnimation mutable json{};
-
     protected:
-        T mutable version;
 
-        std::unique_ptr<DataStreamView> sen;
-
-        template <typename ...Args> requires (std::is_integral<Args>::value && ...)
-        inline auto read_sprite(
-            AnimationSprite &sprite,
-            Args... index
-        ) const -> void
+        inline static auto exchange_image(
+            DataStreamView &stream,
+            typename AnimationImage &value) -> void
         {
-            static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "index can only be 0 or 1");
-            [[maybe_unused]] auto sprite_name = std::string{};
-            if constexpr (sizeof...(Args) == 1)
+            auto name = String{stream.readStringByUint16()}.split(vertical_bar);
+            value.name = name[0];
+            value.id = name[1];
+            if (k_version >= 4_ui)
             {
-                sprite.name = version >= 4 ? sen->readStringByUint16() : ""; 
+                value.size.width = stream.readInt16();
+                value.size.height = stream.readInt16();
+            }
+            if (k_version == 1_ui)
+            {
+                value.transform.resize(3_size);
+                exchange_floater_with_rate<int16_t, ValueRate::angle>(stream, value.transform[0]);
             }
             else
             {
-                sen->readStringByUint16();
+                value.transform.resize(6_size);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(stream, value.transform[0]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(stream, value.transform[1]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(stream, value.transform[2]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix_exact>(stream, value.transform[3]);
             }
-            if (version >= 4)
+            exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.transform[value.transform.size() - 2_size]);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.transform[value.transform.size() - 1_size]);
+            return;
+        }
+
+        template <typename RawShortValue, typename RawLongValue, auto flag_count>
+            requires std::is_arithmetic_v<RawShortValue> && std::is_arithmetic_v<RawLongValue> 
+        inline static auto exchange_integer_variant_with_flag(
+            DataStreamView &stream,
+            int &value,
+            std::bitset<flag_count> & flag) -> void
+        {
+            auto value_short_bit_count = static_cast<size_t>(sizeof(RawShortValue) * size_t{8} - static_cast<size_t>(flag_count));
+            auto value_short_maximum = static_cast<RawShortValue>((std::numeric_limits<RawShortValue>::max)() >> flag_count); 
+            auto value_short_with_flag = stream.read_of<RawShortValue>();
+            auto value_short = clip_bit(value_short_with_flag, k_begin_index, value_short_bit_count);
+            auto value_flag = clip_bit(value_short_with_flag, value_short_bit_count, static_cast<size_t>(flag_count));
+            auto value_long = RawLongValue{};
+            if (value_short != value_short_maximum)
             {
-                if (version >= 6)
-                {
-                    sprite.description = sen->readStringByUint16();
-                }
-                sen->readUint32();
-            }
-            auto frame_count = sen->readUint16();
-            if (version >= 5)
-            {
-                sprite.work_area = AnimationWorkArea{sen->readUint16(), sen->readUint16()};
-                sprite.work_area.duration = frame_count;
+                value_long = static_cast<RawLongValue>(value_short);
             }
             else
             {
-                sprite.work_area = AnimationWorkArea{0, frame_count};
+                value_long = static_cast<RawLongValue>(stream.read_of<RawLongValue>());
             }
-            for (auto i : Range(frame_count))
-            {
-                auto frame_info = AnimationFrame{};
-                read_frame_info(&frame_info);
-                sprite.frame.push_back(std::move(frame_info));
-            }
-            if constexpr (sizeof...(Args) == 1)
-            {
-                json.sprite.emplace_back(sprite);
-            }
+            value = static_cast<int>(value_long);
+            flag = std::bitset<flag_count>(static_cast<uint64_t>(value_flag));
             return;
         }
 
-        inline auto read_frame_info(
-            AnimationFrame *frame_info) const -> void
+        template <typename RawShortValue, typename RawLongValue>
+            requires std::is_arithmetic_v<RawShortValue> && std::is_arithmetic_v<RawLongValue>
+        inline static auto exchange_integer_variant(
+            DataStreamView &stream,
+            int &value) -> void
         {
-            auto flag = sen->readUint8();
-            auto count = 0;
-            if ((flag & FrameFlags::remove) != 0)
+            auto value_short_maximum = static_cast<RawShortValue>((std::numeric_limits<RawShortValue>::max)());
+            auto value_short = stream.read_of<RawShortValue>();
+            auto value_long = RawLongValue{};
+            if (value_short != value_short_maximum)
             {
-                count = sen->readUint8();
-                if (count == 255)
-                {
-                    count = sen->readUint16();
-                }
-                for (auto i : Range(count))
-                {
-                    frame_info->remove.emplace_back(read_remove<int>());
-                }
-            }
-            if ((flag & FrameFlags::append) != 0)
-            {
-                count = sen->readUint8();
-                if (count == 255)
-                {
-                    count = sen->readUint16();
-                }
-                for (auto i : Range(count))
-                {
-                    auto animation_append = AnimationAppend{};
-                    read_append(&animation_append);
-                    frame_info->append.push_back(std::move(animation_append));
-                }
-            }
-            if ((flag & FrameFlags::change) != 0)
-            {
-                count = sen->readUint8();
-                if (count == 255)
-                {
-                    count = sen->readUint16();
-                }
-                for (auto i : Range(count))
-                {
-                    auto anim_move = AnimationMove{};
-                    read_move(&anim_move);
-                    frame_info->change.push_back(std::move(anim_move));
-                }
-            }
-            if ((flag & FrameFlags::label) != 0)
-            {
-                frame_info->label = sen->readStringByUint16();
-            }
-            if ((flag & FrameFlags::stop) != 0)
-            {
-                frame_info->stop = true;
-            }
-            if ((flag & FrameFlags::command) != 0)
-            {
-                count = sen->readUint8();
-                for (auto i : Range(count))
-                {
-                    auto animation_command = AnimationCommand{};
-                    read_command(&animation_command);
-                    frame_info->command.push_back(std::move(animation_command));
-                }
-            }
-            return;
-        }
-
-        template <typename U> requires std::is_integral<U>::value
-        inline auto read_remove(
-
-        ) const -> U
-        {
-            auto index = static_cast<std::uint32_t>(sen->readUint16());
-            if (index >= 2047)
-            {
-                index = sen->readUint32();
-            }
-            return index;
-        }
-
-        inline auto read_command(
-            AnimationCommand *animation_command) const -> void
-        {
-            animation_command->command = sen->readStringByUint16();
-            animation_command->parameter = sen->readStringByUint16();
-            return;
-        }
-
-        inline auto read_append(
-            AnimationAppend *append_info) const -> void
-        {
-            const auto value = sen->readUint16();
-            auto index = value & 2047;
-            if (index == 2047)
-            {
-                index = sen->readUint32();
-            }
-            append_info->index = index;
-            append_info->sprite = (value & 32768) != 0;
-            append_info->additive = (value & 16384) != 0;
-            auto resource = static_cast<std::uint16_t>(sen->readUint8());
-            if (version >= 6 and resource == 255)
-            {
-                resource = sen->readUint16();
-            }
-            append_info->resource = resource;
-            if ((value & 8192) != 0)
-            {
-                append_info->preload_frame = sen->readUint16();
-            }
-            if ((value & 4096) != 0)
-            {
-                append_info->name = sen->readStringByUint16();
-            }
-            if ((value & 2048) != 0)
-            {
-                append_info->time_scale = sen->readInt32() / 65536.0;
-            }
-            return;
-        }
-
-        inline auto read_move(
-            AnimationMove *change_info) const -> void
-        {
-            const auto flag = sen->readUint16();
-            auto index = flag & 1023;
-            if (index == 1023)
-            {
-                index = sen->readUint32();
-            }
-            change_info->index = index;
-            if ((flag & MoveFlags::matrix) != 0)
-            {
-
-                auto t1 = sen->readInt32() / 65536.0;
-                auto t3 = sen->readInt32() / 65536.0;
-                auto t2 = sen->readInt32() / 65536.0;
-                auto t4 = sen->readInt32() / 65536.0;
-                change_info->transform.emplace_back(t1);
-                change_info->transform.emplace_back(t2);
-                change_info->transform.emplace_back(t3);
-                change_info->transform.emplace_back(t4);
-            }
-            else if ((flag & MoveFlags::rotate) != 0)
-            {
-                change_info->transform.emplace_back(sen->readInt16() / 1000.0);
-            }
-            if ((flag & MoveFlags::long_coords) != 0)
-            {
-                auto y = sen->readInt32() / 20.0;
-                auto x = sen->readInt32() / 20.0;
-                change_info->transform.emplace_back(y);
-                change_info->transform.emplace_back(x);
+                value_long = static_cast<RawLongValue>(value_short);
             }
             else
             {
-                auto y = sen->readInt16() / 20.0;
-                auto x = sen->readInt16() / 20.0;
-                change_info->transform.emplace_back(y);
-                change_info->transform.emplace_back(x);
+                value_long = static_cast<RawLongValue>(stream.read_of<RawLongValue>());
             }
-            if ((flag & MoveFlags::src_react) != 0)
+            value = static_cast<int>(value_long);
+            return;
+        }
+
+        inline static auto exchange_layer_remove(
+            DataStreamView &stream,
+            int &value) -> void
+        {
+            auto flag = std::bitset<LayerRemoveFlag::k_count>{};
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value, flag);
+            return;
+        }
+
+        inline static auto exchange_layer_append(
+            DataStreamView &stream,
+            typename AnimationAppend &value) -> void
+        {
+            auto flag = std::bitset<LayerAppendFlag::k_count>{};
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
+            value.resource = static_cast<uint16_t>(stream.readUint8());
+            if (k_version >= 6_ui && value.resource == static_cast<uint16_t>((std::numeric_limits<uint8_t>::max)()))
             {
-                change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
-                change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
-                change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
-                change_info->source_rectangle.emplace_back(sen->readInt16() / 20.0);
+                value.resource = stream.readUint16();
             }
-            if ((flag & MoveFlags::color) != 0)
+            if (flag.test(LayerAppendFlag::sprite))
             {
-                change_info->color.emplace_back(sen->readUint8() / 255.0);
-                change_info->color.emplace_back(sen->readUint8() / 255.0);
-                change_info->color.emplace_back(sen->readUint8() / 255.0);
-                change_info->color.emplace_back(sen->readUint8() / 255.0);
+                value.sprite = true;
             }
-            if ((flag & MoveFlags::sprite_frame_number) != 0)
+            else
             {
-                change_info->sprite_frame_number = sen->readUint16();
+                value.sprite = false;
+            }
+            if (flag.test(LayerAppendFlag::additive))
+            {
+                value.additive = true;
+            }
+            else
+            {
+                value.additive = false;
+            }
+            if (flag.test(LayerAppendFlag::preload_frame))
+            {
+                value.preload_frame = stream.readInt16();
+            }
+            else
+            {
+                value.preload_frame = static_cast<int16>(0);
+            }
+            if (flag.test(LayerAppendFlag::name))
+            {
+                value.name = stream.readStringByUint16();
+            }
+            if (flag.test(LayerAppendFlag::time_scale))
+            {
+                exchange_floater_with_rate<int, ValueRate::time>(stream, value.time_scale);
+            }
+            else
+            {
+                value.time_scale = static_cast<double>(1.0);
             }
             return;
         }
 
-        inline auto read_image(
-
-        ) const -> void
+        inline static auto exchange_layer_change(
+            DataStreamView &stream,
+            typename AnimationChange &value) -> void
         {
-            auto image_name = String{sen->readStringByUint16()};
-            auto name_list = image_name.split("|");
-            //  if (json.image.contains(name_list[1]))
-            //   {
-            //    throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.duplicate_image"), name_list[1]), std::source_location::current(), "read_image");
-            //}
-            auto image = AnimationImage{};
-            if (version >= 4)
+            auto flag = std::bitset<LayerChangeFlag::k_count>{};
+            exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
+            if (!flag.test(LayerChangeFlag::rotate) && !flag.test(LayerChangeFlag::matrix))
             {
-                image.size = AnimationSize{sen->readUint16(), sen->readUint16()};
+                value.transform.resize(2_size);
             }
-            image.name = std::string{name_list[0]};
-            image.id = std::string{name_list[1]};
-            if (version == 1)
+            if (flag.test(LayerChangeFlag::rotate))
             {
-                auto matrix = sen->readInt16() / 1000.0;
-                image.transform = std::vector<double>{
-                    Math::cos(matrix),
-                    -Math::sin(matrix),
-                    Math::sin(matrix),
-                    Math::cos(matrix),
-                    static_cast<double>(sen->readInt16() / 20.0),
-                    static_cast<double>(sen->readInt16() / 20.0)};
+                assert(!flag.test(LayerChangeFlag::matrix));
+                value.transform.resize(3);
+                exchange_floater_with_rate<int16_t, ValueRate::angle>(stream, value.transform[0]);
+            }
+            if (flag.test(LayerChangeFlag::matrix))
+            {
+                assert(!flag.test(LayerChangeFlag::rotate));
+                value.transform.resize(6_size);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(stream, value.transform[0]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(stream, value.transform[2]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(stream, value.transform[1]);
+                exchange_floater_with_rate<int32_t, ValueRate::matrix>(stream, value.transform[3]);
+            }
+            if (flag.test(LayerChangeFlag::long_coord))
+            {
+                exchange_floater_with_rate<int32_t, ValueRate::size>(stream, value.transform[value.transform.size() - 2_size]);
+                exchange_floater_with_rate<int32_t, ValueRate::size>(stream, value.transform[value.transform.size() - 1_size]);
             }
             else
             {
-                image.transform = std::vector<double>{
-                    static_cast<double>(sen->readInt32() / 1310720.0),
-                    static_cast<double>(sen->readInt32() / 1310720.0),
-                    static_cast<double>(sen->readInt32() / 1310720.0),
-                    static_cast<double>(sen->readInt32() / 1310720.0),
-                    static_cast<double>(sen->readInt16() / 20.0),
-                    static_cast<double>(sen->readInt16() / 20.0)};
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.transform[value.transform.size() - 2_size]);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.transform[value.transform.size() - 1_size]);
             }
-            json.image.emplace_back(image);
+            if (flag.test(LayerChangeFlag::source_rectangle))
+            {
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.source_rectangle[0]);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.source_rectangle[1]);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.source_rectangle[2]);
+                exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.source_rectangle[3]);
+            }
+            else
+            {
+                value.source_rectangle = std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
+            }
+            if (flag.test(LayerChangeFlag::color))
+            {
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(stream, value.color[0]);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(stream, value.color[1]);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(stream, value.color[2]);
+                exchange_floater_with_rate<uint8_t, ValueRate::color>(stream, value.color[3]);
+            }
+            else
+            {
+                value.color = std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
+            }
+            if (flag.test(LayerChangeFlag::sprite_frame_number))
+            {
+                value.sprite_frame_number = stream.readInt16();
+            }
+            else
+            {
+                value.sprite_frame_number = static_cast<int16_t>(0);
+            }
+            return;
+        }
+
+        inline static auto exchange_command(
+            DataStreamView &stream,
+            typename AnimationCommand &value) -> void
+        {
+            value.command = stream.readStringByUint16();
+            value.argument = stream.readStringByUint16();
+            return;
+        }
+
+        inline static auto exchange_frame(
+            DataStreamView &stream,
+            typename AnimationFrame &value) -> void
+        {
+            auto flag = std::bitset<FrameFlag::k_count>(static_cast<uint64_t>(stream.readUint8()));
+            if (flag.test(FrameFlag::remove))
+            {
+                auto size = static_cast<int32_t>(0);
+                exchange_integer_variant<uint8_t, uint16_t>(stream, size);
+                exchange_list(stream, value.remove, &exchange_layer_remove, static_cast<std::size_t>(size));
+            }
+            if (flag.test(FrameFlag::append))
+            {
+                auto size = static_cast<int32_t>(0);
+                exchange_integer_variant<uint8_t, uint16_t>(stream, size);
+                exchange_list(stream, value.append, &exchange_layer_append, static_cast<std::size_t>(size));
+            }
+            if (flag.test(FrameFlag::change))
+            {
+                auto size = static_cast<int32_t>(0);
+                exchange_integer_variant<uint8_t, uint16_t>(stream, size);
+                exchange_list(stream, value.change, &exchange_layer_change, static_cast<std::size_t>(size));
+            }
+            if (flag.test(FrameFlag::label))
+            {
+                value.label = stream.readStringByUint16();
+            }
+            if (flag.test(FrameFlag::stop))
+            {
+                value.stop = true;
+            }
+            else
+            {
+                value.stop = false;
+            }
+            if (flag.test(FrameFlag::command))
+            {
+                exchange_list(stream, value.command, &exchange_command, static_cast<std::size_t>(stream.readUint8()));
+            }
+            return;
+        }
+
+        inline static auto exchange_sprite(
+            DataStreamView &stream,
+            typename AnimationSprite &value) -> void
+        {
+            if (k_version >= 4_ui)
+            {
+                value.name = stream.readStringByUint16();
+                if (k_version >= 6_ui)
+                {
+                    stream.readStringByUint16();
+                }
+                stream.readInt32();
+            }
+            value.frame.resize(static_cast<size_t>(stream.readUint16()));
+            if (k_version >= 5_ui)
+            {
+                value.work_area.start = stream.readInt16();
+                value.work_area.duration = stream.readInt16();
+            }
+            exchange_list(stream, value.frame, &exchange_frame);
+            return;
+        }
+
+        inline static auto exchange_animation(
+            DataStreamView &stream,
+            typename SexyAnimation &value) -> void
+        {
+            value.frame_rate = stream.readUint8();
+            exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.position.x);
+            exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.position.y);
+            exchange_floater_with_rate<uint16_t, ValueRate::size>(stream, value.size.width);
+            exchange_floater_with_rate<uint16_t, ValueRate::size>(stream, value.size.height);
+            exchange_list(stream, value.image, &exchange_image, static_cast<std::size_t>(stream.readUint16()));
+            exchange_list(stream, value.sprite, &exchange_sprite, static_cast<std::size_t>(stream.readUint16()));
+            if (k_version < 4_ui || stream.readBoolean())
+            {
+                exchange_sprite(stream, value.main_sprite);
+            }
             return;
         }
 
     public:
-        explicit Decode(
-            std::string_view source) : sen(std::make_unique<DataStreamView>(source))
+        inline static auto process_whole(
+            DataStreamView &stream,
+            typename SexyAnimation &value) -> void
         {
-        }
-
-        explicit Decode(
-           const std::vector<uint8_t> &data) : sen(std::make_unique<DataStreamView>(data))
-        {
-        }
-
-        ~Decode(
-
-            ) = default;
-
-
-        inline auto process(
-
-        ) const -> void
-        {
-            if (sen->readUint32() != Definition::magic)
-            {
-                throw Exception(fmt::format("{}", Language::get("popcap.animation.invalid_magic")), std::source_location::current(), "process");
-            }
-            version = sen->readUint32();
-            auto index = std::find(Definition::version.begin(), Definition::version.end(), version);
-            if (index == Definition::version.end())
-            {
-                throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.invalid_version"), version), std::source_location::current(), "process");
-            }
-            json.version = version;
-            json.frame_rate = sen->readUint8();
-            json.position = AnimationPosition{(sen->readUint16() / 20), (sen->readUint16() / 20)};
-            json.size = AnimationSize{(sen->readUint16() / 20), (sen->readUint16() / 20)};
-            auto image_count = sen->readUint16();
-            for (auto i : Range(image_count))
-            {
-                read_image();
-            }
-            auto sprite_count = sen->readUint16();
-            for (auto i : Range(sprite_count))
-            {
-                auto sprite = AnimationSprite{};
-                read_sprite(sprite, i);
-            }
-            if (version <= 3 || sen->readBoolean())
-            {
-                read_sprite(json.main_sprite);
-            }
+            assert_conditional((stream.readUint32() == k_magic_identifier), fmt::format("{}", Language::get("popcap.animation.invalid_magic")), "process_whole");
+            auto version = stream.readUint32();
+            auto index = std::find(version_list.begin(), version_list.end(), version);
+            assert_conditional((index != version_list.end()), fmt::format("{}", Language::get("popcap.animation.invalid_version")), "process_whole");
+            k_version = version;
+            value.version = version;
+            exchange_animation(stream, value);
             return;
         }
 
-        
-        inline static auto decode_fs(
+        inline static auto process_fs(
             std::string_view source,
             std::string_view destination) -> void
         {
-            auto c = Decode<T>{source};
-            c.process();
-            FileSystem::write_json(destination, c.json);
+            auto animation = SexyAnimation{};
+            auto stream = DataStreamView{source};
+            process_whole(stream, animation);
+            FileSystem::write_json(destination, animation);
             return;
         }
     };

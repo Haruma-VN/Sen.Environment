@@ -28,6 +28,7 @@ add_library(
 	./definition/basic/collections.hpp
 	./definition/basic/json_writer.hpp
 	./definition/basic/apng_maker.hpp
+	./definition/basic/utility.hpp
 
 	./definition/encryption/md5.hpp
 	./definition/encryption/Rijndael.hpp
@@ -69,69 +70,72 @@ add_library(
 	./dependencies/canvas_ity.hpp
 	./dependencies/tsl.hpp
 
+	./support/popcap/animation/common.hpp
+	./support/popcap/animation/decode.hpp
+	./support/popcap/animation/definition.hpp
+	./support/popcap/animation/encode.hpp
+	./support/popcap/character_font_widget_2/decode.hpp
+	./support/popcap/character_font_widget_2/definition.hpp
+	./support/popcap/character_font_widget_2/encode.hpp
+	./support/popcap/compiled_text/decode.hpp
+	./support/popcap/compiled_text/encode.hpp
+	./support/popcap/crypt_data/decrypt.hpp
+	./support/popcap/crypt_data/definition.hpp
+	./support/popcap/crypt_data/encrypt.hpp
+	./support/popcap/new_type_object_notation/decode.hpp
+	./support/popcap/new_type_object_notation/encode.hpp
+	./support/popcap/package/common.hpp
+	./support/popcap/package/definition.hpp
+	./support/popcap/package/pack.hpp
+	./support/popcap/package/unpack.hpp
+	./support/popcap/particles/common.hpp
+	./support/popcap/particles/decode.hpp
+	./support/popcap/particles/definition.hpp
+	./support/popcap/particles/encode.hpp
+	./support/popcap/particles/version.hpp
+	./support/popcap/reflection_object_notation/common.hpp
+	./support/popcap/reflection_object_notation/decode.hpp
+	./support/popcap/reflection_object_notation/encode.hpp
+	./support/popcap/reflection_object_notation/instance.hpp
+	./support/popcap/render_effects/common.hpp
+	./support/popcap/render_effects/decode.hpp
+	./support/popcap/render_effects/definition.hpp
+	./support/popcap/render_effects/encode.hpp
 	./support/popcap/resource_group/common.hpp
 	./support/popcap/resource_group/convert.hpp
 	./support/popcap/res_info/common.hpp
 	./support/popcap/res_info/convert.hpp
+	./support/popcap/resource_stream_bundle/definition.hpp
+	./support/popcap/resource_stream_bundle/pack.hpp
+	./support/popcap/resource_stream_bundle/unpack.hpp
+	./support/popcap/resource_stream_bundle/miscellaneous/unpack_resource.hpp
+	./support/popcap/resource_stream_bundle/miscellaneous/pack_resource.hpp
+	./support/popcap/resource_stream_bundle_patch/common.hpp
+	./support/popcap/resource_stream_bundle_patch/decode.hpp
+	./support/popcap/resource_stream_bundle_patch/encode.hpp
+	./support/popcap/resource_stream_group/common.hpp
+	./support/popcap/resource_stream_group/definition.hpp
+	./support/popcap/resource_stream_group/pack.hpp
+	./support/popcap/resource_stream_group/unpack.hpp
+	./support/popcap/re_animation/decode.hpp
+	./support/popcap/re_animation/definition.hpp
+	./support/popcap/re_animation/encode.hpp
 	./support/popcap/zlib/common.hpp
-	./support/popcap/zlib/uncompress.hpp
 	./support/popcap/zlib/compress.hpp
-	./support/popcap/newton/decode.hpp
-	./support/popcap/newton/encode.hpp
-	./support/popcap/compiled_text/decode.hpp
-	./support/popcap/compiled_text/encode.hpp
-	./support/popcap/render_effects/common.hpp
-	./support/popcap/render_effects/definition.hpp
-	./support/popcap/render_effects/decode.hpp
-	./support/popcap/render_effects/encode.hpp
-	./support/popcap/particles/definition.hpp
-	./support/popcap/particles/version.hpp
-	./support/popcap/particles/common.hpp
-	./support/popcap/particles/encode.hpp
-	./support/popcap/particles/decode.hpp
-	./support/popcap/rsb/definition.hpp
-	./support/popcap/rsb/unpack.hpp
-	./support/popcap/rsb/pack.hpp
-	./support/popcap/rsb/miscellaneous/unpack_cipher.hpp
-	./support/popcap/rsg/definition.hpp
-	./support/popcap/rsg/unpack.hpp
-	./support/popcap/rsg/pack.hpp
-	./support/popcap/rton/decode.hpp
-	./support/popcap/rton/encode.hpp
-	./support/popcap/animation/definition.hpp
-	./support/popcap/animation/decode.hpp
-	./support/popcap/animation/encode.hpp
+	./support/popcap/zlib/uncompress.hpp
 	./support/popcap/animation/convert/definition.hpp
-	./support/popcap/animation/convert/to_flash.hpp
 	./support/popcap/animation/convert/from_flash.hpp
-	./support/popcap/animation/convert/resize.hpp
+	./support/popcap/animation/convert/common.hpp
 	./support/popcap/animation/convert/instance.hpp
+	./support/popcap/animation/convert/resize.hpp
+	./support/popcap/animation/convert/to_flash.hpp
 	./support/popcap/animation/miscellaneous/common.hpp
 	./support/popcap/animation/miscellaneous/dump.hpp
-	./support/popcap/pak/definition.hpp
-	./support/popcap/pak/unpack.hpp
-	./support/popcap/pak/pack.hpp
-	./support/popcap/reanim/decode.hpp
-	./support/popcap/reanim/encode.hpp
-	./support/popcap/reanim/definition.hpp
-	./support/popcap/reanim/convert/to_flash.hpp
-	./support/popcap/reanim/convert/from_flash.hpp
-	./support/popcap/reanim/convert/instance.hpp
-	./support/popcap/crypt_data/definition.hpp
-	./support/popcap/crypt_data/encrypt.hpp
-	./support/popcap/crypt_data/decrypt.hpp
-	./support/popcap/cfw2/definition.hpp
-	./support/popcap/cfw2/decode.hpp
-	./support/popcap/cfw2/encode.hpp
-	./support/popcap/rsb_patch/common.hpp
-	./support/popcap/rsb_patch/decode.hpp
-	./support/popcap/rsb_patch/encode.hpp
-	./support/popcap/pvz2/common.hpp
-	./support/popcap/pvz2/definition.hpp
-	./support/popcap/pvz2/decode.hpp
-	./support/popcap/pvz2/encode.hpp
-	./support/popcap/pvz2/unpack.hpp
-	./support/popcap/pvz2/pack.hpp
+	./support/popcap/resource_stream_bundle/miscellaneous/unpack_cipher.hpp
+	./support/popcap/re_animation/convert/from_flash.hpp
+	./support/popcap/re_animation/convert/instance.hpp
+	./support/popcap/re_animation/convert/to_flash.hpp
+	./support/miscellaneous/shared.hpp
 	./support/texture/compression/pvrtc/color.hpp
 	./support/texture/compression/pvrtc/packet.hpp
 	./support/texture/compression/pvrtc/pvrtc.hpp
@@ -142,6 +146,7 @@ add_library(
 	./support/wwise/sound_bank/definition.hpp
 	./support/wwise/sound_bank/encode.hpp
 	./support/wwise/sound_bank/decode.hpp
+	./support/wwise/sound_bank/common.hpp
 	./support/utility.hpp
 
 	./interface/data.hpp

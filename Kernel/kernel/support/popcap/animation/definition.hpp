@@ -9,15 +9,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationSize
     {
     public:
-        int width = -1;
-        int height = -1;
+        double width;
+        double height;
         explicit AnimationSize(
 
             ) = default;
 
         explicit constexpr AnimationSize(
-            int width,
-            int height) : width(width), height(height)
+            double width,
+            double height) : width(width), height(height)
         {
         }
 
@@ -51,15 +51,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationPosition
     {
     public:
-        int x;
-        int y;
+        double x;
+        double y;
         explicit AnimationPosition(
 
             ) = default;
 
         explicit constexpr AnimationPosition(
-            int x,
-            int y) : x(x), y(y)
+            double x,
+            double y) : x(x), y(y)
         {
         }
 
@@ -95,49 +95,6 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
 #pragma endregion
 
-#pragma region definition
-
-    struct Definition
-    {
-
-    public:
-        // magic
-
-        inline static constexpr auto magic = 3136297300;
-
-        inline static constexpr auto version = std::array<int, 6>{1, 2, 3, 4, 5, 6};
-    };
-
-#pragma region FrameFlags
-
-    struct FrameFlags
-    {
-    public:
-        inline static constexpr auto remove = 1;
-        inline static constexpr auto append = 2;
-        inline static constexpr auto change = 4;
-        inline static constexpr auto label = 8;
-        inline static constexpr auto stop = 16;
-        inline static constexpr auto command = 32;
-    };
-
-#pragma endregion
-
-#pragma region MoveFlags
-
-    struct MoveFlags
-    {
-    public:
-        inline static constexpr auto src_react = 32768;
-        inline static constexpr auto rotate = 16384;
-        inline static constexpr auto color = 8192;
-        inline static constexpr auto matrix = 4096;
-        inline static constexpr auto long_coords = 2048;
-        inline static constexpr auto sprite_frame_number = 1024;
-    };
-
-#pragma endregion
-
 #pragma region AnimationImage
 
     struct AnimationImage
@@ -150,11 +107,11 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         explicit AnimationImage(
 
-        ) = default;
+            ) = default;
 
         ~AnimationImage(
 
-        ) = default;
+            ) = default;
     };
 
     inline static auto to_json(
@@ -187,15 +144,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationWorkArea
     {
     public:
-        int index;
-        int duration = 1;
+        int16_t start = 0;
+        int16_t duration = 0;
         explicit AnimationWorkArea(
 
             ) = default;
 
         explicit constexpr AnimationWorkArea(
-            int index,
-            int duration) : index(index), duration(duration)
+            int16_t start,
+            int16_t duration) : start(start), duration(duration)
         {
         }
 
@@ -209,7 +166,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const AnimationWorkArea &anim) -> void
     {
         json = nlohmann::ordered_json{
-            {"index", anim.index},
+            {"start", anim.start},
             {"duration", anim.duration}};
         return;
     };
@@ -218,7 +175,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const nlohmann::ordered_json &json,
         AnimationWorkArea &anim) -> void
     {
-        json.at("index").get_to(anim.index);
+        json.at("start").get_to(anim.start);
         json.at("duration").get_to(anim.duration);
         return;
     }
@@ -231,14 +188,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         std::string command;
-        std::string parameter;
+        std::string argument;
         explicit AnimationCommand(
 
             ) = default;
 
         explicit constexpr AnimationCommand(
             std::string command,
-            std::string parameter) : command(command), parameter(parameter)
+            std::string argument) : command(command), argument(argument)
         {
         }
 
@@ -253,7 +210,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
         json = nlohmann::ordered_json{
             {"command", anim.command},
-            {"parameter", anim.parameter}};
+            {"argument", anim.argument}};
         return;
     };
 
@@ -262,7 +219,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         AnimationCommand &anim) -> void
     {
         json.at("command").get_to(anim.command);
-        json.at("parameter").get_to(anim.parameter);
+        json.at("argument").get_to(anim.argument);
         return;
     }
 
@@ -275,11 +232,11 @@ namespace Sen::Kernel::Support::PopCap::Animation
     public:
         int index;
         std::string name;
-        int resource;
+        uint16_t resource;
         bool sprite;
         bool additive;
-        int preload_frame;
-        int time_scale = 1;
+        int16_t preload_frame;
+        double time_scale = 1.0;
     };
 
     inline static auto to_json(
@@ -313,29 +270,29 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
 #pragma endregion
 
-#pragma region AnimationMove
+#pragma region AnimationChange
 
-    struct AnimationMove
+    struct AnimationChange
     {
     public:
         int index;
         std::vector<double> transform;
-        std::vector<double> color;
-        std::vector<double> source_rectangle;
-        int sprite_frame_number;
+        std::array<double, 4> color;
+        std::array<double, 4> source_rectangle;
+        int16_t sprite_frame_number = 0;
     };
 
     inline static auto to_json(
         nlohmann::ordered_json &json,
-        const AnimationMove &anim) -> void
+        const AnimationChange &anim) -> void
     {
         nlohmann::ordered_json color = nullptr;
-        if (!anim.color.empty())
+        if (!(anim.color.at(0) == 0.0 && anim.color.at(1) == 0.0 && anim.color.at(2) == 0.0 && anim.color.at(3) == 0.0))
         {
             color = anim.color;
         }
         nlohmann::ordered_json source_rectangle = nullptr;
-        if (!anim.source_rectangle.empty())
+        if (!(anim.source_rectangle.at(0) == 0.0 && anim.source_rectangle.at(1) == 0.0 && anim.source_rectangle.at(2) == 0.0 && anim.source_rectangle.at(3) == 0.0))
         {
             source_rectangle = anim.source_rectangle;
         }
@@ -343,14 +300,15 @@ namespace Sen::Kernel::Support::PopCap::Animation
             {"index", anim.index},
             {"transform", anim.transform},
             {"color", color},
-            {"source_rectangle", source_rectangle},
-            {"sprite_frame_number", anim.sprite_frame_number}};
+            {"sprite_frame_number", anim.sprite_frame_number},
+            {"source_rectangle", source_rectangle}
+            };
         return;
     };
 
     inline static auto from_json(
         const nlohmann::ordered_json &json,
-        AnimationMove &anim) -> void
+        AnimationChange &anim) -> void
     {
         json.at("index").get_to(anim.index);
         json.at("transform").get_to(anim.transform);
@@ -358,11 +316,11 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             json.at("color").get_to(anim.color);
         }
+        json.at("sprite_frame_number").get_to(anim.sprite_frame_number);
         if (json.at("source_rectangle") != nullptr)
         {
             json.at("source_rectangle").get_to(anim.source_rectangle);
         }
-        json.at("sprite_frame_number").get_to(anim.sprite_frame_number);
         return;
     }
 
@@ -378,7 +336,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::vector<AnimationCommand> command;
         std::vector<int> remove;
         std::vector<AnimationAppend> append;
-        std::vector<AnimationMove> change;
+        std::vector<AnimationChange> change;
     };
 
     inline static auto to_json(
@@ -416,36 +374,23 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         std::string name;
-        std::string description{};
         AnimationWorkArea work_area;
         std::vector<AnimationFrame> frame;
 
         explicit AnimationSprite(
             const std::string &name,
-            const std::string &description,
-            const AnimationWorkArea& work_area,
-            const std::vector<AnimationFrame>& frame
-        ) : name(name), description(description), work_area(work_area), frame(frame) 
+            const AnimationWorkArea &work_area,
+            const std::vector<AnimationFrame> &frame) : name(name), work_area(work_area), frame(frame)
         {
-
-        }
-
-        explicit AnimationSprite(
-            const std::string &name,
-            const AnimationWorkArea& work_area,
-            const std::vector<AnimationFrame>& frame
-        ) : name(name), work_area(work_area), frame(frame) 
-        {
-
         }
 
         explicit AnimationSprite(
 
-        ) = default;
+            ) = default;
 
         ~AnimationSprite(
 
-        ) = default;
+            ) = default;
     };
 
     inline static auto to_json(
@@ -454,7 +399,6 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
         json = nlohmann::ordered_json{
             {"name", anim.name},
-            {"description", anim.description},
             {"work_area", anim.work_area},
             {"frame", anim.frame}};
         return;
@@ -465,7 +409,6 @@ namespace Sen::Kernel::Support::PopCap::Animation
         AnimationSprite &anim) -> void
     {
         json.at("name").get_to(anim.name);
-        json.at("description").get_to(anim.description);
         json.at("work_area").get_to(anim.work_area);
         json.at("frame").get_to(anim.frame);
         return;
@@ -479,23 +422,14 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     public:
         int version;
-        int frame_rate;
+        uint8_t frame_rate;
         AnimationPosition position;
         AnimationSize size;
         std::vector<AnimationImage> image;
         std::vector<AnimationSprite> sprite;
         AnimationSprite main_sprite;
 
-        explicit SexyAnimation(
-
-        ) = default;
-
-        explicit SexyAnimation(
-            int version,
-            int frame_rate
-        ) : version(version), frame_rate(frame_rate)
-        {
-        }
+        SexyAnimation() = default;
 
         ~SexyAnimation(
 

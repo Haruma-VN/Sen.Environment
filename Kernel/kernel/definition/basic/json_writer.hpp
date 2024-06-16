@@ -1,15 +1,14 @@
 #pragma once
 
-#include "kernel/definition/library.hpp"
-#include "kernel/definition/macro.hpp"
+#include "kernel/definition/utility.hpp"
 
 namespace Sen::Kernel::Definition
 {
     namespace UTF8Json
     {
+        template <typename T>
+        concept HasEmptyMethod = requires(T a) { { a.empty() } -> std::same_as<void>; };
 
-        template <typename T> concept HasEmptyMethod = requires(T a) { { a.empty() } -> std::same_as<void>; };
-        
         class JsonConstants
         {
         public:
@@ -50,7 +49,6 @@ namespace Sen::Kernel::Definition
             inline static constexpr auto Carriage_Return_Point = 0x0Du;
             inline static constexpr auto Quotation_Mark_Point = 0x22u;
             inline static constexpr auto Reverse_Solidus_Point = 0x5Cu;
-            
 
             /*
             inline static auto quote_pattern = std::regex("\"");
@@ -142,13 +140,11 @@ namespace Sen::Kernel::Definition
                     1, 3, 1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // s7..s8
                 }};
 
-
         protected:
             inline static auto Decode(
                 std::uint8_t &state,
                 std::uint32_t &codepoint,
-                const std::uint8_t byte
-            ) -> std::uint8_t
+                const std::uint8_t byte) -> std::uint8_t
             {
                 assert_conditional(byte < utf8_d.size(), fmt::format("{}", Language::get("json_writer.byte_cannot_smaller_than_utf8_size")), "Decode");
                 auto type = static_cast<std::uint8_t>(utf8_d[byte]);
@@ -159,6 +155,45 @@ namespace Sen::Kernel::Definition
                 assert_conditional(index < utf8_d.size(), fmt::format("{}", Language::get("json_writer.index_cannot_smaller_than_utf8_size")), "Decode");
                 state = utf8_d[index];
                 return state;
+            }
+
+            inline static auto ComputeUtf8CharacterExtraSize(
+                char const &character) -> size_t
+            {
+                auto extra_size = size_t{};
+                if (character < 0b1'0000000)
+                {
+                    extra_size = 0;
+                }
+                else if (character < 0b11'000000)
+                {
+                    assert("first utf-8 character is valid");
+                }
+                else if (character < 0b111'00000)
+                {
+                    extra_size = 1;
+                }
+                else if (character < 0b1111'0000)
+                {
+                    extra_size = 2;
+                }
+                else if (character < 0b11111'000)
+                {
+                    extra_size = 3;
+                }
+                else
+                {
+                    assert("first utf-8 character is valid");
+                }
+                return extra_size;
+            }
+
+            inline static auto ClipBitChar(
+                char const &it,
+                size_t const &begin,
+                size_t const &size) -> std::string
+            {
+                return std::to_string((it >> begin) & ~(static_cast<char>((std::numeric_limits<char>::max)()) << size));
             }
 
         public:
@@ -172,8 +207,7 @@ namespace Sen::Kernel::Definition
 
             inline static auto WriteEscapeString(
                 std::string &output,
-                const std::string &s
-            ) -> void
+                const std::string &s) -> void
             {
                 /*
                 if (value.find(JsonConstants::BackSlash) != std::string::npos)
@@ -183,122 +217,104 @@ namespace Sen::Kernel::Definition
                 */
                 auto codepoint = std::uint32_t{0};
                 auto state = 0_byte;
-                auto bytes = 0;
-                auto string_buffer = std::array<char, 512>{{}};
-                for (const auto &i : Range<size_t>(s.size()))
+                for (auto i = 0; i < s.size(); i++)
                 {
-                    const auto byte = static_cast<std::uint8_t>(s[i]);
-                    switch (Decode(state, codepoint, byte))
-                    {
-                    case 0_byte:
+                    if (Decode(state, codepoint, static_cast<std::uint8_t>(s[i])) == 0_byte)
                     {
                         switch (codepoint)
                         {
                         case JsonConstants::Backspace_Point: // backspace
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = 'b';
+                            output += "\\b";
                             break;
                         }
 
                         case JsonConstants::Horizontal_Tab_Point: // horizontal tab
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = 't';
+                            output += "\\t";
                             break;
                         }
 
                         case JsonConstants::Newline_Point: // newline
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = 'n';
+                            output += "\\n";
                             break;
                         }
 
                         case JsonConstants::Formfeed_Point: // formfeed
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = 'f';
+                            output += "\\f";
                             break;
                         }
 
                         case JsonConstants::Carriage_Return_Point: // carriage return
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = 'r';
+                            output += "\\r";
                             break;
                         }
 
                         case JsonConstants::Quotation_Mark_Point: // quotation mark
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = '\"';
+                            output += "\\\"";
                             break;
                         }
-
                         case JsonConstants::Reverse_Solidus_Point: // reverse solidus
                         {
-                            string_buffer[bytes++] = '\\';
-                            string_buffer[bytes++] = '\\';
+                            output += "\\\\";
                             break;
                         }
                         default:
+                            auto &char_str = s[i];
                             if ((codepoint <= 0x1F))
                             {
-                                if (codepoint <= 0xFFFF)
+                                if (codepoint >= 0xFFFF)
                                 {
-                                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
-                                    static_cast<void>((std::snprintf)(string_buffer.data() + bytes, 7, "\\u%04x",
-                                                                      static_cast<std::uint16_t>(codepoint)));
-                                    bytes += 6;
+                                    output += "\\u";
+                                    output += ClipBitChar(char_str, 28, 4);
+                                    output += ClipBitChar(char_str, 24, 4);
+                                    output += ClipBitChar(char_str, 20, 4);
+                                    output += ClipBitChar(char_str, 16, 4);
                                 }
-                                else
-                                {
-                                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
-                                    static_cast<void>((std::snprintf)(string_buffer.data() + bytes, 13, "\\u%04x\\u%04x",
-                                                                      static_cast<std::uint16_t>(0xD7C0u + (codepoint >> 10u)),
-                                                                      static_cast<std::uint16_t>(0xDC00u + (codepoint & 0x3FFu))));
-                                    bytes += 12;
-                                }
+                                output += "\\u";
+                                output += ClipBitChar(char_str, 12, 4);
+                                output += ClipBitChar(char_str, 8, 4);
+                                output += ClipBitChar(char_str, 4, 4);
+                                output += ClipBitChar(char_str, 0, 4);
                             }
                             else
                             {
-                                string_buffer[bytes++] += s[i];
+                                output += char_str;
                             }
                             break;
                         }
-                        if (string_buffer.size() - bytes < 13)
-                        {
-                            output.append(string_buffer.data(), bytes);
-                            bytes = 0;
-                        }
-                        break;
                     }
-                    case 1_byte:
-                    default:
+                    else
                     {
-                        throw Exception(String::format(fmt::format("{}", Language::get("json_writer.invalid_utf8_byte_at_index")), String::decimal_to_hexadecimal(bytes)), std::source_location::current(), "WriteEscapeString");
-                        break;
-                    }
+                        auto extra_size = ComputeUtf8CharacterExtraSize(s[i]);
+                        output += s[i];
+                        while (extra_size > 0)
+                        {
+                            --extra_size;
+                            auto char_8 = s[++i];
+                            if ((char_8 & 0b11'000000) != 0b11'000000)
+                            {
+                                assert("extra utf-8 character is valid");
+                            }
+                            output += char_8;
+                        }
                     }
                 }
-                if (state == 0_byte) {
-                    if (bytes > 0) {
-                        output.append(string_buffer.data(), bytes);
-                    }
-                }
-                else {
-                    throw Exception(String::format(fmt::format("{}", Language::get("json_writer.incomplete_utf8_string")), fmt::format("0x{}", String::decimal_to_hexadecimal(bytes))), std::source_location::current(), "WriteEscapeString");
-                }
+                assert_conditional(state == 0_byte, fmt::format("{}", Language::get("json_writer.incomplete_utf8_string")), "WriteEscapeString");
                 return;
             }
 
-            inline static auto WriteNewLine(std::string &output) -> void
+            inline static auto
+            WriteNewLine(std::string &output) -> void
             {
-                // Write '\r\n' OR '\n', depending on OS
-                #if LINUX
-                    output += JsonConstants::CarriageReturn;
-                #endif
+// Write '\r\n' OR '\n', depending on OS
+#if LINUX
+                output += JsonConstants::CarriageReturn;
+#endif
                 output += JsonConstants::LineFeed;
                 return;
             }
@@ -598,7 +614,7 @@ namespace Sen::Kernel::Definition
                 Writes the property name (as a JSON string) as the first part of a name/value pair of a JSON object.
                 @param[in] properyName The name of the property to write.
             */
-            template <HasEmptyMethod T> 
+            template <HasEmptyMethod T>
             inline auto WritePropertyName(T propertyName) const -> void
             {
                 auto name = std::to_string(propertyName);
@@ -682,5 +698,4 @@ namespace Sen::Kernel::Definition
 
     using JsonWriter = Sen::Kernel::Definition::UTF8Json::JsonWriter;
     // using JsonReader = Sen::Kernel::Definition::UTF8Json::JsonReader;
-
 }

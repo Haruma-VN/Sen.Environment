@@ -1,29 +1,20 @@
 #pragma once
 
+#include "kernel/definition/utility.hpp"
+#include "kernel/support/miscellaneous/shared.hpp"
 #include "kernel/support/wwise/sound_bank/definition.hpp"
 
 namespace Sen::Kernel::Support::WWise::SoundBank
 {
     using namespace Definition;
 
-    class Decode
+    using namespace Sen::Kernel::Support::Miscellaneous::Shared;
+
+    struct Decode : Common
     {
-
-    public:
-        inline static auto fnv_hash(
-            const std::string &name) -> uint32_t
-        {
-            auto hash = uint32_t{2166136261};
-            for (const auto &c : name)
-            {
-                hash = (hash * 16777619) ^ static_cast<uint8_t>(tolower(c));
-            }
-            return hash;
-        }
-
-    private:
-        inline auto create_hex_string(
-            const std::vector<uint8_t> &buffer) -> std::string
+    protected:
+        inline static auto exchange_hex_string(
+            std::vector<uint8_t> const &buffer) -> std::string
         {
             auto oss = std::ostringstream{};
             for (const auto &byte : buffer)
@@ -36,204 +27,64 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             return hexString.substr(0, hexString.length() - 1);
         }
 
-    protected:
-        DataStreamView stream;
-
-        uint32_t version;
-
-        inline auto decode_bank_header(
-            SoundBankInformation *info) -> void
+        inline static auto exchange_game_synchronization(
+            DataStreamView &stream,
+            typename STMG & value
+        ) -> void
         {
-            const auto chuck_size = stream.readUint32();
-            const auto bank_version = stream.readUint32();
-            if (bank_version <= 52)
-            {
-                throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(bank_version)), std::source_location::current(), "decode_bank_header");
+            if (k_version > 140_ui) {
+                value.filter_behavior = stream.readUint16();
             }
-            version = bank_version;
-            info->bank_header.version = bank_version;
-            info->bank_header.soundbank_id = stream.readUint32();
-            info->bank_header.language_id = stream.readUint32();
-            info->bank_header.head_info.values = stream.readUint32();
-            if (version > 76)
-            {
-                info->bank_header.head_info.project_id = stream.readUint32();
+            value.volume_threshold = stream.readFloat();
+            if (k_version > 53_ui) {
+                value.max_num_voices_limit_internal = stream.readUint16();
             }
-            if (version > 141)
-            {
-                info->bank_header.head_info.soundbank_type = stream.readUint32();
-                info->bank_header.head_info.bank_hash = create_hex_string(stream.readBytes(0x10));
+            if (k_version > 126_ui) {
+                value.max_num_dangerous_virt_voices_limit_internal = stream.readUint16();
             }
-            auto gap_size = 0;
-            if (version <= 76)
-            {
-                gap_size = chuck_size - 0x10;
-            }
-            else if (version < 141)
-            {
-                gap_size = chuck_size - 0x14;
-            }
-            else
-            {
-                gap_size = chuck_size - 0x14 - 0x04 - 0x10;
-            }
-            info->bank_header.head_info.padding = gap_size;
-            stream.read_pos += gap_size;
-            return;
-        }
-
-        inline auto decode_embedded_media(
-            std::string_view destination,
-            SoundBankInformation *info) -> void
-        {
-            const auto chuck_size_end = stream.readUint32() + stream.read_pos;
-            auto didx_list = std::vector<uint32_t>{};
-            auto data_list = std::vector<DATA>{};
-            while (stream.read_pos < chuck_size_end)
-            {
-                const auto id = stream.readUint32();
-                data_list.emplace_back(DATA{
-                    .pos = stream.readUint32(),
-                    .size = stream.readUint32(),
-                });
-                didx_list.emplace_back(id);
-            }
-            if (stream.readString(4) != "DATA"_sv)
-            {
-                throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_wem_data_bank")), std::source_location::current(), "decode_embedded_media");
-            }
-            const auto data_chuck_size = stream.readUint32();
-            const auto data_start_pos = stream.read_pos;
-            FileSystem::create_directory(fmt::format("{}/{}", destination, "embedded_audio"));
-            for (const auto &i : Range(data_list.size()))
-            {
-                const auto pos = static_cast<size_t>(data_list[i].pos) + data_start_pos;
-                auto wem = stream.getBytes(pos, pos + data_list[i].size);
-                FileSystem::write_binary(fmt::format("{}/{}/{}.wem", destination, "embedded_audio", didx_list.at(i)), wem);
-            }
-            stream.read_pos += data_chuck_size;
-            info->embedded_media = std::move(didx_list);
-            info->has_embedded_media = true;
-            return;
-        }
-
-        inline auto decode_plugin_chuck(SoundBankInformation *info) -> void
-        {
-            const auto chuck_size = stream.readUint32();
-            const auto count = stream.readUint32();
-            auto init_list = std::vector<INIT>{};
-            for (const auto &i : Range(count))
-            {
-                init_list.emplace_back(INIT{
-                    .id = stream.readUint32(),
-                    .name = stream.readStringByEmpty()});
-            }
-            info->initialization = std::move(init_list);
-            info->has_initialization = true;
-            return;
-        }
-
-        inline auto decode_global_settings(SoundBankInformation *info) -> void
-        {
-            const auto chuck_size = stream.readUint32();
-            if (version > 140)
-            {
-                info->game_synchronization.filter_behavior = stream.readUint16();
-            }
-            info->game_synchronization.volume_threshold = stream.readFloat();
-            if (version > 53)
-            {
-                info->game_synchronization.max_num_voices_limit_internal = stream.readUint16();
-            }
-            if (version > 126)
-            {
-                info->game_synchronization.max_num_dangerous_virt_voices_limit_internal = stream.readUint16();
-            }
-            auto state_group = std::vector<STMGStageGroup>{};
-            const auto state_count = stream.readUint32();
-            for (const auto &i : Range(state_count))
-            {
-                const auto id = stream.readUint32();
-                const auto default_transition_time = stream.readUint32();
-                auto state = STMGStageGroup{
-                    .id = id,
-                    .name = "",
-                };
-                if (version <= 52)
-                {
-                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(version)), std::source_location::current(), "decode_bank_header");
+            auto state_count = stream.readUint32();
+            value.state_group.resize(static_cast<size_t>(state_count));
+            for (auto & state : value.state_group) {
+                state.id = stream.readUint32();
+                state.data.default_transition_time = stream.readUint32();
+                auto transitions_count = stream.readUint32();
+                state.data.state_transition.resize(static_cast<size_t>(transitions_count));
+                for (auto &state_transition : state.data.state_transition) {
+                    state_transition.state_from = stream.readUint32();
+                    state_transition.state_to = stream.readUint32();
+                    state_transition.transition_time = stream.readUint32();
                 }
-                const auto transitions_count = stream.readUint32();
-                state.data.default_transition_time = default_transition_time;
-                for (const auto &k : Range(transitions_count))
-                {
-                    state.data.state_transition.emplace_back(StateTransition{
-                        .state_from = stream.readUint32(),
-                        .state_to = stream.readUint32(),
-                        .transition_time = stream.readUint32()});
-                }
-                state_group.emplace_back(state);
             }
-            auto switch_group = std::vector<STMGSwitchGroup>{};
-            const auto switch_count = stream.readUint32();
-            for (const auto &i : Range(switch_count))
-            {
-                const auto id = stream.readUint32();
-                auto stmg_switch = STMGSwitchGroup{
-                    .id = id,
-                    .name = "",
-                };
-                stmg_switch.data.rtpc_id = stream.readUint32();
-                if (version > 89)
-                {
-                    stmg_switch.data.rtpc_type = stream.readUint8();
+            auto switch_count = stream.readUint32();
+            value.switch_group.resize(static_cast<size_t>(switch_count));
+            for (auto & switch_layer : value.switch_group) {
+                switch_layer.id = stream.readUint32();
+                switch_layer.data.rtpc_id = stream.readUint32();
+                if (k_version > 89_ui) {
+                    switch_layer.data.rtpc_type = stream.readUint8();
                 }
-                const auto count = stream.readUint32();
-                for (const auto &k : Range(count))
-                {
-                    stmg_switch.data.graph_point.emplace_back(GraphPoint{
-                        .from = stream.readFloat(),
-                        .to = stream.readFloat(),
-                        .interp = stream.readUint32()});
+                auto graph_point_count = stream.readUint32();
+                exchange_list(stream, switch_layer.data.graph_point, &exchange_to_graph_point, static_cast<size_t>(graph_point_count));
+            }
+            if (k_version <= 38) return;
+            auto game_parameter_count = stream.readUint32();
+            value.game_parameter.resize(static_cast<size_t>(game_parameter_count));
+            for (auto & game_parameter: value.game_parameter) {
+                game_parameter.id = stream.readUint32();
+                game_parameter.data.value = stream.readFloat();
+                if (k_version > 89_ui) {
+                    game_parameter.data.ramp_type = stream.readUint32();
+                    game_parameter.data.ramp_up = stream.readFloat();
+                    game_parameter.data.ramp_down = stream.readFloat();
+                    game_parameter.data.built_in_param = stream.readUint8();
                 }
-                switch_group.emplace_back(stmg_switch);
             }
-            if (version <= 38)
-                return;
-            auto game_parameter = std::vector<STMGGameParameter>{};
-            const auto game_parameter_count = stream.readUint32();
-            for (const auto &i : Range(game_parameter_count))
-            {
-                const auto id = stream.readUint32();
-                auto gp = STMGGameParameter{
-                    .id = id,
-                    .name = "",
-                };
-                gp.data.value = stream.readFloat();
-                if (version > 89)
-                {
-                    gp.data.ramp_type = stream.readUint32();
-                    gp.data.ramp_up = stream.readFloat();
-                    gp.data.ramp_down = stream.readFloat();
-                    gp.data.built_in_param = stream.readUint8();
-                }
-                game_parameter.emplace_back(gp);
-            }
-            auto acoustic_texture = std::vector<STMGAcousticTexture>{};
-            if (version <= 118)
-            {
-                // Nothing to do
-            }
-            else if (version <= 122)
-            {
-                const auto texture_count = stream.readUint32();
-                for (const auto &i : Range(texture_count))
-                {
-                    const auto id = stream.readUint32();
-                    auto texture = STMGAcousticTexture{
-                        .id = id,
-                        .name = "",
-                    };
+            if (k_version <= 118_ui) return;
+            if (k_version <= 122_ui) {
+                auto texture_count = stream.readUint32();
+                value.acoustic_texture.resize(static_cast<size_t>(texture_count));
+                for (auto & texture : value.acoustic_texture) {
+                    texture.id = stream.readUint32();
                     texture.data.on_off_band[0] = stream.readUint16();
                     texture.data.on_off_band[1] = stream.readUint16();
                     texture.data.on_off_band[2] = stream.readUint16();
@@ -243,348 +94,253 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     texture.data.frequecy_band[0] = stream.readUint16();
                     texture.data.frequecy_band[1] = stream.readUint16();
                     texture.data.frequecy_band[2] = stream.readUint16();
-                    texture.data.factor_band[0] = stream.readFloat();
+                    texture.data.factor_band[0] = stream.readUint16();
                     texture.data.factor_band[1] = stream.readFloat();
                     texture.data.factor_band[2] = stream.readFloat();
                     texture.data.gain_band[0] = stream.readFloat();
                     texture.data.gain_band[1] = stream.readFloat();
                     texture.data.gain_band[2] = stream.readFloat();
                     texture.data.output_gain = stream.readFloat();
-                    acoustic_texture.emplace_back(texture);
                 }
-            }
-            else
-            {
-                const auto texture_count = stream.readUint32();
-                for (const auto &i : Range(texture_count))
-                {
-                    const auto id = stream.readUint32();
-                    auto texture = STMGAcousticTexture{
-                        .id = id,
-                        .name = "",
-                    };
-                    texture.data.absorption_offset = stream.readFloat();
-                    texture.data.absorption_low = stream.readFloat();
-                    texture.data.absorption_mid_low = stream.readFloat();
-                    texture.data.absorption_mid_high = stream.readFloat();
-                    texture.data.absorption_high = stream.readFloat();
-                    texture.data.scattering = stream.readFloat();
-                    acoustic_texture.emplace_back(texture);
-                }
-            }
-            auto diffuse_reverberator = std::vector<STMGDiffuseReverberator>{};
-            if (version <= 118)
-            {
-                // Nothing to do
-            }
-            else if (version <= 122)
-            {
-                const auto reverberator_count = stream.readUint32();
-                for (const auto &i : Range(reverberator_count))
-                {
-                    const auto id = stream.readUint32();
-                    auto diffuse = STMGDiffuseReverberator{
-                        .id = id,
-                        .name = "",
-                    };
+                auto reverberator_count = stream.readUint32();
+                value.diffuse_reverberator.resize(static_cast<size_t>(reverberator_count));
+                for (auto diffuse : value.diffuse_reverberator) {
+                    diffuse.id = stream.readUint32();
                     diffuse.data.time = stream.readFloat();
                     diffuse.data.hf_ratio = stream.readFloat();
                     diffuse.data.dry_level = stream.readFloat();
                     diffuse.data.wet_level = stream.readFloat();
                     diffuse.data.spread = stream.readFloat();
                     diffuse.data.density = stream.readFloat();
-                    diffuse.data.quality = stream.readFloat();
                     diffuse.data.diffusion = stream.readFloat();
                     diffuse.data.scale = stream.readFloat();
-                    diffuse_reverberator.emplace_back(diffuse);
                 }
             }
-            info->game_synchronization.state_group = std::move(state_group);
-            info->game_synchronization.switch_group = std::move(switch_group);
-            info->game_synchronization.game_parameter = std::move(game_parameter);
-            info->game_synchronization.acoustic_texture = std::move(acoustic_texture);
-            info->game_synchronization.diffuse_reverberator = std::move(diffuse_reverberator);
-            info->has_game_synchronization = true;
-            return;
-        }
-
-        inline auto decode_envs_item(ENVSItem &info) -> void
-        {
-            info.volume.curve_enabled = stream.readBoolean();
-            info.volume.curve_scaling = stream.readUint8();
-            const auto volume_count = stream.readUint16();
-            auto volume_graph_point = std::vector<GraphPoint>{};
-            for (const auto &i : Range(volume_count))
-            {
-                volume_graph_point.emplace_back(GraphPoint{
-                    .from = stream.readFloat(),
-                    .to = stream.readFloat(),
-                    .interp = stream.readUint32()});
-            }
-            info.volume.graph_point = std::move(volume_graph_point);
-            info.low_pass_filter.curve_enabled = stream.readBoolean();
-            info.low_pass_filter.curve_scaling = stream.readUint8();
-            const auto low_pass_filter_count = stream.readUint16();
-            auto low_pass_filter_graph_point = std::vector<GraphPoint>{};
-            for (const auto &i : Range(low_pass_filter_count))
-            {
-                low_pass_filter_graph_point.emplace_back(GraphPoint{
-                    .from = stream.readFloat(),
-                    .to = stream.readFloat(),
-                    .interp = stream.readUint32()});
-            }
-            info.low_pass_filter.graph_point = std::move(low_pass_filter_graph_point);
-            if (version > 89)
-            {
-                info.high_pass_filter.curve_enabled = stream.readBoolean();
-                info.high_pass_filter.curve_scaling = stream.readUint8();
-                const auto high_pass_filter_count = stream.readUint16();
-                auto high_pass_filter_graph_point = std::vector<GraphPoint>{};
-                for (const auto &i : Range(high_pass_filter_count))
-                {
-                    high_pass_filter_graph_point.emplace_back(GraphPoint{
-                        .from = stream.readFloat(),
-                        .to = stream.readFloat(),
-                        .interp = stream.readUint32()});
-                }
-                info.high_pass_filter.graph_point = std::move(high_pass_filter_graph_point);
+            else {
+                auto texture_count = stream.readUint32();
+                value.acoustic_texture.resize(static_cast<size_t>(texture_count));
+                for (auto & texture : value.acoustic_texture) {
+                    texture.id = stream.readUint32();
+                    texture.data.absorption_offset = stream.readFloat();
+                    texture.data.absorption_low = stream.readFloat();
+                    texture.data.absorption_mid_low = stream.readFloat();
+                    texture.data.absorption_mid_high = stream.readFloat();
+                    texture.data.absorption_high = stream.readFloat();
+                }   
             }
             return;
         }
+        
 
-        inline auto decode_env_settings(SoundBankInformation *info) -> void
+        inline static auto exchange_plugin_chunk(
+            DataStreamView &stream,
+            std::vector<INIT> & value
+        ) -> void
         {
-            const auto chuck_size = stream.readUint32();
-            decode_envs_item(info->environments.obstruction);
-            decode_envs_item(info->environments.occlusion);
-            info->has_environments = true;
+            auto initialization_count = static_cast<size_t>(stream.readUint32());
+            exchange_list(stream, value, [](DataStreamView &stream, INIT &element) {  
+                element.id = stream.readUint32();
+                element.name = stream.readStringByEmpty();
+            }, initialization_count);
             return;
         }
 
-        inline static auto hirc_type_126 = std::map<uint32_t, std::string>{
-            std::pair(0x01, "stateful_property_setting"),
-            std::pair(0x02, "sound"),
-            std::pair(0x03, "event_action"),
-            std::pair(0x04, "event"),
-            std::pair(0x05, "sound_playlist_container"),
-            std::pair(0x06, "sound_switch_container"),
-            std::pair(0x07, "actor_mixer"),
-            std::pair(0x08, "audio_bus"),
-            std::pair(0x09, "sound_blend_container"),
-            std::pair(0x0a, "music_segment"),
-            std::pair(0x0b, "music_track"),
-            std::pair(0x0c, "music_switch_container"),
-            std::pair(0x0d, "music_playlist_container"),
-            std::pair(0x0e, "attenuation"),
-            std::pair(0x0f, "dialogue_event"),
-            std::pair(0x10, "feedback_bus"),
-            std::pair(0x11, "feedback_node"),
-            std::pair(0x12, "effect"),
-            std::pair(0x13, "source"),
-            std::pair(0x14, "auxiliary_audio_bus"),
-            std::pair(0x15, "low_frequency_oscillator_modulator"),
-            std::pair(0x16, "envelope_modulator"),
-            std::pair(0x17, "audio_device")};
-        inline static auto hirc_type_128 = std::map<uint32_t, std::string>{
-            std::pair(0x01, "stateful_property_setting"),
-            std::pair(0x02, "sound"),
-            std::pair(0x03, "event_action"),
-            std::pair(0x04, "event"),
-            std::pair(0x05, "sound_playlist_container"),
-            std::pair(0x06, "sound_switch_container"),
-            std::pair(0x07, "actor_mixer"),
-            std::pair(0x08, "audio_bus"),
-            std::pair(0x09, "sound_blend_container"),
-            std::pair(0x0a, "music_segment"),
-            std::pair(0x0b, "music_track"),
-            std::pair(0x0c, "music_switch_container"),
-            std::pair(0x0d, "music_playlist_container"),
-            std::pair(0x0e, "attenuation"),
-            std::pair(0x0f, "dialogue_event"),
-            std::pair(0x10, "effect"),
-            std::pair(0x11, "source"),
-            std::pair(0x12, "auxiliary_audio_bus"),
-            std::pair(0x13, "low_frequency_oscillator_modulator"),
-            std::pair(0x14, "envelope_modulator"),
-            std::pair(0x15, "audio_device"),
-            std::pair(0x16, "time_modulator")};
-
-        inline auto get_hierarchy_type(uint32_t type_id) -> std::string
+        inline static auto exchange_embedded_media(
+            DataStreamView &stream,
+            std::vector<uint32_t> &value,
+            uint32_t const &chuck_size,
+            std::string_view destination
+        ) -> void
         {
-            if (version <= 126)
-            {
-                if (!hirc_type_126.contains(type_id))
-                {
-                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.invalid_type_id")), std::to_string(type_id)), std::source_location::current(), "get_hierarchy_type");
-                }
-                return hirc_type_126[type_id];
+            auto data_list = std::vector<DATA>(chuck_size / (3_size * k_block_size));
+            for (auto & element : data_list) {
+                value.emplace_back(stream.readUint32());
+                element.pos = stream.readUint32();
+                element.size = stream.readUint32();
             }
-            else
-            {
-                if (!hirc_type_128.contains(type_id))
-                {
-                    throw Exception(String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.invalid_type_id")), std::to_string(type_id)), std::source_location::current(), "get_hierarchy_type");
-                }
-                return hirc_type_128[type_id];
+            auto data_sign = ChunkSign{};
+            exchange_chuck_sign(stream, data_sign);
+            assert_conditional(data_sign.id == ChunkSignFlag::data, fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_wem_data_bank")), "exchange_embedded_media");
+            auto data_stream = DataStreamView{stream.readBytes(static_cast<size_t>(data_sign.size))};
+            for (auto data_index : Range(data_list.size())) {
+                auto data = data_stream.getBytes(data_list[data_index].pos, data_list[data_index].pos + data_list[data_index].size);
+                write_bytes(fmt::format("{}/embedded_audio/{}.wem", destination, value.at(data_index)), data);
             }
+            return;
         }
 
-        inline auto decode_hierarchy(SoundBankInformation *info) -> void
+        inline static auto exchange_bank_header(
+            DataStreamView &stream,
+            typename BKHD &value,
+            uint32_t const &chuck_size
+        ) -> void
         {
-            const auto chuck_size = stream.readUint32();
-            const auto hirc_count = stream.readUint32();
-            auto hirc_list = std::vector<HIRC>{};
-            for (const auto &i : Range(hirc_count))
-            {
-                auto hirc_type = uint32_t{};
-                if (version <= 48)
-                {
-                    hirc_type = stream.readUint32();
-                }
-                else
-                {
-                    hirc_type = static_cast<uint32_t>(stream.readUint8());
-                }
-                const auto length = stream.readUint32();
-                const auto id = stream.readUint32();
-                const auto str_type = get_hierarchy_type(hirc_type);
-                auto hirc = HIRC{
-                    .id = id,
-                    .name = "",
-                    .type = str_type};
-                if (str_type == "event"_sv)
-                {
-                    auto child = std::vector<uint32_t>{};
-                    const auto child_count = version <= 122 ? stream.readUint32() : stream.readVarUint32();
-                    for (const auto &k : Range(child_count))
-                    {
-                        child.emplace_back(stream.readUint32());
+            auto version = stream.readUint32();
+            assert_conditional(version > 52_ui, String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(version)), "exchange_bank_header");
+            k_version = version;
+            value.version = version;
+            value.soundbank_id = stream.readUint32();
+            value.language_id = stream.readUint32();
+            value.head_info.values = stream.readUint32();
+            if (k_version > 76_ui) {
+                value.head_info.project_id = stream.readUint32();
+            }
+            if (k_version > 141_ui) {
+                value.head_info.soundbank_type = stream.readUint32();
+                value.head_info.bank_hash = exchange_hex_string(stream.readBytes(0x10_size));
+            }
+            auto padding = version < 141_ui ? (version <= 76_ui ? chuck_size - 0x10_ui : chuck_size - 0x14_ui) : chuck_size - 0x28_ui;
+            value.head_info.padding = padding;
+            stream.read_pos += static_cast<size_t>(padding);
+            return;
+        }
+
+        inline static auto exchange_hierarchy(
+            DataStreamView &stream,
+            std::vector<HIRC> &value
+        ) -> void
+        {
+            auto hierarchy_count = stream.readUint32();
+            value.resize(static_cast<size_t>(hierarchy_count));
+            for (auto &hierarchy : value) {
+                auto type = static_cast<uint32_t>(stream.readUint8());
+                auto length = stream.readUint32();
+                hierarchy.id = stream.readUint32();
+                hierarchy.type = exchange_hierarchy_type(type);
+                if (hierarchy.type == k_hierarchy_event_type_string) {
+                    auto child_count = k_version <= 122_ui ? stream.readUint32() : stream.readVarInt32();
+                    hierarchy.child.resize(static_cast<size_t>(child_count));
+                    for (auto &child : hierarchy.child) {
+                        child = stream.readUint32();
                     }
-                    hirc.child = std::move(child);
                 }
-                else
-                {
-                    hirc.data = create_hex_string(stream.readBytes(static_cast<size_t>(length - 4)));
+                else {
+                    hierarchy.data = exchange_hex_string(stream.readBytes(static_cast<size_t>(length - 4_size)));
+                    if (hierarchy.type == "sound_playlist_container"_sv) {
+                        debug(hierarchy.data);
+                    }
                 }
-                hirc_list.emplace_back(hirc);
             }
-            info->hierarchy = std::move(hirc_list);
-            info->has_hierarchy = true;
             return;
         }
 
-        inline auto decode_string_mapping(SoundBankInformation *info) -> void
+        inline static auto exchange_environment_item(
+            DataStreamView &stream,
+            typename ENVSItem &value
+        ) -> void
         {
-            const auto chuck_size = stream.readUint32();
-            info->reference.type = stream.readUint32();
-            const auto stid_count = stream.readUint32();
-            auto stid_data_list = std::vector<STIDDATA>{};
-            for (const auto &i : Range(stid_count))
-            {
-                stid_data_list.emplace_back(STIDDATA{
-                    .id = stream.readUint32(),
-                    .name = stream.readStringByUint8()});
+            value.volume.curve_enabled = stream.readBoolean();
+            value.volume.curve_scaling = stream.readUint8();
+            auto volume_count = stream.readUint16();
+            exchange_list(stream, value.volume.graph_point, &exchange_to_graph_point, static_cast<size_t>(volume_count));
+            value.low_pass_filter.curve_enabled = stream.readBoolean();
+            value.low_pass_filter.curve_scaling = stream.readUint8();
+            auto low_pass_filter_count = stream.readUint16();
+            exchange_list(stream, value.low_pass_filter.graph_point, &exchange_to_graph_point, static_cast<size_t>(low_pass_filter_count));
+            if (k_version > 89_ui) {
+                value.high_pass_filter.curve_enabled = stream.readBoolean();
+                value.high_pass_filter.curve_scaling = stream.readUint8();
+                auto high_pass_filter_count = stream.readUint16();
+                exchange_list(stream, value.high_pass_filter.graph_point, &exchange_to_graph_point, static_cast<size_t>(high_pass_filter_count));
             }
-            info->reference.data = std::move(stid_data_list);
-            info->has_reference = true;
             return;
         }
 
-        inline auto decode_platform_settings(SoundBankInformation *info) -> void
+        inline static auto exchange_environments_settings(
+            DataStreamView &stream,
+            typename ENVS &value
+        ) -> void
         {
-            const auto chuck_size = stream.readUint32();
-            info->platform_setting.platform = stream.readStringByEmpty();
-            info->has_platform_setting = true;
+            exchange_environment_item(stream, value.obstruction);
+            exchange_environment_item(stream, value.occlusion);
             return;
         }
 
-        inline auto parse_chuck(
-            std::string_view destination,
-            SoundBankInformation *info) -> void
+        inline static auto exchange_string_mapping(
+            DataStreamView &stream,
+            typename STID &value
+        ) -> void
         {
-            const auto tag = stream.readString(4);
-            switch (hash_sv(tag))
+            value.type = stream.readUint32();
+            auto reference_count = stream.readUint32();
+            exchange_list(stream, value.data, [](DataStreamView &stream, STIDDATA &element) {
+                element.id = stream.readUint32();
+                element.name = stream.readStringByUint8();
+            }, static_cast<size_t>(reference_count)
+            );
+            return;
+        }
+
+        inline static auto exchange_platform_settings(
+            DataStreamView &stream,
+            typename PLAT &value
+        ) -> void
+        {
+            value.platform = stream.readStringByEmpty();
+            return;
+        }
+
+        inline static auto exchange_sound_bank(
+            DataStreamView &stream,
+            typename SoundBankInformation &definition,
+            std::string_view destination
+        ) -> void
+        {
+            auto bank_header_chunk_sign_flag = stream.readString(4_size);
+            assert_conditional(bank_header_chunk_sign_flag == ChunkSignFlag::bkhd, fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_bnk_magic")), "process_whole");
+            stream.read_pos = k_begin_index;
+            while (stream.read_pos < stream.size())
             {
-            case hash_sv("BKHD"_sv):
-            {
-                decode_bank_header(info);
-                break;
+                auto sign = ChunkSign{};
+                exchange_chuck_sign(stream, sign);
+                if (sign.id == ChunkSignFlag::bkhd) {
+                    exchange_bank_header(stream, definition.bank_header, sign.size);
+                }
+                else if (sign.id == ChunkSignFlag::didx) {
+                    exchange_embedded_media(stream, definition.embedded_media, sign.size, destination);
+                    definition.has_embedded_media = true;
+                }
+                else if (sign.id == ChunkSignFlag::init) {
+                    exchange_plugin_chunk(stream, definition.initialization);
+                    definition.has_initialization = true;
+                }
+                else if (sign.id == ChunkSignFlag::stmg) {
+                    exchange_game_synchronization(stream, definition.game_synchronization);
+                    definition.has_game_synchronization = true;
+                }
+                else if (sign.id == ChunkSignFlag::hirc) {
+                    exchange_hierarchy(stream, definition.hierarchy);
+                    definition.has_hierarchy = true;
+                }
+                else if (sign.id == ChunkSignFlag::stid) {
+                    exchange_string_mapping(stream, definition.reference);
+                    definition.has_reference = true;
+                }
+                else if (sign.id == ChunkSignFlag::envs) {
+                    exchange_environments_settings(stream, definition.environments);
+                    definition.has_environments = true;
+                }
+                else if (sign.id == ChunkSignFlag::plat) {
+                    exchange_platform_settings(stream, definition.platform_setting);
+                    definition.has_platform_setting = true;
+                }
+                else {
+                    assert_conditional(false, fmt::format("{} | {}: {:02x}", Kernel::Language::get("wwise.decode.invalid_bnk"), Kernel::Language::get("offset"), stream.read_pos), "exchange_sound_bank");
+                }
             }
-            case hash_sv("DIDX"_sv):
-            {
-                decode_embedded_media(destination, info);
-                break;
-            }
-            case hash_sv("INIT"_sv):
-            {
-                decode_plugin_chuck(info);
-                break;
-            }
-            case hash_sv("STMG"_sv):
-            {
-                decode_global_settings(info);
-                break;
-            }
-            case hash_sv("HIRC"_sv):
-            {
-                decode_hierarchy(info);
-                break;
-            }
-            case hash_sv("ENVS"_sv):
-            {
-                decode_env_settings(info);
-                break;
-            }
-            case hash_sv("STID"_sv):
-            {
-                decode_string_mapping(info);
-                break;
-            }
-            case hash_sv("PLAT"_sv):
-            {
-                decode_platform_settings(info);
-                break;
-            }
-            case hash_sv("FXPR"_sv):
-            {
-                throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.unsupported_fxpr")), std::source_location::current(), "parse_chuck");
-            }
-            default:
-                throw Exception(fmt::format("{} | {}: {:02x}", Kernel::Language::get("wwise.decode.invalid_bnk"), Kernel::Language::get("offset"), stream.read_pos), std::source_location::current(), "parse_chuck");
-            }
+            try_assert(stream.read_pos == stream.size(), "");
             return;
         }
 
     public:
-        explicit Decode(
-            std::string_view source) : stream(source)
+
+        inline static auto process_whole(
+            DataStreamView &stream,
+            typename SoundBankInformation &definition,
+            std::string_view destination
+        ) -> void
         {
-        }
-
-        explicit Decode(
-            const std::vector<uint8_t> data) : stream(data)
-        {
-        }
-
-        ~Decode(
-
-            ) = default;
-
-        inline auto process(
-            std::string_view destination,
-            SoundBankInformation *info) -> void
-        {
-            const auto magic = stream.readString(4);
-            if (magic != "BKHD"_sv)
-            {
-                throw Exception(fmt::format("{}", Kernel::Language::get("wwise.soundbank.decode.invalid_bnk_magic")), std::source_location::current(), "process");
-            }
-            stream.read_pos = 0;
-            FileSystem::create_directory(destination);
-            while (stream.read_pos < stream.size())
-            {
-                parse_chuck(destination, info);
-            }
+            exchange_sound_bank(stream, definition, destination);
             return;
         }
 
@@ -592,9 +348,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             std::string_view source,
             std::string_view destination) -> void
         {
-            auto info = SoundBankInformation{};
-            Decode(source).process(destination, &info);
-            FileSystem::write_json(fmt::format("{}/{}", destination, "definition.json"), info);
+            auto stream = DataStreamView{source};
+            auto definition = SoundBankInformation{};
+            process_whole(stream, definition, destination);
+            write_json(fmt::format("{}/{}", destination, "definition.json"), definition);
             return;
         }
     };

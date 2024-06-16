@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "kernel/definition/utility.hpp"
 #include "kernel/definition/library.hpp"
 #include "kernel/definition/macro.hpp"
 
@@ -22,15 +23,18 @@ namespace Sen::Kernel::Definition
             static_assert(use_big_endian == true or use_big_endian == false);
 
         private:
-
             std::vector<std::uint8_t> mutable data;
 
-            std::size_t mutable length;
+            std::string_view mutable file_path = ""_sv;
+
+            std::size_t mutable length = size_t{0};
 
             inline static auto constexpr buffer_size = static_cast<size_t>(8192);
 
-            inline static auto constexpr close_file = [](FILE* file) { 
-                if (file != nullptr) {
+            inline static auto constexpr close_file = [](FILE *file)
+            {
+                if (file != nullptr)
+                {
                     std::fclose(file);
                     file = nullptr;
                 }
@@ -38,9 +42,9 @@ namespace Sen::Kernel::Definition
             };
 
         public:
-            std::size_t mutable read_pos;
+            std::size_t mutable read_pos = size_t{0};
 
-            std::size_t mutable write_pos;
+            std::size_t mutable write_pos = size_t{0};
 
             Stream() : read_pos(0), write_pos(0), length(0)
             {
@@ -53,39 +57,36 @@ namespace Sen::Kernel::Definition
             }
 
             Stream(
-                Stream &&that
-            ) noexcept : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
+                Stream &&that) noexcept : data(std::move(that.data)), length(that.length), read_pos(0), write_pos(0)
             {
             }
 
             auto operator=(
-                Stream &&that
-            ) -> Stream & = delete;
+                Stream &&that) -> Stream & = delete;
 
             Stream(
-                std::string_view source
-            ) : read_pos(0), write_pos(0)
+                std::string_view source) : read_pos(0), write_pos(0)
             {
-                #if WINDOWS
+#if WINDOWS
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(fmt::format("\\\\?\\{}", String::to_windows_style(source.data()))).data(), L"rb"), close_file);
-                #else
+#else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(source.data(), "rb"), close_file);
-                #endif
+#endif
                 assert_conditional(file != nullptr, fmt::format("{}: {}", Language::get("cannot_read_file"), source), "Stream");
-                #if WINDOWS
-                auto size = std::filesystem::file_size(std::filesystem::path{ String::utf8_to_utf16(source.data())});
-                #else
-                auto size = std::filesystem::file_size(std::filesystem::path{ source });
-                #endif
+#if WINDOWS
+                auto size = std::filesystem::file_size(std::filesystem::path{String::utf8_to_utf16(source.data())});
+#else
+                auto size = std::filesystem::file_size(std::filesystem::path{source});
+#endif
                 thiz.reserve(static_cast<std::uint64_t>(size + thiz.buffer_size));
+                thiz.file_path = source;
                 thiz.length = size;
                 thiz.write_pos = size;
                 std::fread(thiz.data.data(), 1, size, file.get());
             }
 
             Stream(
-                const std::size_t &length
-            ) : read_pos(0), write_pos(length), length(length)
+                const std::size_t &length) : read_pos(0), write_pos(length), length(length)
             {
                 thiz.reserve(length + thiz.buffer_size);
                 return;
@@ -94,6 +95,11 @@ namespace Sen::Kernel::Definition
             ~Stream()
             {
                 thiz.close();
+            }
+
+            inline auto getFilePath() const -> std::string_view
+            {
+                return thiz.file_path;
             }
 
             inline auto fromString(
@@ -142,8 +148,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto constexpr reserve(
-                const std::size_t &capacity
-            ) const -> void
+                const std::size_t &capacity) const -> void
             {
                 thiz.data.resize(capacity);
                 return;
@@ -193,8 +198,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto change_read_pos(
-                const std::size_t &pos
-            ) const -> void
+                const std::size_t &pos) const -> void
             {
                 assert_conditional(pos <= thiz.size(), String::format(fmt::format("{}", Language::get("read_position_cannot_be_smaller_than_size")), std::to_string(pos), std::to_string(thiz.size())), "position");
                 thiz.read_pos = pos;
@@ -202,8 +206,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto constexpr change_write_pos(
-                const std::size_t & pos
-            ) const -> void
+                const std::size_t &pos) const -> void
             {
                 thiz.write_pos = pos;
                 return;
@@ -211,7 +214,7 @@ namespace Sen::Kernel::Definition
 
             inline auto toString(
 
-            ) -> std::string
+                ) -> std::string
             {
                 auto ss = std::stringstream{};
                 auto bytes = thiz.data.data();
@@ -244,25 +247,24 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto out_file(
-                std::string_view path
-            ) const -> void
+                std::string_view path) const -> void
             {
                 {
-                    #if WINDOWS
+#if WINDOWS
                     auto filePath = std::filesystem::path(String::utf8_to_utf16(String::to_windows_style(path.data())));
-                    #else
+#else
                     auto filePath = std::filesystem::path(path);
-                    #endif
+#endif
                     if (filePath.has_parent_path())
                     {
                         std::filesystem::create_directories(filePath.parent_path());
                     }
                 }
-                #if WINDOWS
+#if WINDOWS
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8_to_utf16(path.data()).data(), L"wb"), close_file);
-                #else
+#else
                 auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(path.data(), "wb"), close_file);
-                #endif
+#endif
                 if (file == nullptr)
                 {
                     throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), path), std::source_location::current(),
@@ -288,8 +290,7 @@ namespace Sen::Kernel::Definition
             }
 
             inline auto allocate(
-                const std::size_t& size
-            ) -> void
+                const std::size_t &size) -> void
             {
                 thiz.data.reserve(size);
                 return;
@@ -719,23 +720,29 @@ namespace Sen::Kernel::Definition
                 {
                     return;
                 }
-                auto new_pos = thiz.write_pos + size;
-                if (new_pos > thiz.length)
+                if (thiz.write_pos >= thiz.length)
                 {
-                    thiz.length = new_pos;
+                    auto new_length = thiz.write_pos + size;
+                    if (new_length > thiz.capacity()) {
+                        thiz.reserve(new_length + thiz.buffer_size);
+                    }
+                    thiz.length = new_length;
+                    thiz.write_pos += size;
                 }
-                if (new_pos > thiz.capacity())
+                else
                 {
-                    thiz.reserve(new_pos + thiz.buffer_size);
+                    for (auto i : Range(size))
+                    {
+                        thiz.writeUint8(0x0);
+                    }
                 }
-                thiz.write_pos = new_pos;
                 return;
             }
 
             template <typename... Args>
                 requires(IsValidArgument<Args> && ...)
             inline auto writeCharByInt16(
-                char value,
+                const std::string &value,
                 Args... args) const -> void
             {
                 static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
@@ -743,7 +750,17 @@ namespace Sen::Kernel::Definition
                 {
                     thiz.write_pos = std::get<0>(std::make_tuple(args...));
                 }
-                thiz.writeInt16(static_cast<int16_t>(value));
+                for (auto i : Range(2))
+                {
+                    if (i > value.size())
+                    {
+                        thiz.writeInt8(int8_t{0});
+                    }
+                    else
+                    {
+                        thiz.writeInt8(static_cast<int8_t>(value[i]));
+                    }
+                }
                 return;
             }
 
@@ -943,7 +960,8 @@ namespace Sen::Kernel::Definition
                 return this->data.at(position);
             }
 
-            template <typename T> requires std::is_integral<T>::value
+            template <typename T>
+                requires std::is_integral<T>::value
             inline auto write_LE(T value) const -> void
             {
                 auto size = sizeof(T);
@@ -962,7 +980,8 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            template <typename T> requires std::is_integral<T>::value
+            template <typename T>
+                requires std::is_integral<T>::value
             inline auto write_BE(
                 T value) const -> void
             {
@@ -982,6 +1001,35 @@ namespace Sen::Kernel::Definition
                     thiz.data[thiz.write_pos++] = ((value >> ((size - 1 - i) * 8)) & 0xFF);
                 }
                 return;
+            }
+
+            template <typename T>
+                requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            inline auto write_of(
+                T const &value) const -> void
+            {
+                if constexpr (use_big_endian)
+                {
+                    this->template write_BE<T>(value);
+                }
+                else
+                {
+                    this->template write_LE<T>(value);
+                }
+            }
+
+            template <typename T>
+                requires std::is_integral_v<T> || std::is_floating_point_v<T>
+            inline auto read_of() const -> T
+            {
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverse_endian(this->template read<T>());
+                }
+                else
+                {
+                    return this->template read<T>();
+                }
             }
 
             template <typename... Args>
@@ -1273,7 +1321,7 @@ namespace Sen::Kernel::Definition
             template <typename... Args>
                 requires(IsValidArgument<Args> && ...)
             inline auto readCharByInt16(
-                Args... args) const -> char
+                Args... args) const -> std::string
             {
                 static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
                 if constexpr (sizeof...(Args) == 1)
@@ -1283,8 +1331,11 @@ namespace Sen::Kernel::Definition
                                        "readCharByInt16");
                     thiz.read_pos = view;
                 }
-                auto value = static_cast<char>(
-                    thiz.readInt16());
+                auto value = std::string{};
+                auto first_char = static_cast<char>(thiz.readInt8());
+                auto next_char = static_cast<char>(thiz.readInt8());
+                value += first_char;
+                value += next_char;
                 return value;
             }
 

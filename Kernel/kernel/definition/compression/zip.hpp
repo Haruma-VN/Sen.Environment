@@ -148,7 +148,8 @@ namespace Sen::Kernel::Definition::Compression::Zip {
 				zip_extract(
 					zip_path.data(), 
 					dir_path.data(), 
-					[](auto c, auto i) { return 0; },
+					[](auto c, auto i) { 
+						return 0; },
 					nullptr
 				);
 				return;

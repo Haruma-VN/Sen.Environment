@@ -507,17 +507,17 @@ namespace Sen::Kernel::Interface {
 				// reanim
 				{
 					// decode_fs
-					javascript->add_proxy(Script::Support::PopCap::Reanim::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "decode_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "decode_fs"_sv);
 					// encode_fs
-					javascript->add_proxy(Script::Support::PopCap::Reanim::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "encode_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "encode_fs"_sv);
 					// convert_fs
-					javascript->add_proxy(Script::Support::PopCap::Reanim::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "ToFlash"_sv, "convert_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "ToFlash"_sv, "convert_fs"_sv);
 					// convert_fs
-					javascript->add_proxy(Script::Support::PopCap::Reanim::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "FromFlash"_sv, "convert_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "FromFlash"_sv, "convert_fs"_sv);
 					// to_flash
-					javascript->add_proxy(Script::Support::PopCap::Reanim::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "Instance"_sv, "to_flash"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::Instance::to_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "Instance"_sv, "to_flash"_sv);
 					// from_flash
-					javascript->add_proxy(Script::Support::PopCap::Reanim::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Reanim"_sv, "Instance"_sv, "from_flash"_sv);
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "Instance"_sv, "from_flash"_sv);
 				}
 				// bnk
 				{
@@ -548,6 +548,7 @@ namespace Sen::Kernel::Interface {
 				}
 				// pvz2
 				{
+					/*
 					// decode_fs
 					javascript->add_proxy(Script::Support::PopCap::PvZ2::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "decode_fs"_sv);
 					// encode_fs
@@ -556,6 +557,7 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::PvZ2::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "unpack_fs"_sv);
 					// pack_fs
 					javascript->add_proxy(Script::Support::PopCap::PvZ2::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "pack_fs"_sv);
+					*/
 				}
 				// dimension
 				{

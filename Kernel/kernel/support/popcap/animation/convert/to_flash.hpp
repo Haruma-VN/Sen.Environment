@@ -1,722 +1,650 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/popcap/animation/definition.hpp"
 #include "kernel/support/popcap/animation/convert/definition.hpp"
+#include "kernel/support/popcap/animation/convert/common.hpp"
 
 namespace Sen::Kernel::Support::PopCap::Animation::Convert
 {
-
-	class ToFlash : public Common
+	template <auto split_label>
+	struct ToFlash : Common
 	{
-
-	private:
-		using XMLDocument = tinyxml2::XMLDocument;
-
-		using XMLElement = tinyxml2::XMLElement;
-
-		using RecordInfo = RecordInfo;
-
-		using Common = Common;
-
-		using Animation = SexyAnimation;
-
-		using FrameList = FrameList;
-
 	protected:
-		template <auto point, typename T>
-			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		inline static auto to_fixed(
-			T number) -> std::string
+		inline static auto exchange_image_document(
+			typename AnimationImage const &image,
+			std::string const &image_name,
+			XMLDocument &value) -> void
 		{
-			static_assert(sizeof(point) == sizeof(int));
-			auto stream = std::ostringstream{};
-			stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
-			return stream.str();
-		}
-
-		template <typename T>
-			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		inline static auto variant_to_standard(
-			std::array<T, 6> &transform,
-			const std::vector<T> &variant_transform) -> void
-		{
-			switch (variant_transform.size())
-			{
-			case 2:
-			{
-				transform = {1.0f, 0.0f, 0.0f, 1.0f, variant_transform[0], variant_transform[1]};
-				break;
-			}
-			case 3:
-			{
-				auto cos = Math::cos(variant_transform[0]);
-				auto sin = Math::sin(variant_transform[0]);
-				transform = {cos, sin, -sin, cos, variant_transform[1], variant_transform[2]};
-				break;
-			}
-			case 6:
-			{
-				transform = {variant_transform[0], variant_transform[1], variant_transform[2], variant_transform[3], variant_transform[4], variant_transform[5]};
-				break;
-			}
-			default:
-			{
-				throw Exception(fmt::format("{}", Language::get("popcap.animation.from_animation.invalid_transform")), std::source_location::current(), "variant_to_standard");
-			}
-			}
-		}
-		inline static auto constexpr convert_transform = variant_to_standard<double>;
-
-		template <typename T>
-			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		inline static auto valid_color(
-			std::array<T, 4> &color,
-			const std::vector<T> &base_color) -> void
-		{
-			if (!base_color.empty())
-			{
-				for (auto i : Range<int>(4))
-				{
-					if (base_color[i] != initial_color[i])
-					{
-						color = {base_color[0], base_color[1], base_color[2], base_color[3]};
-						return;
-					}
-				}
-			}
+			auto image_transform_matrix = Transform{};
+			k_version < 2 ? exchange_tranform_from_rotate_to_standard(image.transform, image_transform_matrix) : exchange_tranform_by_copy(image.transform, image_transform_matrix);
+			auto dom_symbol_item = value.NewElement("DOMSymbolItem");
+			dom_symbol_item->SetAttribute("xmlns:xsi", k_xmlns_xsi_attribute.data());
+			dom_symbol_item->SetAttribute("xmlns", k_xmlns_attribute.data());
+			dom_symbol_item->SetAttribute("name", fmt::format("image/{}", image_name).data());
+			dom_symbol_item->SetAttribute("symbolType", k_symbol_type.data());
+			auto dom_timeline = value.NewElement("DOMTimeline");
+			dom_timeline->SetAttribute("name", image_name.data());
+			auto dom_bitmap_instance = value.NewElement("DOMBitmapInstance");
+			dom_bitmap_instance->SetAttribute("libraryItemName", fmt::format("media/{}", image.name).data());
+			auto transform_matrix = value.NewElement("Matrix");
+			transform_matrix->SetAttribute("a", to_fixed<6>(image_transform_matrix[0] * k_media_scale_ratio).data());
+			transform_matrix->SetAttribute("b", to_fixed<6>(image_transform_matrix[1]).data());
+			transform_matrix->SetAttribute("c", to_fixed<6>(image_transform_matrix[2]).data());
+			transform_matrix->SetAttribute("d", to_fixed<6>(image_transform_matrix[3] * k_media_scale_ratio).data());
+			transform_matrix->SetAttribute("tx", to_fixed<6>(image_transform_matrix[4]).data());
+			transform_matrix->SetAttribute("ty", to_fixed<6>(image_transform_matrix[5]).data());
+			auto matrix = value.NewElement("matrix");
+			matrix->InsertEndChild(transform_matrix);
+			dom_bitmap_instance->InsertEndChild(matrix);
+			auto dom_frame = value.NewElement("DOMFrame");
+			dom_frame->SetAttribute("index", 0);
+			auto elements = value.NewElement("elements");
+			elements->InsertEndChild(dom_bitmap_instance);
+			dom_frame->InsertEndChild(elements);
+			auto frames = value.NewElement("frames");
+			frames->InsertEndChild(dom_frame);
+			auto dom_layer = value.NewElement("DOMLayer");
+			dom_layer->InsertEndChild(frames);
+			auto layers = value.NewElement("layers");
+			layers->InsertEndChild(dom_layer);
+			dom_timeline->InsertEndChild(layers);
+			auto timeline = value.NewElement("timeline");
+			timeline->InsertEndChild(dom_timeline);
+			dom_symbol_item->InsertEndChild(timeline);
+			value.InsertEndChild(dom_symbol_item);
 			return;
 		}
 
-		inline static auto constexpr copy_color = valid_color<double>;
-
-		template <typename T>
-		inline static auto has_duplicates(
-			const std::vector<T> &vec) -> int
+		template <auto sprite_type>
+		inline static auto exchange_sprite_document(
+			typename SpriteInfo const &sprite_info_list,
+			std::string const &name,
+			FrameNodeStructure &frame_node_structure,
+			XMLDocument &value) -> void
 		{
-			auto unique_elements = std::set<T>{};
-			for (const auto &i : Range<int>(vec.size()))
+			static_assert(sizeof(sprite_type) == sizeof(SpriteType));
+			auto dom_symbol_item = value.NewElement("DOMSymbolItem");
+			dom_symbol_item->SetAttribute("xmlns:xsi", k_xmlns_xsi_attribute.data());
+			dom_symbol_item->SetAttribute("xmlns", k_xmlns_attribute.data());
+			if constexpr (sprite_type == SpriteType::sprite)
 			{
-				const auto &element = vec[i];
-				if (unique_elements.count(element) > 0)
-				{
-					return i;
-				}
-				unique_elements.insert(element);
+				dom_symbol_item->SetAttribute("name", fmt::format("sprite/{}", name).data());
 			}
-			return -1;
-		}
-
-		template <typename T, typename E>
-		inline static auto check_element_in_vector(
-			const std::vector<T> &v,
-			const E &e) -> bool
-		{
-			if (std::find(v.begin(), v.end(), e) != v.end())
+			else if constexpr (sprite_type == SpriteType::label)
 			{
-				return true;
+				dom_symbol_item->SetAttribute("name", fmt::format("label/{}", name).data());
 			}
-			return false;
-		}
-
-		inline static auto constexpr includes = check_element_in_vector<int, int>;
-
-	protected:
-		Animation animation;
-
-	protected:
-		template <typename T>
-			requires std::is_integral<T>::value or std::is_floating_point<T>::value
-		inline auto write_image(
-			const AnimationImage &image,
-			XMLDocument *document,
-			T scale) -> void
-		{
-			assert_conditional(image.transform.size() == 6, "transform size must be 6 to write image", "write_image");
-			auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
-			DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-			DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
-			DOMSymbolItem->SetAttribute("name", fmt::format("image/{}", image.id).data());
-			DOMSymbolItem->SetAttribute("symbolType", "graphic");
-			auto timeline = document->NewElement("timeline");
-			auto DOMTimeline = document->NewElement("DOMTimeline");
-			DOMTimeline->SetAttribute("name", image.id.data());
-			auto layers = document->NewElement("layers");
-			auto DOMLayer = document->NewElement("DOMLayer");
-			auto frames = document->NewElement("frames");
-			auto DOMFrame = document->NewElement("DOMFrame");
-			DOMFrame->SetAttribute("index", 0);
-			auto elements = document->NewElement("elements");
-			auto DOMBitmapInstance = document->NewElement("DOMBitmapInstance");
-			DOMBitmapInstance->SetAttribute("libraryItemName", fmt::format("media/{}", image.name).data());
-			auto matrix = document->NewElement("matrix");
-			auto Matrix = document->NewElement("Matrix");
-			Matrix->SetAttribute("a", to_fixed<6, double>(image.transform[0] * scale).data());
-			Matrix->SetAttribute("b", to_fixed<6, double>(image.transform[1]).data());
-			Matrix->SetAttribute("c", to_fixed<6, double>(image.transform[2]).data());
-			Matrix->SetAttribute("d", to_fixed<6, double>(image.transform[3] * scale).data());
-			Matrix->SetAttribute("tx", to_fixed<6, double>(image.transform[4]).data());
-			Matrix->SetAttribute("ty", to_fixed<6, double>(image.transform[5]).data());
-			matrix->InsertEndChild(Matrix);
-			DOMBitmapInstance->InsertEndChild(matrix);
-			elements->InsertEndChild(DOMBitmapInstance);
-			DOMFrame->InsertEndChild(elements);
-			frames->InsertEndChild(DOMFrame);
-			DOMLayer->InsertEndChild(frames);
-			layers->InsertEndChild(DOMLayer);
-			DOMTimeline->InsertEndChild(layers);
-			timeline->InsertEndChild(DOMTimeline);
-			DOMSymbolItem->InsertEndChild(timeline);
-			document->InsertEndChild(DOMSymbolItem);
-			return;
-		}
-
-		template <auto is_action>
-		inline auto write_sprite(
-			const std::string &name,
-			std::map<int, std::vector<FrameNode>> &frame_node_list,
-			const std::vector<std::string> &sprite_name_list,
-			XMLDocument *document) -> void
-		{
-			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
-			auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
-			DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-			DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
-			if constexpr (is_action)
+			else if constexpr (sprite_type == SpriteType::main_sprite)
 			{
-				DOMSymbolItem->SetAttribute("name", fmt::format("action/{}", name).data());
+				dom_symbol_item->SetAttribute("name", fmt::format("{}", name).data());
 			}
 			else
 			{
-				DOMSymbolItem->SetAttribute("name", fmt::format("sprite/{}", name).data());
+				static_assert("invalid_sprite_type");
 			}
-			DOMSymbolItem->SetAttribute("symbolType", "graphic");
-			auto timeline = document->NewElement("timeline");
-			auto DOMTimeline = document->NewElement("DOMTimeline");
-			DOMTimeline->SetAttribute("name", name.data());
-			auto layers = document->NewElement("layers");
-			frame_node_list.erase(0);
-			auto name_layer_index = 1;
-			for (const auto &[layer_index, frame_node] : frame_node_list)
+			dom_symbol_item->SetAttribute("symbolType", k_symbol_type.data());
+			auto dom_timeline = value.NewElement("DOMTimeline");
+			dom_timeline->SetAttribute("name", name.data());
+			auto layers = value.NewElement("layers");
+			for (auto &[layer_index, frame_node_list] : frame_node_structure)
 			{
-				auto DOMLayer = document->NewElement("DOMLayer");
-				auto frames = document->NewElement("frames");
-				for (const auto &node : frame_node)
+				auto dom_layer = value.NewElement("DOMLayer");
+				auto frames = value.NewElement("frames");
+				for (auto &frame_node : frame_node_list)
 				{
-					const auto &transform = node.transform;
-					const auto &base_color = node.color;
-					const auto &resource = node.resource;
-					auto DOMFrame = document->NewElement("DOMFrame");
-					DOMFrame->SetAttribute("index", fmt::format("{}", node.index).data());
-					DOMFrame->SetAttribute("duration", fmt::format("{}", node.duration).data());
-					auto elements = document->NewElement("elements");
-					if (check_base_frame(transform, base_color, resource))
+					auto dom_frame = value.NewElement("DOMFrame");
+					dom_frame->SetAttribute("index", std::to_string(frame_node.index).data());
+					dom_frame->SetAttribute("duration", std::to_string(frame_node.duration).data());
+					auto elements = value.NewElement("elements");
+					if (frame_node.resource != k_frame_resource_symbol_instance_unused)
 					{
-						auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
-						if (node.sprite)
+						auto dom_symbol_instance = value.NewElement("DOMSymbolInstance");
+						if (frame_node.sprite)
 						{
-							DOMSymbolInstance->SetAttribute("libraryItemName", fmt::format("sprite/{}", sprite_name_list[resource]).data());
-							DOMSymbolInstance->SetAttribute("firstFrame", fmt::format("{}", node.first_frame).data());
+							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("sprite/{}", sprite_info_list[frame_node.resource]).data());
+							dom_symbol_instance->SetAttribute("firstFrame", std::to_string(frame_node.first_frame).data());
 						}
 						else
 						{
-							DOMSymbolInstance->SetAttribute("libraryItemName", fmt::format("image/{}", animation.image[resource].id).data());
+							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("image/image_{}", frame_node.resource + 1).data());
 						}
-						DOMSymbolInstance->SetAttribute("symbolType", "graphic");
-						DOMSymbolInstance->SetAttribute("loop", "loop");
-						auto matrix = document->NewElement("matrix");
-						auto Matrix = document->NewElement("Matrix");
-						Matrix->SetAttribute("a", to_fixed<6, double>(transform[0]).data());
-						Matrix->SetAttribute("b", to_fixed<6, double>(transform[1]).data());
-						Matrix->SetAttribute("c", to_fixed<6, double>(transform[2]).data());
-						Matrix->SetAttribute("d", to_fixed<6, double>(transform[3]).data());
-						Matrix->SetAttribute("tx", to_fixed<6, double>(transform[4]).data());
-						Matrix->SetAttribute("ty", to_fixed<6, double>(transform[5]).data());
-						auto color = document->NewElement("color");
-						auto Color = document->NewElement("Color");
-						Color->SetAttribute("redMultiplier", to_fixed<6, double>(base_color[0]).data());
-						Color->SetAttribute("greenMultiplier", to_fixed<6, double>(base_color[1]).data());
-						Color->SetAttribute("blueMultiplier", to_fixed<6, double>(base_color[2]).data());
-						Color->SetAttribute("alphaMultiplier", to_fixed<6, double>(base_color[3]).data());
-						matrix->InsertEndChild(Matrix);
-						color->InsertEndChild(Color);
-						DOMSymbolInstance->InsertEndChild(matrix);
-						DOMSymbolInstance->InsertEndChild(color);
-						elements->InsertEndChild(DOMSymbolInstance);
+						dom_symbol_instance->SetAttribute("symbolType", k_symbol_type.data());
+						dom_symbol_instance->SetAttribute("loop", "loop");
+						auto transform_matrix = value.NewElement("Matrix");
+						transform_matrix->SetAttribute("a", to_fixed<6>(frame_node.transform[0]).data());
+						transform_matrix->SetAttribute("b", to_fixed<6>(frame_node.transform[1]).data());
+						transform_matrix->SetAttribute("c", to_fixed<6>(frame_node.transform[2]).data());
+						transform_matrix->SetAttribute("d", to_fixed<6>(frame_node.transform[3]).data());
+						transform_matrix->SetAttribute("tx", to_fixed<6>(frame_node.transform[4]).data());
+						transform_matrix->SetAttribute("ty", to_fixed<6>(frame_node.transform[5]).data());
+						auto frame_color = value.NewElement("Color");
+						frame_color->SetAttribute("redMultiplier", to_fixed<6>(frame_node.color[0]).data());
+						frame_color->SetAttribute("greenMultiplier", to_fixed<6>(frame_node.color[1]).data());
+						frame_color->SetAttribute("blueMultiplier", to_fixed<6>(frame_node.color[2]).data());
+						frame_color->SetAttribute("alphaMultiplier", to_fixed<6>(frame_node.color[3]).data());
+						auto matrix = value.NewElement("matrix");
+						matrix->InsertEndChild(transform_matrix);
+						auto color = value.NewElement("color");
+						color->InsertEndChild(frame_color);
+						dom_symbol_instance->InsertEndChild(matrix);
+						dom_symbol_instance->InsertEndChild(color);
+						elements->InsertEndChild(dom_symbol_instance);
 					}
-					DOMFrame->InsertEndChild(elements);
-					frames->InsertEndChild(DOMFrame);
+					dom_frame->InsertEndChild(elements);
+					frames->InsertEndChild(dom_frame);
 				}
-				if (frame_node.size() == 0)
-				{
-					continue;
-				}
-				DOMLayer->SetAttribute("name", fmt::format("{}", name_layer_index).data());
-				DOMLayer->InsertEndChild(frames);
-				layers->InsertFirstChild(DOMLayer);
-				++name_layer_index;
+				dom_layer->SetAttribute("name", std::to_string(layer_index + 1).data());
+				dom_layer->InsertEndChild(frames);
+				layers->InsertFirstChild(dom_layer);
 			}
-			DOMTimeline->InsertEndChild(layers);
-			timeline->InsertEndChild(DOMTimeline);
-			DOMSymbolItem->InsertEndChild(timeline);
-			document->InsertEndChild(DOMSymbolItem);
+			dom_timeline->InsertEndChild(layers);
+			auto timeline = value.NewElement("timeline");
+			timeline->InsertEndChild(dom_timeline);
+			dom_symbol_item->InsertEndChild(timeline);
+			value.InsertEndChild(dom_symbol_item);
+			frame_node_structure.clear();
 			return;
 		}
 
-		inline auto check_base_frame(
-			const std::array<double, 6> &transform,
-			const std::array<double, 4> &base_color,
-			int resource) -> bool
+		template <auto get_label>
+		inline static auto exchange_frame_node(
+			typename SexyAnimation const &definition,
+			typename AnimationSprite const &sprite,
+			typename PackageLibrary &package_library) -> void
 		{
-			for (auto i : Range<int>(transform.size()))
+			static_assert(get_label == true || get_label == false, "get_label must be true or false");
+			auto model_structure = std::map<int, Model>{};
+			auto main_label = k_main_label_string;
+			auto &frame_node_structure = package_library.frame_node;
+			for (auto frame_index : Range<int>(sprite.frame.size()))
 			{
-				if (transform[i] != Common::initial_transform[i])
-					return true;
-			}
-			for (auto i : Range<int>(base_color.size()))
-			{
-				if (base_color[i] != Common::initial_color[i])
+				auto &frame = sprite.frame[frame_index];
+				if constexpr (get_label)
 				{
-					return true;
-				}
-			}
-			if (resource != -1)
-			{
-				return true;
-			}
-			return false;
-		}
-
-		inline auto write_document(
-			const FrameList &frame_list,
-			const std::vector<std::string> &sprite_name_list,
-			XMLDocument *document) -> void
-		{
-			auto DOMDocument = document->NewElement("DOMDocument");
-			DOMDocument->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-			DOMDocument->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
-			DOMDocument->SetAttribute("frameRate", fmt::format("{}", animation.frame_rate).data());
-			DOMDocument->SetAttribute("width", fmt::format("{}", animation.size.width).data());
-			DOMDocument->SetAttribute("height", fmt::format("{}", animation.size.height).data());
-			DOMDocument->SetAttribute("xflVersion", "2.971");
-			auto folders = document->NewElement("folders");
-			auto folders_list = std::vector<std::string>{"media", "action", "image", "sprite"};
-			for (auto &folder : folders_list)
-			{
-				auto DOMFolderItem = document->NewElement("DOMFolderItem");
-				DOMFolderItem->SetAttribute("name", folder.data());
-				DOMFolderItem->SetAttribute("isExpanded", "true");
-				folders->InsertEndChild(DOMFolderItem);
-			}
-			DOMDocument->InsertEndChild(folders);
-			auto media = document->NewElement("media");
-			auto symbols = document->NewElement("symbols");
-			for (auto &image : animation.image)
-			{
-				auto DOMBitmapItem = document->NewElement("DOMBitmapItem");
-				DOMBitmapItem->SetAttribute("name", fmt::format("media/{}", image.name).data());
-				DOMBitmapItem->SetAttribute("href", fmt::format("media/{}.png", image.name).data());
-				media->InsertEndChild(DOMBitmapItem);
-				auto Include = document->NewElement("Include");
-				Include->SetAttribute("href", fmt::format("image/{}.xml", image.id).data());
-				symbols->InsertEndChild(Include);
-			}
-			DOMDocument->InsertEndChild(media);
-			for (const auto &sprite_name : sprite_name_list)
-			{
-				auto Include = document->NewElement("Include");
-				Include->SetAttribute("href", fmt::format("sprite/{}.xml", sprite_name).data());
-				symbols->InsertEndChild(Include);
-			}
-			auto flow_layer = document->NewElement("DOMLayer");
-			flow_layer->SetAttribute("name", "flow");
-			auto flow_frames = document->NewElement("frames");
-			for (const auto &action_name : frame_list.action_name_list)
-			{
-				auto Include = document->NewElement("Include");
-				Include->SetAttribute("href", fmt::format("action/{}.xml", action_name).data());
-				symbols->InsertEndChild(Include);
-				auto start_index = frame_list.action_list.at(action_name).start_index;
-				auto end_index = frame_list.action_list.at(action_name).end_index;
-				auto DOMFrame = document->NewElement("DOMFrame");
-				DOMFrame->SetAttribute("index", fmt::format("{}", start_index).data());
-				DOMFrame->SetAttribute("duration", fmt::format("{}", (end_index - start_index)).data());
-				DOMFrame->SetAttribute("name", fmt::format("{}", action_name).data());
-				DOMFrame->SetAttribute("labelType", "name");
-				auto elements = document->NewElement("elements");
-				auto DOMSymbolInstance = document->NewElement("DOMSymbolInstance");
-				DOMSymbolInstance->SetAttribute("libraryItemName", ("action/" + action_name).data());
-				DOMSymbolInstance->SetAttribute("symbolType", "graphic");
-				DOMSymbolInstance->SetAttribute("loop", "loop");
-				elements->InsertEndChild(DOMSymbolInstance);
-				DOMFrame->InsertEndChild(elements);
-				flow_frames->InsertEndChild(DOMFrame);
-			}
-			DOMDocument->InsertEndChild(symbols);
-			flow_layer->InsertEndChild(flow_frames);
-			auto &main_frame = animation.main_sprite.frame;
-			auto prev_end_index = 0;
-			auto write_command = false;
-			auto write_command_pos = 0;
-			auto command_layer = document->NewElement("DOMLayer");
-			command_layer->SetAttribute("name", "command");
-			auto command_frames = document->NewElement("frames");
-			for (auto i : Range<int>(main_frame.size()))
-			{
-				auto command_script = std::string{};
-				if (main_frame[i].stop)
-				{
-					command_script += "stop();";
-					write_command = true;
-				}
-				for (const auto &command : main_frame[i].command)
-				{
-					command_script += fmt::format("fscommand(\"{}\", \"{}\");", command.parameter, command.command);
-					write_command = true;
-				}
-				command_script.substr(0, command_script.size() - 1);
-				if (write_command)
-				{
-					if ((i - prev_end_index) > 0)
+					if (!frame.label.empty() && frame.label != main_label)
 					{
-						auto DOMFrame = document->NewElement("DOMFrame");
-						DOMFrame->SetAttribute("index", fmt::format("{}", prev_end_index).data());
-						DOMFrame->SetAttribute("duration", fmt::format("{}", (i - prev_end_index)).data());
-						auto elements = document->NewElement("elements");
-						DOMFrame->InsertEndChild(elements);
-						command_frames->InsertEndChild(DOMFrame);
+						main_label = frame.label;
+						package_library.label[main_label].start = frame_index;
 					}
-					prev_end_index = i;
-					auto DOMFrame = document->NewElement("DOMFrame");
-					DOMFrame->SetAttribute("index", fmt::format("{}", prev_end_index).data());
-					auto Actionscript = document->NewElement("Actionscript");
-					auto script = document->NewElement("script");
-					auto cdata = document->NewText(command_script.data());
-					cdata->SetCData(true);
-					script->InsertEndChild(cdata);
-					auto elements = document->NewElement("elements");
-					Actionscript->InsertEndChild(script);
-					DOMFrame->InsertEndChild(Actionscript);
-					DOMFrame->InsertEndChild(elements);
-					command_frames->InsertEndChild(DOMFrame);
-					++prev_end_index;
-					write_command_pos = prev_end_index;
-					write_command = false;
+					++package_library.label[main_label].duration;
 				}
-				if (i == (main_frame.size() - 1))
+				for (auto &remove_index : frame.remove)
 				{
-					if (write_command_pos != main_frame.size())
+					model_structure[remove_index].state = State::state_false;
+				}
+				for (auto &append : frame.append)
+				{
+					model_structure[append.index] = Model{
+						.state = State::state_null,
+						.resource = append.resource,
+						.sprite = append.sprite,
+						.transform = k_initial_transform,
+						.color = k_initial_color,
+						.frame_start = frame_index,
+						.frame_duration = frame_index};
+					if (frame_index > k_begin_index)
 					{
-						auto DOMFrame = document->NewElement("DOMFrame");
-						DOMFrame->SetAttribute("index", fmt::format("{}", prev_end_index).data());
-						DOMFrame->SetAttribute("duration", fmt::format("{}", (main_frame.size() - prev_end_index)).data());
-						auto elements = document->NewElement("elements");
-						DOMFrame->InsertEndChild(elements);
-						command_frames->InsertEndChild(DOMFrame);
+						frame_node_structure[append.index].emplace_back(
+							FrameNode{
+								.index = static_cast<int>(k_begin_index),
+								.duration = frame_index});
 					}
 				}
-			}
-			command_layer->InsertEndChild(command_frames);
-			auto timelines = document->NewElement("timelines");
-			auto DOMTimeline = document->NewElement("DOMTimeline");
-			DOMTimeline->SetAttribute("name", "animation");
-			auto layers = document->NewElement("layers");
-			layers->InsertEndChild(flow_layer);
-			layers->InsertEndChild(command_layer);
-			DOMTimeline->InsertEndChild(layers);
-			timelines->InsertEndChild(DOMTimeline);
-			DOMDocument->InsertEndChild(timelines);
-			document->InsertEndChild(DOMDocument);
-			return;
-		}
-
-		template <auto is_action>
-		inline auto decode_frame_list(
-			const AnimationSprite &sprite,
-			FrameList &frame_list) -> void
-		{
-			static_assert(is_action == true or is_action == false, "is_action is a boolean value");
-			static_assert(sizeof(is_action) == sizeof(bool));
-			auto sprite_model = std::map<int, Model>{};
-			auto &frame_node_list = frame_list.frame_node_list;
-			auto frame_length = static_cast<int>(sprite.frame.size());
-			frame_node_list[0] = std::vector<FrameNode>{FrameNode{
-				0, frame_length, -1}};
-			auto main_label = std::string{};
-			for (auto i : Range<int>(frame_length))
-			{
-				if constexpr (is_action)
+				for (auto &change : frame.change)
 				{
-					const auto &label = sprite.frame[i].label;
-					if (!label.empty())
+					auto &layer = model_structure[change.index];
+					layer.state = State::state_true;
+					exchange_transform_from_variant_to_standard(change.transform, layer.transform);
+					if (!(change.color.at(0) == 0.0 && change.color.at(1) == 0.0 && change.color.at(2) == 0.0 && change.color.at(3) == 0.0))
 					{
-						if (!main_label.empty())
-						{
-							frame_list.action_list[main_label].end_index = i;
-						}
-						main_label = label;
+						layer.color = change.color;
 					}
-					if (!main_label.empty())
+				}
+				auto model_keys = Map::keys<int, Model>(model_structure);
+				for (auto &layer_index : model_keys)
+				{
+					if constexpr (get_label)
 					{
-						if (!frame_list.action_list.contains(main_label))
+						auto &layer_index_list = package_library.label[main_label].layer_index_list;
+						layer_index_list.emplace_back(layer_index);
+					}
+					auto &model_layer = model_structure[layer_index];
+					auto &frame_node_list = frame_node_structure[layer_index];
+					if (model_layer.state != State::state_null)
+					{
+						if (frame_node_list.size() > 0_size)
 						{
-							frame_list.action_list[main_label] = Action{i, 0};
-							frame_list.action_name_list.emplace_back(main_label);
-						}
-						if (i == (frame_length - 1))
-						{
-							frame_list.action_list[main_label].end_index = i + 1;
+							frame_node_list.back().duration = model_layer.frame_duration;
 						}
 					}
-				}
-				for (const auto &remove_index : sprite.frame[i].remove)
-				{
-					sprite_model[remove_index].state = 0_byte;
-				}
-				for (const auto &append : sprite.frame[i].append)
-				{
-					const auto &index = append.index;
-					sprite_model[index] = Model{2_byte, append.resource, append.sprite, i, i};
-					frame_node_list[index + 1] = std::vector<FrameNode>{};
-					if (i > 0)
+					if (model_layer.state == State::state_true)
 					{
-						frame_node_list[index + 1].emplace_back(FrameNode{0, i, -1});
-					}
-				}
-				for (const auto &move : sprite.frame[i].change)
-				{
-					const auto &index = move.index;
-					// state is true;
-					sprite_model[index].state = 1_byte;
-					convert_transform(sprite_model[index].transform, move.transform);
-					copy_color(sprite_model[index].color, move.color);
-				}
-				auto model_keys = Map::keys<int, Model>(sprite_model);
-				for (const auto &index : model_keys)
-				{
-					const auto &layer_index = index + 1;
-					if constexpr (is_action)
-					{
-						if (!main_label.empty())
+						auto frame_node = FrameNode{
+							.index = frame_index,
+							.duration = static_cast<int>(k_none_size),
+							.resource = model_layer.resource,
+							.sprite = model_layer.sprite,
+							.transform = model_layer.transform,
+							.color = model_layer.color};
+						if (frame_node.sprite)
 						{
-							if (!includes(frame_list.action_list[main_label].frame_index, layer_index))
-							{
-								frame_list.action_list[main_label].frame_index.emplace_back(layer_index);
-							}
+							frame_node.first_frame = (frame_index - model_layer.frame_start) % definition.sprite[model_layer.resource].frame.size();
 						}
+						frame_node_list.emplace_back(frame_node);
+						model_layer.state = State::state_null;
+						model_layer.frame_duration = static_cast<int>(k_none_size);
 					}
-					auto &model = sprite_model[index];
-					// state not null
-					if (model.state != 2_byte)
+					if (model_layer.state == State::state_false)
 					{
-						if (frame_node_list[layer_index].size() > 0)
-						{
-							frame_node_list[layer_index].back().duration = model.frame_duration;
-						}
+						model_structure.erase(layer_index);
 					}
-					// state is true;
-					if (model.state == 1_byte)
-					{
-						const auto &first_frame = model.sprite ? static_cast<int>((i - model.frame_start) % animation.sprite[model.resource].frame.size()) : 0;
-						auto frame_node = FrameNode{i, 0, model.resource};
-						frame_node.sprite = model.sprite;
-						frame_node.first_frame = first_frame;
-						frame_node.transform = model.transform;
-						frame_node.color = model.color;
-						frame_node_list[layer_index].emplace_back(frame_node);
-						model.state = 2_byte;
-						model.frame_duration = 0;
-					}
-					// state is false;
-					if (model.state == 0_byte)
-					{
-						sprite_model.erase(index);
-					}
-					++model.frame_duration;
+					++model_layer.frame_duration;
 				}
 			}
-			auto model_keys = Map::keys<int, Model>(sprite_model);
-			for (const auto &index : model_keys)
+			for (auto &[layer_index, model_layer] : model_structure)
 			{
-				auto &model = sprite_model[index];
-				frame_node_list[(index + 1)].back().duration = model.frame_duration;
-				sprite_model.erase(index);
+				auto &frame_node_list = frame_node_structure[layer_index];
+				frame_node_list.back().duration = model_layer.frame_duration;
 			}
 			return;
 		}
 
-		inline auto write_action(
-			const FrameList &frame_list,
-			std::map<std::string, std::map<int, std::vector<FrameNode>>> &action_node_list) -> void
+		inline static auto exchange_label_info(
+			typename AnimationSprite const &sprite,
+			tsl::ordered_map<std::string_view, LabelInfo> &label_info_structure) -> void
 		{
-			const auto &frame_node_list = frame_list.frame_node_list;
-			for (const auto &label : frame_list.action_name_list)
+			auto duration_temp = 0;
+			auto main_label = k_main_label_string;
+			for (auto frame_index : Range<int>(sprite.frame.size()))
 			{
-				const auto &action_node = frame_list.action_list.at(label);
-				const auto &start_index = action_node.start_index;
-				const auto &end_index = action_node.end_index;
-				auto first_frame = std::map<int, std::vector<FrameNode>>{};
-				first_frame.emplace(0, std::vector<FrameNode>{});
-				action_node_list.emplace(label, first_frame);
-				auto last_frames_list = std::vector<int>{};
-				auto last_index = 0;
-				for (const auto &i : Range<int>(frame_node_list.size()))
+				auto &frame = sprite.frame[frame_index];
+				if (!frame.label.empty() && frame.label != main_label)
 				{
-					if (!includes(action_node.frame_index, i))
+					main_label = frame.label;
+					label_info_structure[main_label].start = frame_index;
+				}
+				for (auto &append : frame.append)
+				{
+					auto &layer_index_list = label_info_structure[main_label].layer_index_list;
+					if (std::find(layer_index_list.begin(), layer_index_list.end(), append.index) == layer_index_list.end())
+					{
+						layer_index_list.emplace_back(append.index);
+					}
+				}
+				for (auto &change : frame.change)
+				{
+					auto &layer_index_list = label_info_structure[main_label].layer_index_list;
+					if (std::find(layer_index_list.begin(), layer_index_list.end(), change.index) == layer_index_list.end())
+					{
+						layer_index_list.emplace_back(change.index);
+					}
+				}
+				++label_info_structure[main_label].duration;
+			}
+			return;
+		}
+
+		inline static auto exchange_label(
+			FrameNodeStructure const &frame_node_structure,
+			tsl::ordered_map<std::string_view, LabelInfo> const &label_info_structure,
+			tsl::ordered_map<std::string_view, FrameNodeStructure> &label_structure) -> void
+		{
+			for (auto &[label_name, label_info] : label_info_structure)
+			{
+				auto &layer_index_list = label_info.layer_index_list;
+				auto start_index = label_info.start;
+				auto end_index = start_index + label_info.duration;
+				auto label_layer_index = k_begin_index;
+				auto last_frame_in_label = 0;
+				for (auto &[layer_index, frame_node_list] : frame_node_structure)
+				{
+					if (std::find(layer_index_list.begin(), layer_index_list.end(), layer_index) == layer_index_list.end())
+					{
 						continue;
-					auto action_frame_node = std::vector<FrameNode>{};
-					const auto &frame_node = frame_node_list.at(i);
-					for (const auto &k : Range<int>(frame_node.size()))
+					}
+					for (auto &frame_node : frame_node_list)
 					{
-						const auto &index = frame_node[k].index;
-						const auto &duration = frame_node[k].duration;
-						if (index + duration <= start_index)
-							continue;
-						if (index >= end_index)
-							break;
-						auto frame_template = frame_node[k];
-						if (index + duration > end_index)
+						auto frame_index = frame_node.index;
+						auto duration = frame_node.duration;
+						if (frame_index >= end_index)
 						{
-							if (index < end_index)
+							break;
+						}
+						if (frame_index + duration <= start_index)
+						{
+							continue;
+						}
+						auto new_frame_node = frame_node;
+						if (frame_index + duration > end_index)
+						{
+							if (frame_index < end_index)
 							{
-								if (index < start_index)
+								if (frame_index < start_index)
 								{
-									frame_template.index = start_index;
-									frame_template.duration -= duration - end_index - index + start_index;
+									new_frame_node.index = start_index;
+									new_frame_node.duration -= duration - end_index - frame_index + start_index;
 								}
 								else
 								{
-									frame_template.duration -= duration + index - end_index;
+									new_frame_node.duration -= duration + frame_index - end_index;
 								}
 							}
-							frame_template.index -= start_index;
-							action_frame_node.emplace_back(frame_template);
+							new_frame_node.index -= start_index;
+							label_structure[label_name][label_layer_index].emplace_back(new_frame_node);
+							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label) {
+								last_frame_in_label = new_frame_node.index + new_frame_node.duration;
+							}
 						}
 						else
 						{
-							if (index < start_index)
+							if (frame_index < start_index)
 							{
-								frame_template.index = start_index;
-								frame_template.duration -= start_index - index;
+								new_frame_node.index = start_index;
+								new_frame_node.duration -= start_index - frame_index;
 							}
-							frame_template.index -= start_index;
-							action_frame_node.emplace_back(frame_template);
+							new_frame_node.index -= start_index;
+							label_structure[label_name][label_layer_index].emplace_back(new_frame_node);
+							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label) {
+								last_frame_in_label = new_frame_node.index + new_frame_node.duration;
+							}
 						}
-						last_frames_list.emplace_back(frame_template.index + frame_template.duration);
 					}
-					action_node_list[label][i] = action_frame_node;
-					last_index = i;
+					++label_layer_index;
 				}
-				if (last_frames_list.size() > 0)
+				if (static_cast<int>(last_frame_in_label) < label_info.duration) {
+					auto frame_node = FrameNode {
+						.index = static_cast<int>(k_begin_index),
+						.duration = label_info.duration
+					};
+					label_structure[label_name][label_layer_index].emplace_back(frame_node);
+					debug(fmt::format("{}, last_frame: {}, end_index: {}", label_name, last_frame_in_label, start_index + label_info.duration));
+				}
+				if (label_structure[label_name].size() == k_none_size) {
+					debug(label_name);
+				}
+			}
+			return;
+		}
+
+		inline static auto exchange_dom_document(
+			typename SexyAnimation const &definition,
+			typename FlashPackage &flash_package) -> void
+		{
+			auto &value = flash_package.document;
+			auto dom_document = value.NewElement("DOMDocument");
+			dom_document->SetAttribute("xmlns:xsi", k_xmlns_xsi_attribute.data());
+			dom_document->SetAttribute("xmlns", k_xmlns_attribute.data());
+			dom_document->SetAttribute("frameRate", std::to_string(definition.frame_rate).data());
+			dom_document->SetAttribute("width", std::to_string(definition.size.width).data());
+			dom_document->SetAttribute("height", std::to_string(definition.size.height).data());
+			dom_document->SetAttribute("xflVersion", k_xfl_version.data());
+			auto folders = value.NewElement("folders");
+			for (auto &folder_name : std::array<std::string_view, 4>{"media"_sv, "image"_sv, "sprite"_sv, "label"_sv})
+			{
+				auto dom_folder_item = value.NewElement("DOMFolderItem");
+				dom_folder_item->SetAttribute("name", folder_name.data());
+				dom_folder_item->SetAttribute("isExpanded", "true");
+				folders->InsertEndChild(dom_folder_item);
+			}
+			dom_document->InsertEndChild(folders);
+			auto media = value.NewElement("media");
+			auto symbols = value.NewElement("symbols");
+			for (auto image_index : Range(flash_package.library.image.size()))
+			{
+				auto &image = definition.image[image_index];
+				auto dom_bitmap_item = value.NewElement("DOMBitmapItem");
+				dom_bitmap_item->SetAttribute("name", fmt::format("media/{}", image.name).data());
+				dom_bitmap_item->SetAttribute("href", fmt::format("media/{}.png", image.name).data());
+				media->InsertEndChild(dom_bitmap_item);
+				auto include = value.NewElement("Include");
+				include->SetAttribute("href", fmt::format("image/image_{}.xml", image_index + 1_size).data());
+				symbols->InsertEndChild(include);
+			}
+			dom_document->InsertEndChild(media);
+			for (auto &element : flash_package.library.sprite)
+			{
+				auto include = value.NewElement("Include");
+				include->SetAttribute("href", fmt::format("sprite/{}.xml", element.first).data());
+				symbols->InsertEndChild(include);
+			}
+			auto label_layer = value.NewElement("DOMLayer");
+			label_layer->SetAttribute("name", "label");
+			auto label_frames = value.NewElement("frames");
+			if (flash_package.library.label.size() != k_none_size)
+			{
+				for (auto &[label_name, label_info] : flash_package.library.label)
 				{
-					auto last_frame = *std::max_element(last_frames_list.begin(), last_frames_list.end());
-					if (last_frame < end_index - start_index)
+					auto include = value.NewElement("Include");
+					include->SetAttribute("href", fmt::format("label/{}.xml", label_name).data());
+					symbols->InsertEndChild(include);
+					auto dom_frame = value.NewElement("DOMFrame");
+					dom_frame->SetAttribute("index", std::to_string(label_info.start).data());
+					dom_frame->SetAttribute("duration", std::to_string(label_info.duration).data());
+					dom_frame->SetAttribute("name", label_name.data());
+					dom_frame->SetAttribute("labelType", "name");
+					auto elements = value.NewElement("elements");
+					dom_frame->InsertEndChild(elements);
+					label_frames->InsertEndChild(dom_frame);
+				}
+			}
+			else
+			{
+				auto dom_frame = value.NewElement("DOMFrame");
+				dom_frame->SetAttribute("index", std::to_string(k_begin_index).data());
+				dom_frame->SetAttribute("duration", std::to_string(definition.main_sprite.frame.size()).data());
+				auto elements = value.NewElement("elements");
+				dom_frame->InsertEndChild(elements);
+				label_frames->InsertEndChild(dom_frame);
+			}
+			label_layer->InsertEndChild(label_frames);
+			auto action_layer = value.NewElement("DOMLayer");
+			action_layer->SetAttribute("name", "action");
+			auto action_frames = value.NewElement("frames");
+			auto prev_end_index = static_cast<int>(k_begin_index);
+			for (auto frame_index : Range<int>(definition.main_sprite.frame.size()))
+			{
+				auto &frame = definition.main_sprite.frame[frame_index];
+				auto action_command_list = std::vector<std::string>{};
+				if (frame.stop || !frame.command.empty())
+				{
+					for (auto &command : frame.command)
 					{
-						action_node_list[label][(last_index + 1)] = std::vector<FrameNode>{FrameNode{0, end_index - start_index, -1}};
+						action_command_list.emplace_back(fmt::format("fscommand(\"{}\", \"{}\");", command.argument, command.command));
+					}
+					if (frame.stop)
+					{
+						action_command_list.emplace_back("stop();");
 					}
 				}
-				else
+				if (!action_command_list.empty())
 				{
-					action_node_list[label][(last_index + 1)] = std::vector<FrameNode>{FrameNode{0, end_index - start_index, -1}};
+					if (frame_index - prev_end_index > static_cast<int>(k_begin_index))
+					{
+						auto dom_frame = value.NewElement("DOMFrame");
+						dom_frame->SetAttribute("index", std::to_string(prev_end_index).data());
+						dom_frame->SetAttribute("duration", std::to_string(frame_index - prev_end_index).data());
+						auto elements = value.NewElement("elements");
+						dom_frame->InsertEndChild(elements);
+						action_frames->InsertEndChild(dom_frame);
+					}
+					auto dom_frame = value.NewElement("DOMFrame");
+					dom_frame->SetAttribute("index", std::to_string(frame_index).data());
+					auto action_script = value.NewElement("Actionscript");
+					auto script = value.NewElement("script");
+					auto cdata_string = value.NewText(String::join(action_command_list, "\n"_sv).data());
+					cdata_string->SetCData(true);
+					script->InsertEndChild(cdata_string);
+					auto elements = value.NewElement("elements");
+					action_script->InsertEndChild(script);
+					dom_frame->InsertEndChild(action_script);
+					dom_frame->InsertEndChild(elements);
+					action_frames->InsertEndChild(dom_frame);
+					prev_end_index = frame_index + 1;
 				}
+			}
+			action_layer->InsertEndChild(action_frames);
+			auto instance_layer = value.NewElement("DOMLayer");
+			instance_layer->SetAttribute("name", "instance");
+			auto instance_frames = value.NewElement("frames");
+			if constexpr (split_label)
+			{
+				for (auto &[label_name, label_info] : flash_package.library.label)
+				{
+					auto dom_frame = value.NewElement("DOMFrame");
+					dom_frame->SetAttribute("index", std::to_string(label_info.start).data());
+					dom_frame->SetAttribute("duration", std::to_string(label_info.duration).data());
+					auto elements = value.NewElement("elements");
+					auto dom_symbol_instance = value.NewElement("DOMSymbolInstance");
+					dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("label/{}", label_name).data());
+					dom_symbol_instance->SetAttribute("symbolType", "graphic");
+					dom_symbol_instance->SetAttribute("loop", "loop");
+					elements->InsertEndChild(dom_symbol_instance);
+					dom_frame->InsertEndChild(elements);
+					instance_frames->InsertEndChild(dom_frame);
+				}
+			}
+			else
+			{
+				auto include = value.NewElement("Include");
+				include->SetAttribute("href", "main_sprite.xml");
+				symbols->InsertEndChild(include);
+				auto dom_frame = value.NewElement("DOMFrame");
+				dom_frame->SetAttribute("index", std::to_string(k_begin_index).data());
+				dom_frame->SetAttribute("duration", std::to_string(definition.main_sprite.frame.size()).data());
+				auto elements = value.NewElement("elements");
+				auto dom_symbol_instance = value.NewElement("DOMSymbolInstance");
+				dom_symbol_instance->SetAttribute("libraryItemName", "main_sprite");
+				dom_symbol_instance->SetAttribute("symbolType", "graphic");
+				dom_symbol_instance->SetAttribute("loop", "loop");
+				elements->InsertEndChild(dom_symbol_instance);
+				dom_frame->InsertEndChild(elements);
+				instance_frames->InsertEndChild(dom_frame);
+			}
+			dom_document->InsertEndChild(symbols);
+			instance_layer->InsertEndChild(instance_frames);
+			auto timelines = value.NewElement("timelines");
+			auto dom_timeline = value.NewElement("DOMTimeline");
+			dom_timeline->SetAttribute("name", "animation");
+			auto layers = value.NewElement("layers");
+			layers->InsertEndChild(label_layer);
+			layers->InsertEndChild(action_layer);
+			layers->InsertEndChild(instance_layer);
+			dom_timeline->InsertEndChild(layers);
+			timelines->InsertEndChild(dom_timeline);
+			dom_document->InsertEndChild(timelines);
+			value.InsertEndChild(dom_document);
+			return;
+		}
+
+		inline static auto save_flash_package(
+			typename FlashPackage &flash_package,
+			std::string_view destination) -> void
+		{
+			write_xml(fmt::format("{}/DOMDocument.xml", destination), flash_package.document);
+			for (auto &[image_name, image_document] : flash_package.library.image)
+			{
+				write_xml(fmt::format("{}/library/image/{}.xml", destination, image_name), image_document);
+			}
+			for (auto &[sprite_name, sprite_document] : flash_package.library.sprite)
+			{
+				write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), sprite_document);
+			}
+			if constexpr (split_label)
+			{
+				for (auto &[label_name, label_info] : flash_package.library.label)
+				{
+					write_xml(fmt::format("{}/library/label/{}.xml", destination, label_name), flash_package.library.label[label_name].document);
+				}
+			}
+			else
+			{
+				write_xml(fmt::format("{}/library/main_sprite.xml", destination), flash_package.library.main_sprite);
+			}
+			return;
+		}
+
+		inline static auto save_xfl_content_file(
+			std::string_view destination) -> void
+		{
+			write_text(fmt::format("{}/main.xfl", destination), k_xfl_content.data());
+			return;
+		}
+
+		inline static auto save_media_directory(
+			std::string_view destination) -> void
+		{
+			FileSystem::create_directory(fmt::format("{}/library/media", destination));
+			return;
+		}
+
+		inline static auto exchange_flash(
+			typename SexyAnimation const &definition,
+			typename ExtraInfo &extra,
+			typename PackageLibrary &package_library) -> void
+		{
+			exchange_simple_extra(definition, extra);
+			exchange_default_extra(extra);
+			for (auto image_index : Range(definition.image.size()))
+			{
+				auto image_name = fmt::format("image_{}", image_index + 1_size);
+				exchange_image_document(definition.image[image_index], image_name, package_library.image[image_name]);
+			}
+			auto sprite_name_list = SpriteInfo{};
+			for (auto &sprite : definition.sprite) {
+				auto sprite_name = sprite.name;
+				if (exchange_sprite_name_invalid(sprite_name)) {
+					if (std::find(extra.sprite[sprite.name].begin(), extra.sprite[sprite.name].end(), sprite_name) == extra.sprite[sprite.name].end())
+					{
+						extra.sprite[sprite.name].emplace_back(sprite_name);
+					}
+				}
+				if (std::find(sprite_name_list.begin(), sprite_name_list.end(), sprite_name) != sprite_name_list.end()) {
+					auto new_sprite_name = fmt::format("{}_{}", sprite_name, extra.sprite[sprite.name].size());
+					extra.sprite[sprite.name].emplace_back(new_sprite_name);
+					sprite_name_list.emplace_back(new_sprite_name);
+				}
+				else {
+					sprite_name_list.emplace_back(sprite_name);
+				}
+			}
+			for (auto sprite_index : Range(definition.sprite.size()))
+			{
+				auto &sprite = definition.sprite[sprite_index];
+				auto &sprite_name = sprite_name_list[sprite_index];
+				exchange_frame_node<false>(definition, sprite, package_library);
+				exchange_sprite_document<SpriteType::sprite>(sprite_name_list, sprite_name, package_library.frame_node, package_library.sprite[sprite_name]);
+			}
+			exchange_frame_node<true>(definition, definition.main_sprite, package_library);
+			if constexpr (split_label)
+			{
+				auto label_frame_node = tsl::ordered_map<std::string_view, FrameNodeStructure>{};
+				exchange_label(package_library.frame_node, package_library.label, label_frame_node);
+				for (auto &element : label_frame_node)
+				{
+					auto &label_name = element.first;
+					exchange_sprite_document<SpriteType::label>(sprite_name_list, std::string{label_name}, label_frame_node[label_name], package_library.label[label_name].document);
+				}
+			}
+			else
+			{
+				exchange_sprite_document<SpriteType::main_sprite>(sprite_name_list, "main_sprite", package_library.frame_node, package_library.main_sprite);
 			}
 			return;
 		}
 
 	public:
-		explicit ToFlash(
-			const SexyAnimation &that) : animation(that)
+		inline static auto process_whole(
+			typename SexyAnimation const &definition,
+			typename ExtraInfo &extra,
+			std::string_view destination) -> void
 		{
-		}
-
-		~ToFlash(
-
-			) = default;
-
-		ToFlash(
-			ToFlash &&that) = delete;
-
-		auto operator=(
-			ToFlash &&that) -> ToFlash & = delete;
-
-		inline auto process(
-			std::string_view destination,
-			RecordInfo &record,
-			int resolution) -> void
-		{
-			auto scale_ratio = 1200.0f / static_cast<float>(resolution);
-			record.version = animation.version;
-			record.resolution = resolution;
-			for (const auto &image : animation.image)
-			{
-				record.image[image.id] = ImageInfo{.name = image.name, .size = image.size};
-				auto image_document = XMLDocument{};
-				write_image<float>(image, &image_document, scale_ratio);
-				FileSystem::write_xml(fmt::format("{}/library/image/{}.xml", destination, image.id), &image_document);
-			}
-			auto sprite_name_list = std::vector<std::string>{};
-			for (const auto &sprite : animation.sprite)
-			{
-				sprite_name_list.emplace_back(sprite.name);
-			}
-			auto sprite_writed_bank = std::vector<std::string>{};
-			for (const auto &i : Range(animation.sprite.size()))
-			{
-				auto frame_list = FrameList{};
-				decode_frame_list<false>(animation.sprite[i], frame_list);
-				auto &sprite_name = sprite_name_list[i];
-				auto it = std::find_if(sprite_name.begin(), sprite_name.end(), [](char c)
-				{return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|' || c == '\''; });
-				if (it != sprite_name.end()) {
-					if (!record.sprite.contains(animation.sprite[i].name))
-					{
-						record.sprite[animation.sprite[i].name] = std::vector<std::string>{};
-					}
-					sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), [](char c)
-													 { return c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '<' || c == '>' || c == '|' || c == '\''; }),
-									  sprite_name.end());
-					sprite_name = fmt::format("{}_{}", sprite_name, record.sprite[animation.sprite[i].name].size() + 1);
-					record.sprite[animation.sprite[i].name].emplace_back(sprite_name);
-				}
-				if (check_element_in_vector<std::string, std::string>(sprite_writed_bank, sprite_name) || sprite_name.empty())
-				{
-					if (!record.sprite.contains(animation.sprite[i].name))
-					{
-						record.sprite[animation.sprite[i].name] = std::vector<std::string>{};
-					}
-					if (sprite_name.empty())
-					{
-						sprite_name = "sprite";
-					}
-					sprite_name = fmt::format("{}_{}", sprite_name, record.sprite[animation.sprite[i].name].size() + 1);
-					record.sprite[animation.sprite[i].name].emplace_back(sprite_name);
-				}
-				auto sprite_document = XMLDocument{};
-				write_sprite<false>(sprite_name, frame_list.frame_node_list, sprite_name_list, &sprite_document);
-				FileSystem::write_xml(fmt::format("{}/library/sprite/{}.xml", destination, sprite_name), &sprite_document);
-				sprite_writed_bank.emplace_back(sprite_name);
-			}
-			auto frame_list = FrameList{};
-			decode_frame_list<true>(animation.main_sprite, frame_list);
-			auto action_node_list = std::map<std::string, std::map<int, std::vector<FrameNode>>>{};
-			write_action(frame_list, action_node_list);
-			if (has_duplicates(frame_list.action_name_list) != -1)
-			{
-				throw Exception(fmt::format("{}: {}", Language::get("popcap.animation.convert.to_flash.label_duplicate"), frame_list.action_name_list[has_duplicates(frame_list.action_name_list)]), std::source_location::current(), "process");
-			}
-			for (const auto &label : frame_list.action_name_list)
-			{
-				auto action_document = XMLDocument{};
-				write_sprite<true>(label, action_node_list.at(label), sprite_name_list, &action_document);
-				FileSystem::write_xml(fmt::format("{}/library/action/{}.xml", destination, label), &action_document);
-			}
-			{
-				auto dom_document = XMLDocument{};
-				write_document(frame_list, sprite_name_list, &dom_document);
-				FileSystem::write_xml(fmt::format("{}/DomDocument.xml", destination), &dom_document);
-			}
-			FileSystem::write_file(fmt::format("{}/main.xfl", destination), "PROXY-CS5");
-			FileSystem::create_directory(fmt::format("{}/library/media", destination));
+			static_assert(split_label == true || split_label == false, "split_label must be true or false");
+			auto flash_package = FlashPackage{};
+			exchange_flash(definition, extra, flash_package.library);
+			exchange_dom_document(definition, flash_package);
+			save_flash_package(flash_package, destination);
+			save_xfl_content_file(destination);
+			save_media_directory(destination);
 			return;
 		}
 
@@ -725,11 +653,16 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			std::string_view destination,
 			int resolution) -> void
 		{
-			auto convert = ToFlash{*FileSystem::read_json(source)};
-			auto record = RecordInfo{};
-			convert.process(destination, record, resolution);
-			FileSystem::write_json(fmt::format("{}/record.json", destination), record);
+			static_assert(split_label == true || split_label == false, "split_label must be true or false");
+			auto definition = *FileSystem::read_json(source);
+			auto extra = ExtraInfo{.resolution = resolution};
+			process_whole(definition, extra, destination);
+			write_json(fmt::format("{}/extra.json", destination), extra);
 			return;
 		}
 	};
+
+	using ConvertToFlashWithMainSprite = ToFlash<false>;
+
+	using ConvertToFlashWithLabel = ToFlash<true>;
 }

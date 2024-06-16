@@ -27,26 +27,21 @@ namespace Sen::Kernel::FileSystem
 	// return: the file data as string
 
 	inline static auto read_file(
-		std::string_view filepath
+		std::string_view source
 	) -> std::string 
 	{
 		#if WINDOWS
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
-					String::to_windows_style(filepath.data()))).data(), L"r"), close_file);
+		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
+			String::to_windows_style(source.data()))).data());
 		#else
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "r"), close_file);
+		auto file = std::ifstream(source.data());
 		#endif
-		if (file == nullptr) {
-			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(filepath.data())), std::source_location::current(), "read_file");
-		}
-		#if WINDOWS
-        auto length = std::filesystem::file_size(std::filesystem::path{ String::utf8_to_utf16(filepath.data())});
-        #else
-        auto length = std::filesystem::file_size(std::filesystem::path{ filepath });
-        #endif
-		auto buffer = std::string(length, ' ');
-		std::fread(buffer.data(), 1, length, file.get());
-		return buffer;
+        if (!file.is_open()) {
+			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(source.data())), std::source_location::current(), "read_file");
+        }
+        auto buffer = std::stringstream{};
+        buffer << file.rdbuf();
+		return buffer.str();
 	}
 
 	// Provide file path to read json
