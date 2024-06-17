@@ -32,7 +32,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto chuck_sign_set(
 			DataStreamView &stream,
-			typename ChunkSign &value) -> void
+			ChunkSign &value) -> void
 		{
 			stream.writeString(value.id);
 			value.pos = stream.write_pos;
@@ -42,7 +42,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto chuck_sign_write(
 			DataStreamView &stream,
-			typename ChunkSign const &value) -> void
+			ChunkSign const &value) -> void
 		{
 			auto current_pos = stream.write_pos;
 			auto chuck_size = current_pos - static_cast<size_t>(value.pos) - k_block_size;
@@ -53,7 +53,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_bank_header(
 			DataStreamView &stream,
-			typename BKHD const &value) -> void
+			BKHD const &value) -> void
 		{
 			assert_conditional(value.version > 52_ui, String::format(fmt::format("{}", Language::get("wwise.soundbank.decode.unsupported_bank_version")), std::to_string(value.version)), "exchange_bank_header");
 			stream.writeUint32(value.version);
@@ -119,7 +119,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_game_synchronization(
 			DataStreamView &stream,
-			typename STMG const &value) -> void
+			STMG const &value) -> void
 		{
 			if (k_version > 140_ui)
 			{
@@ -262,7 +262,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_environment_item(
 			DataStreamView &stream,
-			typename ENVSItem const &value) -> void
+			ENVSItem const &value) -> void
 		{
 			stream.writeBoolean(value.volume.curve_enabled);
 			stream.writeUint8(value.volume.curve_scaling);
@@ -281,7 +281,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_environments_settings(
 			DataStreamView &stream,
-			typename ENVS const &value) -> void
+			ENVS const &value) -> void
 		{
 			exchange_environment_item(stream, value.obstruction);
 			exchange_environment_item(stream, value.occlusion);
@@ -290,7 +290,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_string_mapping(
 			DataStreamView &stream,
-            typename STID const &value
+            STID const &value
 		) -> void
 		{
 			stream.writeUint32(value.type);
@@ -303,7 +303,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_platform_settings(
             DataStreamView &stream,
-            typename PLAT const &value
+            PLAT const &value
         ) -> void
         {
             stream.writeStringByEmpty(value.platform);
@@ -312,7 +312,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
 		inline static auto exchange_sound_bank(
 			DataStreamView &stream,
-			typename SoundBankInformation const &definition,
+			SoundBankInformation const &definition,
 			std::string_view source) -> void
 		{
 			auto sign = ChunkSign{};
@@ -373,7 +373,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 	public:
 		inline static auto process_whole(
 			DataStreamView &stream,
-			typename SoundBankInformation const &definition,
+			SoundBankInformation const &definition,
 			std::string_view source) -> void
 		{
 			exchange_sound_bank(stream, definition, source);

@@ -16,7 +16,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_image(
             DataStreamView &stream,
-            typename AnimationImage &value) -> void
+            AnimationImage &value) -> void
         {
             auto name = String{stream.readStringByUint16()}.split(vertical_bar);
             value.name = name[0];
@@ -102,7 +102,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_append(
             DataStreamView &stream,
-            typename AnimationAppend &value) -> void
+            AnimationAppend &value) -> void
         {
             auto flag = std::bitset<LayerAppendFlag::k_count>{};
             exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
@@ -152,7 +152,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_change(
             DataStreamView &stream,
-            typename AnimationChange &value) -> void
+            AnimationChange &value) -> void
         {
             auto flag = std::bitset<LayerChangeFlag::k_count>{};
             exchange_integer_variant_with_flag<uint16_t, uint32_t>(stream, value.index, flag);
@@ -220,7 +220,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_command(
             DataStreamView &stream,
-            typename AnimationCommand &value) -> void
+            AnimationCommand &value) -> void
         {
             value.command = stream.readStringByUint16();
             value.argument = stream.readStringByUint16();
@@ -229,7 +229,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_frame(
             DataStreamView &stream,
-            typename AnimationFrame &value) -> void
+            AnimationFrame &value) -> void
         {
             auto flag = std::bitset<FrameFlag::k_count>(static_cast<uint64_t>(stream.readUint8()));
             if (flag.test(FrameFlag::remove))
@@ -271,7 +271,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_sprite(
             DataStreamView &stream,
-            typename AnimationSprite &value) -> void
+            AnimationSprite &value) -> void
         {
             if (k_version >= 4_ui)
             {
@@ -294,7 +294,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_animation(
             DataStreamView &stream,
-            typename SexyAnimation &value) -> void
+            SexyAnimation &value) -> void
         {
             value.frame_rate = stream.readUint8();
             exchange_floater_with_rate<int16_t, ValueRate::size>(stream, value.position.x);
@@ -313,7 +313,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     public:
         inline static auto process_whole(
             DataStreamView &stream,
-            typename SexyAnimation &value) -> void
+            SexyAnimation &value) -> void
         {
             assert_conditional((stream.readUint32() == k_magic_identifier), fmt::format("{}", Language::get("popcap.animation.invalid_magic")), "process_whole");
             auto version = stream.readUint32();

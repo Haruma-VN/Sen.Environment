@@ -20,7 +20,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value || std::is_same<Args, bool>::value
         inline static auto process_package(
             DataStreamView &stream,
-            typename PacketStructure &definition,
+            PacketStructure &definition,
             Args args) -> void
         {
             auto information_structure_header = HeaderInformaiton{};
@@ -113,7 +113,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             requires(IsValidArgument<Args> && ...)
         inline static auto process_whole(
             DataStreamView &stream,
-            typename PacketStructure &definition,
+            PacketStructure &definition,
             Args... args) -> void
         {
             static_assert(sizeof...(Args) == 1_size || sizeof...(Args) == 0_size, "Expected 0 or 1 argument only");

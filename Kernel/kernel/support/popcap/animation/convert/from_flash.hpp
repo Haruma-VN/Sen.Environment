@@ -10,8 +10,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	{
 	public:
 		inline static auto process_whole(
-			typename SexyAnimation &definition,
-			typename ExtraInfo const &extra,
+			SexyAnimation &definition,
+			ExtraInfo const &extra,
 			std::string_view source
 		) -> void
 		{

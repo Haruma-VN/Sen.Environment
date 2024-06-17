@@ -17,7 +17,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_package(
             DataStreamView &stream,
-            typename PacketStructure const &definition,
+            PacketStructure const &definition,
             Args args) -> void
         {
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(definition.version));
@@ -108,7 +108,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_whole(
             DataStreamView &stream,
-            typename PacketStructure const &value,
+            PacketStructure const &value,
             Args args) -> void
         {
             if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>>)

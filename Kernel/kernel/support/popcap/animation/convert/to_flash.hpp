@@ -11,7 +11,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	{
 	protected:
 		inline static auto exchange_image_document(
-			typename AnimationImage const &image,
+			AnimationImage const &image,
 			std::string const &image_name,
 			XMLDocument &value) -> void
 		{
@@ -57,7 +57,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		template <auto sprite_type>
 		inline static auto exchange_sprite_document(
-			typename SpriteInfo const &sprite_info_list,
+			SpriteInfo const &sprite_info_list,
 			std::string const &name,
 			FrameNodeStructure &frame_node_structure,
 			XMLDocument &value) -> void
@@ -148,9 +148,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		template <auto get_label>
 		inline static auto exchange_frame_node(
-			typename SexyAnimation const &definition,
-			typename AnimationSprite const &sprite,
-			typename PackageLibrary &package_library) -> void
+			SexyAnimation const &definition,
+			AnimationSprite const &sprite,
+			PackageLibrary &package_library) -> void
 		{
 			static_assert(get_label == true || get_label == false, "get_label must be true or false");
 			auto model_structure = std::map<int, Model>{};
@@ -250,7 +250,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_label_info(
-			typename AnimationSprite const &sprite,
+			AnimationSprite const &sprite,
 			tsl::ordered_map<std::string_view, LabelInfo> &label_info_structure) -> void
 		{
 			auto duration_temp = 0;
@@ -367,8 +367,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_dom_document(
-			typename SexyAnimation const &definition,
-			typename FlashPackage &flash_package) -> void
+			SexyAnimation const &definition,
+			FlashPackage &flash_package) -> void
 		{
 			auto &value = flash_package.document;
 			auto dom_document = value.NewElement("DOMDocument");
@@ -537,7 +537,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto save_flash_package(
-			typename FlashPackage &flash_package,
+			FlashPackage &flash_package,
 			std::string_view destination) -> void
 		{
 			write_xml(fmt::format("{}/DOMDocument.xml", destination), flash_package.document);
@@ -578,9 +578,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_flash(
-			typename SexyAnimation const &definition,
-			typename ExtraInfo &extra,
-			typename PackageLibrary &package_library) -> void
+			SexyAnimation const &definition,
+			ExtraInfo &extra,
+			PackageLibrary &package_library) -> void
 		{
 			exchange_simple_extra(definition, extra);
 			exchange_default_extra(extra);
@@ -634,8 +634,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 	public:
 		inline static auto process_whole(
-			typename SexyAnimation const &definition,
-			typename ExtraInfo &extra,
+			SexyAnimation const &definition,
+			ExtraInfo &extra,
 			std::string_view destination) -> void
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");

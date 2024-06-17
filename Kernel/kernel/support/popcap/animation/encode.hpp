@@ -57,7 +57,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_image(
             DataStreamView &stream,
-            typename AnimationImage const &value
+            AnimationImage const &value
         ) -> void
         {
             stream.writeStringByUint16(String::join(std::vector<std::string>{ value.name, value.id}, vertical_bar));
@@ -81,7 +81,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_remove(
             DataStreamView &stream,
-            typename int const &value
+            int const &value
         ) -> void
         {
             auto flag = std::bitset<LayerRemoveFlag::k_count>{};
@@ -91,7 +91,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_append(
             DataStreamView &stream,
-            typename AnimationAppend const & value
+            AnimationAppend const & value
         ) -> void
         {
             auto flag = std::bitset<LayerAppendFlag::k_count>{};
@@ -131,7 +131,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_change(
             DataStreamView &stream,
-            typename AnimationChange const & value
+            AnimationChange const & value
         ) -> void
         {
             auto flag = std::bitset<LayerChangeFlag::k_count>{};
@@ -183,7 +183,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_layer_command(
             DataStreamView &stream,
-            typename AnimationCommand const &value 
+            AnimationCommand const &value 
         ) -> void
         {
             stream.writeStringByUint16(value.command);
@@ -193,7 +193,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_frame(
             DataStreamView &stream,
-            typename AnimationFrame const &value 
+            AnimationFrame const &value 
         ) -> void
         {
             auto flag = std::bitset<FrameFlag::k_count>{};
@@ -240,7 +240,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_sprite(
             DataStreamView &stream,
-            typename AnimationSprite const &value
+            AnimationSprite const &value
         ) -> void
         {
             if (k_version >= 4_size) {
@@ -261,7 +261,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto exchange_animation(
             DataStreamView &stream,
-            typename SexyAnimation const &value
+            SexyAnimation const &value
         ) -> void
         {
             stream.writeUint8(value.frame_rate);
@@ -283,7 +283,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
 
         inline static auto process_whole(
             DataStreamView &stream,
-            typename SexyAnimation const &definition
+            SexyAnimation const &definition
         ) -> void
         {
             stream.writeUint32(k_magic_identifier);

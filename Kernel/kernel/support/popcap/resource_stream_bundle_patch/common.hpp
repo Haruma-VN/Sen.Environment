@@ -35,7 +35,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
 
         inline static auto exchange_package_information(
             DataStreamView &stream,
-            typename PackageInformation &value
+            PackageInformation &value
         ) -> void
         {
             stream.read_pos = k_begin_index;
@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
         }
 
         inline static auto exchange_package_information(
-            typename PackageInformation const &value,
+            PackageInformation const &value,
             DataStreamView &stream
         ) -> void
         {
@@ -78,7 +78,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
 
         inline static auto exchange_packet_information(
             DataStreamView &stream,
-            typename PacketInformation &value
+            PacketInformation &value
         ) -> void
         {
             value.patch_exist = stream.readUint32();
@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
         }
 
         inline static auto exchange_packet_information(
-            typename PacketInformation const &value,
+            PacketInformation const &value,
             DataStreamView &stream
         ) -> void
         {

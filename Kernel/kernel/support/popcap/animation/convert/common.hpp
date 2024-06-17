@@ -105,8 +105,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         };
 
         inline static auto exchange_simple_extra(
-            typename SexyAnimation const &definition,
-            typename ExtraInfo &extra) -> void
+            SexyAnimation const &definition,
+            ExtraInfo &extra) -> void
         {
             extra.version = static_cast<int>(definition.version);
             extra.position.x = static_cast<int>(definition.position.x);
@@ -172,7 +172,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_default_extra(
-            typename ExtraInfo const &extra) -> void
+            ExtraInfo const &extra) -> void
         {
             k_version = extra.version;
             k_media_scale_ratio = static_cast<double>(k_standard_resolution) / static_cast<double>(extra.resolution);
@@ -181,7 +181,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_transform_from_variant_to_standard(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+            Transform &value) -> void
         {
             if (data.size() == 2_size)
             {
@@ -208,7 +208,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_tranform_from_rotate_to_standard(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+            Transform &value) -> void
         {
             try_assert(data.size() == 3_size, "invalid_animation_transform_length");
             auto cos = std::cos(data[0]);
@@ -219,7 +219,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_tranform_by_copy(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+            Transform &value) -> void
         {
             try_assert(data.size() == 6_size, "invalid_animation_transform_length");
             value = Transform{ data[0], data[1], data[2], data[3], data[4], data[5]};

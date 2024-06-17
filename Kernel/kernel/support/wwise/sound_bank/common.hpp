@@ -44,7 +44,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_chuck_sign(
             DataStreamView &stream,
-            typename ChunkSign& value
+            ChunkSign& value
         ) -> void
         {
             value.id = stream.readString(4);
@@ -53,7 +53,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         }
 
         inline static auto exchange_chuck_sign(
-            typename ChunkSign const &value,
+            ChunkSign const &value,
             DataStreamView &stream
         ) -> void
         {   
@@ -64,7 +64,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
         
         inline static auto exchange_to_graph_point(
             DataStreamView &stream,
-            typename GraphPoint & value
+            GraphPoint & value
         ) -> void
         {
             value.from = stream.readFloat();
@@ -75,7 +75,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_from_graph_point(
             DataStreamView &stream,
-            typename GraphPoint const & value
+            GraphPoint const & value
         ) -> void
         {
             stream.writeFloat(value.from);

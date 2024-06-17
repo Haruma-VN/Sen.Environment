@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_header(
             DataStreamView &stream,
-            typename HeaderInformaiton &value) -> void
+            HeaderInformaiton &value) -> void
         {
             stream.read_pos = k_begin_index;
             value.magic = stream.readUint32();
@@ -124,7 +124,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         
         inline static auto exchange_from_header(
             DataStreamView &stream,
-            typename HeaderInformaiton const &value) -> void
+            HeaderInformaiton const &value) -> void
         {
             stream.write_pos = k_begin_index;
             stream.writeUint32(value.magic);
@@ -168,7 +168,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_simple_subgroup(
             DataStreamView &stream,
-            typename SimpleSubgroupInformation &value) -> void
+            SimpleSubgroupInformation &value) -> void
         {
             value.index = stream.readUint32();
             value.resolution = stream.readUint32();
@@ -179,7 +179,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_simple_subgroup(
             DataStreamView &stream,
-            typename SimpleSubgroupInformation const &value
+            SimpleSubgroupInformation const &value
             ) -> void
         {
             stream.writeUint32(value.index);
@@ -198,7 +198,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_simple_group(
             DataStreamView &stream,
-            typename SimpleGroupInformation &value) -> void
+            SimpleGroupInformation &value) -> void
         {
             value.id = exchange_string_block<128_size>(stream);
             auto before_pos = stream.read_pos;
@@ -217,7 +217,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_simple_group(
             DataStreamView &stream,
-            typename SimpleGroupInformation const &value
+            SimpleGroupInformation const &value
             ) -> void
         {
             exchange_string_block<128_size>(stream, value.id);
@@ -255,7 +255,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         template <auto t_version>
         inline static auto exchange_to_basic_subgroup(
             DataStreamView &stream,
-            typename BasicSubgroupInformation &value) -> void
+            BasicSubgroupInformation &value) -> void
         {
             value.id = exchange_string_block<128_size>(stream);
             value.offset = stream.readUint32();
@@ -283,7 +283,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         template <auto t_version>
         inline static auto exchange_from_basic_subgroup(
             DataStreamView &stream,
-            typename BasicSubgroupInformation const &value) -> void
+            BasicSubgroupInformation const &value) -> void
         {
             static_assert(sizeof(t_version) == sizeof(uint32_t));
             exchange_string_block<128_size>(stream, value.id);
@@ -322,7 +322,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_pool(
             DataStreamView &stream,
-            typename PoolInformation &value) -> void
+            PoolInformation &value) -> void
         {
             value.id = exchange_string_block<128_size>(stream);
             value.texture_resource_data_section_offset = stream.readUint32();
@@ -336,7 +336,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_pool(
             DataStreamView &stream,
-            typename PoolInformation const &value) -> void
+            PoolInformation const &value) -> void
         {
             exchange_string_block<128_size>(stream, value.id);
             stream.writeUint32(value.texture_resource_data_section_offset);
@@ -361,7 +361,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         template <auto texture_inforamtion_section_block_size>
         inline static auto exchange_to_texture(
             DataStreamView &stream,
-            typename TextureInfomation &value) -> void
+            TextureInfomation &value) -> void
         {
             static_assert(sizeof(texture_inforamtion_section_block_size) == sizeof(size_t));
             value.size_width = stream.readUint32();
@@ -383,7 +383,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         template <auto texture_inforamtion_section_block_size>
         inline static auto exchange_from_texture(
             DataStreamView &stream,
-            typename TextureInfomation const &value) -> void
+            TextureInfomation const &value) -> void
         {
             static_assert(sizeof(texture_inforamtion_section_block_size) == sizeof(size_t));
             stream.writeUint32(value.size_width);
@@ -467,7 +467,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_resource_basic(
             DataStreamView &stream,
-            typename ResourceBasicDetailManifestInformation &value) -> void
+            ResourceBasicDetailManifestInformation &value) -> void
         {
             stream.read_pos += 4_size;
             value.type = stream.readUint16();
@@ -483,7 +483,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_resource_basic(
             DataStreamView &stream,
-            typename ResourceBasicDetailManifestInformation const &value) -> void
+            ResourceBasicDetailManifestInformation const &value) -> void
         {
             stream.writeNull(4);
             stream.writeUint16(value.type);
@@ -514,7 +514,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_resource_image_property(
             DataStreamView &stream,
-            typename ResourceImagePropertyDetailManifestInformation &value) -> void
+            ResourceImagePropertyDetailManifestInformation &value) -> void
         {
             value.type = stream.readUint16();
             value.flag = stream.readUint16();
@@ -532,7 +532,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_resource_image_property(
             DataStreamView &stream,
-            typename ResourceImagePropertyDetailManifestInformation const &value) -> void
+            ResourceImagePropertyDetailManifestInformation const &value) -> void
         {
             stream.writeUint16(value.type);
             stream.writeUint16(value.flag);
@@ -556,7 +556,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_resource_property(
             DataStreamView &stream,
-            typename ResourcePropertyDetailManifestInformation &value) -> void
+            ResourcePropertyDetailManifestInformation &value) -> void
         {
             value.key_offset = stream.readUint32();
             stream.read_pos += 4_size;
@@ -566,7 +566,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_resource_property(
             DataStreamView &stream,
-            typename ResourcePropertyDetailManifestInformation const &value) -> void
+            ResourcePropertyDetailManifestInformation const &value) -> void
         {
             stream.writeUint32(value.key_offset);
             stream.writeNull(4_size);
@@ -581,7 +581,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_resource_basic_manifest(
             DataStreamView &stream,
-            typename ResourceBasicManifestInformation &value) -> void
+            ResourceBasicManifestInformation &value) -> void
         {
             value.detail_offset = stream.readUint32();
             return;
@@ -589,7 +589,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_resource_basic_manifest(
             DataStreamView &stream,
-            typename ResourceBasicManifestInformation const &value) -> void
+            ResourceBasicManifestInformation const &value) -> void
         {
             stream.writeUint32(value.detail_offset);
             return;
@@ -606,7 +606,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_subgroup_manifest(
             DataStreamView &stream,
-            typename SubgroupBasicManifestInformation &value) -> void
+            SubgroupBasicManifestInformation &value) -> void
         {
             value.resolution = stream.readUint32();
             value.locale = stream.readUint32();
@@ -622,7 +622,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_subgroup_manifest(
             DataStreamView &stream,
-            typename SubgroupBasicManifestInformation const &value) -> void
+            SubgroupBasicManifestInformation const &value) -> void
         {
             stream.writeUint32(value.resolution);
             stream.writeUint32(value.locale);
@@ -645,7 +645,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_to_group_manifest(
             DataStreamView &stream,
-            typename GroupManifestInformation &value) -> void
+            GroupManifestInformation &value) -> void
         {
             value.id_offset = stream.readUint32();
             value.subgroup_count = stream.readUint32();
@@ -661,7 +661,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto exchange_from_group_manifest(
             DataStreamView &stream,
-            typename GroupManifestInformation const &value) -> void
+            GroupManifestInformation const &value) -> void
         {
             stream.writeUint32(value.id_offset);
             stream.writeUint32(value.subgroup_count);

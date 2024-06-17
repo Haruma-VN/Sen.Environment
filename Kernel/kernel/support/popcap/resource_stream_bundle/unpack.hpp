@@ -28,8 +28,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static auto process_package_manifest(
             DataStreamView &stream,
-            typename HeaderInformaiton const &header_structure,
-            typename ManifestStructure &manifest) -> void
+            HeaderInformaiton const &header_structure,
+            ManifestStructure &manifest) -> void
         {
             manifest.manifest_has = true;
             auto group_manifest_information_data_stream = DataStreamView{stream.getBytes(static_cast<size_t>(header_structure.group_manifest_information_section_offset), static_cast<size_t>(header_structure.resource_manifest_information_section_offset))};
@@ -103,8 +103,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_package(
             DataStreamView &stream,
-            typename BundleStructure &definition,
-            typename ManifestStructure &manifest,
+            BundleStructure &definition,
+            ManifestStructure &manifest,
             Args args) -> void
         {
             auto information_structure = Information{};
@@ -223,8 +223,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_whole(
             DataStreamView &stream,
-            typename BundleStructure &definition,
-            typename ManifestStructure &manifest,
+            BundleStructure &definition,
+            ManifestStructure &manifest,
             Args args) -> void
         {
             process_package(stream, definition, manifest, args);

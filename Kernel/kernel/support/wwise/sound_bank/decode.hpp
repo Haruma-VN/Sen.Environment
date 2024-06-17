@@ -29,7 +29,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_game_synchronization(
             DataStreamView &stream,
-            typename STMG & value
+            STMG & value
         ) -> void
         {
             if (k_version > 140_ui) {
@@ -171,7 +171,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_bank_header(
             DataStreamView &stream,
-            typename BKHD &value,
+            BKHD &value,
             uint32_t const &chuck_size
         ) -> void
         {
@@ -226,7 +226,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_environment_item(
             DataStreamView &stream,
-            typename ENVSItem &value
+            ENVSItem &value
         ) -> void
         {
             value.volume.curve_enabled = stream.readBoolean();
@@ -248,7 +248,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_environments_settings(
             DataStreamView &stream,
-            typename ENVS &value
+            ENVS &value
         ) -> void
         {
             exchange_environment_item(stream, value.obstruction);
@@ -258,7 +258,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_string_mapping(
             DataStreamView &stream,
-            typename STID &value
+            STID &value
         ) -> void
         {
             value.type = stream.readUint32();
@@ -273,7 +273,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_platform_settings(
             DataStreamView &stream,
-            typename PLAT &value
+            PLAT &value
         ) -> void
         {
             value.platform = stream.readStringByEmpty();
@@ -282,7 +282,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto exchange_sound_bank(
             DataStreamView &stream,
-            typename SoundBankInformation &definition,
+            SoundBankInformation &definition,
             std::string_view destination
         ) -> void
         {
@@ -336,7 +336,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 
         inline static auto process_whole(
             DataStreamView &stream,
-            typename SoundBankInformation &definition,
+            SoundBankInformation &definition,
             std::string_view destination
         ) -> void
         {
