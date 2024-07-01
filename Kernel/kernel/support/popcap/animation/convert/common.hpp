@@ -114,8 +114,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         };
 
         inline static auto exchange_simple_extra(
-            typename SexyAnimation const &definition,
-            typename ExtraInfo &extra) -> void
+             SexyAnimation const &definition,
+             ExtraInfo &extra) -> void
         {
             auto &version_list = Sen::Kernel::Support::PopCap::Animation::Common::version_list;
             auto index = std::find(version_list.begin(), version_list.end(), definition.version);
@@ -136,8 +136,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_simple_definition(
-            typename SexyAnimation &definition,
-            typename ExtraInfo const &extra) -> void
+             SexyAnimation &definition,
+             ExtraInfo const &extra) -> void
         {
             auto &version_list = Sen::Kernel::Support::PopCap::Animation::Common::version_list;
             auto index = std::find(version_list.begin(), version_list.end(), extra.version);
@@ -207,7 +207,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_default_extra(
-            typename ExtraInfo const &extra) -> void
+             ExtraInfo const &extra) -> void
         {
             k_version = extra.version;
             k_media_scale_ratio = static_cast<double>(k_standard_resolution) / static_cast<double>(extra.resolution);
@@ -216,7 +216,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_transform_from_variant_to_standard(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+             Transform &value) -> void
         {
             if (data.size() == 2_size)
             {
@@ -242,7 +242,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_transform_from_standard_to_variant(
-            typename Transform const &data,
+             Transform const &data,
             std::vector<double> &value) -> void
         {
             if (data[0] == data[3] && data[1] == -data[2])
@@ -266,7 +266,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_tranform_from_rotate_to_standard(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+             Transform &value) -> void
         {
             try_assert(data.size() == 3_size, "invalid_animation_transform_length");
             auto cos = std::cos(data[0]);
@@ -284,7 +284,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_transform_from_standard_to_rotate(
-            typename Transform const &data,
+             Transform const &data,
             std::vector<double> &value) -> void
         {
             try_assert(data[0] == data[3] && data[1] == -data[2], "invalid_animation_transform");
@@ -299,7 +299,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_tranform_by_copy(
             std::vector<double> const &data,
-            typename Transform &value) -> void
+             Transform &value) -> void
         {
             try_assert(data.size() == 6_size, "invalid_animation_transform_length");
             value = Transform{data[0], data[1], data[2], data[3], data[4], data[5]};
@@ -307,7 +307,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
          inline static auto exchange_tranform_by_copy(
-            typename Transform const &data,
+             Transform const &data,
             std::vector<double> &value) -> void
         {
             try_assert(data.size() == 6_size, "invalid_animation_transform_length");
@@ -317,7 +317,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_transform(
             XMLElement *data,
-            typename Transform &value
+             Transform &value
         ) -> void
         {
             auto a = data->FindAttribute("a");
@@ -332,7 +332,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_color(
             XMLElement *data,
-            typename Color &value
+             Color &value
         ) -> void
         {
             auto color_compute = [](

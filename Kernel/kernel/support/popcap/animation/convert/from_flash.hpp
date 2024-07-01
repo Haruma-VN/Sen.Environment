@@ -11,8 +11,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 	{
 	protected:
 		inline static auto load_flash_package(
-			typename FlashPackage &flash_package,
-			typename ExtraInfo const &extra,
+			FlashPackage &flash_package,
+			ExtraInfo const &extra,
 			std::string_view source) -> void
 		{
 			for (auto &[image_name, image_value] : extra.image)
@@ -53,7 +53,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_image_document(
-			typename AnimationImage &image,
+			AnimationImage &image,
 			std::string const &image_name,
 			XMLDocument &value) -> void
 		{
@@ -225,8 +225,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_frame_node(
-			typename std::vector<AnimationFrame> &frame_list,
-			typename FrameNodeStructure &frame_node_structure) -> void
+			std::vector<AnimationFrame> &frame_list,
+			FrameNodeStructure &frame_node_structure) -> void
 		{
 			auto model = Model{};
 			auto model_clear = [&]() -> void
@@ -322,9 +322,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		}
 
 		inline static auto exchange_definition(
-			typename SexyAnimation &definition,
-			typename ExtraInfo const &extra,
-			typename PackageLibrary &package_library) -> void
+			SexyAnimation &definition,
+			ExtraInfo const &extra,
+			PackageLibrary &package_library) -> void
 		{
 
 			exchange_simple_definition(definition, extra);
@@ -357,8 +357,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 	public:
 		inline static auto process_whole(
-			typename SexyAnimation &definition,
-			typename ExtraInfo const &extra,
+			SexyAnimation &definition,
+			ExtraInfo const &extra,
 			std::string_view source) -> void
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");

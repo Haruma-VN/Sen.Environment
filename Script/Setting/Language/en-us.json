@@ -487,5 +487,6 @@
     "wwise.soundbank.decode.invalid_type_id": "Invalid type ID, got: {}",
     "wwise.soundbank.decode.unsupported_bank_version": "Unsupported bank version, version too low, got: {}",
     "pvz2.project.compile": "PvZ2 Project: Compile",
-    "pvz2.project.create": "PvZ2 Project: Create"
+    "pvz2.project.create": "PvZ2 Project: Create",
+    "popcap.animation.extract_label": "Extract label (Use main sprite or its splitted version)"
 }

@@ -100,18 +100,10 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationImage
     {
     public:
-        std::string name{};
-        std::string id{};
-        AnimationSize size{};
-        std::vector<double> transform{};
-
-        explicit AnimationImage(
-
-        ) = default;
-
-        ~AnimationImage(
-
-        ) = default;
+        std::string name;
+        std::string id;
+        AnimationSize size;
+        std::vector<double> transform;
     };
 
     inline static auto to_json(
@@ -378,9 +370,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         std::vector<AnimationFrame> frame;
 
         explicit AnimationSprite(
-            const std::string &name,
-            const AnimationWorkArea &work_area,
-            const std::vector<AnimationFrame> &frame) : name(name), work_area(work_area), frame(frame)
+            const std::string &name) : name(name)
         {
         }
 
