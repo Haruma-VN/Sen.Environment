@@ -52,7 +52,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.ToFlash {
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.xfl`);
                 Console.output(argument.destination!);
                 clock.start_safe();
-                Kernel.Support.PopCap.Reanim.ToFlash.convert_fs(argument.source, argument.destination!);
+                Kernel.Support.PopCap.ReAnimation.ToFlash.convert_fs(argument.source, argument.destination!);
                 clock.stop_safe();
                 return;
             },

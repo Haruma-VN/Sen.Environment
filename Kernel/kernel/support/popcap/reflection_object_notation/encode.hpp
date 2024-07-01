@@ -29,12 +29,12 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
                 else
                 {
                     stream.writeUint8(static_cast<uint8_t>(TypeIdentifierEnumeration::Type::string_rtid));
-                    auto content = value.substr("RTID"_sv.size(), value.size() - ")"_sv.size());
-                    auto at_position = content.find("@_sv");
+                    auto content = value.substr("RTID("_sv.size(), value.size() - "RTID()"_sv.size());
+                    auto at_position = content.find('@');
                     if (at_position != std::string::npos)
                     {
-                        auto head_content = content.substr(0, at_position);
-                        auto tail_content = content.substr(at_position, value.size() - 1);
+                        auto head_content = content.substr(0_size, at_position);
+                        auto tail_content = content.substr(at_position + 1_size, content.size());
                         if (static_cast<size_t>(std::count(head_content.begin(), head_content.end(), '.')) == size_t{2})
                         {
                             stream.writeUint8(static_cast<uint8_t>(RTIDTypeIdentifierEnumeration::Type::uid));

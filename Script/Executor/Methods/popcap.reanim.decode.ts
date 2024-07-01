@@ -1,7 +1,7 @@
-namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
+namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode {
     // Using platform
 
-    export type Platform = Kernel.Support.PopCap.Reanim.Platform;
+    export type Platform = Kernel.Support.PopCap.ReAnimation.Platform;
 
     /**
      * Argument for the current method
@@ -45,7 +45,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
          * Platform supported
          */
 
-        export const _platform: Array<Kernel.Support.PopCap.Reanim.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
+        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
         /**
          *
          * Typical Style
@@ -66,10 +66,10 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.Reanim.Decode.Argument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Decode.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Decode.Configuration
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode.Argument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode.Configuration
         >({
             id: "popcap.reanim.decode",
             configuration_file: Home.query("~/Executor/Configuration/popcap.reanim.decode.json"),
@@ -80,7 +80,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
                 Console.output(argument.destination!);
                 configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
-                Kernel.Support.PopCap.Reanim.decode_fs(argument.source, argument.destination!, argument.platform!);
+                Kernel.Support.PopCap.ReAnimation.decode_fs(argument.source, argument.destination!, argument.platform!);
                 clock.stop_safe();
                 return;
             },
@@ -95,4 +95,4 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Decode {
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.Reanim.Decode.forward();
+Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode.forward();

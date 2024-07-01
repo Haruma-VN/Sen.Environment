@@ -1,7 +1,7 @@
-namespace Sen.Script.Executor.Methods.PopCap.Reanim.Encode {
+namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode {
     // Using platform
 
-    export type Platform = Kernel.Support.PopCap.Reanim.Platform;
+    export type Platform = Kernel.Support.PopCap.ReAnimation.Platform;
 
     /**
      * Argument for the current method
@@ -45,7 +45,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Encode {
          * Platform supported
          */
 
-        export const _platform: Array<Kernel.Support.PopCap.Reanim.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
+        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
         /**
          *
          * Typical Style
@@ -66,10 +66,10 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Encode {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.Reanim.Encode.Argument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Encode.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.Encode.Configuration
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode.Argument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode.BatchArgument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode.AsyncArgument,
+            Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode.Configuration
         >({
             id: "popcap.reanim.encode",
             configuration_file: Home.query("~/Executor/Configuration/popcap.reanim.encode.json"),
@@ -80,7 +80,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Encode {
                 Console.output(argument.destination!);
                 configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
-                Kernel.Support.PopCap.Reanim.encode_fs(argument.source, argument.destination!, argument.platform!);
+                Kernel.Support.PopCap.ReAnimation.encode_fs(argument.source, argument.destination!, argument.platform!);
                 clock.stop_safe();
                 return;
             },
@@ -95,4 +95,4 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.Encode {
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.Reanim.Encode.forward();
+Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode.forward();

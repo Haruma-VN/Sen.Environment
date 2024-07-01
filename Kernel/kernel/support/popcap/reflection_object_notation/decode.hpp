@@ -286,8 +286,9 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
                     break;
                 }
                 default:
-                    assert_conditional(false, fmt::format("{}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode"), Kernel::Language::get("offset"), static_cast<uint8_t>(type)), "exchange_value");
+                    assert_conditional(false, fmt::format("{}. {}: 0x{:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode"), Kernel::Language::get("offset"), stream.read_pos), "exchange_value");
                 }
+                break;
             }
             case TypeIdentifierEnumeration::Type::string_rtid_null:
             {
@@ -329,9 +330,10 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
                     exchange_value<false>(stream, value, native_string_index, unicode_string_index, value_type_identifier);
                 }
                 value.WriteEndObject();
+                break;
             }
             default:
-                assert_conditional(false, fmt::format("{}. {}: {:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode"), Kernel::Language::get("offset"), static_cast<uint8_t>(type)), "exchange_value");
+                assert_conditional(false, fmt::format("{}. {}: 0x{:02x}", Kernel::Language::get("popcap.rton.decode.invalid_bytecode"), Kernel::Language::get("offset"), stream.read_pos), "exchange_value");
             }
             return;
         }

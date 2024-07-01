@@ -100,18 +100,18 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationImage
     {
     public:
-        std::string name;
-        std::string id;
-        AnimationSize size;
-        std::vector<double> transform;
+        std::string name{};
+        std::string id{};
+        AnimationSize size{};
+        std::vector<double> transform{};
 
         explicit AnimationImage(
 
-            ) = default;
+        ) = default;
 
         ~AnimationImage(
 
-            ) = default;
+        ) = default;
     };
 
     inline static auto to_json(

@@ -210,5 +210,6 @@
     "js.process_whole": "Procesar todos los argumentos usando la misma función",
     "js.process_in_queue": "Procesar todos los argumentos en cola",
     "js.process_in_script": "Reenviar todos los argumentos al ejecutable JS",
-    "js.make_host.argument_obtained": "Argumento obtenido"
+    "js.make_host.argument_obtained": "Argumento obtenido",
+    "popcap.animation.extract_label": "Extract label (Use main sprite or its splitted version)"
 }

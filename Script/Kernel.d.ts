@@ -1658,7 +1658,7 @@ declare namespace Sen {
                          * @param resolution {bigint} The resolution to use for the generated XFL file (specific interpretation may depend on the implementation).
                          * @returns {void} No return value, function writes converted XFL files to the destination directory.
                          */
-                        export function convert_fs(source: string, destination: string, resolution: bigint): void;
+                        export function convert_fs(source: string, destination: string, resolution: bigint, has_label: boolean): void;
                     }
 
                     declare namespace FromFlash {
@@ -1669,7 +1669,7 @@ declare namespace Sen {
                          * @param destination {string} Path to the destination PAM file where the converted data will be written.
                          * @returns {void} No return value, function writes converted PAM data to the destination file.
                          */
-                        export function convert_fs(source: string, destination: string): void;
+                        export function convert_fs(source: string, destination: string, has_label: boolean): void;
                     }
 
                     /**
@@ -1819,14 +1819,14 @@ declare namespace Sen {
                          * @param destination Path to save the converted data in Flash format
                          * @param resolution Resolution for the converted data (likely in pixels)
                          */
-                        export function to_flash(source: string, destination: string, resolution: bigint): void;
+                        export function to_flash(source: string, destination: string, resolution: bigint, has_label: boolean): void;
 
                         /**
                          * Function to convert data from Flash format to the project's format (likely for import)
                          * @param source  Path to the source data file in Flash format
                          * @param destination Path to save the converted data in the project's format
                          */
-                        export function from_flash(source: string, destination: string): void;
+                        export function from_flash(source: string, destination: string, has_label: boolean): void;
                     }
                 }
 
@@ -2114,7 +2114,7 @@ declare namespace Sen {
                  * This namespace groups functions and types related to PopCap Re-Animation (Reanim).
                  */
 
-                declare namespace Reanim {
+                declare namespace ReAnimation {
                     /**
                      * Denotes the target platform for file system operations.
                      */

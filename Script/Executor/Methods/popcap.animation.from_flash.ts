@@ -6,6 +6,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
         destination?: string;
+        has_label?: boolean;
     }
 
     /**
@@ -51,8 +52,9 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlash {
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Console.output(argument.destination!);
+                load_boolean(argument, "has_label", this.configuration, Kernel.Language.get("popcap.animation.extract_label"));
                 clock.start_safe();
-                Kernel.Support.PopCap.Animation.FromFlash.convert_fs(argument.source, argument.destination!);
+                Kernel.Support.PopCap.Animation.FromFlash.convert_fs(argument.source, argument.destination!, argument.has_label!);
                 clock.stop_safe();
                 return;
             },

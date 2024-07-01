@@ -8,6 +8,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 {
     using XMLDocument = tinyxml2::XMLDocument;
 
+    using XMLElement = tinyxml2::XMLElement;
+
     using Transform = std::array<double, 6>;
 
     using Color = std::array<double, 4>;
@@ -35,11 +37,17 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static constexpr auto k_symbol_type = "graphic"_sv;
 
-        inline static constexpr auto k_frame_resource_symbol_instance_unused = -1;
+        inline static constexpr auto k_native_index = -1;
 
         inline static constexpr auto k_main_label_string = "main_label"_sv;
 
         inline static constexpr auto k_sprite_blank_name = "sprite"_sv;
+
+        inline static constexpr auto k_pi = 3.14159265358979323846;
+
+        inline static constexpr auto k_false = false;
+
+        inline static constexpr auto k_begin_index_int = 0;
 
         enum State : uint8_t
         {
@@ -48,7 +56,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             state_true
         };
 
-        enum SpriteType : uint8_t 
+        enum SpriteType : uint8_t
         {
             sprite,
             label,
@@ -64,13 +72,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             Color color;
             int frame_start;
             int frame_duration;
+            int index;
         };
 
         struct FrameNode
         {
             int index;
             int duration;
-            int resource = k_frame_resource_symbol_instance_unused;
+            int resource = k_native_index;
             bool sprite;
             int first_frame;
             Transform transform;
@@ -105,9 +114,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         };
 
         inline static auto exchange_simple_extra(
-            SexyAnimation const &definition,
-            ExtraInfo &extra) -> void
+            typename SexyAnimation const &definition,
+            typename ExtraInfo &extra) -> void
         {
+            auto &version_list = Sen::Kernel::Support::PopCap::Animation::Common::version_list;
+            auto index = std::find(version_list.begin(), version_list.end(), definition.version);
+            assert_conditional((index != version_list.end()), fmt::format("{}", Language::get("popcap.animation.invalid_version")), "exchange_simple_extra");
             extra.version = static_cast<int>(definition.version);
             extra.position.x = static_cast<int>(definition.position.x);
             extra.position.y = static_cast<int>(definition.position.y);
@@ -123,6 +135,28 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             return;
         }
 
+        inline static auto exchange_simple_definition(
+            typename SexyAnimation &definition,
+            typename ExtraInfo const &extra) -> void
+        {
+            auto &version_list = Sen::Kernel::Support::PopCap::Animation::Common::version_list;
+            auto index = std::find(version_list.begin(), version_list.end(), extra.version);
+            assert_conditional((index != version_list.end()), fmt::format("{}", Language::get("popcap.animation.invalid_version")), "exchange_simple_definition");
+            definition.version = extra.version;
+            definition.position.x = static_cast<double>(extra.position.x);
+            definition.position.y = static_cast<double>(extra.position.y);
+            for (auto &[image_name, image_value] : extra.image)
+            {
+                definition.image.emplace_back(AnimationImage{
+                    .name = image_value.name,
+                    .id = image_value.id,
+                    .size = AnimationSize{
+                        static_cast<double>(image_value.size.width),
+                        static_cast<double>(image_value.size.height)}});
+            }
+            return;
+        }
+
         template <auto point>
         inline static auto to_fixed(
             double number) -> std::string
@@ -134,8 +168,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto find_invalid_char(
-            char data
-        ) -> bool 
+            char data) -> bool
         {
             switch (data)
             {
@@ -157,22 +190,24 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         }
 
         inline static auto exchange_sprite_name_invalid(
-            std::string &sprite_name
-        ) -> bool {
+            std::string &sprite_name) -> bool
+        {
             auto k_sprite_name_need_exchange = false;
-            if (std::find_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char) != sprite_name.end()) {
+            if (std::find_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char) != sprite_name.end())
+            {
                 sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char));
                 k_sprite_name_need_exchange = true;
             }
-            if (sprite_name.empty()) {
-				sprite_name += k_sprite_blank_name;
+            if (sprite_name.empty())
+            {
+                sprite_name += k_sprite_blank_name;
                 k_sprite_name_need_exchange = true;
             }
             return k_sprite_name_need_exchange;
         }
 
         inline static auto exchange_default_extra(
-            ExtraInfo const &extra) -> void
+            typename ExtraInfo const &extra) -> void
         {
             k_version = extra.version;
             k_media_scale_ratio = static_cast<double>(k_standard_resolution) / static_cast<double>(extra.resolution);
@@ -181,7 +216,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static auto exchange_transform_from_variant_to_standard(
             std::vector<double> const &data,
-            Transform &value) -> void
+            typename Transform &value) -> void
         {
             if (data.size() == 2_size)
             {
@@ -193,11 +228,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             {
                 auto cos = std::cos(data[0]);
                 auto sin = std::sin(data[0]);
-                value = Transform{ cos, sin, -sin, cos, data[1], data[2]};
+                value = Transform{cos, sin, -sin, cos, data[1], data[2]};
             }
             else if (data.size() == 6_size)
             {
-                value = Transform{ data[0], data[1], data[2], data[3], data[4], data[5]};
+                value = Transform{data[0], data[1], data[2], data[3], data[4], data[5]};
             }
             else
             {
@@ -206,24 +241,135 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             return;
         }
 
+        inline static auto exchange_transform_from_standard_to_variant(
+            typename Transform const &data,
+            std::vector<double> &value) -> void
+        {
+            if (data[0] == data[3] && data[1] == -data[2])
+            {
+                if (data[0] == 1.0 && data[1] == 0.0)
+                {
+                    value = std::vector<double>{data[4], data[5]};
+                    return;
+                }
+                auto cos = data[0];
+                auto sin = data[1];
+                auto radian = std::atan(sin / cos) + k_pi * (cos >= 0.0 ? 0.0 : sin >= 0 ? +1.0: -1.0);
+                if (number_is_equal(std::sin(radian), sin, 1e-2) && number_is_equal(std::cos(radian), cos, 1e-2)) {
+                    value = std::vector<double>{radian, data[4], data[5]};
+                    return;
+                }
+            }
+            value = std::vector<double>{data[0], data[1], data[2], data[3], data[4], data[5]};
+            return;
+        }
+
         inline static auto exchange_tranform_from_rotate_to_standard(
             std::vector<double> const &data,
-            Transform &value) -> void
+            typename Transform &value) -> void
         {
             try_assert(data.size() == 3_size, "invalid_animation_transform_length");
             auto cos = std::cos(data[0]);
             auto sin = std::sin(data[0]);
-            value = Transform{ cos, sin, -sin, cos, data[1], data[2]};
+            value = Transform{cos, sin, -sin, cos, data[1], data[2]};
+            return;
+        }
+
+        inline static auto number_is_equal(
+            double const &x,
+            double const &y,
+            double const &tolerance) -> boolean
+        {
+            return std::abs(x - y) < tolerance;
+        }
+
+        inline static auto exchange_transform_from_standard_to_rotate(
+            typename Transform const &data,
+            std::vector<double> &value) -> void
+        {
+            try_assert(data[0] == data[3] && data[1] == -data[2], "invalid_animation_transform");
+            auto cos = data[0];
+            auto sin = data[1];
+            auto radian = std::atan(sin / cos) + k_pi * (cos >= 0.0 ? 0.0 : sin >= 0 ? +1.0
+                                                                                     : -1.0);
+            try_assert(number_is_equal(std::sin(radian), sin, 1e-2) && number_is_equal(std::cos(radian), cos, 1e-2), "radian_is_wrong");
+            value = std::vector<double>{radian, data[4], data[5]};
             return;
         }
 
         inline static auto exchange_tranform_by_copy(
             std::vector<double> const &data,
-            Transform &value) -> void
+            typename Transform &value) -> void
         {
             try_assert(data.size() == 6_size, "invalid_animation_transform_length");
-            value = Transform{ data[0], data[1], data[2], data[3], data[4], data[5]};
+            value = Transform{data[0], data[1], data[2], data[3], data[4], data[5]};
             return;
         }
+
+         inline static auto exchange_tranform_by_copy(
+            typename Transform const &data,
+            std::vector<double> &value) -> void
+        {
+            try_assert(data.size() == 6_size, "invalid_animation_transform_length");
+            value = std::vector<double>{data[0], data[1], data[2], data[3], data[4], data[5]};
+            return;
+        }
+
+        inline static auto exchange_transform(
+            XMLElement *data,
+            typename Transform &value
+        ) -> void
+        {
+            auto a = data->FindAttribute("a");
+            auto b = data->FindAttribute("b");
+            auto c = data->FindAttribute("c");
+            auto d = data->FindAttribute("d");
+            auto tx = data->FindAttribute("tx");
+            auto ty = data->FindAttribute("ty");
+            value = Transform{std::stod((a ? a->Value() : "1")), std::stod((b ? b->Value() : "0")), std::stod((c ? c->Value() : "0")), std::stod((d ? d->Value() : "1")), std::stod((tx ? tx->Value() : "0")), std::stod((ty ? ty->Value() : "0"))};
+            return;
+        }
+
+        inline static auto exchange_color(
+            XMLElement *data,
+            typename Color &value
+        ) -> void
+        {
+            auto color_compute = [](
+                double const &mutil,
+                double const &offset
+            ) -> double {
+                return static_cast<double>((std::max)(0.0, (std::min)(255.0, mutil * 255.0 + offset)) / 255.0);
+            };
+            auto r = data->FindAttribute("redMultiplier");
+			auto g = data->FindAttribute("greenMultiplier");
+			auto b = data->FindAttribute("blueMultiplier");
+			auto a = data->FindAttribute("alphaMultiplier");
+			auto r_pos = data->FindAttribute("redOffset");
+			auto g_pos = data->FindAttribute("greenOffset");
+			auto b_pos = data->FindAttribute("blueOffset");
+			auto a_pos = data->FindAttribute("alphaOffset");
+            value = Color{
+                color_compute(std::stod(r ? r->Value() : "1"), std::stod(r_pos ? r_pos->Value() : "0")),
+				color_compute(std::stod(g ? g->Value() : "1"), std::stod(g_pos ? g_pos->Value() : "0")),
+				color_compute(std::stod(b ? b->Value() : "1"), std::stod(b_pos ? b_pos->Value() : "0")),
+				color_compute(std::stod(a ? a->Value() : "1"), std::stod(a_pos ? a_pos->Value() : "0"))
+            };
+            return;
+        }
+
+        template <typename T>
+		inline static auto get_index(
+			const std::vector<T> &v,
+			T k) -> int
+		{
+			static_assert(sizeof(T) != 0);
+			auto it = std::find(v.begin(), v.end(), k);
+			if (it != v.end())
+			{
+				return static_cast<int>(it - v.begin());
+			}
+			return -1;
+		}
     };
 }

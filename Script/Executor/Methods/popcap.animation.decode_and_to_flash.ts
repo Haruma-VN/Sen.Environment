@@ -7,6 +7,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.DecodeAndToFlash {
         source: string;
         destination?: string;
         resolution?: bigint;
+        has_label?: boolean;
     }
 
     /**
@@ -51,6 +52,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.DecodeAndToFlash {
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
         resolution: bigint;
+        has_label: boolean;
     }
 
     /**
@@ -75,8 +77,9 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.DecodeAndToFlash {
                 defined_or_default<Argument, string>(argument, "destination", `${argument.source}.xfl`);
                 Console.output(argument.destination!);
                 load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                load_boolean(argument, "has_label", this.configuration, Kernel.Language.get("popcap.animation.extract_label"));
                 clock.start_safe();
-                Kernel.Support.PopCap.Animation.Instance.to_flash(argument.source, argument.destination!, argument.resolution!);
+                Kernel.Support.PopCap.Animation.Instance.to_flash(argument.source, argument.destination!, argument.resolution!, argument.has_label!);
                 clock.stop_safe();
                 return;
             },

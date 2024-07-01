@@ -487,5 +487,6 @@
     "wwise.soundbank.decode.invalid_type_id": "type id không được hỗ trợ:, nhận được {}",
     "wwise.soundbank.decode.unsupported_bank_version": "Phiên bản soundbank không được hỗ trợ, phiên bản quá thấp, nhận được: {}",
     "pvz2.project.compile": "PvZ2 Project: Biên dịch",
-    "pvz2.project.create": "PvZ2 Project: Tạo"
+    "pvz2.project.create": "PvZ2 Project: Tạo",
+    "popcap.animation.extract_label": "Tách label (Sử dụng main sprite hoặc phiên bản tách của nó)"
 }
