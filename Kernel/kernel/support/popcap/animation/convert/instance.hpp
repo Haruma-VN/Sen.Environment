@@ -23,12 +23,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert {
 			auto stream = DataStreamView{source};
 			auto definition = SexyAnimation{};
 			Decode::process_whole(stream, definition);
+			auto extra = ExtraInfo{.resolution = resolution};
 			if constexpr (split_label) {
-				ConvertToFlashWithLabel::process_fs(source, destination, resolution);
+				ConvertToFlashWithLabel::process_whole(definition, extra, destination);
 			}
 			else {
-				ConvertToFlashWithMainSprite::process_fs(source, destination, resolution);
+				ConvertToFlashWithMainSprite::process_whole(definition, extra, destination);
 			}
+			write_json(fmt::format("{}/extra.json", destination), extra);
 			return;
 		}
 

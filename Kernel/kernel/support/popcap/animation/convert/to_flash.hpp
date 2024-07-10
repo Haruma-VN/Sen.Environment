@@ -86,6 +86,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_timeline = value.NewElement("DOMTimeline");
 			dom_timeline->SetAttribute("name", name.data());
 			auto layers = value.NewElement("layers");
+			auto dom_layer_index = k_begin_index_int + 1;
 			for (auto &[layer_index, frame_node_list] : frame_node_structure)
 			{
 				auto dom_layer = value.NewElement("DOMLayer");
@@ -133,9 +134,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					dom_frame->InsertEndChild(elements);
 					frames->InsertEndChild(dom_frame);
 				}
-				dom_layer->SetAttribute("name", std::to_string(layer_index + 1).data());
+				dom_layer->SetAttribute("name", std::to_string(dom_layer_index).data());
 				dom_layer->InsertEndChild(frames);
 				layers->InsertFirstChild(dom_layer);
+				++dom_layer_index;
 			}
 			dom_timeline->InsertEndChild(layers);
 			auto timeline = value.NewElement("timeline");
@@ -154,7 +156,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(get_label == true || get_label == false, "get_label must be true or false");
 			auto model_structure = std::map<int, Model>{};
-			auto main_label = k_main_label_string;
+			auto main_label = std::string{k_main_label_string};
 			auto &frame_node_structure = package_library.frame_node;
 			for (auto frame_index : Range<int>(sprite.frame.size()))
 			{
@@ -241,53 +243,37 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					++model_layer.frame_duration;
 				}
 			}
-			for (auto &[layer_index, model_layer] : model_structure)
-			{
-				auto &frame_node_list = frame_node_structure[layer_index];
-				frame_node_list.back().duration = model_layer.frame_duration;
-			}
 			return;
-		}
-
-		inline static auto exchange_label_info(
-			AnimationSprite const &sprite,
-			tsl::ordered_map<std::string_view, LabelInfo> &label_info_structure) -> void
-		{
-			auto duration_temp = 0;
-			auto main_label = k_main_label_string;
-			for (auto frame_index : Range<int>(sprite.frame.size()))
+			/*
+			if constexpr (get_label)
 			{
-				auto &frame = sprite.frame[frame_index];
-				if (!frame.label.empty() && frame.label != main_label)
+				auto last_frame = k_begin_index_int;
+				for (auto &[layer_index, model_layer] : model_structure)
 				{
-					main_label = frame.label;
-					label_info_structure[main_label].start = frame_index;
-				}
-				for (auto &append : frame.append)
-				{
-					auto &layer_index_list = label_info_structure[main_label].layer_index_list;
-					if (std::find(layer_index_list.begin(), layer_index_list.end(), append.index) == layer_index_list.end())
-					{
-						layer_index_list.emplace_back(append.index);
+					auto &frame_node_list = frame_node_structure[layer_index];
+					frame_node_list.back().duration = model_layer.frame_duration;
+					if (auto current_frame_duration = static_cast<int>(frame_node_list.back().index + frame_node_list.back().duration); last_frame < current_frame_duration) {
+						last_frame = current_frame_duration;
 					}
 				}
-				for (auto &change : frame.change)
-				{
-					auto &layer_index_list = label_info_structure[main_label].layer_index_list;
-					if (std::find(layer_index_list.begin(), layer_index_list.end(), change.index) == layer_index_list.end())
-					{
-						layer_index_list.emplace_back(change.index);
-					}
-				}
-				++label_info_structure[main_label].duration;
+				return last_frame;
 			}
-			return;
+			else
+			{
+				for (auto &[layer_index, model_layer] : model_structure)
+				{
+					auto &frame_node_list = frame_node_structure[layer_index];
+					frame_node_list.back().duration = model_layer.frame_duration;
+				}
+				return 0;
+			}
+			*/
 		}
-
+		
 		inline static auto exchange_label(
 			FrameNodeStructure const &frame_node_structure,
-			tsl::ordered_map<std::string_view, LabelInfo> const &label_info_structure,
-			tsl::ordered_map<std::string_view, FrameNodeStructure> &label_structure) -> void
+			tsl::ordered_map<std::string, LabelInfo> const &label_info_structure,
+			tsl::ordered_map<std::string, FrameNodeStructure> &label_structure) -> void
 		{
 			for (auto &[label_name, label_info] : label_info_structure)
 			{
@@ -331,7 +317,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 							}
 							new_frame_node.index -= start_index;
 							label_structure[label_name][label_layer_index].emplace_back(new_frame_node);
-							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label) {
+							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label)
+							{
 								last_frame_in_label = new_frame_node.index + new_frame_node.duration;
 							}
 						}
@@ -344,23 +331,20 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 							}
 							new_frame_node.index -= start_index;
 							label_structure[label_name][label_layer_index].emplace_back(new_frame_node);
-							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label) {
+							if (new_frame_node.index + new_frame_node.duration > last_frame_in_label)
+							{
 								last_frame_in_label = new_frame_node.index + new_frame_node.duration;
 							}
 						}
 					}
 					++label_layer_index;
 				}
-				if (static_cast<int>(last_frame_in_label) < label_info.duration) {
-					auto frame_node = FrameNode {
+				if (static_cast<int>(last_frame_in_label) < label_info.duration)
+				{
+					auto frame_node = FrameNode{
 						.index = static_cast<int>(k_begin_index),
-						.duration = label_info.duration
-					};
+						.duration = label_info.duration};
 					label_structure[label_name][label_layer_index].emplace_back(frame_node);
-					debug(fmt::format("{}, last_frame: {}, end_index: {}", label_name, last_frame_in_label, start_index + label_info.duration));
-				}
-				if (label_structure[label_name].size() == k_none_size) {
-					debug(label_name);
 				}
 			}
 			return;
@@ -379,12 +363,25 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			dom_document->SetAttribute("height", std::to_string(definition.size.height).data());
 			dom_document->SetAttribute("xflVersion", k_xfl_version.data());
 			auto folders = value.NewElement("folders");
-			for (auto &folder_name : std::array<std::string_view, 4>{"media"_sv, "image"_sv, "sprite"_sv, "label"_sv})
+			if constexpr (split_label)
 			{
-				auto dom_folder_item = value.NewElement("DOMFolderItem");
-				dom_folder_item->SetAttribute("name", folder_name.data());
-				dom_folder_item->SetAttribute("isExpanded", "true");
-				folders->InsertEndChild(dom_folder_item);
+				for (auto &folder_name : std::array<std::string_view, 4>{"media"_sv, "image"_sv, "sprite"_sv, "label"_sv})
+				{
+					auto dom_folder_item = value.NewElement("DOMFolderItem");
+					dom_folder_item->SetAttribute("name", folder_name.data());
+					dom_folder_item->SetAttribute("isExpanded", "true");
+					folders->InsertEndChild(dom_folder_item);
+				}
+			}
+			else
+			{
+				for (auto &folder_name : std::array<std::string_view, 3>{"media"_sv, "image"_sv, "sprite"_sv})
+				{
+					auto dom_folder_item = value.NewElement("DOMFolderItem");
+					dom_folder_item->SetAttribute("name", folder_name.data());
+					dom_folder_item->SetAttribute("isExpanded", "true");
+					folders->InsertEndChild(dom_folder_item);
+				}
 			}
 			dom_document->InsertEndChild(folders);
 			auto media = value.NewElement("media");
@@ -590,20 +587,24 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				exchange_image_document(definition.image[image_index], image_name, package_library.image[image_name]);
 			}
 			auto sprite_name_list = SpriteInfo{};
-			for (auto &sprite : definition.sprite) {
+			for (auto &sprite : definition.sprite)
+			{
 				auto sprite_name = sprite.name;
-				if (exchange_sprite_name_invalid(sprite_name)) {
+				if (exchange_sprite_name_invalid(sprite_name))
+				{
 					if (std::find(extra.sprite[sprite.name].begin(), extra.sprite[sprite.name].end(), sprite_name) == extra.sprite[sprite.name].end())
 					{
 						extra.sprite[sprite.name].emplace_back(sprite_name);
 					}
 				}
-				if (std::find(sprite_name_list.begin(), sprite_name_list.end(), sprite_name) != sprite_name_list.end()) {
+				if (std::find(sprite_name_list.begin(), sprite_name_list.end(), sprite_name) != sprite_name_list.end())
+				{
 					auto new_sprite_name = fmt::format("{}_{}", sprite_name, extra.sprite[sprite.name].size());
 					extra.sprite[sprite.name].emplace_back(new_sprite_name);
 					sprite_name_list.emplace_back(new_sprite_name);
 				}
-				else {
+				else
+				{
 					sprite_name_list.emplace_back(sprite_name);
 				}
 			}
@@ -617,16 +618,24 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			exchange_frame_node<true>(definition, definition.main_sprite, package_library);
 			if constexpr (split_label)
 			{
-				auto label_frame_node = tsl::ordered_map<std::string_view, FrameNodeStructure>{};
+				auto label_frame_node = tsl::ordered_map<std::string, FrameNodeStructure>{};
 				exchange_label(package_library.frame_node, package_library.label, label_frame_node);
 				for (auto &element : label_frame_node)
 				{
 					auto &label_name = element.first;
-					exchange_sprite_document<SpriteType::label>(sprite_name_list, std::string{label_name}, label_frame_node[label_name], package_library.label[label_name].document);
+					exchange_sprite_document<SpriteType::label>(sprite_name_list, label_name, label_frame_node[label_name], package_library.label[label_name].document);
 				}
 			}
 			else
 			{
+				/*
+				if (auto main_sprite_last_frame = static_cast<int>(definition.main_sprite.frame.size()); main_sprite_last_frame > last_frame)
+				{
+					auto frame_node = FrameNode{.index = static_cast<int>(k_begin_index),
+												.duration = static_cast<int>(main_sprite_last_frame)};
+					package_library.frame_node[package_library.frame_node.size()].emplace_back(frame_node);
+				}
+				*/
 				exchange_sprite_document<SpriteType::main_sprite>(sprite_name_list, "main_sprite", package_library.frame_node, package_library.main_sprite);
 			}
 			return;
