@@ -243,6 +243,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					++model_layer.frame_duration;
 				}
 			}
+			for (auto &[layer_index, model_layer] : model_structure)
+			{
+				auto &frame_node_list = frame_node_structure[layer_index];
+				frame_node_list.back().duration = model_layer.frame_duration;
+			}
 			return;
 			/*
 			if constexpr (get_label)
@@ -269,7 +274,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			*/
 		}
-		
+
 		inline static auto exchange_label(
 			FrameNodeStructure const &frame_node_structure,
 			tsl::ordered_map<std::string, LabelInfo> const &label_info_structure,

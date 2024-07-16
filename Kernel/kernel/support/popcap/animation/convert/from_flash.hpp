@@ -329,7 +329,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				}
 				close_current_model_if_need();
 			}
-			// frame_list.erase(frame_list.end() - 1);
+			frame_list.erase(frame_list.end() - 1);
 			frame_node_structure.clear();
 			return;
 		}
