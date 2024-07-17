@@ -182,7 +182,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann::ordered_json &nlohmann_json_j,
         const TextureResourceAdditional &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["type"] = Common::k_texture_type_string;
+       // nlohmann_json_j["type"] = Common::k_texture_type_string;
         nlohmann_json_j["value"] = nlohmann_json_t.value;
         return;
     }
@@ -191,7 +191,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         const nlohmann::ordered_json &nlohmann_json_j,
         TextureResourceAdditional &nlohmann_json_t) -> void
     {
-        assert(nlohmann_json_j.at("type").get<std::string_view>() == Common::k_texture_type_string);
+      //  assert(nlohmann_json_j.at("type").get<std::string_view>() == Common::k_texture_type_string);
         nlohmann_json_j.at("value").get_to(nlohmann_json_t.value);
         return;
     }
@@ -211,7 +211,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j["path"] = nlohmann_json_t.path;
         if (!nlohmann_json_t.use_texture_additional_instead)
         {
-            nlohmann_json_j["additional"] = nlohmann_json_t.general_additional;
+          // nlohmann_json_j["additional"] = nlohmann_json_t.general_additional;
         }
         else
         {
@@ -225,6 +225,15 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         Resource &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
+        try
+        {
+            nlohmann_json_j.at("additional").get_to(nlohmann_json_t.texture_additional);
+            nlohmann_json_t.use_texture_additional_instead = true;
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        /*
         switch (hash_sv(nlohmann_json_j["additional"]["type"].get<std::string_view>()))
         {
         case hash_sv(Common::k_general_type_string):
@@ -244,6 +253,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             assert_conditional(false, "invalid_rsg_additional_type", "convert_json"); // TODO: add to localization.
         }
         }
+        */
         return;
     }
 

@@ -11987,10 +11987,9 @@ namespace Sen::Kernel::Interface::Script {
 			}
 
 
-			/*
-			namespace PvZ2 {
+			namespace Modding {
 
-				inline static auto decode_fs(
+				inline static auto unpack_packet_contain_resource(
 					JSContext* context,
 					JSValueConst this_val,
 					int argc,
@@ -12001,12 +12000,12 @@ namespace Sen::Kernel::Interface::Script {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::PvZ2::Decode::process_fs(source, destination);
+						Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup::Unpack::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-						}, "decode_fs"_sv);
+					}, "unpack_packet_contain_resource"_sv);
 				}
 
-				inline static auto unpack_fs(
+				inline static auto unpack_rsb(
 					JSContext* context,
 					JSValueConst this_val,
 					int argc,
@@ -12014,15 +12013,16 @@ namespace Sen::Kernel::Interface::Script {
 				) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::PvZ2::Unpack::process_fs(source, destination);
+						auto is_ios_texture_format = JS::Converter::get_bool(context, argv[2]);
+						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Unpack::process_fs(source, destination, is_ios_texture_format);
 						return JS::Converter::get_undefined();
-						}, "unpack_fs"_sv);
+					}, "unpack_rsb"_sv);
 				}
 
-				inline static auto pack_fs(
+				inline static auto pack_rsb(
 					JSContext* context,
 					JSValueConst this_val,
 					int argc,
@@ -12033,12 +12033,12 @@ namespace Sen::Kernel::Interface::Script {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::PvZ2::Pack::process_fs(source, destination);
+						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Pack::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-						}, "pack_fs"_sv);
+					}, "pack_rsb"_sv);
 				}
 
-				inline static auto encode_fs(
+				inline static auto pack_packet_contain_resource(
 					JSContext* context,
 					JSValueConst this_val,
 					int argc,
@@ -12049,13 +12049,12 @@ namespace Sen::Kernel::Interface::Script {
 						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::PopCap::PvZ2::Encode::process_fs(source, destination);
+						Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup::Pack::process_fs(source, destination);
 						return JS::Converter::get_undefined();
-						}, "pack_fs"_sv);
+					}, "pack_packet_contain_resource"_sv);
 				}
 
 			}
-			*/
 				/**
 			 * JavaScript REANIM Supportive
 			*/

@@ -165,7 +165,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     }
                     if constexpr (std::is_same_v<Args, std::string_view>)
                     {
-                        packet_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/Packet/{}.rsg", args, subgroup_id)));
+                        packet_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/packet/{}.rsg", args, subgroup_id)));
                     }
                     auto packet_stream = DataStreamView{packet_data};
                     auto packet_structure = PacketStructure{};

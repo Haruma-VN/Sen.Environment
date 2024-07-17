@@ -546,18 +546,16 @@ namespace Sen::Kernel::Interface {
 					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "convert_fs"_sv);
 				}
-				// pvz2
+				// modding
 				{
-					/*
-					// decode_fs
-					javascript->add_proxy(Script::Support::PopCap::PvZ2::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "decode_fs"_sv);
-					// encode_fs
-					javascript->add_proxy(Script::Support::PopCap::PvZ2::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "encode_fs"_sv);
-					// unpack_fs
-					javascript->add_proxy(Script::Support::PopCap::PvZ2::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "unpack_fs"_sv);
-					// pack_fs
-					javascript->add_proxy(Script::Support::PopCap::PvZ2::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PvZ2"_sv, "pack_fs"_sv);
-					*/
+					// unpack_packet_contain_resource
+					javascript->add_proxy(Script::Support::PopCap::Modding::unpack_packet_contain_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "unpack_packet_contain_resource"_sv);
+					// unpack_rsb
+					javascript->add_proxy(Script::Support::PopCap::Modding::unpack_rsb, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "unpack_rsb"_sv);
+					// pack_rsb
+					javascript->add_proxy(Script::Support::PopCap::Modding::pack_rsb, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "pack_rsb"_sv);
+					// pack_packet_contain_resource
+					javascript->add_proxy(Script::Support::PopCap::Modding::pack_packet_contain_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "pack_packet_contain_resource"_sv);
 				}
 				// dimension
 				{

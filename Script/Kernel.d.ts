@@ -1229,6 +1229,13 @@ declare namespace Sen {
          * In this case, it provides a nested `Texture` namespace for texture encoding and decoding.
          */
         declare namespace Support {
+            declare namespace Miscellaneous {
+                export function unpack_packet_contain_resource(source: string, destination: string): void;
+                export function pack_packet_contain_resource(source: string, destination: string): void;
+                export function unpack_rsb(source: string, destination: string, is_ios_format: boolean): void;
+                export function pack_rsb(source: string, destination: string): void;
+            }
+
             /**
              * Namespace for texture manipulation functionalities.
              *
@@ -1267,13 +1274,6 @@ declare namespace Sen {
              * Notation (RTON) processing.
              */
             declare namespace PopCap {
-                declare namespace PvZ2 {
-                    export function decode_fs(source: string, destination: string): void;
-                    export function encode_fs(source: string, destination: string): void;
-                    export function unpack_fs(source: string, destination: string): void;
-                    export function pack_fs(source: string, destination: string): void;
-                }
-
                 /**
                  * Namespace for Reflection Object Notation (RTON) processing.
                  *

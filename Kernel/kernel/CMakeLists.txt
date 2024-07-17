@@ -148,6 +148,14 @@ add_library(
 	./support/wwise/sound_bank/decode.hpp
 	./support/wwise/sound_bank/common.hpp
 	./support/utility.hpp
+	./support/miscellaneous/modding/packet_contains_resource_group/common.hpp
+	./support/miscellaneous/modding/packet_contains_resource_group/definition.hpp
+	./support/miscellaneous/modding/packet_contains_resource_group/pack.hpp
+	./support/miscellaneous/modding/packet_contains_resource_group/unpack.hpp
+	./support/miscellaneous/modding/resource_stream_bundle/common.hpp
+	./support/miscellaneous/modding/resource_stream_bundle/definition.hpp
+	./support/miscellaneous/modding/resource_stream_bundle/pack.hpp
+	./support/miscellaneous/modding/resource_stream_bundle/unpack.hpp
 
 	./interface/data.hpp
 	./interface/cli.hpp

@@ -210,7 +210,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     }
                     if constexpr (std::is_same<Args, std::string_view>::value)
                     {
-                        write_bytes(fmt::format("{}/Packet/{}.rsg", args, subgroup_id), packet_data);
+                        write_bytes(fmt::format("{}/packet/{}.rsg", args, subgroup_id), packet_data);
                     }
                 }
                 definition.group[original_id] = group_information;

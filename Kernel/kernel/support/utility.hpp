@@ -55,6 +55,12 @@
 #include "kernel/support/wwise/sound_bank/encode.hpp"
 #include "kernel/support/wwise/sound_bank/decode.hpp"
 #include "kernel/support/wwise/sound_bank/common.hpp"
+#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/common.hpp"
+#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/pack.hpp"
+#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/unpack.hpp"
+#include "kernel/support/miscellaneous/modding/resource_stream_bundle/common.hpp"
+#include "kernel/support/miscellaneous/modding/resource_stream_bundle/pack.hpp"
+#include "kernel/support/miscellaneous/modding/resource_stream_bundle/unpack.hpp"
 
 namespace Sen::Kernel::Support {
 	
