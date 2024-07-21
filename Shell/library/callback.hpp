@@ -202,6 +202,8 @@ namespace Sen::Shell {
 				copy = new char[raw_selection[0].size() + 1];
 				std::memcpy(copy, raw_selection[0].data(), raw_selection[0].size());
 				copy[raw_selection[0].size()] = '\0';
+				destination->size = raw_selection[0].size();
+				destination->value = copy;
 			}
 			#elif LINUX || MACINTOSH
 			auto raw_selection = tinyfd_selectFolderDialog("", nullptr);
@@ -209,14 +211,10 @@ namespace Sen::Shell {
 				copy = new char[strlen(raw_selection) + 1];
 				std::memcpy(copy, raw_selection, strlen(raw_selection));
 				copy[std::strlen(raw_selection)] = '\0';
+				destination->size = std::strlen(raw_selection);
+				destination->value = copy;
 			}
 			#endif
-			#if WINDOWS
-			destination->size = raw_selection[0].size(),
-			#elif LINUX || MACINTOSH
-			destination->size = std::strlen(raw_selection),
-			#endif
-			destination->value = copy;
 			return;
 		}
 		if (result[0] == "push_notification") {
