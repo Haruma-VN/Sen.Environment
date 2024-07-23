@@ -57,6 +57,56 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             return;
         }
 
+        enum TextureInformationVersion {
+            SectionVersion0,
+            SectionVersion1,
+            SectionVersion2
+        };
+
+        inline static auto exchange_texture_information_version(
+            size_t const &texture_information_section_size
+        ) -> TextureInformationVersion
+        {
+            switch(texture_information_section_size) {
+                case k_texture_resource_information_section_block_size_version_0: 
+                {
+                    return TextureInformationVersion::SectionVersion0;
+                }
+                case k_texture_resource_information_section_block_size_version_1:
+                {
+                    return TextureInformationVersion::SectionVersion1;
+                }
+                case k_texture_resource_information_section_block_size_version_2: {
+                    return TextureInformationVersion::SectionVersion2;
+                }
+                default: {
+                    assert_conditional(false, "invaild_texture_information_section_size", "exchange_texture_information_version"); // TODO: Add to localization.
+                }
+            }
+        }
+
+        inline static auto exchange_texture_information_version(
+            TextureInformationVersion const &texture_information_version
+        ) -> size_t 
+        {
+            switch(texture_information_version) {
+                case TextureInformationVersion::SectionVersion0: 
+                {
+                    return k_texture_resource_information_section_block_size_version_0;
+                }
+                case TextureInformationVersion::SectionVersion1:
+                {
+                    return k_texture_resource_information_section_block_size_version_1;
+                }
+                case TextureInformationVersion::SectionVersion2: {
+                    return k_texture_resource_information_section_block_size_version_2;
+                }
+                default: {
+                    assert_conditional(false, "invaild_texture_information_section", "exchange_texture_information_version"); // TODO: Add to localization.
+                }
+            }
+        }
+
         struct HeaderInformaiton
         {
             uint32_t magic;
@@ -354,7 +404,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             uint32_t size_height;
             uint32_t pitch;
             uint32_t format;
-            uint32_t additional_byte_count;
+            uint32_t alpha_size;
             uint32_t scale;
         };
 
@@ -370,11 +420,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             value.format = stream.readUint32();
             if (texture_inforamtion_section_block_size == k_texture_resource_information_section_block_size_version_1)
             {
-                value.additional_byte_count = stream.readUint32();
+                value.alpha_size = stream.readUint32();
             }
             if (texture_inforamtion_section_block_size == k_texture_resource_information_section_block_size_version_2)
             {
-                value.additional_byte_count = stream.readUint32();
+                value.alpha_size = stream.readUint32();
                 value.scale = stream.readUint32();
             }
             return;
@@ -392,11 +442,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             stream.writeUint32(value.format);
             if (texture_inforamtion_section_block_size == k_texture_resource_information_section_block_size_version_1)
             {
-                stream.writeUint32(value.additional_byte_count);
+                stream.writeUint32(value.alpha_size);
             }
             if (texture_inforamtion_section_block_size == k_texture_resource_information_section_block_size_version_2)
             {
-                stream.writeUint32(value.additional_byte_count);
+                stream.writeUint32(value.alpha_size);
                 stream.writeUint32(value.scale);
             }
             return;

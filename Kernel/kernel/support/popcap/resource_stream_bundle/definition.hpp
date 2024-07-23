@@ -43,7 +43,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
     struct SubgroupInformation
     {
         SimpleCategoryInformation category;
-        PacketCompression compression;
+        uint32_t compression;
         std::vector<Resource> resource;
     };
 
@@ -103,7 +103,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         const BundleStructure &nlohmann_json_t) -> void
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
-        nlohmann_json_j["texture_information_section_size"] = nlohmann_json_t.texture_information_section_size;
+        nlohmann_json_j["texture_information_version"] = Common::exchange_texture_information_version(nlohmann_json_t.texture_information_section_size);
         nlohmann_json_j["group"] = nlohmann_json_t.group;
         return;
     }
@@ -113,7 +113,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         BundleStructure &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
-        nlohmann_json_j.at("texture_information_section_size").get_to(nlohmann_json_t.texture_information_section_size);
+        nlohmann_json_t.texture_information_section_size = Common::exchange_texture_information_version(nlohmann_json_j.at("texture_information_version").get<size_t>());
         nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
         return;
     }

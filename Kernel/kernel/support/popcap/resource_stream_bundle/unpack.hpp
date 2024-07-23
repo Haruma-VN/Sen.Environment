@@ -176,7 +176,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     {
                         fourcc_from_integer(simple_subgroup_infomation.locale, subgroup_information.category.locale);
                     }
-                    packet_compression_from_data(basic_subgroup_information.resource_data_section_compression, subgroup_information.compression);
+                    subgroup_information.compression = basic_subgroup_information.resource_data_section_compression;
+                    // packet_compression_from_data(basic_subgroup_information.resource_data_section_compression, subgroup_information.compression);
                     auto texture_resource_begin = basic_subgroup_information.texture_resource_begin;
                     auto texture_resource_count = basic_subgroup_information.texture_resource_count;
                     try_assert(pool_information.texture_resource_begin == 0_ui, "invalid_texture_resource");
@@ -185,8 +186,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     auto packet_stream = DataStreamView{packet_data};
                     auto packet_structure = PacketStructure{};
                     ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure);
-                    try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
-                    try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
+                    // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
+                    // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
                     for (auto &packet_resource : packet_structure.resource)
                     {
                         if (packet_resource.use_texture_additional_instead)
@@ -198,7 +199,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                             packet_resource.texture_additional.value.texture_infomation = TextureResourceInformation{
                                 .pitch = texture_information_structure.pitch,
                                 .format = texture_information_structure.format,
-                                .additional_byte_count = texture_information_structure.additional_byte_count,
+                                .alpha_size = texture_information_structure.alpha_size,
                                 .scale = texture_information_structure.scale};
                         }
                     }

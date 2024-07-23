@@ -9,11 +9,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 
     //----------------------------------------------
 
-    struct PacketCompression
-    {
-        bool general;
-        bool texture;
-    };
+    /*
 
     inline auto to_json(
         nlohmann::ordered_json &nlohmann_json_j,
@@ -32,6 +28,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j.at("texture").get_to(nlohmann_json_t.texture);
         return;
     }
+
+    */
 
     struct GeneralResourceAdditional
     {
@@ -58,7 +56,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
     {
         uint32_t pitch;
         uint32_t format;
-        uint32_t additional_byte_count;
+        uint32_t alpha_size;
         uint32_t scale;
     };
 
@@ -112,14 +110,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         {
             nlohmann_json_j["format"] = nlohmann_json_t.texture_infomation.format;
             nlohmann_json_j["pitch"] = nlohmann_json_t.texture_infomation.pitch;
-            nlohmann_json_j["additional_byte_count"] = nlohmann_json_t.texture_infomation.additional_byte_count;
+            nlohmann_json_j["alpha_size"] = nlohmann_json_t.texture_infomation.alpha_size;
             break;
         }
         case ResourceStreamBundle::Common::k_texture_resource_information_section_block_size_version_2:
         {
             nlohmann_json_j["format"] = nlohmann_json_t.texture_infomation.format;
             nlohmann_json_j["pitch"] = nlohmann_json_t.texture_infomation.pitch;
-            nlohmann_json_j["additional_byte_count"] = nlohmann_json_t.texture_infomation.additional_byte_count;
+            nlohmann_json_j["alpha_size"] = nlohmann_json_t.texture_infomation.alpha_size;
             nlohmann_json_j["scale"] = nlohmann_json_t.texture_infomation.scale;
             break;
         }
@@ -152,7 +150,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         }
         try
         {
-            nlohmann_json_j.at("additional_byte_count").get_to(nlohmann_json_t.texture_infomation.additional_byte_count);
+            nlohmann_json_j.at("alpha_size").get_to(nlohmann_json_t.texture_infomation.alpha_size);
             texture_resource_information_section_block_size += size_t{4};
         }
         catch (nlohmann::ordered_json::exception &e)
@@ -178,6 +176,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         TextureValue value;
     };
 
+    /*
     inline auto to_json(
         nlohmann::ordered_json &nlohmann_json_j,
         const TextureResourceAdditional &nlohmann_json_t) -> void
@@ -195,6 +194,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j.at("value").get_to(nlohmann_json_t.value);
         return;
     }
+    */
 
     struct Resource
     {
@@ -215,7 +215,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         }
         else
         {
-            nlohmann_json_j["additional"] = nlohmann_json_t.texture_additional;
+            nlohmann_json_j["texture_info"] = nlohmann_json_t.texture_additional.value;
         }
         return;
     }
@@ -227,7 +227,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
         try
         {
-            nlohmann_json_j.at("additional").get_to(nlohmann_json_t.texture_additional);
+            nlohmann_json_j.at("texture_info").get_to(nlohmann_json_t.texture_additional.value);
             nlohmann_json_t.use_texture_additional_instead = true;
         }
         catch (nlohmann::ordered_json::exception &e)
@@ -260,7 +260,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
     struct PacketStructure
     {
         uint32_t version;
-        PacketCompression compression;
+        Common::PacketCompression compression;
         std::vector<Resource> resource;
     };
 
@@ -269,7 +269,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         const PacketStructure &nlohmann_json_t) -> void
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
-        nlohmann_json_j["compression"] = nlohmann_json_t.compression;
+        auto compression_data = 0_ui;
+        Common::packet_compression_to_data(compression_data, nlohmann_json_t.compression);
+        auto index = std::find(Common::k_compression_list.begin(), Common::k_compression_list.end(), static_cast<uint32_t>(compression_data));
+        assert_conditional((index != Common::k_compression_list.end()), "invaild_rsg_compression", "process"); // TODO: add to localization.
+        nlohmann_json_j["compression"] = compression_data;
         nlohmann_json_j["resource"] = nlohmann_json_t.resource;
         return;
     }
@@ -279,7 +283,10 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         PacketStructure &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
-        nlohmann_json_j.at("compression").get_to(nlohmann_json_t.compression);
+        auto compression_data = nlohmann_json_j.at("compression").get<uint32_t>();
+        auto index = std::find(Common::k_compression_list.begin(), Common::k_compression_list.end(), static_cast<uint32_t>(compression_data));
+        assert_conditional((index != Common::k_compression_list.end()), "invaild_rsg_compression", "process"); // TODO: add to localization.
+        Common::packet_compression_from_data(compression_data, nlohmann_json_t.compression);
         nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);
         return;
     }

@@ -5,7 +5,6 @@
 
 namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 {
-
     using namespace Definition;
 
     using namespace Sen::Kernel::Support::Miscellaneous::Shared;

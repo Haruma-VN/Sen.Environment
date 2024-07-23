@@ -462,6 +462,12 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::RSB::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_fs"_sv);
 					// pack
 					javascript->add_proxy(Script::Support::PopCap::RSB::pack, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "RSB"_sv, "pack"_sv);
+					// unpack_cipher
+					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_cipher, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_cipher"_sv);
+					// unpack_resource
+					javascript->add_proxy(Script::Support::PopCap::RSB::unpack_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "unpack_resource"_sv);
+					// pack_resource
+					javascript->add_proxy(Script::Support::PopCap::RSB::pack_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv,"RSB"_sv, "pack_resource"_sv);
 				}
 				// rsb-patch
 				{

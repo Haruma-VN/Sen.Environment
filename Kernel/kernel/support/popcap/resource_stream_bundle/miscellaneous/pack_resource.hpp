@@ -25,9 +25,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
                     auto packet_stream = DataStreamView{};
                     auto packet_definition = PacketStructure{
                         .version = definition.version,
-                        .compression = subgroup_information.compression,
                         .resource = subgroup_information.resource
                     };
+                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(subgroup_information.compression, packet_definition.compression);
                     ResourceStreamGroup::Pack::process_whole(packet_stream, packet_definition, source);
                     packet_data_section_view_stored[subgroup_id] = std::move(packet_stream.toBytes());
                 }

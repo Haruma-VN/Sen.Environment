@@ -172,8 +172,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure);
                     auto packet_header_structure = ResourceStreamGroup::Common::HeaderInformaiton{};
                     ResourceStreamGroup::Common::exchange_header(packet_stream, packet_header_structure);
-                    try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
-                    try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
+                    // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
+                    // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
                     try_assert(packet_structure.version == definition.version, "invalid_packet_version");
                     try_assert(packet_structure.resource.size() == subgroup_information.resource.size(), "invalid_resource_size");
                     auto simple_subgroup_information_structure = SimpleSubgroupInformation{};
@@ -227,11 +227,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                             texture_information_structure.format = resource_information.texture_additional.value.texture_infomation.format;
                             if (definition.texture_information_section_size == k_texture_resource_information_section_block_size_version_1)
                             {
-                                texture_information_structure.additional_byte_count = resource_information.texture_additional.value.texture_infomation.additional_byte_count;
+                                texture_information_structure.alpha_size = resource_information.texture_additional.value.texture_infomation.alpha_size;
                             }
                             if (definition.texture_information_section_size == k_texture_resource_information_section_block_size_version_2)
                             {
-                                texture_information_structure.additional_byte_count = resource_information.texture_additional.value.texture_infomation.additional_byte_count;
+                                texture_information_structure.alpha_size = resource_information.texture_additional.value.texture_infomation.alpha_size;
                                 texture_information_structure.scale = resource_information.texture_additional.value.texture_infomation.scale;
                             }
                             information_structure.texture_resource_information.emplace_back(texture_information_structure);

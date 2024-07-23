@@ -7,38 +7,15 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
 {
     using namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup;
 
-    inline static constexpr auto k_block_size = size_t{4};
-
-    inline static constexpr auto k_packet_compression_flag_count = size_t{2};
+    inline static constexpr auto k_block_size = 4_size;
 
     inline static constexpr auto k_string_null = ""_sv;
 
-    inline static constexpr auto k_padding_unit_size = size_t{0x1000};
+    inline static constexpr auto k_padding_unit_size = 0x1000_size;
 
-    inline static constexpr auto k_none_size = size_t{0};
+    inline static constexpr auto k_none_size = 0_size;
 
-    inline static constexpr auto k_begin_index = size_t{0};
-
-    inline auto packet_compression_to_data(
-        uint32_t &data,
-        typename PacketCompression const &value) -> void
-    {
-        auto data_bit = std::bitset<k_packet_compression_flag_count>{};
-        data_bit.set(Common::PacketCompressionFlag::general, value.general);
-        data_bit.set(Common::PacketCompressionFlag::texture, value.texture);
-        data = static_cast<uint32_t>(data_bit.to_ullong());
-        return;
-    }
-
-    inline auto packet_compression_from_data(
-        uint32_t const &data,
-        typename PacketCompression &value) -> void
-    {
-        auto data_bit = std::bitset<k_packet_compression_flag_count>(static_cast<uint8_t>(data));
-        value.general = data_bit.test(Common::PacketCompressionFlag::general);
-        value.texture = data_bit.test(Common::PacketCompressionFlag::texture);
-        return;
-    }
+    inline static constexpr auto k_begin_index = 0_size;
 
     inline auto sub_bytes(
         std::vector<uint8_t> const &data,

@@ -1961,6 +1961,11 @@ declare namespace Sen {
                      */
                     export function unpack_fs(source: string, destination: string): void;
 
+                    // TODO : Add comment
+                    export function unpack_resource(source: string, destination: string): void;
+                    export function pack_resource(source: string, destination: string): void;
+                    export function unpack_cipher(source: string, destination: string): void;
+
                     /**
                      * Unpacks an RSB bundle file and returns the manifest for modding purposes.
                      *

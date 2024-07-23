@@ -11439,6 +11439,78 @@ namespace Sen::Kernel::Interface::Script {
 
 				/**
 				 * ----------------------------------------
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: packed file
+				 * ----------------------------------------
+				*/
+
+				inline static auto pack_resource(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous::PackResource::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "pack_resource"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Unpacked file
+				 * ----------------------------------------
+				*/
+
+				inline static auto unpack_resource(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous::UnpackResource::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "unpack_resource"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
+				 * @param argv[0]: source file
+				 * @param argv[1]: destination file
+				 * @returns: Unpacked file
+				 * ----------------------------------------
+				*/
+
+				inline static auto unpack_cipher(
+					JSContext *context, 
+					JSValueConst this_val, 
+					int argc, 
+					JSValueConst *argv
+				) -> JSValue
+				{
+					M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						auto source = JS::Converter::get_string(context, argv[0]);
+						auto destination = JS::Converter::get_string(context, argv[1]);
+						Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous::UnpackCipher::process_fs(source, destination);
+						return JS::Converter::get_undefined();
+					}, "unpack_cipher"_sv);
+				}
+
+				/**
+				 * ----------------------------------------
 				 * JavaScript RSB Unpack File
 				 * @param argv[0]: source file
 				 * @param argv[1]: destination file
