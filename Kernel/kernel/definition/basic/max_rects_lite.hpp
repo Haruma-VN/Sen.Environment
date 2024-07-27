@@ -471,7 +471,7 @@ namespace Sen::Kernel::Definition
             {
                 if (rect.width > width || rect.height > height)
                 {
-                    throw Exception("rect size greater than packer size"); // TODO add localization
+                    throw Exception("rect size greater than packer size", std::source_location::current(), "add"); 
                 }
                 else
                 {

@@ -20,7 +20,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             Args args) -> void
         {
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(definition.version));
-            assert_conditional((index != k_version_list.end()), "invalid_rsg_version", "process"); // TODO: add to localization.
+            assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_version")), std::to_string(static_cast<int>(definition.version))), "process");
             auto resource_information_structure = std::map<std::string, ResourceInformation>{};
             auto resource_data_section_view_stored = std::map<std::string_view, DataStreamView>{};
             for (auto &resource_definition : definition.resource)
@@ -116,7 +116,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             }
             if constexpr (std::is_same_v<Args, std::string_view>)
             {
-                process_package(stream, value, std::string_view{fmt::format("{}/Resource", args)});
+                process_package(stream, value, std::string_view{fmt::format("{}/resource", args)});
             }
             return;
         }
@@ -126,7 +126,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            auto definition = *FileSystem::read_json(fmt::format("{}/definition.json", source));
+            auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
             process_whole(stream, definition, source);
             stream.out_file(destination);
             return;

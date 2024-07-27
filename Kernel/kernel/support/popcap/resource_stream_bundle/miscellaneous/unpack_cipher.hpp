@@ -23,7 +23,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 			assert_conditional(stream.readUint32() == Common::k_magic_identifier, "invalid_magic_header", "process_package");
 			auto version = stream.readUint32();
 			auto index = std::find(Common::k_version_list.begin(), Common::k_version_list.end(), static_cast<int>(version));
-			assert_conditional((index != Common::k_version_list.end()), "invalid_rsg_version", "process"); // TODO: add to localization.
+			assert_conditional((index != Common::k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_version")), std::to_string(static_cast<int>(version))), "process");
 			definition.version = version;
 			auto information_structure = Common::Information{};
 			Common::exchange_to_header(stream, information_structure.header);
@@ -63,7 +63,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 				break;
 			}
 			default:
-				assert_conditional(false, "invalid_texture_resource_information_section_block_size", "process_package"); // TODO: add to localization.
+				assert_conditional(false, fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource_information_section_block_size")), "process_package"); 
 			}
 			if (information_structure.header.group_manifest_information_section_offset != 0_ui || information_structure.header.resource_manifest_information_section_offset != 0_ui || information_structure.header.string_manifest_information_section_offset != 0_ui)
 			{
@@ -151,7 +151,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 			auto definition = BundleStructure{};
 			auto manifest = ManifestStructure{};
 			process_whole(stream, definition, manifest, destination);
-			write_json(fmt::format("{}/definition.json", destination), definition);
+			write_json(fmt::format("{}/data.json", destination), definition);
 			if (manifest.manifest_has)
             {
                 write_json(fmt::format("{}/manifest.json", destination), manifest);

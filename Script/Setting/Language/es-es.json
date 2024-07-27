@@ -136,7 +136,7 @@
     "popcap.animation.from_flash.dom_frame_has_no_elements": "DOMFrame no tiene elementos en DOMDocument.xml, causa en {}",
     "popcap.animation.from_flash.dom_frame_has_no_DOMSymbolInstance": "DOMFrame no tiene \"DOMSymbolInstance\" en DOMDocument.xml, causa en {}",
     "popcap.animation.from_flash.dom_symbol_cannot_be_array": "DOMSymbolInstance no puede tener más que un elemento en DOMDocument.xml, causa en {}",
-    "popcap.animation.from_flash.invaild_action_index": "El nombre de acción no coincide en DOMDocument.xml, se esperaba {}, causa en {}",
+    "popcap.animation.from_flash.invalid_action_index": "El nombre de acción no coincide en DOMDocument.xml, se esperaba {}, causa en {}",
     "kernel.argument_expected": "argumento esperado",
     "kernel.argument_received": "se recibió",
     "kernel.expected_argument": "Argumento esperado en el número de índice",

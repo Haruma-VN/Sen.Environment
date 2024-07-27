@@ -119,7 +119,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
             ResourceStreamBundle::Common::exchange_to_header(stream, value.header);
             assert_conditional(value.header.magic == ResourceStreamBundle::Common::k_magic_identifier, "invalid_magic_header", "process_package");
             auto index = std::find(ResourceStreamBundle::Common::k_version_list.begin(), ResourceStreamBundle::Common::k_version_list.end(), static_cast<int>(value.header.version));
-            assert_conditional((index != ResourceStreamBundle::Common::k_version_list.end()), "invalid_rsb_version", "process"); // TODO: add to localization.
+            assert_conditional((index != ResourceStreamBundle::Common::k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_rsb_version")), std::to_string(value.header.version)), "process"); 
             stream.read_pos = value.header.subgroup_information_section_offset;
             for (auto &subgroup_information : value.subgroup_information) {
                 if (value.header.version == 1) {

@@ -18,9 +18,13 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
 
         inline static constexpr auto k_version_list = std::array<int, 3>{1, 3, 4};
 
-        inline static constexpr auto k_empty_section_block_size = 0x08;
+        inline static constexpr auto k_empty_section_block_size = 0x08_size;
 
         inline static constexpr auto string_block_size = 128_size;
+
+        inline static constexpr auto k_data_block_padding_size = 0x10_size;
+
+        inline static constexpr auto k_subgroup_information_section_block_size = 144_size;
 
         struct HeaderInformaiton
         {
@@ -79,10 +83,19 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             RenderEffect      // 7 effect
         };
 
+        inline static auto exchange_padding_block(
+            DataStreamView &stream
+        ) -> void
+        {
+            stream.writeNull(compute_padding_size(stream.write_pos, k_data_block_padding_size));
+            return;
+        }
+
+        /*
         struct PacketInformation
         {
-            DataType data_type;
-            ImageFormat image_format;
+            uint32_t image_count;
+            std::vector<ImageFormat> image_format;
         };
 
         inline static auto exchange_packet_information(
@@ -90,9 +103,9 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             PacketInformation &value
         ) -> void
         {
-            value.data_type = static_cast<DataType>(stream.readUint32());
-            if (value.data_type == DataType::Image) {
-                value.image_format = static_cast<ImageFormat>(stream.readUint32());
+            value.image_count = stream.readUint32();
+            for (auto i : Range(value.image_count)) {
+                value.image_format.emplace_back(static_cast<ImageFormat>(stream.readUint32()));
             }
             return;
         }
@@ -102,13 +115,14 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             DataStreamView &stream
         ) -> void 
         {
-            stream.writeUint32(static_cast<uint32_t>(value.data_type));
-            if (value.data_type == DataType::Image) {
-                try_assert(static_cast<uint32_t>(value.image_format) != 0_ui, "invaild_format");
-                stream.writeUint32(static_cast<uint32_t>(value.image_format));
+            stream.writeUint32(value.image_count);
+            for (auto i : Range(value.image_count)) {
+                try_assert(static_cast<uint32_t>(value.image_format[i]) != 0_ui, "invalid_format");
+                stream.writeUint32(static_cast<uint32_t>(value.image_format[i]));
             }
             return;
         }
+        */
 
         struct SubgroupInformation
         {
@@ -117,7 +131,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             uint32_t data_size;
             uint32_t info_pos;
             uint32_t info_size;
-            PacketInformation packet_info;
+            //PacketInformation packet_info;
         };
 
         inline static auto exchange_to_subgroup(
@@ -125,12 +139,13 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             SubgroupInformation &value
         ) -> void
         {
-            exchange_string_by_string_block_size(stream, value.id);
+            value.id = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_string_block<Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::k_subgroup_name_string_block_size>(stream);
+           // exchange_string_by_string_block_size(stream, value.id);
             value.data_pos = stream.readUint32();
             value.data_size = stream.readUint32();
             value.info_pos = stream.readUint32();
             value.info_size = stream.readUint32();
-            exchange_packet_information(stream, value.packet_info);
+            //exchange_packet_information(stream, value.packet_info);
             return;
         }
 
@@ -139,15 +154,18 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             SubgroupInformation const &value
         ) -> void
         {
-            exchange_string_by_string_block_size(value.id, stream);
+            Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_string_block<Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::k_subgroup_name_string_block_size>(stream, value.id);
+           // exchange_string_by_string_block_size(value.id, stream);
             stream.writeUint32(value.data_pos);
             stream.writeUint32(value.data_size);
             stream.writeUint32(value.info_pos);
             stream.writeUint32(value.info_size);
-            exchange_packet_information(value.packet_info, stream);
+            //exchange_packet_information(value.packet_info, stream);
             return;
         }
 
+
+        /*
         inline static auto exchange_string_by_string_block_size(
             DataStreamView &stream,
             string &value
@@ -169,5 +187,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             stream.writeString(value);
             return;
         } 
+        */
     };
 }

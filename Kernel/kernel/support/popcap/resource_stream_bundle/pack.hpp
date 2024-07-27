@@ -7,6 +7,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 {
     using namespace Definition;
 
+    using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
+
     struct Pack : Common
     {
     protected:
@@ -132,7 +134,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         }
 
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_package(
             DataStreamView &stream,
             BundleStructure const &definition,
@@ -140,9 +142,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             Args args) -> void
         {
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(definition.version));
-            assert_conditional((index != k_version_list.end()), "invalid_rsb_version", "process_package"); // TODO: add to localization.
+            assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_rsb_version")), std::to_string(definition.version)), "process_package");
             auto block_index = std::find(k_texture_resource_information_section_block_size_list.begin(), k_texture_resource_information_section_block_size_list.end(), definition.texture_information_section_size);
-            assert_conditional((block_index != k_texture_resource_information_section_block_size_list.end()), "invalid_texture_information_section_size", "process_package"); // TODO: add to localization.
+            assert_conditional((block_index != k_texture_resource_information_section_block_size_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_texture_information_section_size")), std::to_string(definition.texture_information_section_size)), "process_package"); 
             auto information_structure = Information{};
             auto global_group_index = k_begin_index;
             auto global_subgroup_index = k_begin_index;
@@ -159,7 +161,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 for (auto &[subgroup_id, subgroup_information] : group_information.subgroup)
                 {
                     auto packet_data = std::vector<uint8_t>{};
-                    if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>>)
+                    if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>> || std::is_same<Args, DataSectionViewStored>::value)
                     {
                         packet_data = std::move(args.at(subgroup_id));
                     }
@@ -169,7 +171,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     }
                     auto packet_stream = DataStreamView{packet_data};
                     auto packet_structure = PacketStructure{};
-                    ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure);
+                    auto get_packet_structure_only = true;
+                    ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, get_packet_structure_only);
                     auto packet_header_structure = ResourceStreamGroup::Common::HeaderInformaiton{};
                     ResourceStreamGroup::Common::exchange_header(packet_stream, packet_header_structure);
                     // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
@@ -356,7 +359,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_whole(
             DataStreamView &stream,
             BundleStructure const &definition,
@@ -372,7 +375,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            auto definition = *FileSystem::read_json(fmt::format("{}/definition.json", source));
+            auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
             auto manifest = ManifestStructure{};
             if (definition["version"].get<uint32_t>() <= 3_ui) {
                 manifest = *FileSystem::read_json(fmt::format("{}/manifest.json", source));

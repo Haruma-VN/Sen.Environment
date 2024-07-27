@@ -71,7 +71,7 @@ namespace Sen::Kernel::Definition::Compression::Zip {
 				auto zip = std::unique_ptr<struct zip_t, decltype(zip_deleter)> (zip_open(destination.data(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w'), zip_deleter);
 				auto dir = std::unique_ptr<DIR, decltype(dir_deleter)>(opendir(source.data()), dir_deleter);
 				auto entry = static_cast<struct dirent*>(nullptr);
-				while ((entry = readdir(dir.get())) != NULL) {
+				while ((entry = readdir(dir.get())) != nullptr) {
 					if (entry->d_type == DT_REG) {
 						auto file_path = std::make_unique<char[]>(CHUNK_SIZE);
 						snprintf(file_path.get(), CHUNK_SIZE, "%s/%s", source.data(), entry->d_name);

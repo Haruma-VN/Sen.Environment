@@ -78,7 +78,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
     export function convert_streaming_wave(source: string, group: string, manifest: Manifest, version: Kernel.Support.PopCap.RSG.Version) {
         const subgroups = Object.keys(manifest.group[group].subgroup);
         if (subgroups[0].toLowerCase() !== "streamingwave") {
-            throw new Error("invaild_streaming_wave");
+            throw new Error("invalid_streaming_wave");
         }
         Kernel.Support.PopCap.RSG.unpack_modding(`${source}/packet/${subgroups[0]}.rsg`, `${source}/resource`);
         const packet_info = manifest.group[group].subgroup[subgroups[0]].packet_info;

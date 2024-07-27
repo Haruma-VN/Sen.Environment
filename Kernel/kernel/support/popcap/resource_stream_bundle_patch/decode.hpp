@@ -42,8 +42,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
         {
             auto package_information = PackageInformation{};
             exchange_package_information(stream_patch, package_information);
-            assert_conditional(package_information.magic == k_magic_identifier, "invalid_magic_header", "process"); // TODO: add to localization.
-            assert_conditional(package_information.version == k_magic_version, "invalid_version", "process");       // TODO: add to localization.
+            assert_conditional(package_information.magic == k_magic_identifier, String::format(fmt::format("{}", Language::get("popcap.rsbpatch.invalid_magic_header")), std::to_string(k_magic_identifier), std::to_string(package_information.magic)), "process"); 
+            assert_conditional(package_information.version == k_magic_version, String::format(fmt::format("{}", Language::get("popcap.rsbpatch.invalid_version")), std::to_string(k_magic_version), std::to_string(package_information.version)), "process");
             auto packet_count = static_cast<size_t>(package_information.packet_count);
             auto information_section_patch_exist = static_cast<bool>(package_information.patch_exist);
             auto information_section_patch_size = static_cast<size_t>(package_information.patch_size);

@@ -33,6 +33,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
         inline static constexpr auto k_none_size = 0_size;
 
+        inline static constexpr auto k_subgroup_name_string_block_size = 128_size;
+
         inline static auto fourcc_from_integer(
             uint32_t const &data,
             std::string &locale) -> void
@@ -80,7 +82,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     return TextureInformationVersion::SectionVersion2;
                 }
                 default: {
-                    assert_conditional(false, "invaild_texture_information_section_size", "exchange_texture_information_version"); // TODO: Add to localization.
+                    assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_texture_information_section_size")), std::to_string(texture_information_section_size)), "exchange_texture_information_version");
                 }
             }
         }
@@ -102,7 +104,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     return k_texture_resource_information_section_block_size_version_2;
                 }
                 default: {
-                    assert_conditional(false, "invaild_texture_information_section", "exchange_texture_information_version"); // TODO: Add to localization.
+                    assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.rsb.popcap.rsb.texture_information_version")), std::to_string(static_cast<int>(texture_information_version))), "exchange_texture_information_version");
                 }
             }
         }
@@ -250,7 +252,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             DataStreamView &stream,
             SimpleGroupInformation &value) -> void
         {
-            value.id = exchange_string_block<128_size>(stream);
+            value.id = exchange_string_block<k_subgroup_name_string_block_size>(stream);
             auto before_pos = stream.read_pos;
             stream.read_pos += 1024_size;
             value.subgroup_count = stream.readUint32();
@@ -270,7 +272,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             SimpleGroupInformation const &value
             ) -> void
         {
-            exchange_string_block<128_size>(stream, value.id);
+            exchange_string_block<k_subgroup_name_string_block_size>(stream, value.id);
             auto padding_to_write = value.subgroup_count * 16_size;
             try_assert(padding_to_write < 1024_size, "out_of_range");
             for (auto i : Range(value.subgroup_count))

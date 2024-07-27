@@ -164,7 +164,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             auto data_stream = DataStreamView{stream.readBytes(static_cast<size_t>(data_sign.size))};
             for (auto data_index : Range(data_list.size())) {
                 auto data = data_stream.getBytes(data_list[data_index].pos, data_list[data_index].pos + data_list[data_index].size);
-                write_bytes(fmt::format("{}/embedded_audio/{}.wem", destination, value.at(data_index)), data);
+                write_bytes(fmt::format("{}/audio/{}.wem", destination, value.at(data_index)), data);
             }
             return;
         }
@@ -216,9 +216,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 }
                 else {
                     hierarchy.data = exchange_hex_string(stream.readBytes(static_cast<size_t>(length - 4_size)));
+                    /*
                     if (hierarchy.type == "sound_playlist_container"_sv) {
-                        debug(hierarchy.data);
                     }
+                    */
                 }
             }
             return;
@@ -351,7 +352,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             auto stream = DataStreamView{source};
             auto definition = SoundBankInformation{};
             process_whole(stream, definition, destination);
-            write_json(fmt::format("{}/{}", destination, "definition.json"), definition);
+            write_json(fmt::format("{}/{}", destination, "data.json"), definition);
             return;
         }
     };

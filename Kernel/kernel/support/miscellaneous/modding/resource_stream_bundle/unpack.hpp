@@ -3,9 +3,13 @@
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/miscellaneous/modding/resource_stream_bundle/definition.hpp"
 #include "kernel/support/miscellaneous/modding/resource_stream_bundle/common.hpp"
+#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/common.hpp"
 #include "kernel/support/popcap/resource_stream_group/unpack.hpp"
 #include "kernel/support/popcap/resource_stream_bundle/unpack.hpp"
 #include "kernel/support/popcap/resource_stream_bundle/definition.hpp"
+#include "kernel/support/popcap/reflection_object_notation/decode.hpp"
+#include "kernel/support/popcap/new_type_object_notation/decode.hpp"
+#include "kernel/support/popcap/resource_group/convert.hpp"
 #include "kernel/support/texture/invoke.hpp"
 #include "kernel/support/miscellaneous/shared.hpp"
 
@@ -27,40 +31,305 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     using ResourceStreamGroupUnpack = Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack;
 
+    using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
+
+    using namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup;
+
     struct Unpack : Common
     {
     private:
         inline static auto exchange_manifest_group(
-            std::vector<uint8_t> &packet
-        ) -> void
+            std::vector<uint8_t> const &packet_data,
+            ResourceInfo &resource_info,
+            ResInfo &res_info) -> void
         {
-            /*
             auto packet_definition = PacketStructure{};
-            auto packet_stream = DataStreamView{};
-            auto resource_data_stored = std::map<std::string, std::vector<uint8_t>>{};
-            ResourceStreamGroupUnpack::process_whole(packet_stream, packet_definition, resource_data_stored);
-            for (auto &[id, value] : resource_data_stored) {
-                debug(id);
+            auto packet_stream = DataStreamView{packet_data};
+            auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+            ResourceStreamGroupUnpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
+            auto resource_path_name = std::string{};
+            for (auto &[id, _v] : resource_data_section_view_stored)
+            {
+                auto file_extenstion = Kernel::Path::getExtension(id);
+                if (compare_string(file_extenstion, k_newton_extension_string))
+                {
+                    resource_path_name = id;
+                    resource_info.use_new_type_resource = true;
+                    break; // use_newton_if_it's_exist
+                }
+                if (compare_string(file_extenstion, k_rton_extension_string))
+                {
+                    resource_path_name = id;
+                }
             }
-            */
+            assert_conditional(!resource_path_name.empty(), fmt::format("{}", Language::get("pvz2.rsb.modding.manifest_does_not_contain_resource_info")), "exchange_manifest_group"); 
+            auto &resource_data = resource_data_section_view_stored[resource_path_name];
+            auto resource_json = nlohmann::ordered_json{};
+            if (resource_info.use_new_type_resource)
+            {
+                auto decode = Sen::Kernel::Support::PopCap::NewTypeObjectNotation::Decode(resource_data);
+                resource_json = decode.process();
+            }
+            else
+            {
+                auto stream = DataStreamView{resource_data};
+                auto writer = JsonWriter{};
+                Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Decode::process_whole(stream, writer);
+                resource_json = nlohmann::ordered_json::parse(writer.ToString());
+            }
+            auto res_info_json = nlohmann::ordered_json{};
+            try
+            {
+                auto convert = Sen::Kernel::Support::PopCap::ResourceGroup::Convert<true>();
+                res_info_json = convert.convert_whole(resource_json);
+                resource_info.expand_path = ExpandPath::String;
+            }
+            catch (nlohmann::ordered_json::exception &e)
+            {
+                auto convert = Sen::Kernel::Support::PopCap::ResourceGroup::Convert<false>();
+                res_info_json = convert.convert_whole(resource_json);
+                resource_info.expand_path = ExpandPath::Array;
+            }
+            exchange_res_info<true>(res_info_json, res_info);
             return;
         }
+
+        inline static auto exchange_simple_info(
+            InfoStructure &definition,
+            BundleStructure &const bundle) -> void
+        {
+            definition.version = bundle.version;
+            assert_conditional(definition.version == 4, "version_has_not_supported_yet", "exchange_simple_info");
+            definition.texture_information_version = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(bundle.texture_information_section_size);
+            return;
+        }
+
+        inline static auto exchange_unuse_resource(
+            std::string const &id,
+            SubgroupInfo const &value,
+            std::string_view destination
+        ) -> void
+        {
+            write_json(fmt::format("{}/unuse_resource/{}.json", destination, id), value);
+            return;
+        }
+
+        inline static auto exchange_group(
+            InfoStructure &definition,
+            BundleStructure &bundle,
+            ResInfo &res_info,
+            DataSectionViewStored const &packet_data_section_view_stored,
+            std::string_view destination) -> void
+        {
+            auto header_information = PacketContainsResourceGroup::Common::HeaderInformaiton{
+                .magic = PacketContainsResourceGroup::Common::k_magic_identifier,
+                .version = definition.version,
+                .subgroup_information_section_block_size = PacketContainsResourceGroup::Common::k_subgroup_information_section_block_size};
+            for (auto &[group_id, group_value] : res_info.group)
+            {
+                header_information.is_composite = group_value.is_composite;
+                auto group_stream = DataStreamView{};
+                auto data_bank_stream = DataStreamView{};
+                PacketContainsResourceGroup::Common::exchange_head_information(header_information, group_stream);
+                PacketContainsResourceGroup::Common::exchange_padding_block(group_stream);
+                header_information.subgroup_information_section_offset = static_cast<uint32_t>(group_stream.write_pos);
+                auto subgroup_information_list = std::vector<PacketContainsResourceGroup::Common::SubgroupInformation>{};
+                for (auto &[subgroup_id, subgroup_value] : group_value.subgroup)
+                {
+                    if (!packet_data_section_view_stored.contains(subgroup_id)) {
+                        exchange_unuse_resource(subgroup_id, subgroup_value, destination);
+                        continue;
+                    }
+                    auto &packet_data = packet_data_section_view_stored.at(subgroup_id);
+                    auto subgroup_information = PacketContainsResourceGroup::Common::SubgroupInformation{
+                        .id = subgroup_id,
+                        .data_pos = static_cast<uint32_t>(data_bank_stream.write_pos),
+                        .data_size = static_cast<uint32_t>(packet_data.size())};
+                    data_bank_stream.writeBytes(packet_data);
+                    PacketContainsResourceGroup::Common::exchange_padding_block(data_bank_stream);
+                    // auto is_image = subgroup_value.resolution != static_cast<int>(k_none_size);
+                    if (subgroup_value.resolution != static_cast<int>(k_none_size))
+                    { // if is_image
+                        for (auto &[packet_id, packet_value] : subgroup_value.packet)
+                        {
+                            auto format = empty_virtual_image_format;
+                            for (auto resource_index : Range(bundle.group.at(group_id).subgroup.at(subgroup_id).resource.size()))
+                            {
+                                auto &resource = bundle.group.at(group_id).subgroup.at(subgroup_id).resource[resource_index];
+                                auto &resource_path = resource.path;
+                                if (compare_string(resource_path, fmt::format("{}.ptx", packet_value.image_info.path)))
+                                {
+                                    format = resource.texture_additional.value.texture_infomation.format;
+                                    bundle.group.at(group_id).subgroup.at(subgroup_id).resource.erase(bundle.group.at(group_id).subgroup.at(subgroup_id).resource.begin() + resource_index);
+                                    break;
+                                }
+                            }
+                            assert_conditional(format != empty_virtual_image_format, String::format(fmt::format("{}", Language::get("pvz2.rsb.modding.invalid_image_format")), std::to_string(format)), "exchange_group"); 
+                            if (definition.is_ios_texture_format)
+                            {
+                                packet_value.image_info.format = exchange_image_format<true>(format);
+                            }
+                            else
+                            {
+                                packet_value.image_info.format = check_etc_format(exchange_image_format<false>(format), bundle.texture_information_section_size);
+                            }
+                        }
+                    }
+                    auto content_info = dump_json(subgroup_value);
+                    subgroup_information.info_pos = static_cast<uint32_t>(data_bank_stream.write_pos);
+                    subgroup_information.info_size = static_cast<uint32_t>(content_info.size());
+                    data_bank_stream.writeString(content_info);
+                    PacketContainsResourceGroup::Common::exchange_padding_block(data_bank_stream);
+                    subgroup_information_list.emplace_back(subgroup_information);
+                    // PacketContainsResourceGroup::Common::exchange_from_subgroup(group_stream, subgroup_information);
+                    ++header_information.subgroup_information_section_block_count;
+                }
+                auto information_section_size = static_cast<uint32_t>(group_stream.size()) + static_cast<uint32_t>(subgroup_information_list.size()) * PacketContainsResourceGroup::Common::k_subgroup_information_section_block_size;
+                for (auto &subgroup_information : subgroup_information_list)
+                {
+                    subgroup_information.data_pos += information_section_size;
+                    subgroup_information.info_pos += information_section_size;
+                }
+                exchange_list(group_stream, subgroup_information_list, &PacketContainsResourceGroup::Common::exchange_from_subgroup);
+                header_information.information_section_size = information_section_size;
+                group_stream.writeBytes(data_bank_stream.toBytes());
+                PacketContainsResourceGroup::Common::exchange_head_information(header_information, group_stream);
+                write_bytes(fmt::format("{}/packet/{}.pcr", destination, group_id), group_stream.toBytes());
+                definition.group.emplace_back(group_id);
+            }
+            return;
+        }
+
+        inline static auto exchange_package(
+            DataSectionViewStored &packet_data_section_view_stored,
+            PackageInfo &package_info,
+            std::string_view destination) -> void
+        {
+            auto check_rton_is_encrypted = [](std::vector<uint8_t> &data) -> bool
+            {
+                if (data.size() == k_none_size)
+                {
+                    return false;
+                }
+                if (data[0] == 0x10 && data[1] == 0x0)
+                {
+                    return true;
+                }
+                return false;
+            };
+
+            auto rton_encrypted_count = k_begin_index;
+            for (auto &[group_id, group_value] : packet_data_section_view_stored)
+            {
+                if (compare_string(group_id, k_package_string))
+                {
+                    auto packet_definition = PacketStructure{};
+                    auto packet_stream = DataStreamView{group_value};
+                    auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
+                    FileSystem::create_directory(fmt::format("{}/{}", destination, k_package_string));
+                    for (auto &[id, data] : resource_data_section_view_stored)
+                    {
+                        if (check_rton_is_encrypted(data))
+                        {
+                            ++rton_encrypted_count;
+                        }
+                        write_bytes(fmt::format("{}/{}", destination, id), data);
+                    }
+                    if (rton_encrypted_count > static_cast<int>(resource_data_section_view_stored.size() / 2))
+                    { // > 50%
+                        package_info.rton_is_encrypted = true;
+                    }
+                    package_info.use_package_info = true;
+                    break;
+                }
+            }
+            return;
+        }
+
+        /*
+        template <auto uppercase>
+        inline static auto rewrite_stream_stored(
+            StreamStored &value) -> void
+        {
+            static_assert(uppercase == true || uppercase == false, "uppercase must be true or false");
+            auto new_stream_stored = StreamStored{};
+            for (auto &[id, v] : value)
+            {
+                if constexpr (uppercase)
+                {
+                    new_stream_stored[toupper_back(id)] = v;
+                }
+                else
+                {
+                    new_stream_stored[tolower_back(id)] = v;
+                }
+            }
+            value = std::move(new_stream_stored);
+
+
+            return;
+        }
+
+        template <auto uppercase>
+        inline static auto rewrite_bundle(
+            BundleStructure &value) -> void
+        {
+            static_assert(uppercase == true || uppercase == false, "uppercase must be true or false");
+            auto new_bundle = BundleStructure{
+
+            };
+
+            for (auto &[id, v] : value.group)
+            {
+                if constexpr (uppercase)
+                {
+                    new_stream_stored[toupper_back(id)] = v;
+                }
+                else
+                {
+                    new_stream_stored[tolower_back(id)] = v;
+                }
+            }
+            value = std::move(new_stream_stored);
+            return;
+        }
+
+        */
 
         inline static auto process_package(
             DataStreamView &stream,
             InfoStructure &definition,
-            std::string const &packet_folder) -> void
+            std::string_view destination) -> void
         {
-            /*
             auto bundle = BundleStructure{};
             auto manifest = ManifestStructure{};
-            auto packet_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+            auto packet_data_section_view_stored = DataSectionViewStored(&case_insensitive_compare);
             ResourceStreamBundleUnpack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
-            assert_conditional(packet_data_section_view_stored.contains(Common::k_manifest_string), "cannot find manifest", "process_package");
-            auto &manifest_packet = packet_data_section_view_stored[Common::k_manifest_string];
-            exchange_manifest_group(manifest_packet);
-            */
-
+            exchange_simple_info(definition, bundle);
+            auto manifest_name = std::string{k_manifest_string};
+            for (auto &[group_name, _v] : packet_data_section_view_stored)
+            {
+                if (group_name.starts_with(manifest_name))
+                {
+                    if (group_name.size() > manifest_name.size())
+                    {
+                        definition.resource_info.resource_additional_name = group_name.substr(manifest_name.size(), group_name.size() - manifest_name.size());
+                        manifest_name = group_name;
+                    }
+                    break;
+                }
+            }
+            assert_conditional(packet_data_section_view_stored.contains(manifest_name), String::format(fmt::format("{}", Language::get("pvz2.rsb.modding.cannot_find_manifest")), manifest_name), "process_package"); 
+            auto &manifest_packet = packet_data_section_view_stored[manifest_name];
+            auto res_info = ResInfo{};
+            exchange_manifest_group(manifest_packet, definition.resource_info, res_info);
+            exchange_package(packet_data_section_view_stored, definition.package_info, destination);
+            if (definition.package_info.use_package_info)
+            {
+                res_info.group.erase(std::string{k_package_string});
+            }
+            exchange_group(definition, bundle, res_info, packet_data_section_view_stored, destination);
             return;
         }
 
@@ -70,7 +339,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             InfoStructure &definition,
             std::string_view destination) -> void
         {
-            process_package(stream, definition, fmt::format("{}/Packet", destination));
+            process_package(stream, definition, destination);
             return;
         }
 
@@ -83,7 +352,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto definition = InfoStructure{
                 .is_ios_texture_format = is_ios_texture_format};
             process_whole(stream, definition, destination);
-            write_json(fmt::format("{}/definition.json", destination), definition);
+            write_json(fmt::format("{}/data.json", destination), definition);
             return;
         }
     };

@@ -30,7 +30,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert {
 			else {
 				ConvertToFlashWithMainSprite::process_whole(definition, extra, destination);
 			}
-			write_json(fmt::format("{}/extra.json", destination), extra);
+			write_json(fmt::format("{}/data.json", destination), extra);
 			return;
 		}
 
@@ -42,7 +42,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert {
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");
 			auto definition = SexyAnimation{};
-			auto extra = *FileSystem::read_json(fmt::format("{}/extra.json", source));
+			auto extra = *FileSystem::read_json(fmt::format("{}/data.json", source));
 			if constexpr (split_label) {
 				ConvertFromFlashWithLabel::process_whole(definition, extra, source);
 			}

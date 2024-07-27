@@ -671,7 +671,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto definition = *FileSystem::read_json(source);
 			auto extra = ExtraInfo{.resolution = resolution};
 			process_whole(definition, extra, destination);
-			write_json(fmt::format("{}/extra.json", destination), extra);
+			write_json(fmt::format("{}/data.json", destination), extra);
 			return;
 		}
 	};

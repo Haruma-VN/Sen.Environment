@@ -344,11 +344,14 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
             JsonWriter &value) -> void
         {
             assert_conditional(stream.readString(4) == k_magic_identifier, fmt::format("{}", Kernel::Language::get("popcap.rton.decode.invalid_rton_magic")), "process_whole");
-            assert_conditional(stream.readUint32() == k_version, "invalid_rton_version", "process_whole"); // TODO: add to localization.
+            {
+                auto version = stream.readUint32();
+                assert_conditional(version == k_version, String::format(fmt::format("{}", Language::get("popcap.rton.version_is_invalid")), std::to_string(version)), "process_whole");
+            }
             auto native_string_index = std::vector<std::string>{};
             auto unicode_string_index = std::vector<std::string>{};
             exchange_value<false>(stream, value, native_string_index, unicode_string_index, TypeIdentifierEnumeration::Type::object_begin);
-            assert_conditional(stream.readString(4) == k_done_identifier, "invalid_rton_done", "process_whole"); // TODO: add to localization.
+            assert_conditional(stream.readString(4) == k_done_identifier, fmt::format("{}", Language::get("popcap.rton.done_invalid")), "process_whole");
             return;
         }
 

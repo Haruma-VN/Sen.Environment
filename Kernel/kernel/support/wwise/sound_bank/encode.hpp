@@ -85,7 +85,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			auto data_count = value.size();
 			for (auto data_index : Range(data_count))
 			{
-				auto data = FileSystem::read_binary<uint8_t>(fmt::format("{}/embedded_audio/{}.wem", source, value[data_index]));
+				auto data = FileSystem::read_binary<uint8_t>(fmt::format("{}/audio/{}.wem", source, value[data_index]));
 				stream.writeUint32(value[data_index]);
 				stream.writeUint32(static_cast<uint32_t>(data_stream.write_pos));
 				stream.writeUint32(static_cast<uint32_t>(data.size()));
@@ -385,7 +385,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
 			std::string_view destination) -> void
 		{
 			auto stream = DataStreamView{};
-			auto definition = *FileSystem::read_json(fmt::format("{}/definition.json", source));
+			auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
 			process_whole(stream, definition, source);
 			stream.out_file(destination);
 			return;

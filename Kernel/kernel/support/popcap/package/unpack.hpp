@@ -50,13 +50,16 @@ namespace Sen::Kernel::Support::PopCap::Package
                 return;
             }
             case k_magic_package_xmem_compression_identifier: {
-                assert("xmem_compressed, use xbdecompress to decompress first"); // TODO: Add to localizaton.
+                assert_conditional(false, fmt::format("{}", Language::get("popcap.package.invalid_xbfile")), "process_package"); 
             }
             default:
-                assert_conditional(false, "invalid_package_platform", "process_package");
+                assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.package.invalid_package_platform")), std::to_string(k_magic_package)), "process_package");
             }
             assert_conditional(stream.readInt32() == k_magic_package_identifier, fmt::format("{}", Language::get("popcap.pak.unpack.invalid_pak_header")), "process_package");
-            assert_conditional(stream.readUint32() == k_version, "invalid_version", "process_package"); // TODO: Add to localizaton.
+            {
+                auto version = stream.readUint32();
+                assert_conditional(version == k_version, String::format(fmt::format("{}", Language::get("popcap.package.invalid_version")), std::to_string(version)), "process_package");
+            }
             auto resource_information_list = std::vector<ResourceInformation>{};
             while (true)
             {
@@ -98,7 +101,7 @@ namespace Sen::Kernel::Support::PopCap::Package
                         resource_information_list.emplace_back(resource_information);
                         continue;
                     }
-                    assert("package_fail_valid"); // TODO: add to localization.
+                    assert_conditional(false, fmt::format("{}", Language::get("popcap.package.unpack_failed")), "process_package");
                 }
             }
             for (auto &resource_information : resource_information_list)
@@ -129,7 +132,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             std::string_view source,
             std::string_view destination) -> void
         {
-            auto resource_directory = fmt::format("{}/Resource", destination);
+            auto resource_directory = fmt::format("{}/resource", destination);
             process_package(stream, definition, resource_directory);
             return;
         }
@@ -141,7 +144,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             auto stream = DataStreamView{source};
             auto definition = PackageInfomartion{};
             process_whole(stream, definition, source, destination);
-            write_json(fmt::format("{}/definition.json", destination), definition);
+            write_json(fmt::format("{}/data.json", destination), definition);
             return;
         }
     };

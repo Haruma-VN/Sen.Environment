@@ -79,7 +79,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             std::string_view source,
             std::string_view destination) -> void
         {
-            auto resource_directory = fmt::format("{}/Resource", source);
+            auto resource_directory = fmt::format("{}/resource", source);
             process_package(stream, definition, resource_directory);
             return;
         }
@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            auto definition = *FileSystem::read_json(fmt::format("{}/definition.json", source));
+            auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
             process_whole(stream, definition, source, destination);
             stream.out_file(destination);
             return;

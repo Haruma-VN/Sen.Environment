@@ -8,6 +8,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 {
     using namespace Definition;
 
+    using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
+
     struct Unpack : Common
     {
     public:
@@ -100,18 +102,18 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     protected:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+           requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_package(
             DataStreamView &stream,
             BundleStructure &definition,
             ManifestStructure &manifest,
-            Args args) -> void
+            Args &args) -> void
         {
             auto information_structure = Information{};
             exchange_to_header(stream, information_structure.header);
             assert_conditional(information_structure.header.magic == k_magic_identifier, "invalid_magic_header", "process_package");
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(information_structure.header.version));
-            assert_conditional((index != k_version_list.end()), "invalid_rsb_version", "process"); // TODO: add to localization.
+            assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_rsb_version")), std::to_string(static_cast<int>(information_structure.header.version))), "process"); 
             definition.version = information_structure.header.version;
             CompiledMapData::decode(stream, information_structure.header.group_id_section_offset, information_structure.header.group_id_section_size, information_structure.group_id, &exchange_to_index);
             // CompiledMapData::decode(stream, information_structure.header.subgroup_id_section_offset, information_structure.header.subgroup_id_section_size, information_structure.subgroup_id, &exchange_to_index);
@@ -151,7 +153,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 break;
             }
             default:
-                assert_conditional(false, "invalid_texture_resource_information_section_block_size", "process_package"); // TODO: add to localization.
+                assert_conditional(false, fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource_information_section_block_size")), "process_package"); 
             }
             if (information_structure.header.group_manifest_information_section_offset != 0_ui || information_structure.header.resource_manifest_information_section_offset != 0_ui || information_structure.header.string_manifest_information_section_offset != 0_ui)
             {
@@ -185,7 +187,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     auto packet_data = stream.getBytes(basic_subgroup_information.offset, basic_subgroup_information.offset + basic_subgroup_information.size);
                     auto packet_stream = DataStreamView{packet_data};
                     auto packet_structure = PacketStructure{};
-                    ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure);
+                    auto get_packet_structure_only = true;
+                    ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, get_packet_structure_only);
                     // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
                     // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
                     for (auto &packet_resource : packet_structure.resource)
@@ -205,7 +208,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     }
                     subgroup_information.resource = packet_structure.resource;
                     group_information.subgroup[subgroup_id] = subgroup_information;
-                    if constexpr (std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value)
+                    if constexpr (std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value)
                     {
                         args[subgroup_id] = std::move(packet_data);
                     }
@@ -221,12 +224,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
         inline static auto process_whole(
             DataStreamView &stream,
             BundleStructure &definition,
             ManifestStructure &manifest,
-            Args args) -> void
+            Args &args) -> void
         {
             process_package(stream, definition, manifest, args);
             return;
@@ -240,7 +243,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             auto definition = BundleStructure{};
             auto manifest = ManifestStructure{};
             process_whole(stream, definition, manifest, destination);
-            write_json(fmt::format("{}/definition.json", destination), definition);
+            write_json(fmt::format("{}/data.json", destination), definition);
             if (manifest.manifest_has)
             {
                 write_json(fmt::format("{}/manifest.json", destination), manifest);

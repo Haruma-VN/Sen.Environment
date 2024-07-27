@@ -52,7 +52,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            auto definition = *FileSystem::read_json(fmt::format("{}/definition.json", destination));
+            auto definition = *FileSystem::read_json(fmt::format("{}/data.json", destination));
             auto manifest = ManifestStructure{};
             if (definition["version"].get<uint32_t>() <= 3_ui) {
                 manifest = *FileSystem::read_json(fmt::format("{}/manifest.json", source));

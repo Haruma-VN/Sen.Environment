@@ -200,7 +200,7 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
             {
             case ondemand::json_type::null:
             {
-                assert_conditional(false, "type is null", "exchange_value");
+                assert_conditional(false, fmt::format("{}", Language::get("popcap.rton.type_is_null")), "exchange_value");
                 break;
             }
             case ondemand::json_type::boolean:
@@ -246,7 +246,7 @@ namespace Sen::Kernel::Support::PopCap::ReflectionObjectNotation
             }
             default:
             {
-                assert_conditional(false, "invalid_type", "exchange_value"); // TODO: add to localization.
+                assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.rton.invalid_type"))), "exchange_value"); 
             }
             }
         }

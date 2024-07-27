@@ -84,7 +84,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             break;
         };
         default:
-            assert_conditional(false, "invalid_package_platform", "to_json"); // TODO: add to localization.
+            assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.package.invalid_package_platform")), std::to_string(nlohmann_json_j["package_platform"].get<uint8_t>())), "to_json");
         }
         nlohmann_json_j["zlib_compression"] = nlohmann_json_t.zlib_compression;
         nlohmann_json_j["resource"] = nlohmann_json_t.resource;
@@ -120,7 +120,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             break;
         };
         default:
-            assert_conditional(false, "invalid_package_platform", "from_json"); // TODO: add to localization.
+            assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.package.invalid_package_platform")), package_platform_string), "from_json");
         }
         nlohmann_json_j.at("zlib_compression").get_to(nlohmann_json_t.zlib_compression);
         nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);

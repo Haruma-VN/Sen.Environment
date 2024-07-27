@@ -59,9 +59,9 @@ namespace Sen::Kernel::Definition::Compression {
 			{
 				auto bzerror = int{};
 				auto strm = bz_stream{};
-				strm.bzalloc = NULL;
-				strm.bzfree = NULL;
-				strm.opaque = NULL;
+				strm.bzalloc = nullptr;
+				strm.bzfree = nullptr;
+				strm.opaque = nullptr;
 				BZ2_bzCompressInit(&strm, block_size, 0, work_factor);
 				strm.next_in = (char*)(input.data());
 				strm.avail_in = input.size();
@@ -91,9 +91,9 @@ namespace Sen::Kernel::Definition::Compression {
 			{
 				auto bzerror = int{};
 				auto strm = bz_stream{
-					.bzalloc = NULL,
-					.bzfree = NULL,
-					.opaque = NULL,
+					.bzalloc = nullptr,
+					.bzfree = nullptr,
+					.opaque = nullptr,
 				};
 				BZ2_bzDecompressInit(&strm, 0, 0);
 				strm.next_in = (char*)input.data();

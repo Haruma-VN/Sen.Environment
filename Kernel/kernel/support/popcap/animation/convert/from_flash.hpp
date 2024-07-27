@@ -312,7 +312,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					}
 					else
 					{
-						assert_conditional(frame_node.resource == model.resource && frame_node.sprite == model.sprite, "invaild_instance", "exchange_frame_node");
+						assert_conditional(frame_node.resource == model.resource && frame_node.sprite == model.sprite, "invalid_instance", "exchange_frame_node");
 					}
 					model.frame_start = frame_index;
 					model.frame_duration = frame_duration;
@@ -349,7 +349,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_timeline = dom_document->FirstChildElement("timelines")->FirstChildElement("DOMTimeline");
 			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_dom_document");
 			auto label_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer");
-			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document"); // TODO: add to localization.
+			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document"); 
 			auto label_frames = label_layer->FirstChildElement("frames");
 			auto frame_count = k_begin_index_int;
 			for (auto dom_frame = label_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame"))
@@ -632,7 +632,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");
 			auto definition = SexyAnimation{};
-			auto extra = *FileSystem::read_json(fmt::format("{}/extra.json", source));
+			auto extra = *FileSystem::read_json(fmt::format("{}/data.json", source));
 			process_whole(definition, extra, source);
 			FileSystem::write_json(destination, definition);
 			return;

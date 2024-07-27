@@ -10,9 +10,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 
     using namespace Sen::Kernel::Support::Miscellaneous::Shared;
 
-    template <typename Type>
-    concept IsValidArgument = true && std::is_same<Type, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Type, std::string_view>::value;
-
     struct Unpack : Common
     {
     protected:
@@ -21,13 +18,13 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         inline static auto process_package(
             DataStreamView &stream,
             PacketStructure &definition,
-            Args args) -> void
+            Args &args) -> void
         {
             auto information_structure_header = HeaderInformaiton{};
             exchange_header(stream, information_structure_header);
-            assert_conditional(information_structure_header.magic == k_magic_identifier, "invalid_rsg_head", "process_package"); // TODO: add to localization.
+            assert_conditional(information_structure_header.magic == k_magic_identifier, fmt::format("{}", Language::get("popcap.rsg.unpack.invalid_rsg_magic")), "process_package"); 
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(information_structure_header.version));
-            assert_conditional((index != k_version_list.end()), "invalid_rsg_version", "process"); // TODO: add to localization.
+            assert_conditional((index != k_version_list.end()),  String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_version")), std::to_string(static_cast<int>(information_structure_header.version))), "process"); 
             definition.version = information_structure_header.version;
             auto resource_information_structure = std::map<std::string, ResourceInformation>{};
             CompiledMapData::decode(stream, information_structure_header.resource_information_section_offset, information_structure_header.resource_information_section_size, resource_information_structure, &exchange_to_resource_infomation);
@@ -109,22 +106,21 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         }
 
     public:
-        template <typename... Args>
-            requires(IsValidArgument<Args> && ...)
+        template <typename Args>
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value || std::is_same<Args, bool>::value
         inline static auto process_whole(
             DataStreamView &stream,
             PacketStructure &definition,
-            Args... args) -> void
+            Args &args) -> void
         {
-            static_assert(sizeof...(Args) == 1_size || sizeof...(Args) == 0_size, "Expected 0 or 1 argument only");
-            if constexpr (sizeof...(Args) == 1_size)
+            if constexpr (std::is_same<Args, std::string_view>::value)
             {
-                auto resource_directory = fmt::format("{}/Resource", std::get<0>(std::make_tuple(args...)));
-                process_package(stream, definition, std::string_view{resource_directory});
+                auto resource_directory = std::string_view{fmt::format("{}/resource", args)};
+                process_package(stream, definition, resource_directory);
             }
-            if constexpr (sizeof...(Args) == 0_size)
+            else 
             {
-                process_package(stream, definition, true);
+                process_package(stream, definition, args);
             }
             return;
         }
@@ -136,7 +132,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             auto stream = DataStreamView{source};
             auto definition = PacketStructure{};
             process_whole(stream, definition, destination);
-            FileSystem::write_json(fmt::format("{}/definition.json", destination), definition);
+            FileSystem::write_json(fmt::format("{}/data.json", destination), definition);
             return;
         }
     };

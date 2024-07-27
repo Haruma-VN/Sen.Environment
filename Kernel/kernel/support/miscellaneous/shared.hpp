@@ -54,6 +54,12 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         FileSystem::write_json(destination, content);
     }
 
+    inline static auto dump_json(
+        nlohmann::ordered_json const &content) -> std::string
+    {
+        return content.dump();
+    }
+
     inline static auto write_xml(
         std::string const &destination,
         tinyxml2::XMLDocument &content) -> void
@@ -71,7 +77,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return;
     }
 
-    inline auto toupper(
+    inline auto toupper_case(
         std::string &str) -> void
     {
         std::transform(str.begin(), str.end(), str.begin(), ::toupper);
@@ -84,6 +90,21 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         auto upper_str = std::string{str.data(), str.size()};
         std::transform(upper_str.begin(), upper_str.end(), upper_str.begin(), ::toupper);
         return upper_str;
+    }
+
+    inline auto tolower_case(
+        std::string &str) -> void
+    {
+        std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+        return;
+    }
+
+    inline auto tolower_back(
+        std::string const &str) -> std::string
+    {
+        auto lower_str = std::string{str.data(), str.size()};
+        std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
+        return lower_str;
     }
 
     inline auto compare_string(
@@ -103,6 +124,17 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         return true;
     }
+
+    inline static auto case_insensitive_compare(const std::string &a, const std::string &b) -> bool
+    {
+        std::string aLower = a;
+        std::string bLower = b;
+        std::transform(aLower.begin(), aLower.end(), aLower.begin(), [](unsigned char c)
+                       { return std::tolower(c); });
+        std::transform(bLower.begin(), bLower.end(), bLower.begin(), [](unsigned char c)
+                       { return std::tolower(c); });
+        return aLower < bLower;
+    };
 
     inline auto compute_utf8_character_extra_size(
         char const &character) -> size_t

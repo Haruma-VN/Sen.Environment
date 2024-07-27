@@ -88,7 +88,7 @@ namespace Sen::Kernel::Support::PopCap::Package
             std::string_view resource_directory,
             std::vector<Resource> &value) -> void
         {
-            char *output_bytes = NULL;
+            char *output_bytes = nullptr;
             auto bytes_size = size_t{0};
             auto zip_data = std::vector<char>(data.begin(), data.end());
             auto zip = std::unique_ptr<struct zip_t, decltype(zip_stream_deleter)>(zip_stream_open(zip_data.data(), zip_data.size(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'r'), zip_stream_deleter);
@@ -113,9 +113,9 @@ namespace Sen::Kernel::Support::PopCap::Package
             std::string_view resource_directory,
             std::vector<Resource> const &value) -> void
         {
-            char *output_bytes = NULL;
+            char *output_bytes = nullptr;
             auto bytes_size = 0_size;
-            auto zip = std::unique_ptr<struct zip_t, decltype(zip_stream_deleter)>(zip_stream_open(NULL, 0, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w'), zip_stream_deleter);
+            auto zip = std::unique_ptr<struct zip_t, decltype(zip_stream_deleter)>(zip_stream_open(nullptr, 0, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w'), zip_stream_deleter);
             for (auto &resource : value)
             {
                 auto zip_path = resource.path;

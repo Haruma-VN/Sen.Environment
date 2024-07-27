@@ -22,7 +22,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             ResourceStreamBundle::Unpack::process_whole(stream, definition, manifest, packet_data_section_view_stored);
             auto packet_definition = ResourceStreamGroup::PacketStructure{};
             for (auto &[packet_id, packet_data] : packet_data_section_view_stored) {
-                auto packet_stream = DataStreamView{};
+                auto packet_stream = DataStreamView{packet_data};
                 ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, destination);
             }
             return;
@@ -47,7 +47,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             auto definition = BundleStructure{};
             auto manifest = ManifestStructure{};
             process_whole(stream, definition, manifest, destination);
-            write_json(fmt::format("{}/definition.json", destination), definition);
+            write_json(fmt::format("{}/data.json", destination), definition);
             if (manifest.manifest_has)
             {
                 write_json(fmt::format("{}/manifest.json", destination), manifest);

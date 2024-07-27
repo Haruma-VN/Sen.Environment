@@ -2,6 +2,7 @@
 
 #include "kernel/definition/utility.hpp"
 #include "kernel/support/popcap/resource_stream_group/definition.hpp"
+#include "kernel/support/miscellaneous/shared.hpp"
 
 namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 {
@@ -70,7 +71,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
     struct GroupInformation
     {
         bool composite;
-        std::map<std::string, SubgroupInformation> subgroup;
+        std::map<std::string, SubgroupInformation, decltype(&case_insensitive_compare)> subgroup = std::map<std::string, SubgroupInformation, decltype(&case_insensitive_compare)>(&case_insensitive_compare);
     };
 
     inline auto to_json(
@@ -95,7 +96,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
     {
         uint32_t version;
         size_t texture_information_section_size;
-        std::map<std::string, GroupInformation> group;
+        std::map<std::string, GroupInformation, decltype(&case_insensitive_compare)> group = std::map<std::string, GroupInformation, decltype(&case_insensitive_compare)>(&case_insensitive_compare);
     };
 
     inline auto to_json(
@@ -113,7 +114,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         BundleStructure &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
-        nlohmann_json_t.texture_information_section_size = Common::exchange_texture_information_version(nlohmann_json_j.at("texture_information_version").get<size_t>());
+        nlohmann_json_t.texture_information_section_size = Common::exchange_texture_information_version(nlohmann_json_j.at("texture_information_version").get<Common::TextureInformationVersion>());
         nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
         return;
     }
