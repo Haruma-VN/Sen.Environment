@@ -107,7 +107,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 						}
 					}
 				}
-				FileSystem::write_json(fmt::format("{}/content.json", destination), content);
+				FileSystem::write_json(fmt::format("{}/data.json", destination), content);
 				return;
 			}
 
@@ -121,7 +121,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				std::string_view destination
 			) -> void
 			{
-				auto content = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "content.json")));
+				auto content = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "data.json")));
 				auto resources_json = nlohmann::ordered_json{
 					{"version", 1},
 					{"content_version", 1},
@@ -147,7 +147,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 					for(auto & [subgroup, subgroup_value] : content[parent]["subgroups"].items()){
 						auto resource_json_path = Path::normalize(fmt::format("{}/subgroup/{}.json", source, subgroup));
 						auto resource_content = *FileSystem::read_json(resource_json_path);
-						assert_conditional(resource_content.find("resources") != resource_content.end(), fmt::format("Property \"{}\" cannot be null", "groups"), "merge");
+						assert_conditional(resource_content.find("resources") != resource_content.end(), String::format(fmt::format("{}", Language::get("popcap.resource_group.property_cannot_be_null")), std::string{"groups"}), "merge");
 						groups.emplace_back(resource_content);
 					}
 				}

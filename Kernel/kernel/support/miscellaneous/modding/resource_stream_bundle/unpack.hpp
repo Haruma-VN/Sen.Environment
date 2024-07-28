@@ -35,6 +35,15 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     using namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup;
 
+    using SubgroupToWork = std::map<std::string, Sen::Kernel::Support::PopCap::ResourceStreamBundle::SubgroupInformation, decltype(&case_insensitive_compare)>;
+
+    struct GroupInformationToWork {
+        bool composite;
+        SubgroupToWork subgroup;
+    };
+
+    using GroupToWork = std::map<std::string, GroupInformationToWork, decltype(&case_insensitive_compare)>;
+
     struct Unpack : Common
     {
     private:
@@ -114,13 +123,33 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             return;
         }
 
+        inline static auto exchange_group_to_work(
+            BundleStructure const &bundle,
+            GroupToWork &group_to_work
+        ) -> void
+        {
+            for (auto &[g_name, g_value] : bundle.group) {
+                auto subgroup_to_work = SubgroupToWork(&case_insensitive_compare);
+                for (auto &[s_name, s_value] : g_value.subgroup) {
+                    subgroup_to_work[s_name] = std::move(s_value);
+                }
+                group_to_work[g_name] = GroupInformationToWork{
+                    .composite = g_value.composite,
+                    .subgroup = subgroup_to_work
+                };
+            }
+            return;
+        }
+
         inline static auto exchange_group(
             InfoStructure &definition,
-            BundleStructure &bundle,
+            BundleStructure const &bundle,
             ResInfo &res_info,
             DataSectionViewStored const &packet_data_section_view_stored,
             std::string_view destination) -> void
         {
+            auto group_to_work = GroupToWork(&case_insensitive_compare);
+            exchange_group_to_work(bundle, group_to_work);
             auto header_information = PacketContainsResourceGroup::Common::HeaderInformaiton{
                 .magic = PacketContainsResourceGroup::Common::k_magic_identifier,
                 .version = definition.version,
@@ -153,14 +182,14 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                         for (auto &[packet_id, packet_value] : subgroup_value.packet)
                         {
                             auto format = empty_virtual_image_format;
-                            for (auto resource_index : Range(bundle.group.at(group_id).subgroup.at(subgroup_id).resource.size()))
+                            for (auto resource_index : Range(group_to_work.at(group_id).subgroup.at(subgroup_id).resource.size()))
                             {
-                                auto &resource = bundle.group.at(group_id).subgroup.at(subgroup_id).resource[resource_index];
+                                auto &resource = group_to_work.at(group_id).subgroup.at(subgroup_id).resource[resource_index];
                                 auto &resource_path = resource.path;
                                 if (compare_string(resource_path, fmt::format("{}.ptx", packet_value.image_info.path)))
                                 {
                                     format = resource.texture_additional.value.texture_infomation.format;
-                                    bundle.group.at(group_id).subgroup.at(subgroup_id).resource.erase(bundle.group.at(group_id).subgroup.at(subgroup_id).resource.begin() + resource_index);
+                                    group_to_work.at(group_id).subgroup.at(subgroup_id).resource.erase(group_to_work.at(group_id).subgroup.at(subgroup_id).resource.begin() + resource_index);
                                     break;
                                 }
                             }
@@ -247,56 +276,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             return;
         }
 
-        /*
-        template <auto uppercase>
-        inline static auto rewrite_stream_stored(
-            StreamStored &value) -> void
-        {
-            static_assert(uppercase == true || uppercase == false, "uppercase must be true or false");
-            auto new_stream_stored = StreamStored{};
-            for (auto &[id, v] : value)
-            {
-                if constexpr (uppercase)
-                {
-                    new_stream_stored[toupper_back(id)] = v;
-                }
-                else
-                {
-                    new_stream_stored[tolower_back(id)] = v;
-                }
-            }
-            value = std::move(new_stream_stored);
-
-
-            return;
-        }
-
-        template <auto uppercase>
-        inline static auto rewrite_bundle(
-            BundleStructure &value) -> void
-        {
-            static_assert(uppercase == true || uppercase == false, "uppercase must be true or false");
-            auto new_bundle = BundleStructure{
-
-            };
-
-            for (auto &[id, v] : value.group)
-            {
-                if constexpr (uppercase)
-                {
-                    new_stream_stored[toupper_back(id)] = v;
-                }
-                else
-                {
-                    new_stream_stored[tolower_back(id)] = v;
-                }
-            }
-            value = std::move(new_stream_stored);
-            return;
-        }
-
-        */
-
         inline static auto process_package(
             DataStreamView &stream,
             InfoStructure &definition,
@@ -307,7 +286,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto packet_data_section_view_stored = DataSectionViewStored(&case_insensitive_compare);
             ResourceStreamBundleUnpack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
             exchange_simple_info(definition, bundle);
-            auto manifest_name = std::string{k_manifest_string};
+            auto manifest_name = get_string(k_manifest_string);
             for (auto &[group_name, _v] : packet_data_section_view_stored)
             {
                 if (group_name.starts_with(manifest_name))
@@ -327,7 +306,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             exchange_package(packet_data_section_view_stored, definition.package_info, destination);
             if (definition.package_info.use_package_info)
             {
-                res_info.group.erase(std::string{k_package_string});
+                res_info.group.erase(get_string(k_package_string));
             }
             exchange_group(definition, bundle, res_info, packet_data_section_view_stored, destination);
             return;

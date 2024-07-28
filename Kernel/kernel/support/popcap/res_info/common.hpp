@@ -138,7 +138,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				auto info = thiz.convert_info(res_info);
 				auto group_directory = Path::normalize(fmt::format("{}/{}", destination, "groups"));
 				FileSystem::create_directory(group_directory);
-				FileSystem::write_json(Path::normalize(fmt::format("{}/{}", destination, "info.json")), info);
+				FileSystem::write_json(Path::normalize(fmt::format("{}/{}", destination, "data.json")), info);
 				auto keys = Object::keys(res_info["groups"]);
 				for(auto i : Range<size_t>(keys.size())){
 					auto subgroup_key = Object::keys(res_info["groups"][keys.at(i)]["subgroup"]);
@@ -161,7 +161,7 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				std::string_view destination
 			) -> void override final
 			{
-				auto info = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "info.json")));
+				auto info = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}", source, "data.json")));
 				auto res_info = nlohmann::ordered_json{
 					{"expand_path", info["information"]["expand_path"]}
 				};

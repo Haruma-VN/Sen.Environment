@@ -13,9 +13,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
     protected:
         inline static auto process(
             DataStreamView &stream,
-            typename BundleStructure &definition,
-            typename ManifestStructure &manifest,
-            std::string_view destination
+            BundleStructure &definition,
+            ManifestStructure &manifest,
+            std::string& destination
         ) -> void
         {
             auto packet_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
@@ -31,11 +31,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
     public:
         inline static auto process_whole(
             DataStreamView &stream,
-            typename BundleStructure &definition,
-            typename ManifestStructure &manifest,
+            BundleStructure &definition,
+            ManifestStructure &manifest,
             std::string_view destination) -> void
         {
-            process(stream, definition, manifest, destination);
+            auto bundle_destination = get_string(destination);
+            process(stream, definition, manifest, bundle_destination);
             return;
         }
 
@@ -50,7 +51,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             write_json(fmt::format("{}/data.json", destination), definition);
             if (manifest.manifest_has)
             {
-                write_json(fmt::format("{}/manifest.json", destination), manifest);
+                write_json(fmt::format("{}/resource.json", destination), manifest);
             }
             return;
         }

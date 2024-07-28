@@ -27,13 +27,13 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             {
                 auto resource_definition_path = String::to_windows_style(resource_definition.path);
                 auto resource_data = std::vector<uint8_t>{};
-                if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>>)
+                if constexpr (std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value)
                 {
                     resource_data = std::move(args.at(resource_definition_path));
                 }
-                if constexpr (std::is_same_v<Args, std::string_view>)
+                if constexpr (std::is_same<Args, std::string_view>::value)
                 {
-                    resource_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/{}", args, resource_definition_path)));
+                    resource_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/resource/{}", args, resource_definition_path)));
                 }
                 auto resource_information = ResourceInformation{};
                 auto current_resource_type = k_general_type_string;
@@ -110,14 +110,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             PacketStructure const &value,
             Args args) -> void
         {
-            if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>>)
-            {
-                process_package(stream, value, args);
-            }
-            if constexpr (std::is_same_v<Args, std::string_view>)
-            {
-                process_package(stream, value, std::string_view{fmt::format("{}/resource", args)});
-            }
+            process_package(stream, value, args);
             return;
         }
 

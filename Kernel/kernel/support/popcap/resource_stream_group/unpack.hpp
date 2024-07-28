@@ -14,7 +14,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
     {
     protected:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value || std::is_same<Args, bool>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value || std::is_same<Args, bool>::value
         inline static auto process_package(
             DataStreamView &stream,
             PacketStructure &definition,
@@ -96,9 +96,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
                     {
                         args[resource_path] = std::move(resource_data);
                     }
-                    if constexpr (std::is_same<Args, std::string_view>::value)
+                    if constexpr (std::is_same<Args, std::string>::value)
                     {
-                        write_bytes(fmt::format("{}/{}", args, resource_path), resource_data);
+                        write_bytes(fmt::format("{}/resource/{}", args, resource_path), resource_data);
                     }
                 }
             }
@@ -107,21 +107,13 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value || std::is_same<Args, bool>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value || std::is_same<Args, bool>::value
         inline static auto process_whole(
             DataStreamView &stream,
             PacketStructure &definition,
             Args &args) -> void
         {
-            if constexpr (std::is_same<Args, std::string_view>::value)
-            {
-                auto resource_directory = std::string_view{fmt::format("{}/resource", args)};
-                process_package(stream, definition, resource_directory);
-            }
-            else 
-            {
-                process_package(stream, definition, args);
-            }
+            process_package(stream, definition, args);
             return;
         }
 
@@ -131,7 +123,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         {
             auto stream = DataStreamView{source};
             auto definition = PacketStructure{};
-            process_whole(stream, definition, destination);
+            auto packet_destination = get_string(destination);
+            process_whole(stream, definition, packet_destination);
             FileSystem::write_json(fmt::format("{}/data.json", destination), definition);
             return;
         }

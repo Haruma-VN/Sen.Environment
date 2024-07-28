@@ -118,6 +118,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             return;
         }
 
+        struct AnimationNameList
+        {
+            std::vector<string> image;
+            std::vector<string> sprite;
+        };
+
         struct LabelInfo
         {
             int start;
@@ -151,15 +157,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             extra.version = static_cast<int>(definition.version);
             extra.position.x = static_cast<int>(definition.position.x);
             extra.position.y = static_cast<int>(definition.position.y);
-            for (auto image_index : Range(definition.image.size()))
-            {
-                extra.image[fmt::format("image_{}", image_index + 1_size)] = ImageInfo{
-                    .name = definition.image[image_index].name,
-                    .id = definition.image[image_index].id,
-                    .size = ImageDimension{
-                        .width = static_cast<int>(definition.image[image_index].size.width),
-                        .height = static_cast<int>(definition.image[image_index].size.height)}};
-            }
             return;
         }
 
@@ -173,15 +170,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             definition.version = extra.version;
             definition.position.x = static_cast<double>(extra.position.x);
             definition.position.y = static_cast<double>(extra.position.y);
-            for (auto &[image_name, image_value] : extra.image)
-            {
-                definition.image.emplace_back(AnimationImage{
-                    .name = image_value.name,
-                    .id = image_value.id,
-                    .size = AnimationSize{
-                        static_cast<double>(image_value.size.width),
-                        static_cast<double>(image_value.size.height)}});
-            }
             return;
         }
 

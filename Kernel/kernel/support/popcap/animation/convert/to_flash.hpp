@@ -57,7 +57,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		template <auto sprite_type>
 		inline static auto exchange_sprite_document(
-			SpriteInfo const &sprite_info_list,
+			AnimationNameList const &animation_name_list,
 			std::string const &name,
 			FrameNodeStructure &frame_node_structure,
 			XMLDocument &value) -> void
@@ -102,12 +102,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						auto dom_symbol_instance = value.NewElement("DOMSymbolInstance");
 						if (frame_node.sprite)
 						{
-							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("sprite/{}", sprite_info_list[frame_node.resource]).data());
+							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("sprite/{}", animation_name_list.sprite[frame_node.resource]).data());
 							dom_symbol_instance->SetAttribute("firstFrame", std::to_string(frame_node.first_frame).data());
 						}
 						else
 						{
-							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("image/image_{}", frame_node.resource + 1).data());
+							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("image/{}", animation_name_list.image[frame_node.resource]).data());
 						}
 						dom_symbol_instance->SetAttribute("symbolType", k_symbol_type.data());
 						dom_symbol_instance->SetAttribute("loop", "loop");
@@ -357,6 +357,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline static auto exchange_dom_document(
 			SexyAnimation const &definition,
+			AnimationNameList const &animation_name_list,
 			FlashPackage &flash_package) -> void
 		{
 			auto &value = flash_package.document;
@@ -391,7 +392,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			dom_document->InsertEndChild(folders);
 			auto media = value.NewElement("media");
 			auto symbols = value.NewElement("symbols");
-			for (auto image_index : Range(flash_package.library.image.size()))
+			for (auto image_index : Range(animation_name_list.image.size()))
 			{
 				auto &image = definition.image[image_index];
 				auto dom_bitmap_item = value.NewElement("DOMBitmapItem");
@@ -399,14 +400,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				dom_bitmap_item->SetAttribute("href", fmt::format("media/{}.png", image.name).data());
 				media->InsertEndChild(dom_bitmap_item);
 				auto include = value.NewElement("Include");
-				include->SetAttribute("href", fmt::format("image/image_{}.xml", image_index + 1_size).data());
+				include->SetAttribute("href", fmt::format("image/{}.xml", animation_name_list.image[image_index]).data());
 				symbols->InsertEndChild(include);
 			}
 			dom_document->InsertEndChild(media);
-			for (auto &element : flash_package.library.sprite)
+			for (auto &sprite_name : animation_name_list.sprite)
 			{
 				auto include = value.NewElement("Include");
-				include->SetAttribute("href", fmt::format("sprite/{}.xml", element.first).data());
+				include->SetAttribute("href", fmt::format("sprite/{}.xml", sprite_name).data());
 				symbols->InsertEndChild(include);
 			}
 			auto label_layer = value.NewElement("DOMLayer");
@@ -582,16 +583,40 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto exchange_flash(
 			SexyAnimation const &definition,
 			ExtraInfo &extra,
+			AnimationNameList &animation_name_list,
 			PackageLibrary &package_library) -> void
 		{
 			exchange_simple_extra(definition, extra);
 			exchange_default_extra(extra);
+			auto image_duplicate_stored = std::map<std::string, std::vector<string>>{};
+			for (auto &image : definition.image)
+			{
+				auto image_name = image.name;
+				auto image_is_changed = false;
+				if (std::find(animation_name_list.image.begin(), animation_name_list.image.end(), image_name) != animation_name_list.image.end())
+				{
+					auto new_image_name = fmt::format("{}_{}", image_name, image_duplicate_stored[image_name].size());
+					image_duplicate_stored[image_name].emplace_back(image_name);
+					image_name = new_image_name;
+					image_is_changed = true;
+				}
+				animation_name_list.image.emplace_back(image_name);
+				for (auto image_index : Range(definition.image.size()))
+				{
+					extra.image[image_name] = ImageInfo{
+						.name = image_is_changed ? image.name : "",
+						.id = image.id,
+						.size = ImageDimension{
+							.width = static_cast<int>(image.size.width),
+							.height = static_cast<int>(image.size.height)}};
+				}
+			}
 			for (auto image_index : Range(definition.image.size()))
 			{
-				auto image_name = fmt::format("image_{}", image_index + 1_size);
-				exchange_image_document(definition.image[image_index], image_name, package_library.image[image_name]);
+				auto &image = definition.image[image_index];
+				auto &image_name = animation_name_list.image[image_index];
+				exchange_image_document(image, image_name, package_library.image[image_name]);
 			}
-			auto sprite_name_list = SpriteInfo{};
 			for (auto &sprite : definition.sprite)
 			{
 				auto sprite_name = sprite.name;
@@ -602,23 +627,23 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						extra.sprite[sprite.name].emplace_back(sprite_name);
 					}
 				}
-				if (std::find(sprite_name_list.begin(), sprite_name_list.end(), sprite_name) != sprite_name_list.end())
+				if (std::find(animation_name_list.sprite.begin(), animation_name_list.sprite.end(), sprite_name) != animation_name_list.sprite.end())
 				{
 					auto new_sprite_name = fmt::format("{}_{}", sprite_name, extra.sprite[sprite.name].size());
 					extra.sprite[sprite.name].emplace_back(new_sprite_name);
-					sprite_name_list.emplace_back(new_sprite_name);
+					animation_name_list.sprite.emplace_back(new_sprite_name);
 				}
 				else
 				{
-					sprite_name_list.emplace_back(sprite_name);
+					animation_name_list.sprite.emplace_back(sprite_name);
 				}
 			}
 			for (auto sprite_index : Range(definition.sprite.size()))
 			{
 				auto &sprite = definition.sprite[sprite_index];
-				auto &sprite_name = sprite_name_list[sprite_index];
+				auto &sprite_name = animation_name_list.sprite[sprite_index];
 				exchange_frame_node<false>(definition, sprite, package_library);
-				exchange_sprite_document<SpriteType::sprite>(sprite_name_list, sprite_name, package_library.frame_node, package_library.sprite[sprite_name]);
+				exchange_sprite_document<SpriteType::sprite>(animation_name_list, sprite_name, package_library.frame_node, package_library.sprite[sprite_name]);
 			}
 			exchange_frame_node<true>(definition, definition.main_sprite, package_library);
 			if constexpr (split_label)
@@ -628,7 +653,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				for (auto &element : label_frame_node)
 				{
 					auto &label_name = element.first;
-					exchange_sprite_document<SpriteType::label>(sprite_name_list, label_name, label_frame_node[label_name], package_library.label[label_name].document);
+					exchange_sprite_document<SpriteType::label>(animation_name_list, label_name, label_frame_node[label_name], package_library.label[label_name].document);
 				}
 			}
 			else
@@ -641,7 +666,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					package_library.frame_node[package_library.frame_node.size()].emplace_back(frame_node);
 				}
 				*/
-				exchange_sprite_document<SpriteType::main_sprite>(sprite_name_list, "main_sprite", package_library.frame_node, package_library.main_sprite);
+				exchange_sprite_document<SpriteType::main_sprite>(animation_name_list, "main_sprite", package_library.frame_node, package_library.main_sprite);
 			}
 			return;
 		}
@@ -654,8 +679,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");
 			auto flash_package = FlashPackage{};
-			exchange_flash(definition, extra, flash_package.library);
-			exchange_dom_document(definition, flash_package);
+			auto animation_name_list = AnimationNameList{};
+			exchange_flash(definition, extra, animation_name_list, flash_package.library);
+			exchange_dom_document(definition, animation_name_list, flash_package);
 			save_flash_package(flash_package, destination);
 			save_xfl_content_file(destination);
 			save_media_directory(destination);

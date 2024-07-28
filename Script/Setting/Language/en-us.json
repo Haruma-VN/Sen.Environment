@@ -509,5 +509,6 @@
     "popcap.rsg.invalid_version": "Invalid RSG version, got: {} but expected version 1, 3 or 4",
     "popcap.rsbpatch.invalid_magic_header": "Invalid RSB-Patch magic header, expected: {} but got: {}",
     "popcap.rsbpatch.invalid_version": "Invalid RSB-Patch version, expected: {} but got: {}",
-    "popcap.rsg.invalid_rsg_compression": "Invalid RSG compression, got: {} but expected the value to be 0, 1, 2 or 3"
+    "popcap.rsg.invalid_rsg_compression": "Invalid RSG compression, got: {} but expected the value to be 0, 1, 2 or 3",
+    "popcap.resource_group.property_cannot_be_null": "Property \"{}\" cannot be null"
 }

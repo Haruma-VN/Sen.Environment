@@ -246,7 +246,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             write_json(fmt::format("{}/data.json", destination), definition);
             if (manifest.manifest_has)
             {
-                write_json(fmt::format("{}/manifest.json", destination), manifest);
+                write_json(fmt::format("{}/resource.json", destination), manifest);
             }
             return;
         }

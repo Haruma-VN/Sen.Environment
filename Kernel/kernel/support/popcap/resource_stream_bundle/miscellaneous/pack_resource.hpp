@@ -13,8 +13,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
     protected:
         inline static auto process(
             DataStreamView &stream,
-            typename BundleStructure const &definition,
-             typename ManifestStructure const &manifest,
+            BundleStructure const &definition,
+            ManifestStructure const &manifest,
             std::string_view source) -> void
         {
             auto packet_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
@@ -25,8 +25,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
                     auto packet_stream = DataStreamView{};
                     auto packet_definition = PacketStructure{
                         .version = definition.version,
-                        .resource = subgroup_information.resource
-                    };
+                        .resource = subgroup_information.resource};
                     Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(subgroup_information.compression, packet_definition.compression);
                     ResourceStreamGroup::Pack::process_whole(packet_stream, packet_definition, source);
                     packet_data_section_view_stored[subgroup_id] = std::move(packet_stream.toBytes());
@@ -39,8 +38,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
     public:
         inline static auto process_whole(
             DataStreamView &stream,
-            typename BundleStructure const &definition,
-             typename ManifestStructure const &manifest,
+            BundleStructure const &definition,
+            ManifestStructure const &manifest,
             std::string_view source) -> void
         {
             process(stream, definition, manifest, source);
@@ -52,10 +51,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            auto definition = *FileSystem::read_json(fmt::format("{}/data.json", destination));
+            BundleStructure definition = *FileSystem::read_json(fmt::format("{}/data.json", destination));
             auto manifest = ManifestStructure{};
-            if (definition["version"].get<uint32_t>() <= 3_ui) {
-                manifest = *FileSystem::read_json(fmt::format("{}/manifest.json", source));
+            if (definition.version <= 3_ui)
+            {
+                manifest = *FileSystem::read_json(fmt::format("{}/resource.json", source));
             }
             process_whole(stream, definition, manifest, source);
             stream.out_file(destination);

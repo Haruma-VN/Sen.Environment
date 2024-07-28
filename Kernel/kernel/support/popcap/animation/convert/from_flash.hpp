@@ -177,32 +177,17 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					auto is_sprite = match_result[0].str() == "sprite";
 					auto resource_name = library_item_name.substr(match_result[0].str().size() + 1_size);
 					auto resource = k_native_index;
-					if (is_sprite)
+					auto resource_index = k_begin_index;
+					for (auto &[l_name, e] : (is_sprite ? package_library.sprite : package_library.image))
 					{
-						auto resource_index = k_begin_index;
-						for (auto &[sprite_name, e] : package_library.sprite)
+						if (resource_name == l_name)
 						{
-							if (resource_name == sprite_name)
-							{
-								resource = static_cast<int>(resource_index);
-								break;
-							}
-							++resource_index;
+							resource = static_cast<int>(resource_index);
+							break;
 						}
+						++resource_index;
 					}
-					else
-					{
-						for (auto image_index : Range(package_library.image.size()))
-						{
-							auto image_name = fmt::format("image_{}", image_index + 1_size);
-							if (resource_name == image_name)
-							{
-								resource = static_cast<int>(image_index);
-								break;
-							}
-						}
-					}
-					assert_conditional(resource != k_native_index, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_sprite")), sprite_name), "exchange_sprite_document");
+					assert_conditional(resource != k_native_index, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_resource_name")), resource_name), "exchange_sprite_document"); // TODO: add to locailzation.
 					auto frame_node = FrameNode{
 						.index = frame_index,
 						.duration = frame_duration,
@@ -349,7 +334,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_timeline = dom_document->FirstChildElement("timelines")->FirstChildElement("DOMTimeline");
 			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_dom_document");
 			auto label_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer");
-			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document"); 
+			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document");
 			auto label_frames = label_layer->FirstChildElement("frames");
 			auto frame_count = k_begin_index_int;
 			for (auto dom_frame = label_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame"))
@@ -485,11 +470,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						{
 							auto &last_frame_in_node = frame_node_list.back();
 							auto last_index = last_frame_in_node.index + last_frame_in_node.duration;
-							if (last_index != start_index) {
+							if (last_index != start_index)
+							{
 								continue;
 							}
 							if (last_frame_in_node.sprite == first_frame_in_label_node.sprite && last_frame_in_node.resource == first_frame_in_label_node.resource)
-							{ 
+							{
 								if (layer_index_k < min_layer_to_insert)
 								{
 									skip_sort = true;
@@ -557,10 +543,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto &package_library = flash_package.library;
 			exchange_simple_definition(definition, extra);
 			exchange_default_extra(extra);
-			for (auto image_index : Range(definition.image.size()))
+			for (auto &[image_name, _v] : package_library.image)
 			{
-				auto image_name = fmt::format("image_{}", image_index + 1_size);
-				exchange_image_document(definition.image[image_index], image_name, package_library.image[image_name]);
+				assert_conditional(extra.image.contains(image_name), fmt::format("cannot find image: {} in data", image_name), "exchange_definition"); // TODO: add to localization.
+				auto &image_value = extra.image.at(image_name);
+				auto image = AnimationImage{
+					.name = !image_value.name.empty() ? image_value.name : image_name,
+					.id = image_value.id,
+					.size = AnimationSize{
+						static_cast<double>(image_value.size.width),
+						static_cast<double>(image_value.size.height)}};
+				exchange_image_document(image, image_name, package_library.image[image_name]);
+				definition.image.emplace_back(image);
 			}
 			for (auto &element : package_library.sprite)
 			{
@@ -595,13 +589,16 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
 		inline static auto exchange_sprite_duplicate(
 			std::map<std::string, SpriteInfo> const &sprite,
-			std::vector<AnimationSprite> &sprite_list
-		) -> void
+			std::vector<AnimationSprite> &sprite_list) -> void
 		{
-			for (auto &[sprite_name, sprite_info] : sprite) {
-				for (auto &sprite_name_changed : sprite_info) {
-					for (auto &element : sprite_list) {
-						if (element.name == sprite_name_changed) {
+			for (auto &[sprite_name, sprite_info] : sprite)
+			{
+				for (auto &sprite_name_changed : sprite_info)
+				{
+					for (auto &element : sprite_list)
+					{
+						if (element.name == sprite_name_changed)
+						{
 							element.name = sprite_name;
 							break;
 						}

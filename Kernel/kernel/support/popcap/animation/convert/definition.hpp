@@ -62,7 +62,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         nlohmann::ordered_json &nlohmann_json_j,
         const ImageInfo &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["name"] = nlohmann_json_t.name;
+        if (!nlohmann_json_t.name.empty()) {
+            nlohmann_json_j["name"] = nlohmann_json_t.name;
+        }
         nlohmann_json_j["id"] = nlohmann_json_t.id;
 		nlohmann_json_j["size"] = nlohmann_json_t.size;
         return;
@@ -72,7 +74,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         const nlohmann::ordered_json &nlohmann_json_j,
         ImageInfo &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
+        try
+        {
+            nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         nlohmann_json_j.at("id").get_to(nlohmann_json_t.id);
 		nlohmann_json_j.at("size").get_to(nlohmann_json_t.size);
         return;

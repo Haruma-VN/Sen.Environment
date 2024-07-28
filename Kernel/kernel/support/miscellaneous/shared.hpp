@@ -125,15 +125,16 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return true;
     }
 
-    inline static auto case_insensitive_compare(const std::string &a, const std::string &b) -> bool
+    inline auto get_string(
+        std::string_view value
+    ) -> std::string
     {
-        std::string aLower = a;
-        std::string bLower = b;
-        std::transform(aLower.begin(), aLower.end(), aLower.begin(), [](unsigned char c)
-                       { return std::tolower(c); });
-        std::transform(bLower.begin(), bLower.end(), bLower.begin(), [](unsigned char c)
-                       { return std::tolower(c); });
-        return aLower < bLower;
+        return std::string{value};
+    }
+
+    inline auto case_insensitive_compare(const std::string &a, const std::string &b) -> bool
+    {
+        return tolower_back(a) < tolower_back(b);
     };
 
     inline auto compute_utf8_character_extra_size(
@@ -146,7 +147,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         else if (character < 0b11'000000)
         {
-            assert("first utf-8 character is valid");
+            try_assert(false, "first utf-8 character is valid");
         }
         else if (character < 0b111'00000)
         {
@@ -162,7 +163,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         else
         {
-            assert("first utf-8 character is valid");
+            try_assert(false, "first utf-8 character is valid");
         }
         return extra_size;
     }
