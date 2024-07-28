@@ -510,5 +510,8 @@
     "popcap.rsbpatch.invalid_magic_header": "Invalid RSB-Patch magic header, expected: {} but got: {}",
     "popcap.rsbpatch.invalid_version": "Invalid RSB-Patch version, expected: {} but got: {}",
     "popcap.rsg.invalid_rsg_compression": "Invalid RSG compression, got: {} but expected the value to be 0, 1, 2 or 3",
-    "popcap.resource_group.property_cannot_be_null": "Property \"{}\" cannot be null"
+    "popcap.resource_group.property_cannot_be_null": "Property \"{}\" cannot be null",
+    "popcap.rsb.unpack_resource": "PopCap RSB: Unpack Resource",
+    "pvz2.modding.unpack_packet_contain_resource": "PvZ2 Modding: Unpack Packet Contains Resource",
+    "pvz2.modding.pack_packet_contain_resource": "PvZ2 Modding: Rebuild Packet Contains Resource"
 }

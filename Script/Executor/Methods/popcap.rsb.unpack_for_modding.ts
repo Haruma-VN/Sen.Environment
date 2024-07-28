@@ -106,15 +106,10 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
                 Console.output(argument.destination!);
-                clock.start_safe();
-                load_bigint(argument, "layout", this.configuration, Detail.style(), Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
+                //load_bigint(argument, "layout", this.configuration, Detail.style(), Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
                 load_bigint(argument, "generic", this.configuration, Detail.generic(), Kernel.Language.get("popcap.rsb.unpack_for_modding.generic"));
-                Support.PopCap.ResourceStreamBundle.Project.Unpack.process_fs(argument.source, argument.destination!, {
-                    decode_rton: false,
-                    decrypt_rton: false,
-                    layout: Detail.exchange_layout(argument.layout as string),
-                    generic: argument.generic!,
-                });
+                clock.start_safe();
+                Kernel.Support.Miscellaneous.Modding.unpack_rsb(argument.source, argument.destination!, argument.generic! === "ios");
                 clock.stop_safe();
                 return;
             },

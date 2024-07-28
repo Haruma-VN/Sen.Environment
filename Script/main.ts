@@ -356,9 +356,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Animation/Miscellaneous/GenerateAnimation.js",
             "~/Support/PopCap/LawnStrings/Convert.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/Obfuscate.js",
-            "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/UnpackByLooseConstraints.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/ConvertAndroidToiOS.js",
-            "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/PackResources.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Configuration.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Unpack.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Pack.js",
@@ -411,6 +409,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.pak.pack.js",
             "~/Executor/Methods/popcap.rsb.unpack.js",
             "~/Executor/Methods/popcap.rsb.pack.js",
+            "~/Executor/Methods/popcap.rsb.unpack_resource.js",
+            "~/Executor/Methods/popcap.rsb.pack_resource.js",
             "~/Executor/Methods/popcap.rsb.obfuscate.js",
             "~/Executor/Methods/popcap.rsb_patch.decode.js",
             "~/Executor/Methods/popcap.rsb_patch.encode.js",
@@ -426,6 +426,8 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.atlas.split_by_res_info.js",
             "~/Executor/Methods/popcap.atlas.pack_by_res_info.js",
             "~/Executor/Methods/popcap.pvz2.lawnstrings.convert.js",
+            "~/Executor/Methods/pvz2.modding.unpack_packet_contain_resource.js",
+            "~/Executor/Methods/pvz2.modding.pack_packet_contain_resource.js",
         ];
     }
 }

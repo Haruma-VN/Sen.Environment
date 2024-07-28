@@ -1,4 +1,4 @@
-namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
+namespace Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource {
     /**
      * Argument for the current method
      */
@@ -39,30 +39,32 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
 
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
-            Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.Argument,
-            Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.AsyncArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.Configuration
+            Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource.Argument,
+            Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource.BatchArgument,
+            Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource.AsyncArgument,
+            Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource.Configuration
         >({
-            id: "popcap.rsb.pack_for_modding",
-            configuration_file: Home.query("~/Executor/Configuration/popcap.rsb.pack_for_modding.json"),
+            id: "pvz2.modding.pack_packet_contain_resource",
+            configuration_file: Home.query("~/Executor/Configuration/pvz2.modding.pack_packet_contain_resource.json"),
             direct_forward(argument: Argument): void {
-                is_valid_source(argument, true);
+                is_valid_source(argument, false);
                 Console.obtained(argument.source);
-                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.dummy`);
                 Console.output(argument.destination!);
                 clock.start_safe();
-                Kernel.Support.Miscellaneous.Modding.pack_rsb(argument.source, argument.destination!);
+                Kernel.Support.Miscellaneous.Modding.pack_packet_contain_resource(argument.source, argument.destination!);
                 clock.stop_safe();
                 return;
             },
-            batch_forward: undefined!,
+            batch_forward(argument: BatchArgument): void {
+                return basic_batch(this, argument, false);
+            },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["directory", /(.*)\.mod_bundle$/i],
+            filter: ["file", /(.*)\.pcr$/i],
         });
         return;
     }
 }
 
-Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.forward();
+Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource.forward();

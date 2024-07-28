@@ -52,7 +52,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints {
                 defined_or_default<Argument, string>(argument, "destination", `${argument.source}.bundle`);
                 Console.output(argument.destination!);
                 clock.start_safe();
-                Support.PopCap.ResourceStreamBundle.Miscellaneous.UnpackByLooseConstraints.process_fs(argument.source, argument.destination!);
+                Kernel.Support.PopCap.RSB.unpack_cipher(argument.source, argument.destination!);
                 clock.stop_safe();
                 return;
             },
