@@ -223,7 +223,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                 header_information.information_section_size = information_section_size;
                 group_stream.writeBytes(data_bank_stream.toBytes());
                 PacketContainsResourceGroup::Common::exchange_head_information(header_information, group_stream);
-                write_bytes(fmt::format("{}/packet/{}.pcr", destination, group_id), group_stream.toBytes());
+                write_bytes(fmt::format("{}/packet/{}.scr", destination, group_id), group_stream.toBytes());
                 definition.group.emplace_back(group_id);
             }
             return;
