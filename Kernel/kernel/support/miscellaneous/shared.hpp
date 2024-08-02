@@ -137,6 +137,17 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return tolower_back(a) < tolower_back(b);
     };
 
+    template <typename T>
+    inline auto async_process_list(
+        std::vector<std::future<T>> &data
+    ) -> void
+    {
+        for (auto &element : data) {
+            element.get();
+        }
+        return;
+    }
+
     inline auto compute_utf8_character_extra_size(
         char const &character) -> size_t
     {

@@ -49,7 +49,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Modding.PackPacketContainResource {
             direct_forward(argument: Argument): void {
                 is_valid_source(argument, false);
                 Console.obtained(argument.source);
-                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.scr`);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.scg`);
                 Console.output(argument.destination!);
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Modding.pack_packet_contain_resource(argument.source, argument.destination!);

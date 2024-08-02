@@ -9,7 +9,7 @@ auto execute(
     Interface::ShellCallback m_callback
 ) -> int
 {
-    try{
+    try {
         std::setlocale(LC_ALL, "C");
         auto script_path = Interface::make_standard_string(script);
         auto arguments = Interface::destruct_string_list(argument);

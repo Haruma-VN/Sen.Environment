@@ -11,8 +11,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     using TextureInformationVersion = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::TextureInformationVersion;
 
-    using DataType = Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup::Common::DataType;
-
     enum ExpandPath
     {
         String,
@@ -151,6 +149,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     struct ImageInfo {
         std::string path;
+        int index;
         ImageFormat format;
         ImageDimension dimension;
     };
@@ -160,6 +159,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         const ImageInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j["path"] = nlohmann_json_t.path;
+        nlohmann_json_j["index"] = nlohmann_json_t.index;
+        nlohmann_json_j["format"] = nlohmann_json_t.format;
         nlohmann_json_j["dimension"] = nlohmann_json_t.dimension;
         return;
     }
@@ -169,6 +170,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         ImageInfo &nlohmann_json_t) -> void
     {
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
+        nlohmann_json_j.at("index").get_to(nlohmann_json_t.index);
+        nlohmann_json_j.at("format").get_to(nlohmann_json_t.format);
         nlohmann_json_j.at("dimension").get_to(nlohmann_json_t.dimension);
         return;
     }
@@ -215,7 +218,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
     }
 
     struct DataInfo {
-        DataType type;
+        PacketContainsResourceGroup::Common::DataType type;
         std::string path;
         TextureDefault texture_info;
     };
@@ -242,6 +245,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     struct PacketInfo
     {
+        PacketContainsResourceGroup::Common::DataType type;
         ImageInfo image_info;
         std::map<std::string, DataInfo> data;
     };
@@ -250,6 +254,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         nlohmann::ordered_json &nlohmann_json_j,
         const PacketInfo &nlohmann_json_t) -> void
     {
+        nlohmann_json_j["type"] = nlohmann_json_t.type;
         nlohmann_json_j["image_info"] = nlohmann_json_t.image_info;
         nlohmann_json_j["data"] = nlohmann_json_t.data;
         return;
@@ -259,6 +264,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         const nlohmann::ordered_json &nlohmann_json_j,
         PacketInfo &nlohmann_json_t) -> void
     {
+        nlohmann_json_j.at("type").get_to(nlohmann_json_t.type);
         nlohmann_json_j.at("image_info").get_to(nlohmann_json_t.image_info);
         nlohmann_json_j.at("data").get_to(nlohmann_json_t.data);
         return;
@@ -290,7 +296,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     struct GroupInfo
     {
-        bool is_composite;
+        bool composite;
         std::map<std::string, SubgroupInfo> subgroup;
     };
 
@@ -298,7 +304,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         nlohmann::ordered_json &nlohmann_json_j,
         const GroupInfo &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["is_composite"] = nlohmann_json_t.is_composite;
+        nlohmann_json_j["composite"] = nlohmann_json_t.composite;
         nlohmann_json_j["subgroup"] = nlohmann_json_t.subgroup;
         return;
     }
@@ -307,7 +313,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         const nlohmann::ordered_json &nlohmann_json_j,
         GroupInfo &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("is_composite").get_to(nlohmann_json_t.is_composite);
+        nlohmann_json_j.at("composite").get_to(nlohmann_json_t.composite);
         nlohmann_json_j.at("subgroup").get_to(nlohmann_json_t.subgroup);
         return;
     }

@@ -11,25 +11,37 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
     struct PackResource
     {
     protected:
+        inline static auto exchange_packet(
+            PacketStructure const &packet_structure,
+            std::string source
+        ) -> std::vector<uint8_t>
+        {
+            auto packet_stream = DataStreamView{};
+            ResourceStreamGroup::Pack::process_whole(packet_stream, packet_structure, source);
+            return packet_stream.toBytes();
+        }
+
         inline static auto process(
             DataStreamView &stream,
             BundleStructure const &definition,
             ManifestStructure const &manifest,
-            std::string_view source) -> void
+            std::string &source) -> void
         {
-            auto packet_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+            auto work_map = std::map<std::string, std::future<std::vector<uint8_t>>>{};
             for (auto &[group_id, group_information] : definition.group)
             {
                 for (auto &[subgroup_id, subgroup_information] : group_information.subgroup)
                 {
-                    auto packet_stream = DataStreamView{};
-                    auto packet_definition = PacketStructure{
+                    auto packet_structure = PacketStructure{
                         .version = definition.version,
                         .resource = subgroup_information.resource};
-                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(subgroup_information.compression, packet_definition.compression);
-                    ResourceStreamGroup::Pack::process_whole(packet_stream, packet_definition, source);
-                    packet_data_section_view_stored[subgroup_id] = std::move(packet_stream.toBytes());
+                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(subgroup_information.compression, packet_structure.compression);
+                    work_map[subgroup_id] = std::async(&exchange_packet, packet_structure, source);
                 }
+            }
+            auto packet_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+            for (auto &[subgroup_id, future]: work_map) {
+                packet_data_section_view_stored[subgroup_id] = future.get();
             }
             ResourceStreamBundle::Pack::process_whole(stream, definition, manifest, packet_data_section_view_stored);
             return;
@@ -42,7 +54,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             ManifestStructure const &manifest,
             std::string_view source) -> void
         {
-            process(stream, definition, manifest, source);
+            auto packet_source = get_string(source);
+            process(stream, definition, manifest, packet_source);
             return;
         }
 
@@ -51,7 +64,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
             std::string_view destination) -> void
         {
             auto stream = DataStreamView{};
-            BundleStructure definition = *FileSystem::read_json(fmt::format("{}/data.json", destination));
+            BundleStructure definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
             auto manifest = ManifestStructure{};
             if (definition.version <= 3_ui)
             {

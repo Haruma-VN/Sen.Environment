@@ -61,7 +61,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Modding.UnpackPacketContainResource {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.*)\.scr$/i],
+            filter: ["file", /(.*)\.scg$/i],
         });
         return;
     }

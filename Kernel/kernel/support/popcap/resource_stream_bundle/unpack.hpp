@@ -161,6 +161,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 process_package_manifest(stream, information_structure.header, manifest);
             }
             definition.texture_information_section_size = texture_resource_information_section_block_size;
+            auto async_work_process = std::vector<std::future<void>>{};
             for (auto &[group_id, group_index] : information_structure.group_id)
             {
                 auto &simple_group_information = information_structure.group_information.at(group_index);
@@ -214,11 +215,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     }
                     if constexpr (std::is_same<Args, std::string_view>::value)
                     {
-                        write_bytes(fmt::format("{}/packet/{}.rsg", args, subgroup_id), packet_data);
+                        async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/packet/{}.rsg", args, subgroup_id), packet_data));
                     }
                 }
                 definition.group[original_id] = group_information;
             }
+            async_process_list<void>(async_work_process);
             return;
         }
 

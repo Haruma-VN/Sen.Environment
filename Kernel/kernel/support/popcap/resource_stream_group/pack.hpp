@@ -13,11 +13,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
     {
     protected:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value
         inline static auto process_package(
             DataStreamView &stream,
             PacketStructure const &definition,
-            Args args) -> void
+            Args &args) -> void
         {
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(definition.version));
             assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_version")), std::to_string(static_cast<int>(definition.version))), "process");
@@ -31,7 +31,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
                 {
                     resource_data = std::move(args.at(resource_definition_path));
                 }
-                if constexpr (std::is_same<Args, std::string_view>::value)
+                if constexpr (std::is_same<Args, std::string>::value)
                 {
                     resource_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/resource/{}", args, resource_definition_path)));
                 }
@@ -104,11 +104,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value
         inline static auto process_whole(
             DataStreamView &stream,
             PacketStructure const &value,
-            Args args) -> void
+            Args &args) -> void
         {
             process_package(stream, value, args);
             return;
@@ -120,7 +120,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         {
             auto stream = DataStreamView{};
             auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
-            process_whole(stream, definition, source);
+            auto packet_source = get_string(source);
+            process_whole(stream, definition, packet_source);
             stream.out_file(destination);
             return;
         }

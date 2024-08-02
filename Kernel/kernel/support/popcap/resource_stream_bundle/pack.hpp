@@ -134,12 +134,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         }
 
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string>::value
         inline static auto process_package(
             DataStreamView &stream,
             BundleStructure const &definition,
             ManifestStructure const &manifest,
-            Args args) -> void
+            Args &args) -> void
         {
             auto index = std::find(k_version_list.begin(), k_version_list.end(), static_cast<int>(definition.version));
             assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_rsb_version")), std::to_string(definition.version)), "process_package");
@@ -165,7 +165,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     {
                         packet_data = std::move(args.at(subgroup_id));
                     }
-                    if constexpr (std::is_same_v<Args, std::string_view>)
+                    if constexpr (std::is_same_v<Args, std::string>)
                     {
                         packet_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/packet/{}.rsg", args, subgroup_id)));
                     }
@@ -194,7 +194,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     basic_subgroup_information_structure.pool = static_cast<uint32_t>(global_subgroup_index);
                     auto pool_information_structure = PoolInformation{};
                     pool_information_structure.id = fmt::format("{}{}", subgroup_id, k_suffix_of_automation_pool);
-                    ;
                     pool_information_structure.instance_count = 1_ui;
                     pool_information_structure.flag = 0_ui;
                     auto texture_resource_begin = global_texture_resource_index;
@@ -211,7 +210,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                                 break;
                             }
                         }
-                        try_assert(packet_resource_index - 1 > k_none_size, "invalid_packet_resource_index");
+                        try_assert(packet_resource_index + 1_size <= packet_structure.resource.size(), "invalid_packet_resource_index");
                         auto &packet_structure_resource = packet_structure.resource[packet_resource_index];
                         try_assert(resource_information.use_texture_additional_instead == packet_structure_resource.use_texture_additional_instead, "invalid_texture_additional");
                         if (!resource_information.use_texture_additional_instead)
@@ -359,12 +358,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string_view>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string>::value
         inline static auto process_whole(
             DataStreamView &stream,
             BundleStructure const &definition,
             ManifestStructure const &manifest,
-            Args args) -> void
+            Args &args) -> void
         {
             process_package(stream, definition, manifest, args);
             return;
@@ -380,7 +379,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             if (definition.version <= 3_ui) {
                 manifest = *FileSystem::read_json(fmt::format("{}/resource.json", source));
             }
-            process_whole(stream, definition, manifest, source);
+            auto source_path = get_string(source);
+            process_whole(stream, definition, manifest, source_path);
             stream.out_file(destination);
             return;
         }

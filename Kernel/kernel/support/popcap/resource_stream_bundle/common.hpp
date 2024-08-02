@@ -309,7 +309,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             DataStreamView &stream,
             BasicSubgroupInformation &value) -> void
         {
-            value.id = exchange_string_block<128_size>(stream);
+            value.id = exchange_string_block<k_subgroup_name_string_block_size>(stream);
             value.offset = stream.readUint32();
             value.size = stream.readUint32();
             value.pool = stream.readUint32();
@@ -338,7 +338,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             BasicSubgroupInformation const &value) -> void
         {
             static_assert(sizeof(t_version) == sizeof(uint32_t));
-            exchange_string_block<128_size>(stream, value.id);
+            exchange_string_block<k_subgroup_name_string_block_size>(stream, value.id);
             stream.writeUint32(value.offset);
             stream.writeUint32(value.size);
             stream.writeUint32(value.pool);

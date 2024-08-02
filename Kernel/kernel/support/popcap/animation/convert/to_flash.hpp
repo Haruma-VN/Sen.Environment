@@ -13,7 +13,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto exchange_image_document(
 			AnimationImage const &image,
 			std::string const &image_name,
-			XMLDocument &value) -> void
+			XMLDocument &value
+		) -> void
 		{
 			auto image_transform_matrix = Transform{};
 			k_version < 2 ? exchange_tranform_from_rotate_to_standard(image.transform, image_transform_matrix) : exchange_tranform_by_copy(image.transform, image_transform_matrix);
