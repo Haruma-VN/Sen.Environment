@@ -1233,8 +1233,8 @@ declare namespace Sen {
                 declare namespace Modding {
                     export function unpack_packet_contain_resource(source: string, destination: string): void;
                     export function pack_packet_contain_resource(source: string, destination: string): void;
-                    export function unpack_rsb(source: string, destination: string, is_ios_format: boolean): void;
-                    export function pack_rsb(source: string, destination: string): void;
+                    export function unpack_rsb(source: string, destination: string, is_ios_format: bigint): void;
+                    export function pack_rsb(source: string, destination: string, rton_list: Array<string>, json_list: Array<string>): void;
                 }
             }
 

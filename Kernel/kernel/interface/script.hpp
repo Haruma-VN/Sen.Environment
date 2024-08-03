@@ -12088,8 +12088,8 @@ namespace Sen::Kernel::Interface::Script {
 						try_assert(argc == 3, fmt::format("{} 3, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						auto is_ios_texture_format = JS::Converter::get_bool(context, argv[2]);
-						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Unpack::process_fs(source, destination, is_ios_texture_format);
+						auto format = JS::Converter::get_bigint64(context, argv[2]);
+						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Unpack::process_fs(source, destination, static_cast<Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::TextureFormatCategory>(format));
 						return JS::Converter::get_undefined();
 					}, "unpack_rsb"_sv);
 				}
@@ -12101,13 +12101,15 @@ namespace Sen::Kernel::Interface::Script {
 					JSValueConst* argv
 				) -> JSValue
 				{
+					using PackagesFileList = Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Common::PackagesFileList;
 					M_JS_PROXY_WRAPPER(context, {
-						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
-						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Pack::process_fs(source, destination);
-						return JS::Converter::get_undefined();
-					}, "pack_rsb"_sv);
+						auto rton_list = JS::Converter::get_vector<std::string>(context, argv[2]);
+						auto json_list = JS::Converter::get_vector<std::string>(context, argv[3]);
+						Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::Pack::process_fs(source, destination, PackagesFileList{&rton_list, &json_list});
+						return JS::Converter::get_undefined(); }, "pack_rsb"_sv);
 				}
 
 				inline static auto pack_packet_contain_resource(

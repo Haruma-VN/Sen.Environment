@@ -37,6 +37,35 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
      * ----------------------------------------------
      */
 
+    export interface PackagesFileList {
+        rton_file: string[];
+        json_file: string[];
+    }
+
+    export function read_packages(source: string): PackagesFileList {
+        const packages_list: PackagesFileList = {
+            rton_file: [],
+            json_file: [],
+        };
+        const packages_folder = `${source}/packages`;
+        if (Kernel.FileSystem.is_directory(packages_folder)) {
+            Console.output(`resource_bundle_doesn't_have_packages`); // TODO: add to localization.
+        } else {
+            const file_list = Kernel.FileSystem.read_directory(packages_folder);
+            for (let element of file_list) {
+                if (Kernel.Path.extname(element).toLowerCase() == ".json") {
+                    packages_list.json_file.push(element);
+                }
+                if (Kernel.Path.extname(element).toLowerCase() == ".rton") {
+                    packages_list.rton_file.push(element);
+                }
+            }
+            Console.output(`packages has ${packages_list.json_file.size()} json file to convert`); // TODO: add to localization.
+            Console.output(`num of rton files: ${packages_list.rton_file.size()}`); // TODO: add to localization.
+        }
+        return packages_list;
+    }
+
     export function forward(): void {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.PackForModding.Argument,
@@ -52,7 +81,8 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackForModding {
                 defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
                 Console.output(argument.destination!);
                 clock.start_safe();
-                Kernel.Support.Miscellaneous.Modding.pack_rsb(argument.source, argument.destination!);
+                const packages_list = read_packages(argument.source);
+                Kernel.Support.Miscellaneous.Modding.pack_rsb(argument.source, argument.destination!, packages_list.rton_file, packages_list.json_file);
                 clock.stop_safe();
                 return;
             },

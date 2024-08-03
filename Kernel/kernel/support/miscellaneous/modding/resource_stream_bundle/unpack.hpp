@@ -1,39 +1,11 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/miscellaneous/modding/resource_stream_bundle/definition.hpp"
-#include "kernel/support/miscellaneous/modding/resource_stream_bundle/common.hpp"
-#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/common.hpp"
-#include "kernel/support/popcap/resource_stream_group/unpack.hpp"
-#include "kernel/support/popcap/resource_stream_bundle/unpack.hpp"
-#include "kernel/support/popcap/resource_stream_bundle/definition.hpp"
-#include "kernel/support/popcap/reflection_object_notation/decode.hpp"
-#include "kernel/support/popcap/new_type_object_notation/decode.hpp"
-#include "kernel/support/popcap/resource_group/convert.hpp"
-#include "kernel/support/texture/invoke.hpp"
-#include "kernel/support/miscellaneous/shared.hpp"
 
 namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 {
-    using namespace Sen::Kernel::Support::Miscellaneous::Shared;
 
     using namespace Definition;
-
-    using BundleStructure = Sen::Kernel::Support::PopCap::ResourceStreamBundle::BundleStructure;
-
-    using ManifestStructure = Sen::Kernel::Support::PopCap::ResourceStreamBundle::ManifestStructure;
-
-    using ResourceStreamBundleUnpack = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Unpack;
-
-    using ImageFormat = Sen::Kernel::Support::Texture::Format;
-
-    using namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup;
-
-    using ResourceStreamGroupUnpack = Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack;
-
-    using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
-
-    using namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup;
 
     using SubgroupToWork = std::map<std::string, Sen::Kernel::Support::PopCap::ResourceStreamBundle::SubgroupInformation, decltype(&case_insensitive_compare)>;
 
@@ -48,6 +20,77 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
     struct Unpack : Common
     {
     private:
+
+        inline static auto exchange_package(
+            DataSectionViewStored &packet_data_section_view_stored,
+            std::string_view destination) -> bool
+        {
+            for (auto &[group_id, group_value] : packet_data_section_view_stored)
+            {
+                if (compare_string(group_id, k_package_string))
+                {
+                    auto packet_definition = PacketStructure{};
+                    auto packet_stream = DataStreamView{group_value};
+                    auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
+                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
+                    FileSystem::create_directory(tolower_back(fmt::format("{}/{}", destination, k_package_string)));
+                    auto async_work_process = std::vector<std::future<void>>{};
+                    for (auto &[id, data] : resource_data_section_view_stored)
+                    {
+                        async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/{}", destination, id), data));
+                    }
+                    async_process_list<void>(async_work_process);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        inline static auto exchange_simple_info(
+            InfoStructure &definition,
+            BundleStructure const &bundle) -> void
+        {
+            definition.version = bundle.version;
+            assert_conditional(definition.version == 4, "version_has_not_supported_yet", "exchange_simple_info"); // TODO: add to localization.
+            definition.texture_information_version = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(bundle.texture_information_section_size);
+            return;
+        }
+
+        inline static auto exchange_unuse_resource(
+            std::string const &id,
+            SubgroupInfo const &value,
+            std::string_view destination) -> void
+        {
+            write_json(fmt::format("{}/unuse_resource/{}.json", destination, id), value);
+            return;
+        }
+
+        inline static auto exchange_group_to_work(
+            BundleStructure const &bundle,
+            GroupToWork &group_to_work) -> void
+        {
+            for (auto &[g_name, g_value] : bundle.group)
+            {
+                auto subgroup_to_work = SubgroupToWork(&case_insensitive_compare);
+                for (auto &[s_name, s_value] : g_value.subgroup)
+                {
+                    subgroup_to_work[s_name] = std::move(s_value);
+                }
+                group_to_work[g_name] = GroupInformationToWork{
+                    .composite = g_value.composite,
+                    .subgroup = subgroup_to_work};
+            }
+            return;
+        }
+
+        inline static auto write_sen_compressed_group(
+            std::vector<uint8_t> const &data,
+            std::string const &path) -> void
+        {
+            write_bytes(path, data);
+            return;
+        }
+
         inline static auto exchange_manifest(
             std::vector<uint8_t> const &data,
             ResourceInfo &resource_info,
@@ -56,7 +99,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto packet_definition = PacketStructure{};
             auto packet_stream = DataStreamView{data};
             auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
-            ResourceStreamGroupUnpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
+            Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
             auto resource_path_name = std::string{};
             for (auto &[id, _v] : resource_data_section_view_stored)
             {
@@ -103,51 +146,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             exchange_res_info<true>(res_info_json, res_info);
             return;
         }
-
-        inline static auto exchange_simple_info(
-            InfoStructure &definition,
-            BundleStructure const &bundle) -> void
-        {
-            definition.version = bundle.version;
-            assert_conditional(definition.version == 4, "version_has_not_supported_yet", "exchange_simple_info"); // TODO: add to localization.
-            definition.texture_information_version = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(bundle.texture_information_section_size);
-            return;
-        }
-
-        inline static auto exchange_unuse_resource(
-            std::string const &id,
-            SubgroupInfo const &value,
-            std::string_view destination) -> void
-        {
-            write_json(fmt::format("{}/unuse_resource/{}.json", destination, id), value);
-            return;
-        }
-
-        inline static auto exchange_group_to_work(
-            BundleStructure const &bundle,
-            GroupToWork &group_to_work) -> void
-        {
-            for (auto &[g_name, g_value] : bundle.group)
-            {
-                auto subgroup_to_work = SubgroupToWork(&case_insensitive_compare);
-                for (auto &[s_name, s_value] : g_value.subgroup)
-                {
-                    subgroup_to_work[s_name] = std::move(s_value);
-                }
-                group_to_work[g_name] = GroupInformationToWork{
-                    .composite = g_value.composite,
-                    .subgroup = subgroup_to_work};
-            }
-            return;
-        }
-
-        inline static auto write_sen_compressed_group(
-            std::vector<uint8_t> const &data,
-            std::string const &path) -> void
-        {
-            write_bytes(path, data);
-            return;
-        };
 
         inline static auto exchange_group(
             InfoStructure &definition,
@@ -207,11 +205,10 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                             auto &resource = group_to_work.at(group_id).subgroup.at(subgroup_id).resource[packet_resource_index];
                             auto index = resource.texture_additional.value.index;
                             auto format = resource.texture_additional.value.texture_infomation.format;
-                            // assert_conditional(format != empty_virtual_image_format, String::format(fmt::format("{}", Language::get("pvz2.rsb.modding.invalid_image_format")), std::to_string(format)), "exchange_group");
-                            if (definition.is_ios_texture_format)
+                            switch (definition.texture_format_category)
                             {
-                                packet_value.image_info.format = exchange_image_format<true>(format);
-                                // check if image trimed
+                            case TextureFormatCategory::IOS: {
+                                packet_value.image_info.format = exchange_image_format<TextureFormatCategory::IOS>(format);
                                 if (packet_value.image_info.dimension.width < resource.texture_additional.value.dimension.width)
                                 {
                                     packet_value.image_info.dimension.width = resource.texture_additional.value.dimension.width;
@@ -220,10 +217,18 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                                 {
                                     packet_value.image_info.dimension.height = resource.texture_additional.value.dimension.height;
                                 }
+                                break;
                             }
-                            else
-                            {
-                                packet_value.image_info.format = check_etc_format(exchange_image_format<false>(format), bundle.texture_information_section_size);
+                            case TextureFormatCategory::Android: {
+                                packet_value.image_info.format = exchange_image_format<TextureFormatCategory::Android>(format);
+                                break;
+                            }
+                            case TextureFormatCategory::Chinese: {
+                                packet_value.image_info.format = exchange_image_format<TextureFormatCategory::Chinese>(format);
+                                break;
+                            }    
+                            default:
+                                assert_conditional(false, "invaild_texture_format_category", "exchange_group");
                             }
                             packet_value.image_info.index = resource.texture_additional.value.index;
                             group_to_work.at(group_id).subgroup.at(subgroup_id).resource.erase(group_to_work.at(group_id).subgroup.at(subgroup_id).resource.begin() + packet_resource_index);
@@ -261,53 +266,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             return;
         }
 
-        inline static auto exchange_package(
-            DataSectionViewStored &packet_data_section_view_stored,
-            PackageInfo &package_info,
-            std::string_view destination) -> void
-        {
-            auto check_rton_is_encrypted = [](std::vector<uint8_t> &data) -> bool
-            {
-                if (data.size() == k_none_size)
-                {
-                    return false;
-                }
-                if (data[0] == 0x10 && data[1] == 0x0)
-                {
-                    return true;
-                }
-                return false;
-            };
-
-            auto rton_encrypted_count = k_begin_index;
-            for (auto &[group_id, group_value] : packet_data_section_view_stored)
-            {
-                if (compare_string(group_id, k_package_string))
-                {
-                    auto packet_definition = PacketStructure{};
-                    auto packet_stream = DataStreamView{group_value};
-                    auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
-                    Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
-                    FileSystem::create_directory(tolower_back(fmt::format("{}/{}", destination, k_package_string)));
-                    for (auto &[id, data] : resource_data_section_view_stored)
-                    {
-                        if (check_rton_is_encrypted(data))
-                        {
-                            ++rton_encrypted_count;
-                        }
-                        write_bytes(fmt::format("{}/{}", destination, id), data);
-                    }
-                    if (rton_encrypted_count > static_cast<int>(resource_data_section_view_stored.size() / 2))
-                    { // > 50%
-                        package_info.rton_is_encrypted = true;
-                    }
-                    package_info.use_package_info = true;
-                    break;
-                }
-            }
-            return;
-        }
-
         inline static auto process_package(
             DataStreamView &stream,
             InfoStructure &definition,
@@ -316,7 +274,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto bundle = BundleStructure{};
             auto manifest = ManifestStructure{};
             auto packet_data_section_view_stored = DataSectionViewStored(&case_insensitive_compare);
-            ResourceStreamBundleUnpack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
+            Sen::Kernel::Support::PopCap::ResourceStreamBundle::Unpack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
             exchange_simple_info(definition, bundle);
             auto manifest_name = get_string(k_manifest_string);
             for (auto &[group_name, _v] : packet_data_section_view_stored)
@@ -335,8 +293,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto &manifest_packet = packet_data_section_view_stored[manifest_name];
             auto res_info = ResInfo{};
             exchange_manifest(manifest_packet, definition.resource_info, res_info);
-            exchange_package(packet_data_section_view_stored, definition.package_info, destination);
-            if (definition.package_info.use_package_info)
+            if (exchange_package(packet_data_section_view_stored, destination))
             {
                 res_info.group.erase(get_string(k_package_string));
             }
@@ -357,11 +314,11 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         inline static auto process_fs(
             std::string_view source,
             std::string_view destination,
-            bool is_ios_texture_format) -> void
+            TextureFormatCategory const &texture_format_category) -> void
         {
             auto stream = DataStreamView{source};
             auto definition = InfoStructure{
-                .is_ios_texture_format = is_ios_texture_format};
+                .texture_format_category = texture_format_category};
             process_whole(stream, definition, destination);
             write_json(fmt::format("{}/data.json", destination), definition);
             return;

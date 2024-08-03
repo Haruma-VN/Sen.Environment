@@ -137,6 +137,36 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return tolower_back(a) < tolower_back(b);
     };
 
+    template<typename K, typename V>
+    inline auto search_element_in_map(
+        std::map<K, V> const &data,
+        V const & value
+    ) -> std::map<K, V>::const_iterator
+    {
+        auto it = data.begin();
+        for (; it != data.end(); ++it) {
+            if (it->second == value) {
+                return it;
+            }
+        }
+        return it;
+    }
+
+    template<typename K, typename V>
+    inline auto search_element_in_map(
+        std::map<K, V> const &data,
+        K const & key
+    ) -> std::map<K, V>::const_iterator
+    {
+        auto it = data.begin();
+        for (; it != data.end(); ++it) {
+            if (it->first == key) {
+                return it;
+            }
+        }
+        return it;
+    }
+
     template <typename T>
     inline auto async_process_list(
         std::vector<std::future<T>> &data

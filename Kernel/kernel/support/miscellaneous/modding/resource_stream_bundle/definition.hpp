@@ -1,19 +1,25 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/popcap/resource_stream_bundle/common.hpp"
+#include "kernel/support/texture/invoke.hpp"
+
 
 namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 {
-    using GroupList = std::vector<std::string>;
-
+    using TextureInformationVersion = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::TextureInformationVersion;
+    
     using ImageFormat = Sen::Kernel::Support::Texture::Format;
 
-    using TextureInformationVersion = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::TextureInformationVersion;
+    enum TextureFormatCategory
+    {
+        Android,
+        IOS,
+        Chinese,
+    };
 
     enum ExpandPath
     {
-        String,
+        String, 
         Array
     };
 
@@ -46,7 +52,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         ResourceInfo &nlohmann_json_t) -> void
     {
         auto expand_path_string = nlohmann_json_j["expand_path"].get<std::string>();
-        assert_conditional(!(expand_path_string != "string" && expand_path_string != "array"), String::format(fmt::format("{}", Language::get("pvz2.rsb.modding.invalid_expand_path")), expand_path_string), "from_json"); 
+        assert_conditional(!(expand_path_string != "string" && expand_path_string != "array"), String::format(fmt::format("{}", Language::get("pvz2.rsb.modding.invalid_expand_path")), expand_path_string), "from_json");
         nlohmann_json_t.expand_path = expand_path_string == "string" ? ExpandPath::String : ExpandPath::Array;
         nlohmann_json_j.at("use_new_type_resource").get_to(nlohmann_json_t.use_new_type_resource);
         if (nlohmann_json_j["resource_additional_name"] != nullptr)
@@ -56,38 +62,14 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         return;
     }
 
-    struct PackageInfo {
-        bool use_package_info;
-        bool rton_is_encrypted;
-        bool auto_convert_jsons_exist;
-    };
-
-    inline auto to_json(
-        nlohmann::ordered_json &nlohmann_json_j,
-        const PackageInfo &nlohmann_json_t) -> void
-    {
-        nlohmann_json_j["rton_is_encrypted"] = nlohmann_json_t.rton_is_encrypted;
-        nlohmann_json_j["auto_convert_jsons_exist"] = nlohmann_json_t.auto_convert_jsons_exist;
-        return;
-    }
-
-    inline auto from_json(
-        const nlohmann::ordered_json &nlohmann_json_j,
-        PackageInfo &nlohmann_json_t) -> void
-    {
-        nlohmann_json_j.at("rton_is_encrypted").get_to(nlohmann_json_t.rton_is_encrypted);
-        nlohmann_json_j.at("auto_convert_jsons_exist").get_to(nlohmann_json_t.auto_convert_jsons_exist);
-        return;
-    }
-
     struct InfoStructure
     {
         uint32_t version;
         TextureInformationVersion texture_information_version;
-        bool is_ios_texture_format;
+        TextureFormatCategory texture_format_category;
         ResourceInfo resource_info;
-        PackageInfo package_info;
-        GroupList group;
+        // PackageInfo package_info;
+        std::vector<std::string> group;
     };
 
     inline auto to_json(
@@ -96,14 +78,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
     {
         nlohmann_json_j["version"] = nlohmann_json_t.version;
         nlohmann_json_j["texture_information_version"] = nlohmann_json_t.texture_information_version;
-        nlohmann_json_j["is_ios_texture_format"] = nlohmann_json_t.is_ios_texture_format;
+        nlohmann_json_j["texture_format_category"] = nlohmann_json_t.texture_format_category;
         nlohmann_json_j["resource_info"] = nlohmann_json_t.resource_info;
-        if (nlohmann_json_t.package_info.use_package_info) {
-            nlohmann_json_j["package_info"] = nlohmann_json_t.package_info;
-        }
-        else {
-            nlohmann_json_j["package_info"] = nullptr;
-        }
         nlohmann_json_j["group"] = nlohmann_json_t.group;
         return;
     }
@@ -114,17 +90,16 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
         nlohmann_json_j.at("texture_information_version").get_to(nlohmann_json_t.texture_information_version);
-        nlohmann_json_j.at("is_ios_texture_format").get_to(nlohmann_json_t.is_ios_texture_format);
+        nlohmann_json_j.at("texture_format_category").get_to(nlohmann_json_t.texture_format_category);
         nlohmann_json_j.at("resource_info").get_to(nlohmann_json_t.resource_info);
-        if (nlohmann_json_j["package_info"] != nullptr) {
-            nlohmann_json_j.at("package_info").get_to(nlohmann_json_t.package_info);
-            nlohmann_json_t.package_info.use_package_info = true;
-        }
         nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
         return;
     }
 
-    struct ImageDimension {
+    // -------------------------------------------------------
+
+    struct ImageDimension
+    {
         int width;
         int height;
     };
@@ -147,7 +122,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         return;
     }
 
-    struct ImageInfo {
+    struct ImageInfo
+    {
         std::string path;
         int index;
         ImageFormat format;
@@ -176,10 +152,11 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         return;
     }
 
-    struct TextureDefault {
+    struct TextureDefault
+    {
         int ax;
         int ay;
-        int aw; 
+        int aw;
         int ah;
         int x;
         int y;
@@ -217,8 +194,21 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         return;
     }
 
-    struct DataInfo {
-        PacketContainsResourceGroup::Common::DataType type;
+    enum DataType 
+    {
+        File,             // 0
+        Image,            // 1 - ptx
+        PopAnim,          // 2 - pam
+        Data,             // 3 - rton
+        SoundBank,        // 4 - bank
+        DecodedSoundBank, // 5 - bank
+        PrimeFont,        // 6 - font
+        RenderEffect      // 7 effect
+    };
+
+    struct DataInfo
+    {
+        DataType type;
         std::string path;
         TextureDefault texture_info;
     };
@@ -245,7 +235,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 
     struct PacketInfo
     {
-        PacketContainsResourceGroup::Common::DataType type;
+        DataType type;
         ImageInfo image_info;
         std::map<std::string, DataInfo> data;
     };
@@ -341,5 +331,4 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         nlohmann_json_j.at("group").get_to(nlohmann_json_t.group);
         return;
     }
-
 }

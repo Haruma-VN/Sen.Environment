@@ -1,21 +1,9 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/texture/invoke.hpp"
-#include "kernel/support/miscellaneous/shared.hpp"
-#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/common.hpp"
-#include "kernel/support/popcap/reflection_object_notation/encode.hpp"
 
 namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
 {
-    using BundleStructure = Sen::Kernel::Support::PopCap::ResourceStreamBundle::BundleStructure;
-
-    using ManifestStructure = Sen::Kernel::Support::PopCap::ResourceStreamBundle::ManifestStructure;
-
-    using ResourceStreamBundlePack = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Pack;
-
-    using namespace Sen::Kernel::Support::Miscellaneous::Shared;
-
     using namespace Definition;
 
     using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
@@ -23,6 +11,15 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
     struct Pack : Common
     {
     private:
+        inline static auto checking_info(
+            InfoStructure const &definition) -> void
+        {
+            auto duplicate_group = std::vector<string>{};
+            find_duplicate_elements<string>(definition.group, duplicate_group);
+            assert_conditional(duplicate_group.empty(), fmt::format("group: {} is duplicated", duplicate_group[0]), "checking_info"); // TODO: add to localization.
+            return;
+        }
+
         inline static auto exchange_simple_info(
             BundleStructure &bundle,
             InfoStructure const &definition) -> void
@@ -36,8 +33,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         inline static auto exchange_package(
             ResInfo &res_info,
             BundleStructure &bundle,
-            PackageInfo const &package_info,
             std::vector<uint8_t> &value,
+            PackagesFileList const &list,
             std::string const &packages_folder) -> void
         {
             auto packages_list = FileSystem::read_whole_directory(packages_folder);
@@ -50,7 +47,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                 return resfile.substr(k_begin_index, resfile.size() - ".rton"_sv.size());
             };
             auto packages_string_name = get_string(k_package_string);
-            auto &packages_packet_info = res_info.group[packages_string_name].subgroup[packages_string_name].packet[get_string(PacketContainsResourceGroup::Common::k_packet_general_type_name)];
+            auto &packages_packet_info = res_info.group[packages_string_name].subgroup[packages_string_name].packet[get_string(k_packet_general_type_name)];
             auto packet_definition = PacketStructure{
                 .version = bundle.version,
                 .compression = Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::PacketCompression{
@@ -62,57 +59,28 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                 packet_definition.resource.emplace_back(Resource{
                     .path = String::to_posix_style(toupper_back(path))});
                 packages_packet_info.data[get_resfile(path)] = DataInfo{
-                    .type = PacketContainsResourceGroup::Common::DataType::File,
+                    .type = DataType::File,
                     .path = String::to_posix_style(tolower_back(path))};
             };
-            auto push = [&](std::string_view ext) -> void
+            for (auto &element : *(list.json_file))
             {
-                for (auto &element : packages_list)
-                {
-                    auto file_extension = Path::getExtension(element);
-                    if (compare_string(ext, file_extension))
-                    {
-                        switch (hash_sv(ext))
-                        {
-                        case (hash_sv(".json"_sv)):
-                        {
-                            auto pos = packages_folder.size() - k_package_string.size();
-                            auto path = toupper_back(element.substr(pos, (element.size() - pos - ".json"_sv.size())) + ".rton");
-                            auto data_resource_stream = DataStreamView{};
-                            Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Encode::process_whole(data_resource_stream, FileSystem::read_file(element));
-                            if (package_info.rton_is_encrypted)
-                            {
-                                auto data_encrypt_stream = DataStreamView{};
-                                Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Instance::encrypt(data_resource_stream, data_encrypt_stream, k_china_reflection_object_natation_rijndael_key_string, k_china_reflection_object_natation_rijndael_iv_string);
-                                resource_data_section_view_stored[path] = std::move(data_encrypt_stream.toBytes());
-                            }
-                            else
-                            {
-                                resource_data_section_view_stored[path] = std::move(data_resource_stream.toBytes());
-                            }
-                            push_definition(path);
-                            break;
-                        }
-                        case (hash_sv(".rton"_sv)):
-                        {
-                            auto pos = packages_folder.size() - k_package_string.size();
-                            auto path = toupper_back(element.substr(pos, (element.size() - pos)));
-                            if (!resource_data_section_view_stored.contains(path))
-                            {
-                                resource_data_section_view_stored[path] = std::move(FileSystem::read_binary<uint8_t>(element));
-                            }
-                            push_definition(path);
-                            break;
-                        }
-                        }
-                    }
-                }
-            };
-            if (package_info.auto_convert_jsons_exist)
-            {
-                push(".json"_sv);
+                auto pos = packages_folder.size() - k_package_string.size();
+                auto path = toupper_back(element.substr(pos, (element.size() - pos - ".json"_sv.size())) + ".rton");
+                auto data_resource_stream = DataStreamView{};
+                Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Encode::process_whole(data_resource_stream, FileSystem::read_file(element));
+                resource_data_section_view_stored[path] = std::move(data_resource_stream.toBytes());
+                push_definition(path);
             }
-            push(".rton"_sv);
+            for (auto &element : *(list.rton_file))
+            {
+                auto pos = packages_folder.size() - k_package_string.size();
+                auto path = toupper_back(element.substr(pos, (element.size() - pos)));
+                if (!resource_data_section_view_stored.contains(path))
+                {
+                    resource_data_section_view_stored[path] = std::move(FileSystem::read_binary<uint8_t>(element));
+                }
+                push_definition(path);
+            }
             auto packet_stream = DataStreamView{};
             Sen::Kernel::Support::PopCap::ResourceStreamGroup::Pack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
             value = std::move(packet_stream.toBytes());
@@ -131,7 +99,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             std::string const &packet_folder) -> void
         {
             auto header_information = PacketContainsResourceGroup::Common::HeaderInformaiton{};
-            auto genenal_type_name = get_string(PacketContainsResourceGroup::Common::k_packet_general_type_name);
+            auto genenal_type_name = get_string(k_packet_general_type_name);
             for (auto &group_id : definition.group)
             {
                 auto group_stream = DataStreamView{fmt::format("{}/{}.scg", packet_folder, group_id)};
@@ -175,7 +143,23 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                                 .use_texture_additional_instead = true};
                             resource.path = toupper_back(fmt::format("{}.PTX", packet_value.image_info.path));
                             resource.texture_additional.value.index = packet_value.image_info.index;
-                            definition.is_ios_texture_format ? exchange_texture_value<true>(resource.texture_additional.value, packet_value.image_info, bundle.texture_information_section_size) : exchange_texture_value<false>(resource.texture_additional.value, packet_value.image_info, bundle.texture_information_section_size);
+                            switch (definition.texture_format_category)
+                            {
+                            case TextureFormatCategory::IOS: {
+                                exchange_texture_value<TextureFormatCategory::IOS>(resource.texture_additional.value, packet_value.image_info, bundle.texture_information_section_size);
+                                break;
+                            }
+                            case TextureFormatCategory::Android: {
+                                exchange_texture_value<TextureFormatCategory::Android>(resource.texture_additional.value, packet_value.image_info, bundle.texture_information_section_size);
+                                break;
+                            }
+                            case TextureFormatCategory::Chinese: {
+                                exchange_texture_value<TextureFormatCategory::Chinese>(resource.texture_additional.value, packet_value.image_info, bundle.texture_information_section_size);
+                                break;
+                            }    
+                            default:
+                                assert_conditional(false, "invaild_texture_format_category", "exchange_group");
+                            }
                             subgroup_information.resource.emplace_back(resource);
                         }
                     }
@@ -194,15 +178,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
                     group_information.subgroup[subgroup.id] = subgroup_information;
                 }
             }
-            return;
-        }
-
-        inline static auto checking_info(
-            InfoStructure const &definition) -> void
-        {
-            auto duplicate_group = std::vector<string>{};
-            find_duplicate_elements<string>(definition.group, duplicate_group);
-            assert_conditional(duplicate_group.empty(), fmt::format("group: {} is duplicated", duplicate_group[0]), "checking_info"); // TODO: add to localization.
             return;
         }
 
@@ -253,6 +228,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         inline static auto process_package(
             DataStreamView &stream,
             InfoStructure const &definition,
+            PackagesFileList const &list,
             std::string_view source) -> void
         {
             auto bundle = BundleStructure{};
@@ -260,13 +236,13 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
             auto res_info = ResInfo{};
             exchange_simple_info(bundle, definition);
             auto packet_data_section_view_stored = DataSectionViewStored(&case_insensitive_compare);
-            if (definition.package_info.use_package_info)
+            if (!list.rton_file->empty() || !list.json_file->empty())
             {
-                exchange_package(res_info, bundle, definition.package_info, packet_data_section_view_stored[get_string(k_package_string)], fmt::format("{}/packages", source));
+                exchange_package(res_info, bundle, packet_data_section_view_stored[get_string(k_package_string)], list, fmt::format("{}/packages", source));
             }
             exchange_group(stream, res_info, bundle, definition, packet_data_section_view_stored, fmt::format("{}/packet", source));
-            exchange_manifest(bundle,definition.resource_info, res_info, packet_data_section_view_stored);
-            ResourceStreamBundlePack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
+            exchange_manifest(bundle, definition.resource_info, res_info, packet_data_section_view_stored);
+            Sen::Kernel::Support::PopCap::ResourceStreamBundle::Pack::process_whole(stream, bundle, manifest, packet_data_section_view_stored);
             return;
         }
 
@@ -274,20 +250,23 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle
         inline static auto process_whole(
             DataStreamView &stream,
             InfoStructure const &definition,
+            PackagesFileList const &list,
             std::string_view source) -> void
         {
             checking_info(definition);
-            process_package(stream, definition, source);
+            process_package(stream, definition, list, source);
             return;
         }
 
         inline static auto process_fs(
             std::string_view source,
-            std::string_view destination) -> void
+            std::string_view destination,
+            PackagesFileList const &list
+        ) -> void
         {
             auto stream = DataStreamView{};
             auto definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
-            process_whole(stream, definition, source);
+            process_whole(stream, definition, list, source);
             stream.out_file(destination);
             return;
         }

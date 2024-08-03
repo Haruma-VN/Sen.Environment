@@ -35,7 +35,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
      */
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
-        layout: 1n | 2n | "?";
         generic: 1n | 2n | 3n | "?";
     }
 
@@ -44,43 +43,11 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
      */
 
     export namespace Detail {
-        /**
-         * JS Implement
-         * @param layout - Layout to exchange
-         * @returns style
-         */
-
-        export function exchange_layout(layout: string): Sen.Script.Support.PopCap.ResourceGroup.PathStyle {
-            switch (layout) {
-                case "string": {
-                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.WindowStyle;
-                }
-                case "array": {
-                    return Sen.Script.Support.PopCap.ResourceGroup.PathStyle.ArrayStyle;
-                }
-                default: {
-                    throw new Error(format(Kernel.Language.get("popcap.resource_group.convert.cannot_exchange_layout"), layout));
-                }
-            }
-        }
-        /**
-         *
-         * Typical Style
-         *
-         */
-
-        export function style(): Array<[bigint, string, string]> {
+        export function generic(): Array<[bigint, bigint, string]> {
             return [
-                [1n, "string", Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.string")],
-                [2n, "array", Kernel.Language.get("popcap.rsb.unpack_for_modding.layout.array")],
-            ];
-        }
-
-        export function generic(): Array<[bigint, string, string]> {
-            return [
-                [1n, "android", Kernel.Language.get("android")],
-                [2n, "android-cn", Kernel.Language.get("pvz2_android_cn")],
-                [3n, "ios", Kernel.Language.get("ios")],
+                [1n, 0n, Kernel.Language.get("android")],
+                [2n, 1n, Kernel.Language.get("ios")],
+                [3n, 2n, Kernel.Language.get("pvz2_android_cn")],
             ];
         }
     }
@@ -106,10 +73,9 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackForModding {
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${argument.source}.mod_bundle`);
                 Console.output(argument.destination!);
-                //load_bigint(argument, "layout", this.configuration, Detail.style(), Kernel.Language.get("popcap.rsb.unpack_for_modding.layout"));
                 load_bigint(argument, "generic", this.configuration, Detail.generic(), Kernel.Language.get("popcap.rsb.unpack_for_modding.generic"));
                 clock.start_safe();
-                Kernel.Support.Miscellaneous.Modding.unpack_rsb(argument.source, argument.destination!, argument.generic! === "ios");
+                Kernel.Support.Miscellaneous.Modding.unpack_rsb(argument.source, argument.destination!, argument.generic!);
                 clock.stop_safe();
                 return;
             },

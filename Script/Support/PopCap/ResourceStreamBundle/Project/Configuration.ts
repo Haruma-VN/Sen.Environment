@@ -1,7 +1,7 @@
 namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Project.Configuration {
     // -----------------------------------------------------
 
-    export type Generic = "android" | "ios" | "android-cn";
+    export type Generic = 0n | 1n | 2n;
 
     // -----------------------------------------------------
 

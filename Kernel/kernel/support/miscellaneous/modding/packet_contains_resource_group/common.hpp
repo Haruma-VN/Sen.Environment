@@ -1,8 +1,9 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/texture/invoke.hpp"
 #include "kernel/support/miscellaneous/shared.hpp"
+#include "kernel/support/miscellaneous/modding/packet_contains_resource_group/definition.hpp"
+#include "kernel/support/miscellaneous/modding/resource_stream_bundle/common.hpp"
 
 namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGroup
 {
@@ -11,6 +12,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
     using namespace Definition;
 
     using ImageFormat = Sen::Kernel::Support::Texture::Format;
+
+    using SubgroupInfo = Sen::Kernel::Support::Miscellaneous::Modding::ResourceStreamBundle::SubgroupInfo;
 
     struct Common
     {
@@ -26,11 +29,16 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
 
         inline static constexpr auto k_subgroup_information_section_block_size = 144_size;
 
-        inline static constexpr auto k_packet_general_type_name = "general_type"_sv;
-
         inline static constexpr auto k_resource_content_information_magic_identifier = 1936876393_ui;
 
         inline static constexpr auto k_resource_content_information_version = 1_ui;
+
+        struct PacketInformation {
+            bool is_image;
+            SubgroupInfo resoucre_content_information;
+            std::map<std::string, std::vector<uint8_t>> resource_data_section_view_stored;
+            PacketStructure packet_structure;
+        };
 
         struct HeaderInformaiton
         {
@@ -77,18 +85,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             return;
         }
 
-        enum DataType : uint8_t
-        {
-            File,             // 0
-            Image,            // 1 - ptx
-            PopAnim,          // 2 - pam
-            Data,             // 3 - rton
-            SoundBank,        // 4 - bank
-            DecodedSoundBank, // 5 - bank
-            PrimeFont,        // 6 - font
-            RenderEffect      // 7 effect
-        };
-
         inline static auto exchange_padding_block(
             DataStreamView &stream
         ) -> void
@@ -96,39 +92,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             stream.writeNull(compute_padding_size(stream.write_pos, k_data_block_padding_size));
             return;
         }
-
-        /*
-        struct PacketInformation
-        {
-            uint32_t image_count;
-            std::vector<ImageFormat> image_format;
-        };
-
-        inline static auto exchange_packet_information(
-            DataStreamView &stream,
-            PacketInformation &value
-        ) -> void
-        {
-            value.image_count = stream.readUint32();
-            for (auto i : Range(value.image_count)) {
-                value.image_format.emplace_back(static_cast<ImageFormat>(stream.readUint32()));
-            }
-            return;
-        }
-
-        inline static auto exchange_packet_information(
-            PacketInformation const &value,
-            DataStreamView &stream
-        ) -> void 
-        {
-            stream.writeUint32(value.image_count);
-            for (auto i : Range(value.image_count)) {
-                try_assert(static_cast<uint32_t>(value.image_format[i]) != 0_ui, "invalid_format");
-                stream.writeUint32(static_cast<uint32_t>(value.image_format[i]));
-            }
-            return;
-        }
-        */
 
         struct ResourceContentInformation 
         {
@@ -147,11 +110,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             value.version = stream.readUint32();
             value.information_compressed_size = stream.readUint32();
             value.information_string_size = stream.readUint32();
-            /*
-            auto compressed_data = stream.readString(static_cast<size_t>(value.info_compressed_size));
-            assert_conditional(compressed_data.size() == static_cast<size_t>(value.info_compressed_size), "invaild_compressed_size", "exchange_resouce_content_information");
-            value.data = nlohmann::ordered_json::parse(::Kernel::Definition::Encryption::Base64::decode(compressed_data));
-            */
             return;
         }
 
@@ -188,7 +146,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             value.resource_group_stream_section_offset = stream.readUint32();
             value.resource_group_stream_section_block_size = stream.readUint32();
             value.resource_content_information_offset = stream.readUint32();
-           // exchange_resouce_content_information(stream, value.resource_content_information);
             return;
         }
 
@@ -202,7 +159,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Modding::PacketContainsResourceGr
             stream.writeUint32(data.resource_group_stream_section_offset);
             stream.writeUint32(data.resource_group_stream_section_block_size);
             stream.writeUint32(data.resource_content_information_offset);
-          //  exchange_resouce_content_information(data.resource_content_information, stream);
             return;
         }
     };
