@@ -31,7 +31,7 @@ namespace Sen::Kernel::Interface {
 	
 	using CStringList = StringList;
 
-	typedef void (*ShellCallback)(CStringList* list, StringView* destination, void* proxy_call);
+	typedef void (*ShellCallback)(CStringList* list, StringView* destination);
 
 	// Construct CStringView from standard String
 
@@ -89,8 +89,7 @@ namespace Sen::Kernel::Interface {
 
 			inline static auto shell_cb(
 				CStringList* list,
-				CStringView* destination,
-				void* proxy
+				CStringView* destination
 			) -> void
 			{
 				return;

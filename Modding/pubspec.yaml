@@ -1,0 +1,30 @@
+name: modding
+description: "Sen: Modding Environment"
+publish_to: "none"
+version: 1.0.0+1
+environment:
+    sdk: ">=3.4.3 <4.0.0"
+dependencies:
+    flutter:
+        sdk: flutter
+    cupertino_icons: ^1.0.6
+    provider: ^6.1.2
+    file_picker: ^8.0.6
+    delightful_toast: ^1.1.0
+    flutter_simple_treeview: ^3.0.2
+    json_editor_flutter: ^1.4.2
+    google_fonts: ^6.2.1
+    shared_preferences: ^2.3.1
+    ffi: ^2.1.2
+    async: ^2.11.0
+    material_symbols_icons: ^4.2777.1
+dev_dependencies:
+    flutter_test:
+        sdk: flutter
+    flutter_lints: ^3.0.0
+flutter:
+    uses-material-design: true
+    fonts:
+        - family: GoogleSans
+          fonts:
+              - asset: assets/font/GoogleSans-Regular.ttf

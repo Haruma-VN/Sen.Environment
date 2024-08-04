@@ -84,8 +84,7 @@ namespace Sen::Shell {
 
 	inline static auto callback(
 		CStringList* list,
-		CStringView* destination,
-		void* proxy
+		CStringView* destination
 	) -> void
 	{
 		auto result = StringList::to_vector(*list);

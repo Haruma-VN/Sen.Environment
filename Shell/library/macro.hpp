@@ -80,7 +80,7 @@ using CStringView = StringView;
 
 using CStringList = StringList;
 
-typedef void(*ShellCallback)(CStringList* list, CStringView* destination, void* proxy);
+typedef void(*ShellCallback)(CStringList* list, CStringView* destination);
 
 namespace Sen::Shell {
 

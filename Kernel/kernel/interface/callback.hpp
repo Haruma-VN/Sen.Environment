@@ -61,13 +61,13 @@ namespace Sen::Kernel::Interface {
 				{
 					{
 						auto is_gui = std::make_unique<CStringView>();
-						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}).get(), is_gui.get(), nullptr);
+						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}).get(), is_gui.get());
 						// is_gui
 						javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui->value, static_cast<std::size_t>(is_gui->size)})), "Sen"_sv, "Shell"_sv, "is_gui"_sv);
 					}
 					{
 						auto shell_version = std::make_unique<CStringView>();
-						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}).get(), shell_version.get(), nullptr);
+						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}).get(), shell_version.get());
 						// shell version
 						javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version->value, static_cast<std::size_t>(shell_version->size)})), "Sen"_sv, "Shell"_sv, "version"_sv);
 					}

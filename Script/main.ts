@@ -221,16 +221,6 @@ namespace Sen.Script {
          */
 
         export function make_stack(stack: string): string {
-            if (Shell.is_gui) {
-                return stack
-                    .replaceAll(" ", "")
-                    .replaceAll("at", `${Kernel.Language.get("at")} `)
-                    .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
-                    .replaceAll("\\", "/")
-                    .split("\n")
-                    .filter((e: string) => !/<eval>/m.test(e))
-                    .join("\n");
-            }
             return stack
                 .replaceAll("at", `${Kernel.Language.get("at")}`)
                 .replace(/(?<=\()(.*)(?=(Kernel|Script))/m, "")
