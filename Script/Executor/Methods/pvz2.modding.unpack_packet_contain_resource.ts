@@ -47,7 +47,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Modding.UnpackPacketContainResource {
             id: "pvz2.modding.unpack_packet_contain_resource",
             configuration_file: Home.query("~/Executor/Configuration/pvz2.modding.unpack_packet_contain_resource.json"),
             direct_forward(argument: Argument): void {
-                is_valid_source(argument, true);
+                is_valid_source(argument, false);
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.dummy`);
                 Console.output(argument.destination!);

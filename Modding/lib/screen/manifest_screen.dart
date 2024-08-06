@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:modding/model/manifest.dart';
 import 'package:modding/provider/item_provider.dart';
 import 'package:modding/provider/manifest_provider.dart';
@@ -51,6 +52,15 @@ class _ManifestScreenState extends State<ManifestScreen> {
     return destination[value]!;
   }
 
+  String _exchangeTextureFormatCategory(int index) {
+    final exchangeTable = {
+      0: 'Android',
+      1: 'iOS',
+      2: 'Android Chinese',
+    };
+    return exchangeTable[index]!;
+  }
+
   Widget _buildHeaderInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,6 +71,7 @@ class _ManifestScreenState extends State<ManifestScreen> {
             _manifest!.version.toString(),
             style: Theme.of(context).textTheme.labelLarge,
           ),
+          leading: const Icon(Symbols.deployed_code),
         ),
         const SizedBox(height: 10),
         ListTile(
@@ -79,17 +90,24 @@ class _ManifestScreenState extends State<ManifestScreen> {
               );
             }).toList(),
           ),
+          leading: const Icon(Symbols.deployed_code),
         ),
         const SizedBox(height: 10),
         ListTile(
-          title: const Text('Use iOS Texture format'),
-          trailing: Switch(
-            value: _manifest!.isIOSTextureFormat,
-            onChanged: (bool value) {
+          title: const Text('Texture format category'),
+          trailing: DropdownButton<int>(
+            value: _manifest!.textureFormatVersion,
+            onChanged: (int? value) {
               setState(() {
-                _manifest!.isIOSTextureFormat = value;
+                _manifest!.textureFormatVersion = value!;
               });
             },
+            items: [0, 1, 2].map<DropdownMenuItem<int>>((int value) {
+              return DropdownMenuItem<int>(
+                value: value,
+                child: Text(value.toString()),
+              );
+            }).toList(),
           ),
         ),
       ],

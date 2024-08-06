@@ -10,6 +10,7 @@ import 'package:modding/provider/log_provider.dart';
 import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/shell_screen.dart';
 import 'package:modding/service/file_service.dart';
+import 'package:modding/service/platform_service.dart';
 import 'package:provider/provider.dart';
 import 'package:json_editor_flutter/json_editor_flutter.dart';
 
@@ -41,15 +42,36 @@ class _PackagesScreenState extends State<PackagesScreen> {
     );
   }
 
-  Widget _buildNodeContent(TreeNodeData data) {
-    return Row(
-      children: [
-        Icon(
+  void _onMove(TreeNodeData data) {
+    PlatformService.revealInExplorer(data.path);
+  }
+
+  Widget _buildMovableIcon(TreeNodeData data) {
+    return GestureDetector(
+      onTap: () => _onMove(data),
+      child: Tooltip(
+        message: data.name,
+        child: Icon(
           data.isFile ? Icons.insert_drive_file_outlined : Icons.folder,
           color: data.isFile ? null : Colors.yellow,
         ),
+      ),
+    );
+  }
+
+  Widget _buildMovableText(TreeNodeData data) {
+    return GestureDetector(
+      onTap: () => _onMove(data),
+      child: Text(data.name, softWrap: true),
+    );
+  }
+
+  Widget _buildNodeContent(TreeNodeData data) {
+    return Row(
+      children: [
+        _buildMovableIcon(data),
         const SizedBox(width: 10),
-        Text(data.name),
+        _buildMovableText(data),
         const SizedBox(width: 10),
         if (data.isFile) _buildMenuAnchor(data),
       ],
@@ -168,6 +190,7 @@ class _PackagesScreenState extends State<PackagesScreen> {
           break;
         }
     }
+    setState(() {});
   }
 
   Future<void> _executeShell(
@@ -186,7 +209,6 @@ class _PackagesScreenState extends State<PackagesScreen> {
   Future<void> _editFile(String filePath) async {
     var jsonStr = File(filePath).readAsStringSync();
     var value = jsonDecode(jsonStr);
-
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(

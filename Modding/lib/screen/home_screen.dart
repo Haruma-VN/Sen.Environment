@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
@@ -6,8 +8,10 @@ import 'package:modding/model/log_message.dart';
 import 'package:modding/provider/item_provider.dart';
 import 'package:modding/provider/log_provider.dart';
 import 'package:modding/provider/recent_provider.dart';
+import 'package:modding/service/platform_service.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       logProvider.add(LogMessage(
         title: 'Uploaded modding directory',
-        subtitle: result,
+        subtitle: result.replaceAll('\\', '/'),
         time: DateTime.now(),
       ));
       recentProvider.addFile(result);
@@ -90,17 +94,37 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _moddingDirectoryController,
             ),
           ),
-          IconButton(
-            onPressed: _onUpload,
-            icon: const Icon(Icons.upload_outlined),
+          Tooltip(
+            message: 'Upload directory',
+            child: IconButton(
+              onPressed: _onUpload,
+              icon: const Icon(Icons.folder_open_outlined),
+            ),
           ),
         ],
       )
     ];
   }
 
+  String? _revealMessage() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      return 'Open in Explorer';
+    }
+    return null;
+  }
+
   Widget? _subtitle(LogMessage e) {
-    return e.subtitle != null ? Text(e.subtitle!) : null;
+    return e.subtitle != null
+        ? GestureDetector(
+            onTap: () => PlatformService.revealInExplorer(e.subtitle!),
+            child: Tooltip(message: _revealMessage(), child: Text(e.subtitle!)),
+          )
+        : null;
+  }
+
+  String _formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat('MM-dd-yyyy hh:mm a');
+    return formatter.format(date);
   }
 
   @override
@@ -129,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           leading: const Icon(Icons.work_history_outlined),
                           title: Text(e.title),
                           subtitle: _subtitle(e),
+                          trailing: SelectableText(_formatDate(e.time)),
                         ),
                       ),
                     )

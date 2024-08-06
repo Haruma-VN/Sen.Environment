@@ -1,7 +1,7 @@
 class Manifest {
   int version;
   int textureFormatVersion;
-  bool isIOSTextureFormat;
+  int textureFormatCategory;
   ResourceInfo resourceInfo;
   PackageInfo packageInfo;
   List<String> group;
@@ -9,7 +9,7 @@ class Manifest {
   Manifest({
     required this.version,
     required this.textureFormatVersion,
-    required this.isIOSTextureFormat,
+    required this.textureFormatCategory,
     required this.resourceInfo,
     required this.packageInfo,
     required this.group,
@@ -19,7 +19,7 @@ class Manifest {
     return Manifest(
       version: json['version'],
       textureFormatVersion: json['texture_information_version'],
-      isIOSTextureFormat: json['is_ios_texture_format'],
+      textureFormatCategory: json['texture_format_category'],
       resourceInfo: ResourceInfo.fromJson(json['resource_info']),
       packageInfo: PackageInfo.fromJson(json['package_info']),
       group: List<String>.from(json['group']),
@@ -30,7 +30,7 @@ class Manifest {
     return {
       'version': version,
       'texture_information_version': textureFormatVersion,
-      'is_ios_texture_format': isIOSTextureFormat,
+      'texture_format_category': textureFormatCategory,
       'resource_info': resourceInfo.toJson(),
       'package_info': packageInfo.toJson(),
       'group': group,

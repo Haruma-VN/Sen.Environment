@@ -151,6 +151,84 @@ namespace Sen::Kernel::Support::Texture {
 
 			#pragma endregion
 
+			#pragma region decode_whole
+
+			inline static auto decode_whole(
+				std::vector<uint8_t> const &source_binary,
+				int width,
+				int height,
+				Format format
+			) -> Definition::Image<int>
+			{
+				switch(format){
+					case Format::RGBA_8888: {
+						return Decode::rgba_8888(source_binary, width, height);
+					}
+					case Format::ARGB_8888: {
+						return Decode::argb_8888(source_binary, width, height);
+					}
+					case Format::RGBA_4444:{
+						return Decode::rgba_4444(source_binary, width, height);
+					}
+					case Format::RGB_565:{
+						return Decode::rgb_565(source_binary, width, height);
+					}
+					case Format::RGBA_5551:{
+						return Decode::rgba_5551(source_binary, width, height);
+					}
+					case Format::RGBA_4444_TILED:{
+						return Decode::rgba_4444_tiled(source_binary, width, height);
+					}
+					case Format::RGB_565_TILED:{
+						return Decode::rgb_565_tiled(source_binary, width, height);
+					}
+					case Format::RGBA_5551_TILED:{
+						return Decode::rgba_5551_tiled(source_binary, width, height);
+					}
+					case Format::RGB_ETC1:{
+						return Decode::rgb_etc1(source_binary, width, height);
+					}
+					case Format::RGB_ETC1_A_8:{
+						return Decode::rgb_etc1_a_8(source_binary, width, height);
+					}
+					case Format::RGB_ETC1_A_PALETTE:{
+						return Decode::rgb_etc1_a_palette(source_binary, width, height);
+					}
+					case Format::RGB_PVRTC_4BPP:{
+						return Decode::rgba_pvrtc_4bpp(source_binary, width, height);
+					}
+					case Format::RGBA_PVRTC_4BPP:{
+						return Decode::rgba_pvrtc_4bpp(source_binary, width, height);
+					}
+					case Format::RGB_PVRTC_4BPP_A_8:{
+						return Decode::rgb_pvrtc_4bpp_a_8(source_binary, width, height);
+					}
+					case Format::A_8:{
+						return Decode::a_8(source_binary, width, height);
+					}
+					case Format::ARGB_1555:{
+						return Decode::argb_1555(source_binary, width, height);
+					}
+					case Format::ARGB_4444:{
+						return Decode::argb_4444(source_binary, width, height);
+					}
+					case Format::L_8:{
+						return Decode::l_8(source_binary, width, height);
+					}
+					case Format::LA_44:{
+						return Decode::la_44(source_binary, width, height);
+					}
+					case Format::LA_88:{
+						return Decode::la_88(source_binary, width, height);
+					}
+					default:{
+						throw Exception("Format is not supported", std::source_location::current(), "decode_whole");
+					}
+				}
+			}
+
+			#pragma endregion
+
 
 			#pragma region encode
 
@@ -256,6 +334,83 @@ namespace Sen::Kernel::Support::Texture {
 				}
 				FileSystem::write_binary<unsigned char>(destination, result);
 				return;
+			}
+
+			#pragma endregion
+
+
+			#pragma region encode_whole
+
+			inline static auto encode_whole(
+				Definition::Image<int> const& source_image,
+				Format format
+			) -> std::vector<unsigned char>
+			{
+				switch(format){
+					case Format::RGBA_8888:{
+						return Encode::rgba(source_image);
+					}
+					case Format::ARGB_8888:{
+						return Encode::argb(source_image);
+					}
+					case Format::RGBA_4444:{
+						return Encode::rgba_4444(source_image);
+					}
+					case Format::RGB_565:{
+						return Encode::rgb_565(source_image);
+					}
+					case Format::RGBA_5551:{
+						return Encode::rgba_5551(source_image);
+					}
+					case Format::RGBA_4444_TILED:{
+						return Encode::rgba_4444_tiled(source_image);
+					}
+					case Format::RGB_565_TILED:{
+						return Encode::rgb_565_tiled(source_image);
+					}
+					case Format::RGBA_5551_TILED:{
+						return Encode::rgba_5551_tiled(source_image);
+					}
+					case Format::RGB_ETC1:{
+						return Encode::rgb_etc1(source_image);
+					}
+					case Format::RGB_ETC1_A_8:{
+						return Encode::rgb_etc1_a_8(source_image);
+					}
+					case Format::RGB_ETC1_A_PALETTE:{
+						return Encode::rgb_etc1_a_palette(source_image);
+					}
+					case Format::RGB_PVRTC_4BPP:{
+						return Encode::rgb_pvrtc_4bpp(source_image);
+					}
+					case Format::RGBA_PVRTC_4BPP:{
+						return Encode::rgba_pvrtc_4bpp(source_image);
+					}
+					case Format::RGB_PVRTC_4BPP_A_8:{
+						return Encode::rgb_pvrtc_4bpp_a8(source_image);
+					}
+					case Format::A_8: {
+						return Encode::a_8(source_image);
+					}
+					case Format::ARGB_1555: {
+						return Encode::argb_1555(source_image);
+					}
+					case Format::ARGB_4444: {
+						return Encode::argb_4444(source_image);
+					}
+					case Format::L_8: {
+						return Encode::l_8(source_image);
+					}
+					case Format::LA_44: {
+						return Encode::la_44(source_image);
+					}
+					case Format::LA_88: {
+						return Encode::la_88(source_image);
+					}
+					default:{
+						throw Exception("Format is not supported", std::source_location::current(), "encode_whole");
+					}
+				}
 			}
 
 			#pragma endregion

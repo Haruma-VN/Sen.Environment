@@ -593,6 +593,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			for (auto &image : definition.image)
 			{
 				auto image_name = image.name;
+				if (std::find(image_name.begin(), image_name.end(), '/') != image_name.end()) {
+					auto string_list = String{image_name}.split("/"_sv);
+					image_name = string_list.back();
+				}
 				auto image_is_changed = false;
 				if (std::find(animation_name_list.image.begin(), animation_name_list.image.end(), image_name) != animation_name_list.image.end())
 				{

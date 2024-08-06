@@ -140,15 +140,19 @@ class _SettingScreenState extends State<SettingScreen> {
                   },
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  var directory = await FilePicker.platform.getDirectoryPath();
-                  if (directory == null || directory.isEmpty) {
-                    return;
-                  }
-                  controller.text = directory;
-                },
-                icon: const Icon(Icons.drive_folder_upload_outlined),
+              Tooltip(
+                message: 'Upload directory',
+                child: IconButton(
+                  onPressed: () async {
+                    var directory =
+                        await FilePicker.platform.getDirectoryPath();
+                    if (directory == null || directory.isEmpty) {
+                      return;
+                    }
+                    controller.text = directory;
+                  },
+                  icon: const Icon(Icons.drive_folder_upload_outlined),
+                ),
               ),
             ],
           ),

@@ -4,17 +4,21 @@ import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:modding/model/log_message.dart';
 import 'package:modding/provider/filter_provider.dart';
 import 'package:modding/provider/item_provider.dart';
 import 'package:modding/provider/log_provider.dart';
 import 'package:modding/provider/manifest_provider.dart';
 import 'package:modding/provider/recent_provider.dart';
+import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/home_screen.dart';
 import 'package:modding/screen/manifest_screen.dart';
 import 'package:modding/screen/packages_screen.dart';
 import 'package:modding/screen/packet_screen.dart';
 import 'package:modding/screen/setting_screen.dart';
+import 'package:modding/screen/shell_screen.dart';
 import 'package:modding/service/file_service.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
@@ -156,7 +160,7 @@ class _RootScreenState extends State<RootScreen> {
       );
       logProvider.add(LogMessage(
         title: 'Uploaded modding directory',
-        subtitle: itemProvider.path,
+        subtitle: itemProvider.path.replaceAll('\\', '/'),
         time: DateTime.now(),
       ));
       recentProvider.addFile(itemProvider.path);
@@ -343,6 +347,27 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
+  void _buildRSB() async {
+    final String source =
+        Provider.of<ItemProvider>(context, listen: false).path;
+    final logProvider = Provider.of<LogProvider>(context, listen: false);
+    logProvider.add(
+        LogMessage(title: 'Pack RSB', subtitle: source, time: DateTime.now()));
+    await showDialog(
+      context: context,
+      builder: (context) => ShellScreen(
+        shellPath:
+            Provider.of<SettingProvider>(context, listen: false).toolChain,
+        arguments: [
+          '-method',
+          'popcap.rsb.pack_for_modding',
+          '-source',
+          source,
+        ],
+      ),
+    );
+  }
+
   void _showFinishedDialog(String destination) async {
     await showDialog(
       context: context,
@@ -467,8 +492,41 @@ class _RootScreenState extends State<RootScreen> {
     ];
   }
 
+  Widget _buildButton() {
+    final theme = Theme.of(context);
+    Color backgroundColor() =>
+        theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+    Color iconColor() =>
+        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+    return Tooltip(
+      message: 'Build',
+      child: FloatingActionButton(
+        onPressed: _buildRSB,
+        backgroundColor: backgroundColor().withOpacity(0.84),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const SizedBox(
+              width: 56,
+              height: 56,
+            ),
+            Icon(
+              Symbols.deployed_code,
+              color: iconColor().withOpacity(0.84),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _packagesPageAction() {
     return [
+      _iconButtonWithTooltip(
+        icon: Symbols.cleaning_services,
+        onPressed: _filterOnClick,
+        tooltip: 'Clear',
+      ),
       _iconButtonWithTooltip(
         icon: Icons.filter_list_outlined,
         onPressed: _filterOnClick,
@@ -504,13 +562,13 @@ class _RootScreenState extends State<RootScreen> {
             label: Text('Home'),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.check_box_outline_blank),
-            selectedIcon: Icon(Icons.check_box),
+            icon: Icon(Symbols.package_2),
+            selectedIcon: Icon(Symbols.package_2_sharp),
             label: Text('Packages'),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.file_copy_outlined),
-            selectedIcon: Icon(Icons.file_copy),
+            icon: Icon(Symbols.attach_file),
+            selectedIcon: Icon(Symbols.attach_file_sharp),
             label: Text('Packet'),
           ),
           NavigationRailDestination(
@@ -544,6 +602,7 @@ class _RootScreenState extends State<RootScreen> {
           ),
         ],
       ),
+      floatingActionButton: _buildButton(),
       bottomNavigationBar: _makeNavigationBar(),
     );
   }

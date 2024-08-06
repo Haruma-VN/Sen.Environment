@@ -548,6 +548,17 @@ namespace Sen::Kernel::Definition {
 				T x,
 				T y,
 				T width,
+				T height
+			) : Rectangle<T>(x, y, width, height)
+			{
+			}
+
+			// constructor
+
+			RectangleFileIO(
+				T x,
+				T y,
+				T width,
 				T height,
 				const std::string& destination
 			) : Rectangle<T>(x, y, width, height), destination(destination)

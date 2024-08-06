@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:modding/model/theme.dart';
 import 'package:modding/provider/filter_provider.dart';
@@ -8,11 +10,18 @@ import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/root_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:modding/provider/item_provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 Future<void> main(
   List<String> arguments,
 ) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await WindowManager.instance.ensureInitialized();
+    await windowManager.center();
+    await windowManager.waitUntilReadyToShow();
+    await windowManager.show();
+  }
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(
@@ -45,11 +54,11 @@ class Application extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Sen: Modding Environment',
+      title: 'Sen: Environment',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: Provider.of<SettingProvider>(context).themeData,
-      home: const RootScreen(title: 'Sen: Modding Environment'),
+      home: const RootScreen(title: 'Sen: Environment'),
     );
   }
 }

@@ -49,9 +49,7 @@ class _ShellScreenState extends State<ShellScreen> {
     _outputData = [];
     super.initState();
     _startTimer();
-    _run(
-      widget.arguments,
-    );
+    _run(widget.arguments);
   }
 
   void _startTimer() {
@@ -59,6 +57,12 @@ class _ShellScreenState extends State<ShellScreen> {
       setState(() {
         _secondsPassed++;
       });
+    });
+  }
+
+  void _resetTimeCount() {
+    setState(() {
+      _secondsPassed = 0;
     });
   }
 
@@ -193,41 +197,41 @@ class _ShellScreenState extends State<ShellScreen> {
   static Future<void> _sub(
     List<dynamic> isolateData,
   ) async {
-    var mainSendPort = isolateData[0] as SendPort;
-    var kernelPath = isolateData[1];
+    final mainSendPort = isolateData[0] as SendPort;
+    final kernelPath = isolateData[1];
     _sendPort = mainSendPort;
     _dylib = DynamicLibrary.open(kernelPath);
-    var execute = _dylib!
+    final execute = _dylib!
         .lookupFunction<KernelExecuteCAPI, KernelExecuteDartAPI>('execute');
-    var subReceivePort = ReceivePort();
-    var subStreamQueue = StreamQueue<dynamic>(subReceivePort);
+    final subReceivePort = ReceivePort();
+    final subStreamQueue = StreamQueue<dynamic>(subReceivePort);
     mainSendPort.send(subReceivePort.sendPort);
-    var subEvent = await subStreamQueue.next as List<dynamic>;
-    var scriptPath = subEvent[0] as String;
-    var currentShell = subEvent[1] as String;
-    var additionalArguments = subEvent[2] as List<String>;
-    var script = calloc<CStringView>(1);
-    var scriptNativeString = PointerService.toUint8List(scriptPath);
-    var scriptPointer = PointerService.utf8ListToCString(scriptNativeString);
+    final subEvent = await subStreamQueue.next as List<dynamic>;
+    final scriptPath = subEvent[0] as String;
+    final currentShell = subEvent[1] as String;
+    final additionalArguments = subEvent[2] as List<String>;
+    final script = calloc<CStringView>(1);
+    final scriptNativeString = PointerService.toUint8List(scriptPath);
+    final scriptPointer = PointerService.utf8ListToCString(scriptNativeString);
     script.ref
       ..value = scriptPointer
       ..size = scriptNativeString.length;
-    var argumentList = [
+    final argumentList = [
       currentShell,
       kernelPath,
       scriptPath,
       ...additionalArguments,
     ];
-    var argument = calloc<CStringView>(argumentList.length);
+    final argument = calloc<CStringView>(argumentList.length);
     for (var i = 0; i < argumentList.length; ++i) {
-      var currentArgument = PointerService.toUint8List(argumentList[i]);
-      var currentArgumentPointer =
+      final currentArgument = PointerService.toUint8List(argumentList[i]);
+      final currentArgumentPointer =
           PointerService.utf8ListToCString(currentArgument);
       (argument + i).ref
         ..size = currentArgument.length
         ..value = currentArgumentPointer;
     }
-    var arguments = calloc<CStringList>(1);
+    final arguments = calloc<CStringList>(1);
     arguments.ref
       ..size = argumentList.length
       ..value = argument;
@@ -264,7 +268,6 @@ class _ShellScreenState extends State<ShellScreen> {
   void dispose() {
     _inputController?.dispose();
     _scrollController.dispose();
-    _timer.cancel();
     super.dispose();
   }
 
@@ -282,7 +285,7 @@ class _ShellScreenState extends State<ShellScreen> {
     }
   }
 
-  void queryCommand(List<dynamic> event) {
+  void _queryCommand(List<dynamic> event) {
     if (event.isEmpty) return;
     var command = event.removeAt(0);
     if (command == null) return;
@@ -301,7 +304,6 @@ class _ShellScreenState extends State<ShellScreen> {
 
   void _handlePushNotificationCommand(List<dynamic> event) {
     if (event.isEmpty) return;
-
     var message = event[0];
     _pushNotification(message);
   }
@@ -400,8 +402,10 @@ class _ShellScreenState extends State<ShellScreen> {
     });
     final e = await completer.future;
     setState(() {
-      _outputData
-          .add(Message(title: 'User provided', subtitle: e, color: 'default'));
+      _stage = 'any';
+      _outputData.add(
+        Message(title: 'User provided', subtitle: e, color: 'default'),
+      );
     });
     final units = PointerService.toUint8List(e!);
     final utf8Str = PointerService.utf8ListToCString(units);
@@ -425,8 +429,14 @@ class _ShellScreenState extends State<ShellScreen> {
     });
     final e = await completer.future;
     setState(() {
-      _outputData
-          .add(Message(title: 'User provided', subtitle: e, color: 'default'));
+      _stage = 'any';
+      _outputData.add(
+        Message(
+          title: 'User provided',
+          subtitle: e,
+          color: 'default',
+        ),
+      );
     });
     final units = PointerService.toUint8List(e!);
     final utf8Str = PointerService.utf8ListToCString(units);
@@ -447,8 +457,14 @@ class _ShellScreenState extends State<ShellScreen> {
     });
     final e = await completer.future;
     setState(() {
-      _outputData
-          .add(Message(title: 'User provided', subtitle: e, color: 'default'));
+      _stage = 'any';
+      _outputData.add(
+        Message(
+          title: 'User provided',
+          subtitle: e,
+          color: 'default',
+        ),
+      );
     });
     final units = PointerService.toUint8List(e!);
     final utf8Str = PointerService.utf8ListToCString(units);
@@ -507,7 +523,7 @@ class _ShellScreenState extends State<ShellScreen> {
           }
           callbackState.value = true;
         } else {
-          queryCommand(mainEvent);
+          _queryCommand(mainEvent);
         }
       }
     }
@@ -540,16 +556,43 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   Widget _buildFinishedStage() {
-    return Row(
+    _timer.cancel();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _exit,
-            child: const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('Finished'),
+        Text('Elapsed Time: $_formattedTime'),
+        const SizedBox(height: 10),
+        const Text('Execute again?'),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _outputData.clear();
+                  });
+                  _resetTimeCount();
+                  _startTimer();
+                  _run(widget.arguments);
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('Yes'),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _exit,
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No'),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -559,9 +602,7 @@ class _ShellScreenState extends State<ShellScreen> {
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _inputController,
-          ),
+          child: TextField(controller: _inputController),
         ),
         IconButton(
           onPressed: _onSendString,
@@ -621,16 +662,14 @@ class _ShellScreenState extends State<ShellScreen> {
       options: const ['YES', 'NO'],
       isRowProvider: true,
     );
-    return Expanded(
-      child: Row(
-        children: [
-          Expanded(child: radioButton),
-          IconButton(
-            onPressed: () => _onSendBoolean(radioButton.currentOption),
-            icon: const Icon(Icons.send_outlined),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(child: radioButton),
+        IconButton(
+          onPressed: () => _onSendBoolean(radioButton.currentOption),
+          icon: const Icon(Icons.send_outlined),
+        ),
+      ],
     );
   }
 
@@ -645,11 +684,7 @@ class _ShellScreenState extends State<ShellScreen> {
 
   Widget? _subtitle(Message e) {
     return e.subtitle != null && e.subtitle!.isNotEmpty
-        ? Text(
-            e.subtitle!,
-            softWrap: true,
-            overflow: TextOverflow.visible,
-          )
+        ? SelectableText(e.subtitle!)
         : null;
   }
 
@@ -665,6 +700,10 @@ class _ShellScreenState extends State<ShellScreen> {
     };
   }
 
+  Widget _text(String message) {
+    return SelectableText(message);
+  }
+
   Widget _messageDisplay(Message e) {
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -674,11 +713,7 @@ class _ShellScreenState extends State<ShellScreen> {
         color: _color(e),
         child: ListTile(
           leading: const Icon(Symbols.terminal),
-          title: Text(
-            e.title,
-            softWrap: true,
-            overflow: TextOverflow.visible,
-          ),
+          title: _text(e.title),
           subtitle: _subtitle(e),
         ),
       ),
@@ -742,6 +777,7 @@ class _ShellScreenState extends State<ShellScreen> {
       appBar: AppBar(
         title: const Text('Sen: Environment'),
         leading: const Icon(Icons.terminal_outlined),
+        actions: [],
       ),
       body: Column(
         children: [
