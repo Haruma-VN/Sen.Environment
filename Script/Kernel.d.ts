@@ -2824,15 +2824,13 @@ declare namespace Sen {
                     * WWise Miscellaneous Support
                     */
 
-                    /*
+                    
                     declare namespace Miscellaneous {
-                        //TODO.
                         export function add_music(source: string, global_data_source: string, media_path: string, media_list: bigint[]): void; 
 
 
                         export function create_soundbank(source: string, destination: string): void; 
                     }
-                    */
                 }
             }
         }
