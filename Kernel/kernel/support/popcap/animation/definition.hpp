@@ -100,7 +100,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationImage
     {
     public:
-        std::string name;
+        std::string path;
         std::string id;
         AnimationSize size;
         std::vector<double> transform;
@@ -111,7 +111,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const AnimationImage &anim) -> void
     {
         json = nlohmann::ordered_json{
-            {"name", anim.name},
+            {"path", anim.path},
             {"id", anim.id},
             {"size", anim.size},
             {"transform", anim.transform}};
@@ -122,7 +122,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         const nlohmann::ordered_json &json,
         AnimationImage &anim) -> void
     {
-        json.at("name").get_to(anim.name);
+        json.at("path").get_to(anim.path);
         json.at("id").get_to(anim.id);
         json.at("size").get_to(anim.size);
         json.at("transform").get_to(anim.transform);

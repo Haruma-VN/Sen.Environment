@@ -18,11 +18,12 @@ namespace Sen::Kernel::Definition
 
         struct Option
         {
-            bool smart{true};
-            bool pot{true};
-            bool square{false};
-            int border{0};
-            PACKING_LOGIC logic{PACKING_LOGIC::MAX_AREA};
+            bool smart = true;
+            bool pot = true;
+            bool square = false;
+            int border = 0;
+            int padding = 0;
+            PACKING_LOGIC logic = PACKING_LOGIC::MAX_AREA;
         };
 
         struct Rectangle
@@ -128,15 +129,15 @@ namespace Sen::Kernel::Definition
         struct MaxRectsBin
         {
         public:
-            int mutable width = 0;
-            int mutable height = 0;
-            int mutable padding = 0;
+            int mutable width;
+            int mutable height;
+            int mutable padding;
             int mutable maxWidth = EDGE_MAX_VALUE;
             int mutable maxHeight = EDGE_MAX_VALUE;
             std::vector<Rectangle> mutable freeRects;
             std::vector<Rectangle> mutable rects;
             Option mutable options;
-            int mutable border = 0;
+            int mutable border;
             bool mutable verticalExpand = false;
             Rectangle mutable stage;
 
@@ -145,7 +146,6 @@ namespace Sen::Kernel::Definition
             MaxRectsBin(
                 int _maxWidth,
                 int _maxHeight,
-                int _padding,
                 Option &_options)
             {
                 freeRects.clear();
@@ -153,10 +153,10 @@ namespace Sen::Kernel::Definition
                 options = std::move(_options);
                 maxWidth = _maxWidth;
                 maxHeight = _maxHeight;
-                padding = _padding;
                 width = options.smart ? 1 : maxWidth;
                 height = options.smart ? 1 : maxHeight;
-                border = options.border ? options.border : 0;
+                border = options.border;
+                padding = options.padding;
                 freeRects.emplace_back(Rectangle(maxWidth + padding - border * 2, maxHeight + padding - border * 2, border, border, ""));
                 stage = Rectangle(width, height, "");
                 return;
@@ -387,7 +387,6 @@ namespace Sen::Kernel::Definition
         public:
             int mutable width = EDGE_MAX_VALUE;
             int mutable height = EDGE_MAX_VALUE;
-            int mutable padding = 0;
             Option mutable options;
             std::vector<MaxRectsBin> mutable bins;
 
@@ -402,15 +401,7 @@ namespace Sen::Kernel::Definition
             MaxRectsPacker(
                 int width,
                 int height,
-                int padding) : width(width), height(height), padding(padding)
-            {
-            }
-
-            MaxRectsPacker(
-                int width,
-                int height,
-                int padding,
-                Option &options) : width(width), height(height), padding(padding), options(options)
+                Option &options) : width(width), height(height), options(options)
             {
             }
 
@@ -444,22 +435,6 @@ namespace Sen::Kernel::Definition
                 return;
             }
 
-            /*
-            template <typename T>
-            inline auto slice(
-                std::vector<T> &t,
-                size_t start,
-                size_t end) -> std::vector<T>
-            {
-                auto new_t = std::vector<T>{};
-                for (auto i = start; i < end; i++)
-                {
-                    new_t.emplace_back(t.at(i));
-                }
-                return new_t;
-            }
-            */
-
         public:
             /**
              * Add a bin/rectangle object extends IRectangle to packer
@@ -481,7 +456,7 @@ namespace Sen::Kernel::Definition
                             return true;
                         }
                     }
-                    auto bin = MaxRectsBin(width, height, padding, options);
+                    auto bin = MaxRectsBin(width, height, options);
                     bin.add(rect);
                     bins.emplace_back(bin);
                 }

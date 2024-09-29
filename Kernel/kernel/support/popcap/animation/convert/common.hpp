@@ -49,6 +49,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         inline static constexpr auto k_begin_index_int = 0;
 
+        inline static constexpr auto k_max_label_name_size = 128_size;
+
         enum State : uint8_t
         {
             state_null,
@@ -129,13 +131,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             int start;
             int duration;
             std::vector<int> layer_index_list;
-            XMLDocument document;
         };
 
         struct PackageLibrary
         {
             std::map<std::string, XMLDocument> image;
             std::map<std::string, XMLDocument> sprite;
+            std::map<std::string, XMLDocument> label_document;
             tsl::ordered_map<std::string, LabelInfo> label;
             XMLDocument main_sprite;
             FrameNodeStructure frame_node;
@@ -205,21 +207,54 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             }
         }
 
+        template <auto is_label>
         inline static auto exchange_sprite_name_invalid(
             std::string &sprite_name) -> bool
         {
-            auto k_sprite_name_need_exchange = false;
-            if (std::find_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char) != sprite_name.end())
+            static_assert(is_label == true || is_label == false, "is_label must be true or false");
+            auto check = [&]() -> bool
             {
-                sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char));
-                k_sprite_name_need_exchange = true;
+                auto k_sprite_state_test = false;
+                if (std::find(sprite_name.begin(), sprite_name.end(), '/') != sprite_name.end())
+                {
+                    auto string_list = String{sprite_name}.split("/");
+                    sprite_name = string_list.back();
+                    k_sprite_state_test = true;
+                }
+                if (std::find(sprite_name.begin(), sprite_name.end(), '\\') != sprite_name.end())
+                {
+                    auto string_list = String{sprite_name}.split("\\");
+                    sprite_name = string_list.back();
+                    k_sprite_state_test = true;
+                }
+                if (std::find_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char) != sprite_name.end())
+                {
+                    sprite_name.erase(std::remove_if(sprite_name.begin(), sprite_name.end(), &find_invalid_char));
+                    k_sprite_state_test = true;
+                }
+                if (sprite_name.empty())
+                {
+                    if constexpr (is_label) {
+                        sprite_name += k_sprite_blank_name;
+                    } 
+                    else {
+                        sprite_name += k_sprite_blank_name;
+                    }
+                    k_sprite_state_test = true;
+                }
+                return k_sprite_state_test;
+            };
+            auto index = k_begin_index;
+            while (true) {
+                if (!check()) {
+                    break;
+                }
+                else {
+                    ++index;
+                }
             }
-            if (sprite_name.empty())
-            {
-                sprite_name += k_sprite_blank_name;
-                k_sprite_name_need_exchange = true;
-            }
-            return k_sprite_name_need_exchange;
+            trim(sprite_name);
+            return index > k_begin_index;
         }
 
         inline static auto exchange_default_extra(
@@ -373,6 +408,20 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             return;
         }
 
+        inline static auto fix_media_image(
+            std::string const&source,
+            std::string const&media_name
+        ) -> void
+        {
+            auto document = XMLDocument{};
+			FileSystem::read_xml(source, &document);
+            auto elements = document.FirstChildElement("DOMSymbolItem")->FirstChildElement("timeline")->FirstChildElement("DOMTimeline")->FirstChildElement("layers")->FirstChildElement("DOMLayer")->FirstChildElement("frames")->FirstChildElement("DOMFrame")->FirstChildElement("elements");
+            auto dom_bitmap_instance = elements->FirstChildElement("DOMBitmapInstance");
+            dom_bitmap_instance->SetAttribute("libraryItemName", fmt::format("media/{}", media_name).data());
+			FileSystem::write_xml(source, &document);
+            return;
+        }
+
         template <typename T>
         inline static auto get_index(
             const std::vector<T> &v,
@@ -387,24 +436,52 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             return -1;
         }
 
-        inline static auto trim(
-            const std::string &value) -> std::string
+        // trim from start (in place)
+        inline static auto ltrim(std::string &s) -> void
         {
-            return std::regex_replace(value, std::regex("(^[ ]+)|([ ]+$)"), "");
+            s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
+                                            { return !std::isspace(ch); }));
+            return;
+        }
+
+        // trim from end (in place)
+        inline static auto rtrim(std::string &s) -> void
+        {
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
+                                 { return !std::isspace(ch); })
+                        .base(),
+                    s.end());
+            return;
+        }
+
+        inline static auto trim(
+            std::string &s) -> void
+        {
+            ltrim(s);
+            rtrim(s);
+            return;
+        }
+
+        inline static auto trim_string(
+            std::string const &value) -> std::string
+        {
+            auto str_trim = value;
+            trim(str_trim);
+            return str_trim;
         }
 
         template <typename T, typename E>
-		inline static auto check_element_in_vector(
-			const std::vector<T> &v,
-			const E &e) -> bool
-		{
-			static_assert(sizeof(T) != 0);
-			static_assert(sizeof(E) != 0);
-			if (std::find(v.begin(), v.end(), e) != v.end())
-			{
-				return true;
-			}
-			return false;
-		}
+        inline static auto check_element_in_vector(
+            const std::vector<T> &v,
+            const E &e) -> bool
+        {
+            static_assert(sizeof(T) != 0);
+            static_assert(sizeof(E) != 0);
+            if (std::find(v.begin(), v.end(), e) != v.end())
+            {
+                return true;
+            }
+            return false;
+        }
     };
 }

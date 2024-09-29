@@ -11,7 +11,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 
 	class RewriteSlot {
 
-		protected:
+		public:
 
 			inline static auto rewrite_slot_count(
 				nlohmann::ordered_json &resource
@@ -35,8 +35,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				resource["slot_count"] = slot_group.size();
 				return;
 			}
-
-		public:
 
 			explicit RewriteSlot(
 
@@ -92,6 +90,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							content[c["id"].get<std::string>()]["is_composite"] = true;
 							for(auto &e : c["subgroups"]){
 								content[c["id"].get<std::string>()]["subgroups"][e["id"].get<std::string>()] = ordered_json{{"type", e["res"]}};
+								if (e.find("loc") != e.end()) {
+									content[c["id"].get<std::string>()]["subgroups"][e["id"].get<std::string>()]["loc"] = e["loc"];
+								}	
 							}
 						}
 						else{
@@ -139,6 +140,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 							auto resource_for_subgroup = nlohmann::ordered_json{{"id", subgroup}};
 							if(!content[parent]["subgroups"][subgroup]["type"].is_null()){
 								resource_for_subgroup["res"] = content[parent]["subgroups"][subgroup]["type"];
+							}
+							if (content[parent]["subgroups"][subgroup].find("loc") != content[parent]["subgroups"][subgroup].end()) {
+								resource_for_subgroup["loc"] = content[parent]["subgroups"][subgroup]["loc"];
 							}
 							composite_object["subgroups"].emplace_back(resource_for_subgroup);
 						}

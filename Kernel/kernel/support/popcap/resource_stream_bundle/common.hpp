@@ -39,10 +39,10 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             uint32_t const &data,
             std::string &locale) -> void
         {
-            locale += static_cast<char>(clip_bit(data, 0_size, 8_size));
-            locale += static_cast<char>(clip_bit(data, 8_size, 8_size));
-            locale += static_cast<char>(clip_bit(data, 16_size, 8_size));
             locale += static_cast<char>(clip_bit(data, 24_size, 8_size));
+            locale += static_cast<char>(clip_bit(data, 16_size, 8_size));
+            locale += static_cast<char>(clip_bit(data, 8_size, 8_size));
+            locale += static_cast<char>(clip_bit(data, 0_size, 8_size));
             try_assert(locale.size() == 4_size, "invalid_locale_size");
             return;
         }
@@ -463,7 +463,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             std::map<std::string, uint32_t> group_id;
             std::vector<BasicSubgroupInformation> subgroup_information;
             std::vector<PoolInformation> pool_information;
-            std::vector<TextureInfomation> texture_resource_information;
+            std::map<size_t, TextureInfomation> texture_resource_information; // fix index;
         };
 
         inline static auto exchange_to_index(
@@ -723,6 +723,17 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             {
                 exchange_from_subgroup_manifest(stream, value.subgroup_information[i]);
             }
+            return;
+        }
+
+        inline static auto compare_conditional(
+            int const &value1,
+            int const &value2,
+            std::string const & where,
+            std::string_view localization
+        ) -> void
+        {
+            assert_conditional(value1 == value2, String::format(fmt::format("{}", Language::get(localization)), where, std::to_string(value1), std::to_string(value2)), "compare_conditional");
             return;
         }
     };

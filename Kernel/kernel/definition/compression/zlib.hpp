@@ -119,6 +119,46 @@ namespace Sen::Kernel::Definition::Compression {
 			}
 
 			/**
+			 * data: the binary data to uncompress
+			 * return: the uncompressed data
+			 */
+			
+			inline static auto uncompress_deflate(
+				const std::vector<unsigned char> &data
+			) -> std::vector<unsigned char>
+			{
+				auto zlib_init = z_stream {
+					.next_in = const_cast<Bytef*>(data.data()),
+					.avail_in = static_cast<uInt>(data.size()),
+					.zalloc = Z_NULL,
+					.zfree = Z_NULL,
+					.opaque = Z_NULL,
+				};
+				inflateInit2(&zlib_init, -15);
+				auto result = std::vector<unsigned char>{};
+				unsigned char out_chunk[Zlib::CHUNK]{};
+				do {
+					zlib_init.avail_out = sizeof(out_chunk);
+					zlib_init.next_out = out_chunk;
+					auto ret = inflate(&zlib_init, Z_NO_FLUSH);
+					assert_conditional(ret != Z_STREAM_ERROR, fmt::format("{}", Kernel::Language::get("zlib.uncompress.failed")), "uncompress_deflate");
+					switch(ret){
+						case Z_NEED_DICT:{
+							ret = Z_DATA_ERROR;
+						}
+						case Z_DATA_ERROR:
+						case Z_MEM_ERROR:{
+							inflateEnd(&zlib_init);
+							return std::vector<unsigned char>();
+						}
+					}
+					result.insert(result.end(), out_chunk, out_chunk + sizeof(out_chunk) - zlib_init.avail_out);
+				} while (zlib_init.avail_out == Zlib::Z_UNCOMPRESS_END);
+				inflateEnd(&zlib_init);
+				return result;
+			}
+
+			/**
 			 * data: the binary data to compress
 			 * level: zlib level to compress, should use ZlibLevel::LEVEL_9 for BEST COMPRESSION
 			 * return: the compressed data

@@ -285,8 +285,8 @@ namespace Sen.Script.Support.Wwise.Media.Encode {
         assert(operating_system === "Windows" || operating_system === "macOS", Kernel.Language.get("wwise.media.encode.unsupported_operating_system"));
         const wwise_program_file_path = Script.Support.Wwise.Media.Common.search_path("WwiseConsole");
         assert(wwise_program_file_path !== null, Kernel.Language.get("wwise.media.encode.could_not_find_wwise_console"));
-        const tempfolder_path = Kernel.Process.get_path_environment("TEMP");
-        const wwise_project_dir = `${tempfolder_path}/Sample`;
+        const temporary_path = Home.query("~/../temporary");
+        const wwise_project_dir = `${temporary_path}/Sample`;
         const wwise_wproj_file = `${wwise_project_dir}/Sample.wproj`;
         const wwise_create_new_project_command = `WwiseConsole create-new-project "${wwise_wproj_file}" --platform "Android" "iOS"`;
         while (true) {
@@ -325,7 +325,8 @@ namespace Sen.Script.Support.Wwise.Media.Encode {
         }[format];
         const wwise_command = `WwiseConsole convert-external-source "${wwise_wproj_file}" --platform "${platform}" --source-file "${wwise_wsources_file}"`;
         const process_result = Kernel.Process.execute(wwise_command);
-        // TODO check process_result done or failed
+        const result_string_list = process_result.split("\n");
+        assert(result_string_list[result_string_list.length - 2] === "Process completed successfully.", Kernel.Language.get("wwise.media.encode.failed"))
         Kernel.FileSystem.Operation.remove(destination);
         Kernel.FileSystem.Operation.copy(`${wwise_project_dir}/GeneratedSoundBanks/${platform}/Sample.wem`, destination);
         Kernel.FileSystem.Operation.remove_all(wwise_project_dir);

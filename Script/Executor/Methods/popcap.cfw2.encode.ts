@@ -61,7 +61,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Encode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /.*\.cfw2\.json$/i],
+            filter: ["file", /.*\.txt\.json$/i],
         });
         return;
     }

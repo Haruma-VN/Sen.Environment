@@ -39,7 +39,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					if (element.starts_with("label"))
 					{
 						auto label_name = element.substr(6_size, element.size() - 10_size);
-						auto &label_document = flash_package.library.label[label_name].document;
+						auto &label_document = flash_package.library.label_document[label_name];
 						FileSystem::read_xml(fmt::format("{}/library/label/{}.xml", source, label_name), &label_document);
 					}
 				}
@@ -80,7 +80,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_bitmap_instance = elements->FirstChildElement("DOMBitmapInstance");
 			assert_conditional(dom_bitmap_instance != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_name), "exchange_image_document");
 			auto media_name = std::string{dom_bitmap_instance->FindAttribute("libraryItemName")->Value()}.substr(6_size);
-			assert_conditional(media_name == image.name, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_name), "exchange_image_document");
+			assert_conditional(media_name == image.path, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_path")), image_name), "exchange_image_document");
 			auto matrix = dom_bitmap_instance->FirstChildElement("matrix");
 			auto image_transform_matrix = Transform{};
 			if (matrix == nullptr)
@@ -187,7 +187,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						}
 						++resource_index;
 					}
-					assert_conditional(resource != k_native_index, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_resource_name")), resource_name), "exchange_sprite_document"); // TODO: add to locailzation.
+					assert_conditional(resource != k_native_index, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_resource_name")), resource_name), "exchange_sprite_document");
 					auto frame_node = FrameNode{
 						.index = frame_index,
 						.duration = frame_duration,
@@ -314,7 +314,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				}
 				close_current_model_if_need();
 			}
-			frame_list.erase(frame_list.end() - 1);
+			if (frame_list.size() != k_none_size) {
+				frame_list.erase(frame_list.end() - 1);
+			}
+			else {
+				frame_list.resize(1_size);
+			}
 			frame_node_structure.clear();
 			return;
 		}
@@ -322,7 +327,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		inline static auto exchange_sprite_duration(
 			AnimationSprite &sprite) -> void
 		{
-			sprite.work_area.duration = static_cast<int16_t>(sprite.frame.size() - 1_size);
+			sprite.work_area.duration = static_cast<int16_t>(sprite.frame.size());
 			return;
 		}
 
@@ -334,7 +339,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_timeline = dom_document->FirstChildElement("timelines")->FirstChildElement("DOMTimeline");
 			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_dom_document");
 			auto label_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer");
-			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document");
+			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.label_layer_name_must_be_label")), "exchange_dom_document");
 			auto label_frames = label_layer->FirstChildElement("frames");
 			auto frame_count = k_begin_index_int;
 			for (auto dom_frame = label_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame"))
@@ -344,10 +349,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
 				frame_count += frame_duration;
 				auto label_name = dom_frame->FindAttribute("name");
-				assert_conditional(label_name != nullptr, "label_name_can_not_null", "exchange_dom_document"); // TODO: add to localization.
-				auto &label_info = label[std::string{label_name->Value()}];
-				label_info.start = frame_index;
-				label_info.duration = frame_duration;
+				assert_conditional(label_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.label_name_cannot_null")), "exchange_dom_document"); 
+				auto name = std::string(label_name->Value());
+				label[name].start = frame_index;
+				label[name].duration = frame_duration;
 			}
 			return;
 		}
@@ -365,21 +370,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			definition.size = AnimationSize(std::stoi(width != nullptr ? width->Value() : "390"), std::stoi(height != nullptr ? height->Value() : "390"));
 			auto dom_timeline = dom_document->FirstChildElement("timelines")->FirstChildElement("DOMTimeline");
 			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_dom_document");
-			/*
-			auto label_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer");
-			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, "label_layer_name_must_be_label", "exchange_dom_document"); // TODO: add to localization.
-			auto label_frames = label_layer->FirstChildElement("frames");
-			auto frame_count = k_begin_index_int;
-			for (auto dom_frame = label_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame")) {
-				assert_conditional(dom_frame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "exchange_dom_document");
-				auto frame_index = std::stoi(dom_frame->FindAttribute("index")->Value());
-				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
-				frame_count += frame_duration;
-				auto label_name = dom_frame->FindAttribute("name");
-				assert_conditional(label_name != nullptr, "label_name_can_not_null", "exchange_dom_document"); // TODO: add to localization.
-				definition.main_sprite.frame[frame_index].label = std::string{label_name->Value()};
-			}
-			*/
 			auto frame_count = k_begin_index_int;
 			for (auto &[label_name, label_info] : label)
 			{
@@ -387,7 +377,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				definition.main_sprite.frame[label_info.start].label = label_name;
 			}
 			auto action_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer")->NextSiblingElement("DOMLayer");
-			assert_conditional(std::string_view{action_layer->FindAttribute("name")->Value()} == "action"_sv, "action_layer_name_must_be_action", "exchange_dom_document"); // TODO: add to localization.
+			assert_conditional(std::string_view{action_layer->FindAttribute("name")->Value()} == "action"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.action_layer_name_must_be_action")), "exchange_dom_document"); 
 			auto action_frames = action_layer->FirstChildElement("frames");
 			for (auto dom_frame = action_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame"))
 			{
@@ -402,10 +392,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				assert_conditional(script != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_dom_script")), "exchange_dom_document");
 				auto script_text = script->FirstChild()->ToText();
 				assert_conditional(script_text->CData(), fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_script_cdata")), "exchange_dom_document");
-				auto script_list = String{Common::trim(std::string{script_text->Value()})}.split(";");
+				auto script_text_string = std::string{script_text->Value()};
+				trim(script_text_string);
+				auto script_list = String{script_text_string}.split(";");
 				for (auto &command : script_list)
 				{
-					command = trim(command);
+					trim(command);
 					if (command == "stop()")
 					{
 						definition.main_sprite.frame[frame_index].stop = true;
@@ -419,7 +411,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				}
 			}
 			auto instance_layer = action_layer->NextSiblingElement("DOMLayer");
-			assert_conditional(std::string_view{instance_layer->FindAttribute("name")->Value()} == "instance"_sv, "instance_layer_name_must_be_instance", "exchange_dom_document"); // TODO: add to localization.
+			assert_conditional(std::string_view{instance_layer->FindAttribute("name")->Value()} == "instance"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.instance_layer_name_must_be_instance")), "exchange_dom_document");
 			auto instance_frames = instance_layer->FirstChildElement("frames");
 			if (frame_count > definition.main_sprite.frame.size())
 			{
@@ -545,10 +537,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			exchange_default_extra(extra);
 			for (auto &[image_name, _v] : package_library.image)
 			{
-				assert_conditional(extra.image.contains(image_name), fmt::format("cannot find image: {} in data", image_name), "exchange_definition"); // TODO: add to localization.
+				assert_conditional(extra.image.contains(image_name), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_image_in_data")), image_name), "exchange_definition");
 				auto &image_value = extra.image.at(image_name);
+				assert_conditional(image_value.size.width >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_width")), image_name), "exchange_definition");
+				assert_conditional(image_value.size.height >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_height")), image_name), "exchange_definition");
 				auto image = AnimationImage{
-					.name = !image_value.name.empty() ? image_value.name : image_name,
+					.path = !image_value.path.empty() ? image_value.path : image_name,
 					.id = image_value.id,
 					.size = AnimationSize{
 						static_cast<double>(image_value.size.width),
@@ -573,7 +567,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				for (auto &element : package_library.label)
 				{
 					auto &label_name = element.first;
-					exchange_sprite_document<SpriteType::label>(label_name, package_library, label_frame_node[label_name], package_library.label[label_name].document);
+					assert_conditional(package_library.label_document.find(label_name) != package_library.label_document.end(),  String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.missing_label_xml")), label_name), "exchange_definition");
+					exchange_sprite_document<SpriteType::label>(label_name, package_library, label_frame_node[label_name], package_library.label_document.at(label_name));
 				}
 				exchange_label(label_frame_node, package_library.label, package_library.frame_node);
 			}

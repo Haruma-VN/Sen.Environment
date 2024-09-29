@@ -16,7 +16,7 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 	struct FontCharacter 
     {
         public:
-			std::string index;
+			wchar_t index;
 			int image_rect_x;
 			int image_rect_y;
 			int image_rect_width;
@@ -33,7 +33,7 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 			) = default;
 
 			explicit constexpr FontCharacter(
-				const std::string & index,
+				wchar_t index,
 				int image_rect_x,
 				int image_rect_y,
 				int image_rect_width,
@@ -109,16 +109,16 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 	struct CharacterItem {
 
 		public:
-			std::string index;
-        	std::string value;
+			wchar_t index;
+        	wchar_t value;
 
 			explicit CharacterItem(
 
 			) = default;
 
 			explicit CharacterItem(
-				const std::string & index,
-				const std::string &  value
+				wchar_t index,
+				wchar_t value
 			) : index(index), value(value)
 			{
 
@@ -165,17 +165,17 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 	
 	struct FontKerning {
 		public:
+			wchar_t index;
 			unsigned short offset;
-			std::string index;
 
 			explicit FontKerning(
 
 			) = default;
 
 			explicit constexpr FontKerning(
-				unsigned short offset,
-				const std::string & index
-			) : offset(offset), index(index)
+				wchar_t index,
+				unsigned short offset
+			) : index(index), offset(offset)
 			{
 
 			}
@@ -380,7 +380,8 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 	struct CharacterFontWidget2 {
 
 		public:
-			//std::array<uint8_t, 16> unknown;
+
+			std::array<uint8_t, 16> unknown;
 			int ascent;
 			int ascent_padding;
 			int height;
@@ -415,7 +416,7 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 		CharacterFontWidget2 & font
 	) -> void
 	{
-		//json.at("unknown").get_to(font.unknown);
+		json.at("unknown").get_to(font.unknown);
 		json.at("ascent").get_to(font.ascent);
 		json.at("ascent_padding").get_to(font.ascent_padding);
 		json.at("height").get_to(font.height);
@@ -444,7 +445,7 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 	) -> void
 	{
 		json = nlohmann::ordered_json{
-			//{"unknown", font.unknown},
+			{"unknown", font.unknown},
 			{"ascent", font.ascent},
 			{"ascent_padding", font.ascent_padding},
 			{"height", font.height},

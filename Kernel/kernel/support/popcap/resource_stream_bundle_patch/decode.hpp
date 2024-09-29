@@ -36,8 +36,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
         }
 
         inline static auto process(
-            DataStreamView &stream_before,
             DataStreamView &stream_patch,
+            DataStreamView &stream_before,
             DataStreamView &stream_after) -> void
         {
             auto package_information = PackageInformation{};
@@ -82,7 +82,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
                     stream_after.writeBytes(packet_before);
                 }
                 else {
-                    process_sub(packet_before, stream_after, stream_patch, packet_patch_size);
+                    process_sub(packet_before, stream_patch, stream_after, packet_patch_size);
                 }
             }
             return;
@@ -90,8 +90,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
 
     public:
         inline static auto process_whole(
-            DataStreamView &stream_before,
             DataStreamView &stream_patch,
+            DataStreamView &stream_before,
             DataStreamView &stream_after) -> void
         {
             process(stream_before, stream_patch, stream_after);
@@ -99,12 +99,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
         }
 
         inline static auto process_fs(
-            std::string_view source_before,
             std::string_view source_patch,
+            std::string_view source_before,
             std::string_view destination) -> void
         {
-            auto stream_before = DataStreamView{source_before};
             auto stream_patch = DataStreamView{source_patch};
+            auto stream_before = DataStreamView{source_before};
             auto stream_after = DataStreamView{};
             process_whole(stream_before, stream_patch, stream_after);
             stream_after.out_file(destination);

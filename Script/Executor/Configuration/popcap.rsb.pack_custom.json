@@ -1,0 +1,12 @@
+{
+    "layout": "?",
+    "generic": "?",
+    "packages_setting": {
+        "key": "65bd1b2305f46eb2806b935aab7630bb",
+        "iv": "1b2305f46eb2806b935aab76"
+    },
+    "compression_setting": {
+        "manifest": true,
+        "packages": true
+    }
+}

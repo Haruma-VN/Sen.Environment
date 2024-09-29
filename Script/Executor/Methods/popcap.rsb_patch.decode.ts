@@ -5,7 +5,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Decode {
 
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
-        patch_file?: string;
+        before_file?: string;
         destination?: string;
     }
 
@@ -46,18 +46,18 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Decode {
             direct_forward(argument: Argument): void {
                 is_valid_source(argument, false);
                 Console.obtained(argument.source);
-                argument.patch_file = Console.path(Kernel.Language.get("popcap.rsb_patch.encode.after_file"), "file");
+                argument.before_file = Console.path(Kernel.Language.get("popcap.rsb_patch.decode.before_file"), "file");
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.rsb`);
                 Console.output(argument.destination!);
                 clock.start_safe();
-                Kernel.Support.PopCap.RSBPatch.decode_fs(argument.source, argument.patch_file!, argument.destination!);
+                Kernel.Support.PopCap.RSBPatch.decode_fs(argument.source, argument.before_file!, argument.destination!);
                 clock.stop_safe();
                 return;
             },
             batch_forward: undefined!,
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)(\.rsb|\.obb)$/i],
+            filter: ["file", /(.+)(\.rsbpatch)$/i],
         });
         return;
     }

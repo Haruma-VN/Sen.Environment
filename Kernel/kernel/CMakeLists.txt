@@ -54,9 +54,8 @@ add_library(
 	./dependencies/SHA224CryptoServiceProvider.hpp
 	./dependencies/cpp-base64.hpp
 	./dependencies/libpng.hpp
-	./dependencies/etcpak.hpp
+	./dependencies/etc1.hpp
 	./dependencies/tinyxml2.hpp
-	./dependencies/ETCPACK.hpp
 	./dependencies/SHA.hpp
 	./dependencies/lzma.hpp
 	./dependencies/avir.hpp
@@ -66,6 +65,7 @@ add_library(
 	./dependencies/zip.hpp
 	./dependencies/dirent.hpp
 	./dependencies/simdjson.hpp
+	./dependencies/magic_enum.hpp
 	./dependencies/compile-time-regular-expressions.hpp
 	./dependencies/canvas_ity.hpp
 	./dependencies/tsl.hpp
@@ -92,7 +92,12 @@ add_library(
 	./support/popcap/particles/decode.hpp
 	./support/popcap/particles/definition.hpp
 	./support/popcap/particles/encode.hpp
-	./support/popcap/particles/version.hpp
+	./support/popcap/particles/to_xml.hpp
+	./support/popcap/particles/from_xml.hpp
+	./support/popcap/player_info/common.hpp
+	./support/popcap/player_info/decode.hpp
+	./support/popcap/player_info/definition.hpp
+	./support/popcap/player_info/encode.hpp
 	./support/popcap/reflection_object_notation/common.hpp
 	./support/popcap/reflection_object_notation/decode.hpp
 	./support/popcap/reflection_object_notation/encode.hpp
@@ -120,6 +125,9 @@ add_library(
 	./support/popcap/re_animation/decode.hpp
 	./support/popcap/re_animation/definition.hpp
 	./support/popcap/re_animation/encode.hpp
+	./support/popcap/re_animation/common.hpp
+	./support/popcap/re_animation/to_xml.hpp
+	./support/popcap/re_animation/from_xml.hpp
 	./support/popcap/zlib/common.hpp
 	./support/popcap/zlib/compress.hpp
 	./support/popcap/zlib/uncompress.hpp
@@ -147,15 +155,19 @@ add_library(
 	./support/wwise/sound_bank/encode.hpp
 	./support/wwise/sound_bank/decode.hpp
 	./support/wwise/sound_bank/common.hpp
+	./support/wwise/sound_bank/miscellaneous/support.hpp
+	./support/marmalade/dzip/pack.hpp
+	./support/marmalade/dzip/unpack.hpp
+	./support/marmalade/dzip/common.hpp
 	./support/utility.hpp
-	./support/miscellaneous/modding/packet_contains_resource_group/common.hpp
-	./support/miscellaneous/modding/packet_contains_resource_group/definition.hpp
-	./support/miscellaneous/modding/packet_contains_resource_group/pack.hpp
-	./support/miscellaneous/modding/packet_contains_resource_group/unpack.hpp
-	./support/miscellaneous/modding/resource_stream_bundle/common.hpp
-	./support/miscellaneous/modding/resource_stream_bundle/definition.hpp
-	./support/miscellaneous/modding/resource_stream_bundle/pack.hpp
-	./support/miscellaneous/modding/resource_stream_bundle/unpack.hpp
+	./support/miscellaneous/custom/stream_compressed_group/common.hpp
+	./support/miscellaneous/custom/stream_compressed_group/definition.hpp
+	./support/miscellaneous/custom/stream_compressed_group/encode.hpp
+	./support/miscellaneous/custom/stream_compressed_group/decode.hpp
+	./support/miscellaneous/custom/resource_stream_bundle/common.hpp
+	./support/miscellaneous/custom/resource_stream_bundle/definition.hpp
+	./support/miscellaneous/custom/resource_stream_bundle/pack.hpp
+	./support/miscellaneous/custom/resource_stream_bundle/unpack.hpp
 
 	./interface/data.hpp
 	./interface/cli.hpp
@@ -228,9 +240,8 @@ target_link_libraries(
 	SHA256
 	cpp-base64
 	libpng
-	etcpak
+	etc1
 	tinyxml2
-	ETCPACK
 	SHA
 	lzma
 	avir

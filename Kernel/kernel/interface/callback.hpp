@@ -230,6 +230,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Image::join_png, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join_png"_sv);
 					// join
 					javascript->add_proxy(Script::Image::join, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join"_sv);
+					// join_extend
+					javascript->add_proxy(Script::Image::join_extend, "Sen"_sv, "Kernel"_sv, "Image"_sv, "join_extend"_sv);
 					// transparent_fs
 					javascript->add_proxy(Script::Image::transparent_fs, "Sen"_sv, "Kernel"_sv, "Image"_sv, "transparent_fs"_sv);
 					// resize_fs
@@ -369,6 +371,13 @@ namespace Sen::Kernel::Interface {
 					// encode fs
 					javascript->add_proxy(Script::Support::Texture::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Texture"_sv, "encode_fs"_sv);
 				}
+				// dzip
+				{
+					// unpack_fs
+					javascript->add_proxy(Script::Support::Marmalade::DZip::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Marmalade"_sv, "DZip"_sv, "unpack_fs"_sv);
+					// pack_fs
+					javascript->add_proxy(Script::Support::Marmalade::DZip::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Marmalade"_sv, "DZip"_sv, "pack_fs"_sv);
+				}
 				// pak
 				{
 					// unpack_fs
@@ -444,13 +453,24 @@ namespace Sen::Kernel::Interface {
 				// particles
 				{
 					// decode fs
-					javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs<false>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "decode_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "decode_fs"_sv);
 					// uncompress and decode fs
-					javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "uncompress_and_decode_fs"_sv);
+				//	javascript->add_proxy(Script::Support::PopCap::Particles::decode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "uncompress_and_decode_fs"_sv);
 					// encode fs
-					javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs<false>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_fs"_sv);
 					// encode and compress fs
-					javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_and_compress_fs"_sv);
+				//	javascript->add_proxy(Script::Support::PopCap::Particles::encode_fs<true>, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "encode_and_compress_fs"_sv);
+
+					javascript->add_proxy(Script::Support::PopCap::Particles::to_xml, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "to_xml"_sv);
+
+					javascript->add_proxy(Script::Support::PopCap::Particles::from_xml, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Particles"_sv, "from_xml"_sv);
+				}
+				// player_info
+				{
+					// decode fs
+					javascript->add_proxy(Script::Support::PopCap::PlayerInfo::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PlayerInfo"_sv, "decode_fs"_sv);
+					// encode fs
+					javascript->add_proxy(Script::Support::PopCap::PlayerInfo::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "PlayerInfo"_sv, "encode_fs"_sv);
 				}
 				// rsb
 				{
@@ -495,6 +515,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "encode_fs"_sv);
 					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "ToFlash"_sv, "convert_fs"_sv);
+					// process
+					javascript->add_proxy(Script::Support::PopCap::Animation::ToFlash::process, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "ToFlash"_sv, "process"_sv);
 					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::Animation::FromFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "FromFlash"_sv, "convert_fs"_sv);
 					// to_flash
@@ -502,7 +524,7 @@ namespace Sen::Kernel::Interface {
 					// from_flash
 					javascript->add_proxy(Script::Support::PopCap::Animation::Instance::from_flash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Instance"_sv, "from_flash"_sv);
 					// resize_fs
-					javascript->add_proxy(Script::Support::PopCap::Animation::resize_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "resize_fs"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::resize_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous", "resize_fs"_sv);
 					// dump_document
 					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::dump_document, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "dump_document"_sv);
 					// generate_image
@@ -516,6 +538,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::ReAnimation::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "decode_fs"_sv);
 					// encode_fs
 					javascript->add_proxy(Script::Support::PopCap::ReAnimation::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "encode_fs"_sv);
+					// to_xml
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::to_xml, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "to_xml"_sv);
+					// from_xml
+					javascript->add_proxy(Script::Support::PopCap::ReAnimation::from_xml, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "from_xml"_sv);
 					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::ReAnimation::ToFlash::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ReAnimation"_sv, "ToFlash"_sv, "convert_fs"_sv);
 					// convert_fs
@@ -533,6 +559,10 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::WWise::SoundBank::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "encode_fs"_sv);
 					// hash
 					javascript->add_proxy(Script::Support::WWise::SoundBank::hash, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "hash"_sv);
+					// add music
+					javascript->add_proxy(Script::Support::WWise::SoundBank::Miscellaneous::add_music, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "Miscellaneous"_sv, "add_music"_sv);
+					// create soundbank
+					javascript->add_proxy(Script::Support::WWise::SoundBank::Miscellaneous::create_soundbank, "Sen"_sv, "Kernel"_sv, "Support"_sv, "WWise"_sv, "SoundBank"_sv, "Miscellaneous"_sv, "create_soundbank"_sv);
 				}
 				// resource group
 				{
@@ -552,16 +582,22 @@ namespace Sen::Kernel::Interface {
 					// convert_fs
 					javascript->add_proxy(Script::Support::PopCap::ResInfo::convert_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "ResInfo"_sv, "convert_fs"_sv);
 				}
-				// modding
+				// custom
 				{
-					// unpack_packet_contain_resource
-					javascript->add_proxy(Script::Support::PopCap::Modding::unpack_packet_contain_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "unpack_packet_contain_resource"_sv);
+					// to_resource_custom
+					javascript->add_proxy(Script::Support::PopCap::Custom::Debug::to_resource_custom, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "Debug"_sv, "to_resource_custom"_sv);
+					// from_resource_custom
+					javascript->add_proxy(Script::Support::PopCap::Custom::Debug::from_resource_custom, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "Debug"_sv, "from_resource_custom"_sv);
+					// check_scg_composite
+					javascript->add_proxy(Script::Support::PopCap::Custom::StreamCompressedGroup::check_scg_composite, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "StreamCompressedGroup"_sv, "check_scg_composite"_sv);
+					// unpack_scg
+					javascript->add_proxy(Script::Support::PopCap::Custom::StreamCompressedGroup::decode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "StreamCompressedGroup"_sv, "decode_fs"_sv);
+					// pack_scg
+					javascript->add_proxy(Script::Support::PopCap::Custom::StreamCompressedGroup::encode_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "StreamCompressedGroup"_sv, "encode_fs"_sv);
 					// unpack_rsb
-					javascript->add_proxy(Script::Support::PopCap::Modding::unpack_rsb, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "unpack_rsb"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Custom::ResourceStreamBundle::unpack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "ResourceStreamBundle"_sv, "unpack_fs"_sv);
 					// pack_rsb
-					javascript->add_proxy(Script::Support::PopCap::Modding::pack_rsb, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "pack_rsb"_sv);
-					// pack_packet_contain_resource
-					javascript->add_proxy(Script::Support::PopCap::Modding::pack_packet_contain_resource, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Modding"_sv, "pack_packet_contain_resource"_sv);
+					javascript->add_proxy(Script::Support::PopCap::Custom::ResourceStreamBundle::pack_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "Miscellaneous"_sv, "Custom"_sv, "ResourceStreamBundle"_sv, "pack_fs"_sv);
 				}
 				// dimension
 				{

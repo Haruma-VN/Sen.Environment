@@ -99,6 +99,9 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 					if(!composite["subgroup"][element]["type"].is_null() and composite["subgroup"][element]["type"].get<std::string_view>() != Convert::emptyType){
 						subgroup["res"] = composite["subgroup"][element]["type"].get<std::string_view>();
 					}
+					if (composite["subgroup"][element].find("loc") != composite["subgroup"][element].end()) {
+						subgroup["loc"] = composite["subgroup"][element]["loc"];
+					}
 					result["subgroups"].emplace_back(subgroup);
 				}
 				return result;
@@ -120,9 +123,12 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 				static_assert(sizeof(use_string_for_style) == sizeof(bool));
 				auto result = nlohmann::ordered_json {
 					{"type", Simple},
-					{"id", extra_information.id},
-					{"resources", nlohmann::ordered_json::array() }
+					{"id", extra_information.id}
 				};
+				if (resource_information.find("loc") != resource_information.end()) {
+					result["loc"] = resource_information["loc"];
+				}
+				result["resources"] = nlohmann::ordered_json::array();
 				if(!extra_information.parent.empty()){
 					result["parent"] = extra_information.parent;
 				}

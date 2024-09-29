@@ -67,14 +67,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             int height;
         };
 
-        struct ResourceInformation
-        {
-            uint32_t resource_data_section_size;
-            uint32_t resource_data_section_offset;
-            bool read_texture_additional;
-            TextureInfo texture_value;
-        };
-
         inline static auto exchange_header(
             DataStreamView &stream,
             typename HeaderInformaiton &value) -> void
@@ -121,6 +113,14 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             stream.writeUint32(value.resource_information_section_offset);
             return;
         }
+
+        struct ResourceInformation
+        {
+            uint32_t resource_data_section_size;
+            uint32_t resource_data_section_offset;
+            bool read_texture_additional;
+            TextureInfo texture_value;
+        };
 
         inline static auto exchange_to_resource_infomation(
             DataStreamView &stream,

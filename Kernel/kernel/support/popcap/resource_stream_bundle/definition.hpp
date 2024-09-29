@@ -10,6 +10,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     struct SimpleCategoryInformation
     {
+        bool is_image;
         int resolution;
         std::string locale;
     };
@@ -18,7 +19,13 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         nlohmann::ordered_json &nlohmann_json_j,
         const SimpleCategoryInformation &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["resolution"] = nlohmann_json_t.resolution;
+        if (nlohmann_json_t.is_image)
+        {
+            nlohmann_json_j["resolution"] = nlohmann_json_t.resolution;
+        }
+        else {
+            nlohmann_json_j["resolution"] = nullptr;
+        }
         if (!nlohmann_json_t.locale.empty())
         {
             nlohmann_json_j["locale"] = nlohmann_json_t.locale;
@@ -33,7 +40,11 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         const nlohmann::ordered_json &nlohmann_json_j,
         SimpleCategoryInformation &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("resolution").get_to(nlohmann_json_t.resolution);
+        if (nlohmann_json_j.at("resolution") != nullptr)
+        {
+            nlohmann_json_j.at("resolution").get_to(nlohmann_json_t.resolution);
+            nlohmann_json_t.is_image = true;
+        }
         if (nlohmann_json_j.at("locale") != nullptr)
         {
             nlohmann_json_j.at("locale").get_to(nlohmann_json_t.locale);
@@ -52,7 +63,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         nlohmann::ordered_json &nlohmann_json_j,
         const SubgroupInformation &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["category"] = nlohmann_json_t.category;
+        if (nlohmann_json_t.category.is_image || !nlohmann_json_t.category.locale.empty()) {
+            nlohmann_json_j["category"] = nlohmann_json_t.category;
+        }
+        else {
+            nlohmann_json_j["category"] = nullptr;
+        }
         nlohmann_json_j["compression"] = nlohmann_json_t.compression;
         nlohmann_json_j["resource"] = nlohmann_json_t.resource;
         return;
@@ -62,7 +78,10 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         const nlohmann::ordered_json &nlohmann_json_j,
         SubgroupInformation &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("category").get_to(nlohmann_json_t.category);
+        if (nlohmann_json_j.at("category") != nullptr)
+        {
+            nlohmann_json_j.at("category").get_to(nlohmann_json_t.category);
+        }
         nlohmann_json_j.at("compression").get_to(nlohmann_json_t.compression);
         nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);
         return;

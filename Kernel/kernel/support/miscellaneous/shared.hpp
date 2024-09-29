@@ -125,9 +125,42 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return true;
     }
 
+    // trim from start (in place)
+    inline static auto trim_left(std::string &s) -> void
+    {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
+                                        { return !std::isspace(ch); }));
+        return;
+    }
+
+    // trim from end (in place)
+    inline static auto trim_right(std::string &s) -> void
+    {
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
+                             { return !std::isspace(ch); })
+                    .base(),
+                s.end());
+        return;
+    }
+
+    inline static auto trim_string(
+        std::string &s) -> void
+    {
+        trim_left(s);
+        trim_right(s);
+        return;
+    }
+
+    inline static auto trim_back(
+        std::string const &value) -> std::string
+    {
+        auto str_trim = value;
+        trim_string(str_trim);
+        return str_trim;
+    }
+
     inline auto get_string(
-        std::string_view value
-    ) -> std::string
+        std::string_view value) -> std::string
     {
         return std::string{value};
     }
@@ -137,30 +170,32 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return tolower_back(a) < tolower_back(b);
     };
 
-    template<typename K, typename V>
+    template <typename K, typename V>
     inline auto search_element_in_map(
         std::map<K, V> const &data,
-        V const & value
-    ) -> std::map<K, V>::const_iterator
+        V const &value) -> std::map<K, V>::const_iterator
     {
         auto it = data.begin();
-        for (; it != data.end(); ++it) {
-            if (it->second == value) {
+        for (; it != data.end(); ++it)
+        {
+            if (it->second == value)
+            {
                 return it;
             }
         }
         return it;
     }
 
-    template<typename K, typename V>
+    template <typename K, typename V>
     inline auto search_element_in_map(
         std::map<K, V> const &data,
-        K const & key
-    ) -> std::map<K, V>::const_iterator
+        K const &key) -> std::map<K, V>::const_iterator
     {
         auto it = data.begin();
-        for (; it != data.end(); ++it) {
-            if (it->first == key) {
+        for (; it != data.end(); ++it)
+        {
+            if (it->first == key)
+            {
                 return it;
             }
         }
@@ -169,10 +204,10 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
 
     template <typename T>
     inline auto async_process_list(
-        std::vector<std::future<T>> &data
-    ) -> void
+        std::vector<std::future<T>> &data) -> void
     {
-        for (auto &element : data) {
+        for (auto &element : data)
+        {
             element.get();
         }
         return;
@@ -208,6 +243,17 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         return extra_size;
     }
+    
+    template <typename EnumrationType>
+        requires std::is_enum<EnumrationType>::value
+    inline static auto magic_enum_cast(
+        std::string_view data) -> EnumrationType
+    {
+        auto value = magic_enum::enum_cast<EnumrationType>(data, magic_enum::case_insensitive);
+        assert_conditional(value.has_value(), String::format(fmt::format("{}", Language::get("miscellaneous.shared.failed_cast_enum")), data, magic_enum::enum_type_name<EnumrationType>()), "magic_enum_cast");
+        return value.value();
+    }
+
 
     template <typename value, auto rate>
         requires std::is_arithmetic_v<value>
@@ -232,7 +278,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
     }
 
     template <typename Type, typename Exchanger, typename... Size>
-        requires true && (std::is_same<Size, std::size_t>::value && ...) && (!std::is_void_v<Type>) && (!std::is_void_v<Exchanger>) &&
+        requires true && ((std::is_same<Size, std::size_t>::value || std::is_arithmetic<Size>::value) && ...) && (!std::is_void_v<Type>) && (!std::is_void_v<Exchanger>) &&
                      (!std::is_reference_v<Exchanger>) && (std::is_same_v<Exchanger, std::remove_cvref_t<Exchanger>>)
     inline static auto exchange_list(
         DataStreamView &stream,
@@ -252,8 +298,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return;
     }
 
-    template <auto WriteSize, typename SizeType, typename Type, typename Exchanger>
-        requires true && (!std::is_void_v<Type>) && (!std::is_void_v<Exchanger>) && (std::is_arithmetic_v<SizeType>) &&
+    template <auto WriteSize, typename Size, typename Type, typename Exchanger>
+        requires true && (!std::is_void_v<Type>) && (!std::is_void_v<Exchanger>) && (std::is_arithmetic_v<Size>) &&
                      (!std::is_reference_v<Exchanger>) && (std::is_same_v<Exchanger, std::remove_cvref_t<Exchanger>>)
     inline static auto exchange_list(
         DataStreamView &stream,
@@ -263,7 +309,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         static_assert(WriteSize == true || WriteSize == false, "WriteSize must be true or false");
         if constexpr (WriteSize)
         {
-            stream.write_of<SizeType>(static_cast<SizeType>(value.size()));
+            stream.write_of<Size>(static_cast<Size>(value.size()));
         }
         for (const auto &element : value)
         {

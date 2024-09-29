@@ -26,7 +26,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_timeline = value.NewElement("DOMTimeline");
 			dom_timeline->SetAttribute("name", image_name.data());
 			auto dom_bitmap_instance = value.NewElement("DOMBitmapInstance");
-			dom_bitmap_instance->SetAttribute("libraryItemName", fmt::format("media/{}", image.name).data());
+			dom_bitmap_instance->SetAttribute("libraryItemName", fmt::format("media/{}", image.path).data());
 			auto transform_matrix = value.NewElement("Matrix");
 			transform_matrix->SetAttribute("a", to_fixed<6>(image_transform_matrix[0] * k_media_scale_ratio).data());
 			transform_matrix->SetAttribute("b", to_fixed<6>(image_transform_matrix[1]).data());
@@ -103,11 +103,17 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 						auto dom_symbol_instance = value.NewElement("DOMSymbolInstance");
 						if (frame_node.sprite)
 						{
+							if (static_cast<size_t>(frame_node.resource) >= animation_name_list.sprite.size()) {
+								continue; // skip vaild
+							}
 							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("sprite/{}", animation_name_list.sprite[frame_node.resource]).data());
 							dom_symbol_instance->SetAttribute("firstFrame", std::to_string(frame_node.first_frame).data());
 						}
 						else
 						{
+							if (static_cast<size_t>(frame_node.resource) >= animation_name_list.image.size()) {
+								continue; // skip vaild
+							}
 							dom_symbol_instance->SetAttribute("libraryItemName", fmt::format("image/{}", animation_name_list.image[frame_node.resource]).data());
 						}
 						dom_symbol_instance->SetAttribute("symbolType", k_symbol_type.data());
@@ -149,6 +155,17 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			return;
 		}
 
+		inline static auto check_and_rewrite_vaild_label(
+			std::string &label
+		) -> void
+		{
+			if (label.size() > k_max_label_name_size) {
+				label = label.substr(0, k_max_label_name_size);
+			}
+			exchange_sprite_name_invalid<true>(label);
+			return;
+		}
+
 		template <auto get_label>
 		inline static auto exchange_frame_node(
 			SexyAnimation const &definition,
@@ -157,19 +174,28 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(get_label == true || get_label == false, "get_label must be true or false");
 			auto model_structure = std::map<int, Model>{};
-			auto main_label = std::string{k_main_label_string};
+			auto label_name = std::string{};
+			auto label_duplicate_system_stored = std::map<std::string, size_t>{};
 			auto &frame_node_structure = package_library.frame_node;
 			for (auto frame_index : Range<int>(sprite.frame.size()))
 			{
 				auto &frame = sprite.frame[frame_index];
 				if constexpr (get_label)
 				{
-					if (!frame.label.empty() && frame.label != main_label)
+					if (!frame.label.empty() && frame.label != label_name)
 					{
-						main_label = frame.label;
-						package_library.label[main_label].start = frame_index;
+						label_name = frame.label;
+						check_and_rewrite_vaild_label(label_name); // only trash label will be fix.
+						if (label_duplicate_system_stored.contains(label_name)) {
+							++label_duplicate_system_stored[label_name];
+							label_name = fmt::format("{}_{}", label_name, label_duplicate_system_stored[label_name]);
+						}
+						else {
+							label_duplicate_system_stored[label_name] = k_begin_index + 1_size;
+						}
+						package_library.label[label_name].start = frame_index;
 					}
-					++package_library.label[main_label].duration;
+					++package_library.label[label_name].duration;
 				}
 				for (auto &remove_index : frame.remove)
 				{
@@ -208,11 +234,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				{
 					if constexpr (get_label)
 					{
-						auto &layer_index_list = package_library.label[main_label].layer_index_list;
+						auto &layer_index_list = package_library.label[label_name].layer_index_list;
 						layer_index_list.emplace_back(layer_index);
 					}
 					auto &model_layer = model_structure[layer_index];
 					auto &frame_node_list = frame_node_structure[layer_index];
+					
 					if (model_layer.state != State::state_null)
 					{
 						if (frame_node_list.size() > 0_size)
@@ -231,7 +258,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 							.color = model_layer.color};
 						if (frame_node.sprite)
 						{
-							frame_node.first_frame = (frame_index - model_layer.frame_start) % definition.sprite[model_layer.resource].frame.size();
+							auto frame_size = definition.sprite[model_layer.resource].frame.size();
+							frame_node.first_frame = (frame_index - model_layer.frame_start) % (frame_size == k_none_size ? 1_size : frame_size);
 						}
 						frame_node_list.emplace_back(frame_node);
 						model_layer.state = State::state_null;
@@ -314,10 +342,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 								if (frame_index < start_index)
 								{
 									new_frame_node.index = start_index;
-									new_frame_node.duration -= duration - end_index - frame_index + start_index;
+									new_frame_node.duration -= duration + start_index - end_index;
 								}
-								else
-								{
+								else {
 									new_frame_node.duration -= duration + frame_index - end_index;
 								}
 							}
@@ -397,8 +424,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				auto &image = definition.image[image_index];
 				auto dom_bitmap_item = value.NewElement("DOMBitmapItem");
-				dom_bitmap_item->SetAttribute("name", fmt::format("media/{}", image.name).data());
-				dom_bitmap_item->SetAttribute("href", fmt::format("media/{}.png", image.name).data());
+				dom_bitmap_item->SetAttribute("name", fmt::format("media/{}", image.path).data());
+				dom_bitmap_item->SetAttribute("href", fmt::format("media/{}.png", image.path).data());
 				media->InsertEndChild(dom_bitmap_item);
 				auto include = value.NewElement("Include");
 				include->SetAttribute("href", fmt::format("image/{}.xml", animation_name_list.image[image_index]).data());
@@ -453,7 +480,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				{
 					for (auto &command : frame.command)
 					{
-						action_command_list.emplace_back(fmt::format("fscommand(\"{}\", \"{}\");", command.argument, command.command));
+						action_command_list.emplace_back(fmt::format("fscommand(\"{}\", \"{}\");", command.command, command.argument));
 					}
 					if (frame.stop)
 					{
@@ -557,7 +584,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				for (auto &[label_name, label_info] : flash_package.library.label)
 				{
-					write_xml(fmt::format("{}/library/label/{}.xml", destination, label_name), flash_package.library.label[label_name].document);
+					write_xml(fmt::format("{}/library/label/{}.xml", destination, label_name), flash_package.library.label_document.at(label_name));
 				}
 			}
 			else
@@ -592,12 +619,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto image_duplicate_stored = std::map<std::string, std::vector<string>>{};
 			for (auto &image : definition.image)
 			{
-				auto image_name = image.name;
+				auto image_name =  image.path;
+				auto image_is_changed = false;
 				if (std::find(image_name.begin(), image_name.end(), '/') != image_name.end()) {
 					auto string_list = String{image_name}.split("/"_sv);
 					image_name = string_list.back();
+					image_is_changed = true;
 				}
-				auto image_is_changed = false;
 				if (std::find(animation_name_list.image.begin(), animation_name_list.image.end(), image_name) != animation_name_list.image.end())
 				{
 					auto new_image_name = fmt::format("{}_{}", image_name, image_duplicate_stored[image_name].size());
@@ -605,11 +633,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					image_name = new_image_name;
 					image_is_changed = true;
 				}
+				trim(image_name);
 				animation_name_list.image.emplace_back(image_name);
 				for (auto image_index : Range(definition.image.size()))
 				{
 					extra.image[image_name] = ImageInfo{
-						.name = image_is_changed ? image.name : "",
+						.path = image_is_changed ? image.path : "",
 						.id = image.id,
 						.size = ImageDimension{
 							.width = static_cast<int>(image.size.width),
@@ -625,7 +654,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			for (auto &sprite : definition.sprite)
 			{
 				auto sprite_name = sprite.name;
-				if (exchange_sprite_name_invalid(sprite_name))
+				if (exchange_sprite_name_invalid<false>(sprite_name))
 				{
 					if (std::find(extra.sprite[sprite.name].begin(), extra.sprite[sprite.name].end(), sprite_name) == extra.sprite[sprite.name].end())
 					{
@@ -658,7 +687,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				for (auto &element : label_frame_node)
 				{
 					auto &label_name = element.first;
-					exchange_sprite_document<SpriteType::label>(animation_name_list, label_name, label_frame_node[label_name], package_library.label[label_name].document);
+					exchange_sprite_document<SpriteType::label>(animation_name_list, label_name, label_frame_node[label_name], package_library.label_document[label_name]);
 				}
 			}
 			else

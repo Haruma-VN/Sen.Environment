@@ -170,7 +170,8 @@ namespace Sen::Kernel::Support::PopCap::ResInfo {
 						{"is_composite", group_value["is_composite"]}
 					};
 					for(auto & subgroup_name : group_value["subgroups"]) {
-						subgroups["subgroup"][subgroup_name.get<std::string>()] = *FileSystem::read_json(Path::normalize(fmt::format("{}/{}/{}.json", source, "groups", subgroup_name)));
+						auto subgroup_string = subgroup_name.get<std::string>();
+						subgroups["subgroup"][subgroup_string] = *FileSystem::read_json(Path::normalize(fmt::format("{}/groups/{}.json", source, subgroup_string)));
 					}
 					res_info["groups"][group_name] = subgroups;
 				}

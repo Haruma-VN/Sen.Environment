@@ -60,17 +60,16 @@ namespace Sen::Kernel::Definition::Compression {
 				auto destination_length = static_cast<size_t>(data.size() * 1.1 + 1024);
 				auto propsSize = static_cast<size_t>(LZMA_PROPS_SIZE);
 				auto result = std::vector<unsigned char>(destination_length);
-				auto props = std::vector<unsigned char>(propsSize);
+				auto props = std::vector<unsigned char>{0x5D, 0x00, 0x00, 0x00, 0x04};
 				auto sen = DataStreamView{};
-				sen.writeUint8(0x5D);
-				sen.writeBytes({0x00, 0x00, 0x00, 0x04});
+				sen.writeBytes(props);
 				sen.writeInt64(data.size());
 				auto ret = LzmaCompress(
-					&result[0],
+					&result.front(),
 					&destination_length,
-					&data[0],
+					&data.front(),
 					data.size(),
-					&props[0],
+					&props.front(),
 					&propsSize,
 					static_cast<int>(level),
 					0,
@@ -91,25 +90,30 @@ namespace Sen::Kernel::Definition::Compression {
 			 * size: actual size
 			 * return: uncompressed data
 			*/
+			template <auto strict = true>
 			inline static auto uncompress(
 				const std::vector<unsigned char> &data
 			) -> std::vector<unsigned char>
 			{
+				static_assert(strict == true || strict == false, "strict must be true of false");
 				auto view = DataStreamView{data};
-				assert_conditional(view.readUint8() == 0x5D, fmt::format("{}", Language::get("lzma.uncompress.invalid_magic")), "uncompress");
-				assert_conditional(view.readUint32() == 67108864, fmt::format("{}", Language::get("lzma.uncompress.invalid_props")), "uncompress");
+				auto property = view.readBytes(static_cast<size_t>(LZMA_PROPS_SIZE));
+				assert_conditional(property.front() == 0x5D, fmt::format("{}", Language::get("lzma.uncompress.invalid_magic")), "uncompress");
+				//assert_conditional(view.readUint32() == 67108864, fmt::format("{}", Language::get("lzma.uncompress.invalid_props")), "uncompress");
 				auto destination_length = static_cast<std::size_t>(view.readInt64());
 				auto result = std::vector<unsigned char>(destination_length);
 				auto source_length = static_cast<size_t>(view.size() - view.read_pos);
 				auto ret = LzmaUncompress(
-					&result[0],
+					&result.front(),
 					&destination_length,
 					&data[view.read_pos],
 					&source_length,
-					&data[0],
+					&property.front(),
 					static_cast<size_t>(LZMA_PROPS_SIZE)
 				);
-				assert_conditional(ret == SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "uncompress");
+				if constexpr (strict) {
+					assert_conditional(ret == SZ_OK, fmt::format("{}", Kernel::Language::get("lzma.uncompress.failed")), "uncompress");
+				}
 				result.resize(destination_length);
 				return result;
 			}

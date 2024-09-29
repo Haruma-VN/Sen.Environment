@@ -1,6 +1,6 @@
 namespace Sen.Script.Support.PopCap.Animation {
     // extra_info
-    export type RecordInfo = {
+    export type ExtraInfo = {
         version: bigint;
         group: Record<string, ImageInfo>;
     };
@@ -79,7 +79,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     export interface AnimationImage {
-        name: string;
+        path: string;
         id: string;
         size: AnimationSize;
         transform: number[];
@@ -87,13 +87,12 @@ namespace Sen.Script.Support.PopCap.Animation {
 
     export interface AnimationSprite {
         name: string,
-        description: string;
         work_area: AnimationWorkArea;
         frame: AnimationFrame[];
     }
 
     export interface AnimationWorkArea {
-        index: bigint;
+        start: bigint;
         duration: bigint;
     }
 

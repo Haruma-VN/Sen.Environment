@@ -6,18 +6,6 @@ namespace Sen::Kernel::Support::PopCap::ReAnimation
 {
     inline static constexpr auto transform_tfloat_end = -10000.0f;
 
-    // inline static constexpr auto transform_wp_tfloat_end = -99999.0f;
-
-    inline static constexpr auto reanim_compress_head = -559022380;
-
-    inline static constexpr auto reanim_pc_head = -1282165568;
-
-    inline static constexpr auto reanim_xmb_head = 1833061976;
-
-    inline static constexpr auto reanim_xmb_version = 5;
-
-    inline static constexpr auto reanim_xmb_info = std::array<uint8_t, 0x26>{0x01, 0x1E, 0x53, 0x65, 0x78, 0x79, 0x2E, 0x54, 0x6F, 0x64, 0x4C, 0x69, 0x62, 0x2E, 0x52, 0x65, 0x61, 0x6E, 0x69, 0x6D, 0x52, 0x65, 0x61, 0x64, 0x65, 0x72, 0x2C, 0x20, 0x4C, 0x41, 0x57, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-
     enum class ReanimPlatform : uint8_t
     {
         PC_Compile,
@@ -25,7 +13,6 @@ namespace Sen::Kernel::Support::PopCap::ReAnimation
         Phone32_Compile,
         Phone64_Compile,
         GameConsole_Compile,
-        RawXML,
         WP_XNB, // xnb extension; doesn't support 
     };
 
@@ -72,20 +59,48 @@ namespace Sen::Kernel::Support::PopCap::ReAnimation
         nlohmann::ordered_json &nlohmann_json_j,
         const ReanimTransform &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["x"] = nlohmann_json_t.x;
-        nlohmann_json_j["y"] = nlohmann_json_t.y;
-        nlohmann_json_j["kx"] = nlohmann_json_t.kx;
-        nlohmann_json_j["ky"] = nlohmann_json_t.ky;
-        nlohmann_json_j["sx"] = nlohmann_json_t.sx;
-        nlohmann_json_j["sy"] = nlohmann_json_t.sy;
-        nlohmann_json_j["f"] = nlohmann_json_t.f;
-        nlohmann_json_j["a"] = nlohmann_json_t.a;
-        nlohmann_json_j["i"] = nlohmann_json_t.i;
-        nlohmann_json_j["resource"] = nlohmann_json_t.resource;
-        nlohmann_json_j["i2"] = nlohmann_json_t.i2;
-        nlohmann_json_j["resource2"] = nlohmann_json_t.resource2;
-        nlohmann_json_j["font"] = nlohmann_json_t.font;
-        nlohmann_json_j["text"] = nlohmann_json_t.text;
+        if (nlohmann_json_t.x != transform_tfloat_end) {
+            nlohmann_json_j["x"] = nlohmann_json_t.x;
+        }
+        if (nlohmann_json_t.y != transform_tfloat_end) {
+            nlohmann_json_j["y"] = nlohmann_json_t.y;
+        }
+        if (nlohmann_json_t.kx != transform_tfloat_end) {
+            nlohmann_json_j["kx"] = nlohmann_json_t.kx;
+        }
+        if (nlohmann_json_t.ky != transform_tfloat_end) {
+            nlohmann_json_j["ky"] = nlohmann_json_t.ky; 
+        }
+        if (nlohmann_json_t.sx != transform_tfloat_end) {
+            nlohmann_json_j["sx"] = nlohmann_json_t.sx;
+        }
+        if (nlohmann_json_t.sy != transform_tfloat_end) {
+            nlohmann_json_j["sy"] = nlohmann_json_t.sy;
+        }
+        if (nlohmann_json_t.f != transform_tfloat_end) {
+            nlohmann_json_j["f"] = nlohmann_json_t.f;
+        }
+        if (nlohmann_json_t.a != transform_tfloat_end) {
+            nlohmann_json_j["a"] = nlohmann_json_t.a;
+        }
+        if (!nlohmann_json_t.i.empty()) {
+            nlohmann_json_j["i"] = nlohmann_json_t.i;
+        }
+        if (!nlohmann_json_t.resource.empty()) {
+            nlohmann_json_j["resource"] = nlohmann_json_t.resource;
+        }
+        if (!nlohmann_json_t.i2.empty()) {
+            nlohmann_json_j["i2"] = nlohmann_json_t.i2;
+        }
+        if (!nlohmann_json_t.resource2.empty()) {
+            nlohmann_json_j["resource2"] = nlohmann_json_t.resource2;
+        }
+        if (!nlohmann_json_t.font.empty()) {
+            nlohmann_json_j["font"] = nlohmann_json_t.font;
+        }
+        if (!nlohmann_json_t.text.empty()) {
+            nlohmann_json_j["text"] = nlohmann_json_t.text;
+        }
         return;
     }
 
@@ -93,20 +108,105 @@ namespace Sen::Kernel::Support::PopCap::ReAnimation
         const nlohmann::ordered_json &nlohmann_json_j,
         ReanimTransform &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("x").get_to(nlohmann_json_t.x);
-        nlohmann_json_j.at("y").get_to(nlohmann_json_t.y);
-        nlohmann_json_j.at("kx").get_to(nlohmann_json_t.kx);
-        nlohmann_json_j.at("ky").get_to(nlohmann_json_t.ky);
-        nlohmann_json_j.at("sx").get_to(nlohmann_json_t.sx);
-        nlohmann_json_j.at("sy").get_to(nlohmann_json_t.sy);
-        nlohmann_json_j.at("f").get_to(nlohmann_json_t.f);
-        nlohmann_json_j.at("a").get_to(nlohmann_json_t.a);
-        nlohmann_json_j.at("i").get_to(nlohmann_json_t.i);
-        nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);
-        nlohmann_json_j.at("i2").get_to(nlohmann_json_t.i2);
-        nlohmann_json_j.at("resource2").get_to(nlohmann_json_t.resource2);
-        nlohmann_json_j.at("font").get_to(nlohmann_json_t.font);
-        nlohmann_json_j.at("text").get_to(nlohmann_json_t.text);
+        try
+        {
+            nlohmann_json_j.at("x").get_to(nlohmann_json_t.x);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        
+        try
+        {
+            nlohmann_json_j.at("y").get_to(nlohmann_json_t.y);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("kx").get_to(nlohmann_json_t.kx);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("ky").get_to(nlohmann_json_t.ky);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("sx").get_to(nlohmann_json_t.sx);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("sy").get_to(nlohmann_json_t.sy);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("f").get_to(nlohmann_json_t.f);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("a").get_to(nlohmann_json_t.a);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("i").get_to(nlohmann_json_t.i);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("i2").get_to(nlohmann_json_t.i2);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("resource2").get_to(nlohmann_json_t.resource2);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("font").get_to(nlohmann_json_t.font);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
+        try
+        {
+            nlohmann_json_j.at("text").get_to(nlohmann_json_t.text);
+        }
+        catch (nlohmann::ordered_json::exception &e)
+        {
+        }
         return;
     }
 

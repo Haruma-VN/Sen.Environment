@@ -1,186 +1,112 @@
 #pragma once
 
 #include "kernel/definition/utility.hpp"
-#include "kernel/support/popcap/animation/definition.hpp"
 
-namespace Sen::Kernel::Support::PopCap::Animation {
+namespace Sen::Kernel::Support::PopCap::Animation::Convert
+{
 
-	class Resize {
+	struct Resize : Common
+	{
 
-		protected:
+	protected:
+		using XMLDocument = tinyxml2::XMLDocument;
 
-			using XMLDocument = tinyxml2::XMLDocument;
+	private:
+		// inline static auto constexpr resolution_ratio_list = std::array<double, 6>{ 0.78125, 1.5625, 1.875, 3.125, 1 };
 
-		protected:
-			// inline static auto constexpr resolution_ratio_list = std::array<double, 6>{ 0.78125, 1.5625, 1.875, 3.125, 1 };
+		template <auto point, typename T>
+			requires std::is_integral<T>::value or std::is_floating_point<T>::value
+		inline static auto to_fixed(
+			T number) -> std::string
+		{
+			static_assert(sizeof(point) == sizeof(int));
+			auto stream = std::ostringstream{};
+			stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
+			return stream.str();
+		}
 
-			template <auto point, typename T>
-				requires std::is_integral<T>::value or std::is_floating_point<T>::value
-			inline static auto to_fixed(
-				T number
-			) -> std::string
+		inline static auto resize_image(
+			XMLDocument &value,
+			std::string const &image_name,
+			float const &ratio,
+			float const &old_ratio) -> void
+		{
+			auto dom_symbol_item = value.FirstChildElement("DOMSymbolItem");
+			assert_conditional(dom_symbol_item != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem")), image_name), "resize_image");
+			auto image_child = dom_symbol_item->FindAttribute("name");
+			assert_conditional((image_child != nullptr && fmt::format("image/{}", image_name) == std::string{image_child->Value()}), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_name), "resize_image");
+			auto timeline = dom_symbol_item->FirstChildElement("timeline");
+			assert_conditional(timeline != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_timeline")), image_name), "resize_image");
+			auto dom_timeline = timeline->FirstChildElement("DOMTimeline");
+			assert_conditional(dom_timeline != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMtimeline")), image_name), "resize_image");
+			auto document_name = dom_timeline->FindAttribute("name");
+			assert_conditional((document_name != nullptr && image_name == std::string{document_name->Value()}), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_name), "resize_image");
+			auto layers = dom_timeline->FirstChildElement("layers");
+			assert_conditional(layers != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_layers")), image_name), "resize_image");
+			auto dom_layer = layers->FirstChildElement("DOMLayer");
+			assert_conditional(dom_layer != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer")), image_name), "resize_image");
+			auto frames = dom_layer->FirstChildElement("frames");
+			assert_conditional(frames != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_frames")), image_name), "resize_image");
+			auto dom_frame = frames->FirstChildElement("DOMFrame");
+			assert_conditional(dom_frame != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMframe")), image_name), "resize_image");
+			auto elements = dom_frame->FirstChildElement("elements");
+			assert_conditional(elements != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_elements")), image_name), "resize_image");
+			auto dom_bitmap_instance = elements->FirstChildElement("DOMBitmapInstance");
+			assert_conditional(dom_bitmap_instance != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_name), "resize_image");
+			auto matrix = dom_bitmap_instance->FirstChildElement("matrix");
+			if (matrix == nullptr)
 			{
-				static_assert(sizeof(point) == sizeof(int));
-				auto stream = std::ostringstream{};
-				stream << std::fixed << std::setprecision(static_cast<std::streamsize>(point)) << number;
-				return stream.str();
-			}
-
-		public:
-			Resize(
-				Resize &&
-			) = delete;
-
-			explicit Resize(
-
-			) = default;
-
-			~Resize(
-
-			) = default;
-
-			auto operator =(
-				Resize&& that
-			)->Resize & = delete;
-
-		protected:
-
-			inline auto resize_image(
-				const std::string& image_id,
-				XMLDocument* document,
-				float ratio,
-				float old_ratio
-			) -> void
-			{
-				auto DOMSymbolItem = document->FirstChildElement("DOMSymbolItem");
-				if (DOMSymbolItem == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMSymbolItem")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto image_child = DOMSymbolItem->FindAttribute("name");
-				if (image_child == nullptr or fmt::format("image/{}", image_id) != std::string{image_child->Value()})
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto timeline = DOMSymbolItem->FirstChildElement("timeline");
-				if (timeline == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_timeline")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto DOMTimeline = timeline->FirstChildElement("DOMTimeline");
-				if (DOMTimeline == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMtimeline")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto id_name = DOMTimeline->FindAttribute("name");
-				if (id_name == nullptr or image_id != std::string{id_name->Value()})
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_name")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto layers = DOMTimeline->FirstChildElement("layers");
-				if (layers == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_layers")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto DOMLayer = layers->FirstChildElement("DOMLayer");
-				if (DOMLayer == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMLayer")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto frames = DOMLayer->FirstChildElement("frames");
-				if (frames == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_frames")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto DOMFrame = frames->FirstChildElement("DOMFrame");
-				if (DOMFrame == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMframe")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto elements = DOMFrame->FirstChildElement("elements");
-				if (elements == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_elements")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto DOMBitmapInstance = elements->FirstChildElement("DOMBitmapInstance");
-				if (DOMBitmapInstance == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto image_name = std::string{DOMBitmapInstance->FindAttribute("libraryItemName")->Value()}.substr(6);
-				auto matrix = DOMBitmapInstance->FirstChildElement("matrix");
-				if (matrix == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_matrix")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto Matrix = matrix->FirstChildElement("Matrix");
-				if (Matrix == nullptr)
-				{
-					throw Exception(String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_matrix")), image_id), std::source_location::current(), "resize_image");
-				}
-				auto a_matrix = Matrix->FirstChildElement("a");
-				auto a = double{};
-				if (a_matrix != nullptr) {
-					a = std::stod(a_matrix->GetText());
-				}
-				else {
-					a = 1.0;
-				}
-				auto d_matrix = Matrix->FirstChildElement("d");
-				auto d = double{};
-				if (d_matrix != nullptr) {
-					d = std::stod(d_matrix->GetText());
-				}
-				else {
-					d = 1.0;
-				}
-				a_matrix->SetText(to_fixed<6>(((a / old_ratio) * ratio)).data());
-				d_matrix->SetText(to_fixed<6>(((d / old_ratio) * ratio)).data());
 				return;
 			}
-
-			template <typename T> requires std::is_floating_point<T>::value
-			auto constexpr calculate_ratio(
-				auto image_resolution
-			) -> T
+			else
 			{
-				return static_cast<T>(static_cast<T>(1200) / static_cast<T>(image_resolution));
+				assert_conditional(matrix != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_matrix")), image_name), "exchange_image_document");
+				auto transform_matrix = matrix->FirstChildElement("Matrix");
+				assert_conditional(transform_matrix != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_matrix")), image_name), "exchange_image_document");
+				auto a_matrix = transform_matrix->FindAttribute("a");
+				auto d_matrix = transform_matrix->FindAttribute("d");
+				transform_matrix->SetAttribute("a", to_fixed<6>((((a_matrix != nullptr ? std::stod(a_matrix->Value()) : 1.0) / old_ratio) * ratio)).data());
+				transform_matrix->SetAttribute("d", to_fixed<6>((((d_matrix != nullptr ? std::stod(d_matrix->Value()) : 1.0) / old_ratio) * ratio)).data());
 			}
+			return;
+		}
 
-		protected:
+		template <typename T>
+			requires std::is_floating_point<T>::value
+		inline static auto constexpr calculate_ratio(
+			int const &image_resolution) -> T
+		{
+			return static_cast<T>(static_cast<T>(1200) / static_cast<T>(image_resolution));
+		}
 
-			inline auto process(
-				std::string_view source,
-				float resolution
-			) -> void
+	public:
+		inline static auto process_whole(
+			std::string_view source,
+			int const &resolution) -> void
+		{
+			ExtraInfo definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
+			auto image_list = FileSystem::read_directory_only_file(fmt::format("{}/library/image", source));
+			auto ratio = calculate_ratio<double>(resolution);
+			auto old_ratio = calculate_ratio<double>(definition.resolution);
+			for (auto &[image_name, image_value] : definition.image)
 			{
-				auto record_info = *FileSystem::read_json(fmt::format("{}/record.json", source));
-				auto image_list = FileSystem::read_directory_only_file(fmt::format("{}/library/image", source));
-				auto ratio = calculate_ratio<double>(resolution);
-				auto old_ratio = calculate_ratio<double>(record_info["resolution"].get<double>());
-				for (auto& image : image_list) {
-					auto document = XMLDocument{};
-					FileSystem::read_xml(image, &document);
-					resize_image(Path::getFileName(image), &document, ratio, old_ratio);
-					FileSystem::write_xml(image, &document);
-				}
-				record_info["resolution"] = resolution;
-				FileSystem::write_json(fmt::format("{}/record.json", source), record_info);
-				return;
+				auto document = XMLDocument{};
+				auto path = fmt::format("{}/library/image/{}.xml", source, image_name);
+				FileSystem::read_xml(path, &document);
+				resize_image(document, image_name, ratio, old_ratio);
+				FileSystem::write_xml(path, &document);
 			}
-			
-		public:
+			definition.resolution = resolution;
+			FileSystem::write_json(fmt::format("{}/data.json", source), definition);
+			return;
+		}
 
-			inline static auto process_fs(
-				std::string_view source,
-				float resolution
-			) -> void
-			{
-				auto resize = Resize{};
-				resize.process(source, resolution);
-				return;
-			}
-
-
+		inline static auto process_fs(
+			std::string_view source,
+			int const &resolution) -> void
+		{
+			process_whole(source, resolution);
+			return;
+		}
 	};
 }

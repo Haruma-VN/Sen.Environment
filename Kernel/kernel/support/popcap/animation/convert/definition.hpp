@@ -34,8 +34,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
     {
         int x;
         int y;
-        int rows;
-        int cols;
+        int rows = 1;
+        int cols = 1;
     };
 
     inline auto to_json(
@@ -45,19 +45,19 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
         if (nlohmann_json_t.x != 0)
         {
-            nlohmann_json_j["additional"]["x"] = nlohmann_json_t.x;
+            nlohmann_json_j["x"] = nlohmann_json_t.x;
         }
         if (nlohmann_json_t.y != 0)
         {
-            nlohmann_json_j["additional"]["y"] = nlohmann_json_t.y;
+            nlohmann_json_j["y"] = nlohmann_json_t.y;
         }
         if (nlohmann_json_t.rows != 1)
         {
-            nlohmann_json_j["additional"]["rows"] = nlohmann_json_t.rows;
+            nlohmann_json_j["rows"] = nlohmann_json_t.rows;
         }
         if (nlohmann_json_t.cols != 1)
         {
-            nlohmann_json_j["additional"]["cols"] = nlohmann_json_t.cols;
+            nlohmann_json_j["cols"] = nlohmann_json_t.cols;
         }
         return;
     }
@@ -123,7 +123,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
     struct ImageInfo
     {
-        std::string name;
+        std::string comment;
+        std::string path;
         std::string id;
         ImageDimension size;
         bool use_image_additional;
@@ -134,9 +135,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         nlohmann::ordered_json &nlohmann_json_j,
         const ImageInfo &nlohmann_json_t) -> void
     {
-        if (!nlohmann_json_t.name.empty())
+        if (!nlohmann_json_t.comment.empty())
         {
-            nlohmann_json_j["name"] = nlohmann_json_t.name;
+            nlohmann_json_j["#comment"] = nlohmann_json_t.comment;
+        }
+        if (!nlohmann_json_t.path.empty())
+        {
+            nlohmann_json_j["path"] = nlohmann_json_t.path;
         }
         nlohmann_json_j["id"] = nlohmann_json_t.id;
         nlohmann_json_j["size"] = nlohmann_json_t.size;
@@ -152,7 +157,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
     {
         try
         {
-            nlohmann_json_j.at("name").get_to(nlohmann_json_t.name);
+            nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
         }
         catch (nlohmann::ordered_json::exception &e)
         {

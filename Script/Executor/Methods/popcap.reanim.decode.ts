@@ -45,7 +45,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode {
          * Platform supported
          */
 
-        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
+        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "tv"];
         /**
          *
          * Typical Style
@@ -78,6 +78,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode {
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Console.output(argument.destination!);
+                Console.argument(Kernel.Language.get("popcap.reanim.decode.generic"));
                 configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
                 Kernel.Support.PopCap.ReAnimation.decode_fs(argument.source, argument.destination!, argument.platform!);
@@ -89,7 +90,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Decode {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)(\.reanim)$/i],
+            filter: ["file", /(.+)(\.reanim|\.reanim\.compiled)$/i],
         });
         return;
     }

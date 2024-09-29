@@ -49,7 +49,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
             direct_forward(argument: Argument): void {
                 is_valid_source(argument, false);
                 Console.obtained(argument.source);
-                defined_or_default<Argument, string>(argument, "destination", `${argument.source}.json`);
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Console.output(argument.destination!);
                 clock.start_safe();
                 Kernel.Support.PopCap.CharacterFontWidget2.decode_fs(argument.source, argument.destination!);

@@ -357,7 +357,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
                 data.source = Sen.Kernel.Path.resolve(source_file);
             }
             const list_view: Array<Array<Detail.MaxRectsAfterData<number>>> = new Array();
-            const packer = new Sen.Script.Third.MaxRectsAlgorithm.MaxRectsPacker(size.width, size.height, size.padding, detail);
+            const packer = new Sen.Script.Third.MaxRectsAlgorithm.MaxRectsPacker(size.width, size.height, size.padding + 2, detail);
             packer.addArray(prepare as any);
             packer.bins.forEach((bin: Third.MaxRectsAlgorithm.Bin<Third.MaxRectsAlgorithm.Rectangle>) => list_view.push(bin.rects as any));
             Algorithm.assert_oversize(list_view);
@@ -410,7 +410,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Pack {
                     e.width = BigInt(e.width);
                     e.height = BigInt(e.height);
                 });
-                const image: Kernel.Dimension.Image = Kernel.Image.join(
+                const image: Kernel.Dimension.Image = Kernel.Image.join_extend(
                     Kernel.Dimension.instance(BigInt(destination_size.width), BigInt(destination_size.height)),
                     list_view[i].map((e: Detail.MaxRectsAfterData<number>) => ({ ...images.get(e.source), ...e } as any)),
                 );

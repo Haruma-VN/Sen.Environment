@@ -1,4 +1,8 @@
 namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
+    // Using platform
+
+    export type Platform = Kernel.Support.PopCap.Particles.Platform;
+
     /**
      * Argument for the current method
      */
@@ -6,6 +10,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
         destination?: string;
+        platform?: Platform;
     }
 
     /**
@@ -14,6 +19,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
 
     export interface BatchArgument extends Sen.Script.Executor.Base {
         directory: string;
+        platform?: Platform;
     }
 
     /**
@@ -30,6 +36,26 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
 
     export interface Configuration extends Sen.Script.Executor.Configuration {}
 
+    /**
+     * Detail namespace
+     */
+
+    export namespace Detail {
+        /**
+         * Platform supported
+         */
+
+        export const _platform: Array<Kernel.Support.PopCap.Particles.Platform> = ["pc", "game-console", "phone-32", "phone-64", "tv"];
+        /**
+         *
+         * Typical Style
+         *
+         */
+
+        export function platform(): Array<[bigint, string, string]> {
+            return _platform.map((e, i) => [BigInt(i + 1), e as string, Kernel.Language.get(`popcap.reanim.platform.${e}`)]);
+        }
+    }
     /**
      * ----------------------------------------------
      * JavaScript forward method, this method need
@@ -51,8 +77,10 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
                 Console.obtained(argument.source);
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.json`);
                 Console.output(argument.destination!);
+                Console.argument(Kernel.Language.get("popcap.particles.decode.generic"));
+                configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
-                Kernel.Support.PopCap.Particles.decode_fs(argument.source, argument.destination!);
+                Kernel.Support.PopCap.Particles.decode_fs(argument.source, argument.destination!, argument.platform!);
                 clock.stop_safe();
                 return;
             },

@@ -23,18 +23,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
 
         inline static auto process_sub(
             std::vector<uint8_t> const &before_data,
-            std::vector<uint8_t> const &after_data,
-            DataStreamView &stream_patch,
-            size_t &patch_size
-        ) -> void
+            std::vector<uint8_t> const &after_data
+        ) -> std::vector<uint8_t>
         {
-            auto vcdiff_data = Diff::VCDiff::encode<std::size_t, Diff::VCDiff::Flag::VCD_STANDARD_FORMAT>(
+            return Diff::VCDiff::encode<std::size_t, Diff::VCDiff::Flag::VCD_FORMAT_INTERLEAVED>(
                     reinterpret_cast<char const *>(before_data.data()), before_data.size(),
                     reinterpret_cast<char const *>(after_data.data()), after_data.size());
-            auto patch_begin_position = stream_patch.write_pos;
-            stream_patch.writeBytes(vcdiff_data);
-            patch_size = stream_patch.write_pos - patch_begin_position;
-            return;
         }
 
         inline static auto process(
@@ -56,7 +50,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
             stream_patch.writeNull(information_header_section_size);
             information_section_patch_exist = information_section_after != information_section_before;
             if (information_section_patch_exist) {
-                process_sub(information_section_before, information_section_after, stream_patch, information_section_patch_size);
+                auto vcdiff_data = process_sub(information_section_before, information_section_after);
+                information_section_patch_size = vcdiff_data.size();
+                stream_patch.writeBytes(vcdiff_data);
             }
             package_information.patch_exist = static_cast<uint32_t>(information_section_patch_exist);
             package_information.patch_size = static_cast<uint32_t>(information_section_patch_size);
@@ -67,9 +63,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
             for (auto packet_index : Range<size_t>(packet_count)) {
                 auto & packet_after_subgroup_information = information_section_after_structure.subgroup_information.at(packet_index);
                 auto packet_information = PacketInformation{};
-                auto packet_name = std::string{};
                 auto packet_patch_size = k_none_size;
-                packet_name = packet_after_subgroup_information.id;
+                auto packet_name = packet_after_subgroup_information.id;
                 auto packet_before = std::vector<uint8_t>{};
                 if (packet_before_subgroup_information_index_map.contains(packet_name)) {
                     auto packet_before_subgroup_information_index = packet_before_subgroup_information_index_map[packet_name];
@@ -78,14 +73,17 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
                 }
                 test_hash(packet_before, packet_information.before_hash);
                 auto packet_after = stream_after.getBytes(static_cast<size_t>(packet_after_subgroup_information.offset), static_cast<size_t>(packet_after_subgroup_information.offset + packet_after_subgroup_information.size));
-                auto packet_patch_exist = !std::equal(packet_before.begin(), packet_before.end(), packet_after.begin());
-                if (packet_patch_exist) {
-                    process_sub(packet_before, packet_after, stream_patch, packet_patch_size);
-                }
+                auto packet_patch_exist = !((packet_before.size() == packet_after.size()) && std::equal(packet_before.begin(), packet_before.end(), packet_after.begin()));
                 packet_information.name = packet_name;
                 packet_information.patch_exist = static_cast<uint32_t>(packet_patch_exist);
                 packet_information.patch_size = static_cast<uint32_t>(packet_patch_size);
+                auto vcdiff_data = std::vector<uint8_t>{};
+                if (packet_patch_exist) {
+                    vcdiff_data = process_sub(packet_before, packet_after);
+                    packet_information.patch_size = vcdiff_data.size();
+                }
                 exchange_packet_information(packet_information, stream_patch);
+                stream_patch.writeBytes(vcdiff_data);
             }
             package_information.all_after_size = static_cast<uint32_t>(stream_after.size());
             package_information.packet_count = static_cast<uint32_t>(packet_count);

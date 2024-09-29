@@ -144,6 +144,9 @@ namespace Sen.Script {
                         break loop;
                     }
                     default: {
+                        if (destination.startsWith("\"") && destination.endsWith("\"")) {
+                            destination = destination.slice(1, destination.length - 1);
+                        }
                         if (type === "file") {
                             if (Kernel.FileSystem.is_file(destination)) {
                                 break loop;
@@ -282,7 +285,7 @@ namespace Sen.Script {
         Shell.callback(["finish"]);
         return;
     }
-
+    
     /**
      * --------------------------------------------------
      * Main thread
@@ -351,6 +354,9 @@ namespace Sen.Script {
             "~/Support/PopCap/ResourceStreamBundle/Project/Unpack.js",
             "~/Support/PopCap/ResourceStreamBundle/Project/Pack.js",
             "~/Support/PopCap/ReflectionObjectNotation/DecodeByLooseConstraints.js",
+            "~/Support/Wwise/Media/Common.js",
+            "~/Support/Wwise/Media/Decode.js",
+            "~/Support/Wwise/Media/Encode.js",
             "~/Executor/Executor.js",
             "~/Executor/Methods/js.evaluate.js",
             "~/Executor/Methods/data.md5.hash.js",
@@ -379,6 +385,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.animation.from_flash.js",
             "~/Executor/Methods/popcap.animation.decode_and_to_flash.js",
             "~/Executor/Methods/popcap.animation.from_flash_and_encode.js",
+            "~/Executor/Methods/animation.flash.resize.js",
             "~/Executor/Methods/popcap.cfw2.decode.js",
             "~/Executor/Methods/popcap.cfw2.encode.js",
             "~/Executor/Methods/popcap.compiled_text.decode.js",
@@ -389,10 +396,16 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.zlib.uncompress.js",
             "~/Executor/Methods/popcap.particles.decode.js",
             "~/Executor/Methods/popcap.particles.encode.js",
+            "~/Executor/Methods/popcap.particles.to_xml.js",
+            "~/Executor/Methods/popcap.particles.from_xml.js",
             "~/Executor/Methods/popcap.render_effects.decode.js",
             "~/Executor/Methods/popcap.render_effects.encode.js",
             "~/Executor/Methods/wwise.soundbank.decode.js",
             "~/Executor/Methods/wwise.soundbank.encode.js",
+            "~/Executor/Methods/wwise.media.decode.js",
+            "~/Executor/Methods/wwise.media.encode.js",
+            "~/Executor/Methods/marmalade.dzip.unpack.js",
+            "~/Executor/Methods/marmalade.dzip.pack.js",
             "~/Executor/Methods/popcap.rsg.unpack.js",
             "~/Executor/Methods/popcap.rsg.pack.js",
             "~/Executor/Methods/popcap.pak.unpack.js",
@@ -406,18 +419,24 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.rsb_patch.encode.js",
             "~/Executor/Methods/popcap.reanim.decode.js",
             "~/Executor/Methods/popcap.reanim.encode.js",
+            "~/Executor/Methods/popcap.reanim.to_xml.js",
+            "~/Executor/Methods/popcap.reanim.from_xml.js",
             "~/Executor/Methods/popcap.reanim.to_flash.js",
             "~/Executor/Methods/popcap.reanim.from_flash.js",
+            "~/Executor/Methods/popcap.reanim.from_flash_and_encode.js",
+            "~/Executor/Methods/popcap.reanim.decode_and_to_flash.js",
             "~/Executor/Methods/popcap.rsb.unpack_by_loose_constraints.js",
-            "~/Executor/Methods/popcap.rsb.unpack_for_modding.js",
-            "~/Executor/Methods/popcap.rsb.pack_for_modding.js",
+            "~/Executor/Methods/popcap.rsb.unpack_custom.js",
+            "~/Executor/Methods/popcap.rsb.pack_custom.js",
             "~/Executor/Methods/popcap.atlas.split_by_resource_group.js",
             "~/Executor/Methods/popcap.atlas.pack_by_resource_group.js",
             "~/Executor/Methods/popcap.atlas.split_by_res_info.js",
             "~/Executor/Methods/popcap.atlas.pack_by_res_info.js",
             "~/Executor/Methods/popcap.pvz2.lawnstrings.convert.js",
-            "~/Executor/Methods/pvz2.modding.unpack_packet_contain_resource.js",
-            "~/Executor/Methods/pvz2.modding.pack_packet_contain_resource.js",
+            "~/Executor/Methods/popcap.player_info.decode.js",
+            "~/Executor/Methods/popcap.player_info.encode.js",
+            "~/Executor/Methods/pvz2.custom.scg.encode.js",
+            "~/Executor/Methods/pvz2.custom.scg.decode.js",
         ];
     }
 }

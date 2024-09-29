@@ -1,5 +1,5 @@
 namespace Sen.Script.Support.Wwise.Media.Common {
-    const FormatX = ["pcm", "adpcm", "vorbis", "aac", "opus", "wemopus"] as const;
+    export const FormatX = ["pcm", "adpcm", "vorbis", "aac", "opus", "wemopus"] as const;
 
     export type Format = (typeof FormatX)[number];
 

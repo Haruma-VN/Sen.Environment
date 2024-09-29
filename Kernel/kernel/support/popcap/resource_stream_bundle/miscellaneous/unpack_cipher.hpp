@@ -111,20 +111,26 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 			switch (texture_resource_information_section_block_size)
 			{
 			case Common::k_texture_resource_information_section_block_size_version_0:
-			{
-				exchange_list(stream, information_structure.texture_resource_information, &Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_0>, static_cast<size_t>(information_structure.header.texture_resource_information_section_block_count));
-				break;
-			}
-			case Common::k_texture_resource_information_section_block_size_version_1:
-			{
-				exchange_list(stream, information_structure.texture_resource_information, &Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_1>, static_cast<size_t>(information_structure.header.texture_resource_information_section_block_count));
-				break;
-			}
-			case Common::k_texture_resource_information_section_block_size_version_2:
-			{
-				exchange_list(stream, information_structure.texture_resource_information, &Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_2>, static_cast<size_t>(information_structure.header.texture_resource_information_section_block_count));
-				break;
-			}
+            {
+                for (auto index : Range(information_structure.header.texture_resource_information_section_block_count)) {
+                    Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_0>(stream, information_structure.texture_resource_information[index]);
+                }
+                break;
+            }
+            case Common::k_texture_resource_information_section_block_size_version_1:
+            {
+                for (auto index : Range(information_structure.header.texture_resource_information_section_block_count)) {
+                    Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_1>(stream, information_structure.texture_resource_information[index]);
+                }
+                break;
+            }
+            case Common::k_texture_resource_information_section_block_size_version_2:
+            {
+                for (auto index : Range(information_structure.header.texture_resource_information_section_block_count)) {
+                    Common::exchange_to_texture<Common::k_texture_resource_information_section_block_size_version_2>(stream, information_structure.texture_resource_information[index]);
+                }
+                break;
+            }
 			default:
 				assert_conditional(false, fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource_information_section_block_size")), "process_package");
 			}
@@ -134,7 +140,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 				Unpack::process_package_manifest(stream, information_structure.header, manifest);
 			}
 			definition.texture_information_section_size = texture_resource_information_section_block_size;
-			auto work_list = std::vector<std::future<void>>{};
 			for (auto &[group_id, group_index] : information_structure.group_id)
 			{
 				auto &simple_group_information = information_structure.group_information.at(group_index);
@@ -159,13 +164,19 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 					// try_assert(pool_information.texture_resource_begin == 0_ui, "invalid_texture_resource");
 					// try_assert(pool_information.texture_resource_count == 0_ui, "invalid_texture_resource");
 					auto packet_stream = DataStreamView{};
-					auto current_pos = stream.read_pos;
+					debug(fmt::format("{}. pos: {}, size: {}", subgroup_id, basic_subgroup_information.offset, basic_subgroup_information.size));
+					if (static_cast<size_t>(basic_subgroup_information.offset) + k_resource_information_section_offset_in_packet + 4_size >= stream.size()) {
+						continue;
+					}
 					if (auto resource_information_section_offset = stream.readUint32(static_cast<size_t>(basic_subgroup_information.offset) + k_resource_information_section_offset_in_packet); std::find(k_vaild_resource_information_section_offset_list.begin(), k_vaild_resource_information_section_offset_list.end(), resource_information_section_offset) != k_vaild_resource_information_section_offset_list.end())
 					{	
-						if (static_cast<size_t>(basic_subgroup_information.offset + basic_subgroup_information.size) > stream.size()) {
+						/*
+						if (static_cast<size_t>(basic_subgroup_information.offset) + static_cast<size_t>(basic_subgroup_information.size) > stream.size() || basic_subgroup_information.size == k_none_size) {
 							basic_subgroup_information.size = basic_subgroup_information.information_section_size + basic_subgroup_information.general_resource_data_section_size + basic_subgroup_information.texture_resource_data_section_size;
 						}
-						packet_stream.writeBytes(stream.getBytes(basic_subgroup_information.offset, basic_subgroup_information.offset + basic_subgroup_information.size));
+						*/
+						basic_subgroup_information.size = basic_subgroup_information.information_section_size + basic_subgroup_information.general_resource_data_section_size + basic_subgroup_information.texture_resource_data_section_size;
+						packet_stream.writeBytes(stream.getBytes(static_cast<size_t>(basic_subgroup_information.offset), static_cast<size_t>(basic_subgroup_information.offset) + static_cast<size_t>(basic_subgroup_information.size)));
 						if (!(packet_stream.readUint32(k_begin_index) == ResourceStreamGroup::Common::k_magic_identifier && packet_stream.readUint32() == definition.version && packet_stream.readUint32(k_resource_information_section_offset_in_packet) == basic_subgroup_information.resource_data_section_compression))
 						{
 							auto information_structure_header = ResourceStreamGroup::Common::HeaderInformaiton{};
@@ -183,18 +194,17 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 							information_structure_header.resource_information_section_offset = resource_information_section_offset;
 							ResourceStreamGroup::Common::exchange_header(information_structure_header, packet_stream);
 						}
-						stream.read_pos = current_pos;
+						//stream.read_pos = current_pos;
 					}
 					else
 					{
-						stream.read_pos = current_pos;
+						//stream.read_pos = current_pos;
 						continue; // pass
 					}
 					packet_stream.read_pos = k_begin_index;
 					auto packet_structure = PacketStructure{};
 					auto get_packet_structure_only = true;
-					ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, get_packet_structure_only);
-					work_list.emplace_back(std::async(&exchange_packet, packet_stream.toBytes(), destination));
+					ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, destination);
 					// try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
 					// try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
 					for (auto &packet_resource : packet_structure.resource)
@@ -203,21 +213,31 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 						{
 							auto &texture_information_structure = information_structure.texture_resource_information[static_cast<size_t>(texture_resource_begin + packet_resource.texture_additional.value.index)];
 							packet_resource.texture_additional.value.texture_resource_information_section_block_size = texture_resource_information_section_block_size;
-							try_assert(packet_resource.texture_additional.value.dimension.width == texture_information_structure.size_width, "invalid_texture_width");
-							try_assert(packet_resource.texture_additional.value.dimension.height == texture_information_structure.size_height, "invalid_texture_height");
+							//try_assert(packet_resource.texture_additional.value.dimension.width == texture_information_structure.size_width, "invalid_texture_width");
+							//try_assert(packet_resource.texture_additional.value.dimension.height == texture_information_structure.size_height, "invalid_texture_height");
 							packet_resource.texture_additional.value.texture_infomation = TextureResourceInformation{
 								.pitch = texture_information_structure.pitch,
 								.format = texture_information_structure.format,
 								.alpha_size = texture_information_structure.alpha_size,
 								.scale = texture_information_structure.scale};
+							subgroup_information.category.is_image = true;
 						}
+					}
+					if (subgroup_information.category.is_image && subgroup_information.category.resolution == static_cast<int>(k_none_size)) {
+						try 
+						{
+							auto string_list = String{subgroup_id}.split("_");
+							auto resolution = std::stoi(string_list.back());
+							subgroup_information.category.resolution = resolution;
+						}
+						catch (std::invalid_argument &ex) {}
+            			catch (std::out_of_range & ex) {}
 					}
 					subgroup_information.resource = packet_structure.resource;
 					group_information.subgroup[subgroup_id] = subgroup_information;
 				}
 				definition.group[original_id] = group_information;
 			}
-			async_process_list<void>(work_list);
 			return;
 		}
 

@@ -18,9 +18,9 @@ namespace Sen::Kernel::Support::PopCap::Animation
             DataStreamView &stream,
             AnimationImage &value) -> void
         {
-            auto name = String{stream.readStringByUint16()}.split(vertical_bar);
-            value.name = name[0];
-            value.id = name[1];
+            auto string_list = String{stream.readStringByUint16()}.split(vertical_bar);
+            value.path = string_list[0];
+            value.id = string_list[1];
             if (k_version >= 4_ui)
             {
                 value.size.width = stream.readInt16();
@@ -133,7 +133,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             else
             {
-                value.preload_frame = static_cast<int16>(0);
+                value.preload_frame = 0;
             }
             if (flag.test(LayerAppendFlag::name))
             {
@@ -286,7 +286,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
             if (k_version >= 5_ui)
             {
                 value.work_area.start = stream.readInt16();
-                value.work_area.duration = stream.readInt16();
+                value.work_area.duration = stream.readInt16() + 1;
             }
             exchange_list(stream, value.frame, &exchange_frame);
             return;

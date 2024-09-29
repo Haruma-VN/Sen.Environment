@@ -115,7 +115,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
             const style_use_string: boolean = style === "string";
             Sen.Kernel.FileSystem.create_directory(sprite_destination);
             const image_wrapper: Map<string, Array<Sen.Kernel.Image.RectangleFileIO>> = new Map<string, Array<Sen.Kernel.Image.RectangleFileIO>>();
-            images.forEach((e: string) => image_wrapper.set(e, []));
+            images.forEach((e: string) => image_wrapper.set(e.toUpperCase(), []));
             for (const current_resource of resource.resources) {
                 if (is_sprite_container(current_resource)) {
                     for (const png of images) {
@@ -263,7 +263,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
                     const default_subinfo = resource.packet[parent].data[id].default;
                     if (is_sprite_container(default_subinfo)) {
                         for (const png of images) {
-                            const current_parent = png.replaceAll(/\.png$/gi, "");
+                            const current_parent = png.replaceAll(/\.png$/gi, "").toUpperCase();
                             if (current_parent.endsWith(parent.replace("ATLASIMAGE_ATLAS_", ""))) {
                                 image_wrapper.get(png)!.push({
                                     x: Number(default_subinfo.ax),

@@ -431,6 +431,51 @@ namespace Sen::Kernel::Definition {
 				return;
 			}
 
+			/**
+			 * Algorithm to join image - Reverse from split
+			 * source: source image
+			 * data: data to join
+			 * return: the new source
+			 */
+
+			inline static auto join_extend(
+				Image<T>& source,
+				const std::vector<Image<T>>& data
+			) -> void
+			{
+				auto source_data = source.data();
+				for (const auto& img : data) {
+					if (!(img.width + img.x <= source.width and img.height + img.y <= source.height)) {
+						throw Exception(fmt::format("{}", Language::get("image.does_not_fit_current_image")), std::source_location::current(), "join");
+					}
+					auto& image_data = img.data();
+					auto extend_image = resize(img, img.width + 2, img.height + 2);
+					auto &extend_data = extend_image.data();
+					for (auto j : Range<T>(extend_image.height)) {
+						for (auto i : Range<T>(extend_image.width)) {
+							auto source_index = ((j + img.y - 1) * source.width + (i + img.x - 1)) * 4;
+							auto img_index = (j * extend_image.width + i) * 4;
+							source_data[source_index] = extend_data[img_index];
+							source_data[source_index + 1] = extend_data[img_index + 1];
+							source_data[source_index + 2] = extend_data[img_index + 2];
+							source_data[source_index + 3] = extend_data[img_index + 3];
+						}
+					}
+					for (auto j : Range<T>(img.height)) {
+						for (auto i : Range<T>(img.width)) {
+							auto source_index = ((j + img.y) * source.width + (i + img.x)) * 4;
+							auto img_index = (j * img.width + i) * 4;
+							source_data[source_index] = image_data[img_index];
+							source_data[source_index + 1] = image_data[img_index + 1];
+							source_data[source_index + 2] = image_data[img_index + 2];
+							source_data[source_index + 3] = image_data[img_index + 3];
+						}
+					}
+				}
+				source.set_data(std::move(source_data));
+				return;
+			}
+
 
 			/**
 			 * Resize image algorithm
@@ -451,6 +496,35 @@ namespace Sen::Kernel::Definition {
 					for (auto i : Range<int>(new_width)) {
 						auto old_i = static_cast<int>(i / percent);
 						auto old_j = static_cast<int>(j / percent);
+						auto old_index = (old_j * source.width + old_i) * 4;
+						auto new_index = (j * new_width + i) * 4;
+						std::copy(&source.data()[old_index], &source.data()[old_index + 4], &resized_image_data[new_index]);
+					}
+				}
+				return Image<T>(0, 0, new_width, new_height, std::move(resized_image_data));
+			}
+
+			/**
+			 * Resize image algorithm
+			 * source: source image
+			 * new_width: the new image width to resize
+			 * new_height: the new image height to resize
+			 * return: the newly image
+			*/
+
+			inline static auto resize(
+				const Image<T>& source,
+				int new_width,
+				int new_height
+			) -> Image<T>
+			{
+				auto width_percent = static_cast<float>(new_width) / static_cast<float>(source.width);
+				auto height_percent = static_cast<float>(new_height) / static_cast<float>(source.height);
+				auto resized_image_data = std::vector<unsigned char>(new_width * new_height * 4);
+				for (auto j : Range<int>(new_height)) {
+					for (auto i : Range<int>(new_width)) {
+						auto old_i = static_cast<int>(i / width_percent);
+						auto old_j = static_cast<int>(j / height_percent);
 						auto old_index = (old_j * source.width + old_i) * 4;
 						auto new_index = (j * new_width + i) * 4;
 						std::copy(&source.data()[old_index], &source.data()[old_index + 4], &resized_image_data[new_index]);
@@ -854,6 +928,23 @@ namespace Sen::Kernel::Definition {
 			) -> void
 			{
 				Image<int>::join(destination, data);
+				return;
+			}
+
+			/**
+			 * Should be used to join image
+			 * destination: the file output destination
+			 * dimension: output file dimension
+			 * data: the image data
+			 * return: the file output png
+			 */
+
+			inline static auto join_extend(
+				Image<int> & destination,
+				const std::vector<Image<int>>& data
+			) -> void
+			{
+				Image<int>::join_extend(destination, data);
 				return;
 			}
 

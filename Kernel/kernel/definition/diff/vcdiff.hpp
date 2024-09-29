@@ -89,6 +89,8 @@ namespace Sen::Kernel::Definition::Diff {
 			{
 				auto decoded_data = std::string{};
 				auto decoder = std::make_unique<open_vcdiff::VCDiffStreamingDecoder>();
+				decoder->SetMaximumTargetFileSize(332873785_size); // 325MB
+				decoder->SetMaximumTargetWindowSize(332873785_size); //  325MB
 				decoder->StartDecoding(before, before_size);
 				if (!decoder->DecodeChunk(patch, patch_size, &decoded_data)) {
 					throw Exception(fmt::format("{}", Language::get("vcdiff.decode.failed")), std::source_location::current(), "decode");

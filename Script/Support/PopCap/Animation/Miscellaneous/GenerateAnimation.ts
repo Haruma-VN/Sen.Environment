@@ -544,7 +544,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         const image_source_list = [] as SourceLayerData;
         const image_max_area = { width: [], height: [], x_pos: [], y_pos: [] } as AreaList;
         for (let image of animation.image) {
-            const image_name = setting.use_image_id ? image.id : image.name;
+            const image_name = setting.use_image_id ? image.id : image.path;
             image_source_list.push(Kernel.Image.open(`${media_source}/${image_name}.png`));
             animation_struct.source_image_name.push();
             animation_struct.source_layer.push(read_image(image, image_index++));

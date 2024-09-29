@@ -45,7 +45,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode {
          * Platform supported
          */
 
-        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "raw-xml", "tv"];
+        export const _platform: Array<Kernel.Support.PopCap.ReAnimation.Platform> = ["pc", "game-console", "phone-32", "phone-64", "tv"];
         /**
          *
          * Typical Style
@@ -76,8 +76,9 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.Encode {
             direct_forward(argument: Argument): void {
                 is_valid_source(argument, false);
                 Console.obtained(argument.source);
-                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
+                defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}.compiled`);
                 Console.output(argument.destination!);
+                Console.argument(Kernel.Language.get("popcap.reanim.encode.generic"));
                 configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
                 Kernel.Support.PopCap.ReAnimation.encode_fs(argument.source, argument.destination!, argument.platform!);

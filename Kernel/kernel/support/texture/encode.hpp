@@ -123,7 +123,7 @@ namespace Sen::Kernel::Support::Texture
 		inline static auto rgba_4444(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(image.height))
 			{
@@ -132,16 +132,16 @@ namespace Sen::Kernel::Support::Texture
 					auto index = set_pixel(x, y, image.width);
 					auto color = ((data[index + 3]) >> 4 | ((data[index + 2]) & 0xF0) | (((data[index + 1]) & 0xF0) << 4) |
 								  (((data[index]) & 0xF0) << 8));
-					sen.writeUint16(color);
+					stream.writeUint16(color);
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_565(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(image.height))
 			{
@@ -149,16 +149,16 @@ namespace Sen::Kernel::Support::Texture
 				{
 					auto index = set_pixel(x, y, image.width);
 					auto color = static_cast<uint16_t>((data[index + 2] >> 3) | (((data[index + 1]) & 0xFC) << 3) | (((data[index]) & 0xF8) << 8));
-					sen.writeUint16(color);
+					stream.writeUint16(color);
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgba_5551(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(image.height))
 			{
@@ -169,16 +169,16 @@ namespace Sen::Kernel::Support::Texture
 								  (((data[index + 2]) & 0xF8) >> 2) |
 								  (((data[index + 1]) & 0xF8) << 3) |
 								  (((data[index + 0]) & 0xF8) << 8));
-					sen.writeUint16(color);
+					stream.writeUint16(color);
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgba_4444_tiled(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(0, image.height, 32))
 			{
@@ -195,23 +195,23 @@ namespace Sen::Kernel::Support::Texture
 																   (data[index + 2] & 0xF0) |
 																   (((data[index + 1]) & 0xF0) << 4) |
 																   (((data[index + 0]) & 0xF0) << 8));
-								sen.writeUint16(color);
+								stream.writeUint16(color);
 							}
 							else
 							{
-								sen.writeUint16(0x00);
+								stream.writeUint16(0x00);
 							}
 						}
 					}
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_565_tiled(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(0, image.height, 32))
 			{
@@ -227,23 +227,23 @@ namespace Sen::Kernel::Support::Texture
 								auto color = static_cast<uint16_t>(((data[index + 2] & 0xF8) >> 3) |
 																   (((data[index + 1]) & 0xFC) << 3) |
 																   (((data[index + 0]) & 0xF8) << 8));
-								sen.writeUint16(color);
+								stream.writeUint16(color);
 							}
 							else
 							{
-								sen.writeUint16(0x00);
+								stream.writeUint16(0x00);
 							}
 						}
 					}
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgba_5551_tiled(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto y : Range<int>(0, image.height, 32))
 			{
@@ -260,116 +260,105 @@ namespace Sen::Kernel::Support::Texture
 																   ((data[index + 2] & 0xF8) >> 2) |
 																   ((data[index + 1] & 0xF8) << 3) |
 																   ((data[index + 0] & 0xF8) << 8));
-								sen.writeUint16(color);
+								stream.writeUint16(color);
 							}
 							else
 							{
-								sen.writeUint16(0x00);
+								stream.writeUint16(0x00);
 							}
 						}
 					}
 				}
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_etc1(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto size = image.area();
-			auto view = std::make_unique<unsigned int[]>(size);
 			auto data = image.data();
-			auto index = 0;
+			auto view = std::make_unique<uint8_t[]>(static_cast<size_t>(image.area() * 3)); 
+			auto index = k_begin_index;
+			auto encoded_size = etc1_get_encoded_data_size(static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
 			for (auto y : Range<int>(image.height))
 			{
 				for (auto x : Range<int>(image.width))
 				{
 					auto pixel = set_pixel(x, y, image.width);
-					view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					view[index++] = data[pixel];
+					view[index++] = data[pixel + 1];
+					view[index++] = data[pixel + 2];
 				}
 			}
-			auto destination_size = size / 16;
-			auto destination = std::make_unique<unsigned long long[]>(destination_size);
-			CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-			auto sen = DataStreamView{};
-			for (auto i : Range<int>(destination_size))
-			{
-				sen.writeUint64(destination[i]);
-			}
-			return sen.toBytes();
+			auto destination = std::vector<uint8_t>(encoded_size);
+			etc1_encode_image(view.get(), static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height), 3_ui, static_cast<uint32_t>(image.width * 3), destination.data());
+			auto stream = DataStreamView{};
+			stream.writeBytes(destination);
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_etc1_a_8(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto size = image.area();
-			auto view = std::make_unique<unsigned int[]>(size);
+			auto stream = DataStreamView{};
 			auto data = image.data();
-			auto index = 0;
+			auto view = std::make_unique<uint8_t[]>(static_cast<size_t>(image.area() * 3)); 
+			auto index = k_begin_index;
+			auto encoded_size = etc1_get_encoded_data_size(static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
+			stream.writeNull(encoded_size);
 			for (auto y : Range<int>(image.height))
 			{
 				for (auto x : Range<int>(image.width))
 				{
 					auto pixel = set_pixel(x, y, image.width);
-					view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					view[index++] = data[pixel];
+					view[index++] = data[pixel + 1];
+					view[index++] = data[pixel + 2];
+					stream.writeUint8(data[pixel + 3]);
 				}
 			}
-			auto destination_size = size / 16;
-			auto destination = std::make_unique<unsigned long long[]>(destination_size);
-			CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-			auto sen = DataStreamView{};
-			for (auto i : Range<int>(destination_size))
-			{
-				sen.writeUint64(destination[i]);
-			}
-			for (auto y : Range<int>(image.height))
-			{
-				for (auto x : Range<int>(image.width))
-				{
-					sen.writeUint8(data[set_pixel(x, y, image.width) + 3]);
-				}
-			}
-			return sen.toBytes();
+			auto destination = std::vector<uint8_t>(encoded_size);
+			etc1_encode_image(view.get(), static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height), 3_ui, static_cast<uint32_t>(image.width * 3), destination.data());
+			stream.writeBytes(destination, 0_size);
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_etc1_a_palette(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto size = image.area();
-			auto view = std::make_unique<unsigned int[]>(size);
 			auto data = image.data();
-			auto index = 0;
+			auto view = std::make_unique<uint8_t[]>(static_cast<size_t>(image.area() * 3)); 
+			auto index = k_begin_index;
+			auto encoded_size = etc1_get_encoded_data_size(static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
 			for (auto y : Range<int>(image.height))
 			{
 				for (auto x : Range<int>(image.width))
 				{
 					auto pixel = set_pixel(x, y, image.width);
-					view[index++] = (data[pixel + 3] << 24 | data[pixel] << 16 | data[pixel + 1] << 8 | data[pixel + 2]);
+					view[index++] = data[pixel];
+					view[index++] = data[pixel + 1];
+					view[index++] = data[pixel + 2];
 				}
 			}
-			auto destination_size = size / 16;
-			auto destination = std::make_unique<unsigned long long[]>(destination_size);
-			CompressEtc1RgbDither(view.get(), destination.get(), static_cast<unsigned int>(destination_size), static_cast<size_t>(image.width));
-			auto sen = DataStreamView{};
-			for (auto i : Range<int>(destination_size))
-			{
-				sen.writeUint64(destination[i]);
-			}
-			sen.writeUint8(0x10);
+			auto destination = std::vector<uint8_t>(encoded_size);
+			etc1_encode_image(view.get(), static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height), 3_ui, static_cast<uint32_t>(image.width * 3), destination.data());
+			auto stream = DataStreamView{};
+			stream.writeBytes(destination);
+			stream.writeUint8(0x10);
 			for (auto i : Range<uint8_t>(16))
 			{
-				sen.writeUint8(i);
+				stream.writeUint8(i);
 			}
-			auto half_size = size / 2;
+			auto half_size = image.area() / 2;
 			for (auto i : Range<int>(half_size))
 			{
-				sen.writeUint8(static_cast<uint8_t>((data[((i << 1) * 4) + 3] & 0b11110000) | (data[(((i << 1) | 1) * 4) + 3] >> 4)));
+				stream.writeUint8(static_cast<uint8_t>((data[((i << 1) * 4) + 3] & 0b11110000) | (data[(((i << 1) | 1) * 4) + 3] >> 4)));
 			}
 			if ((half_size & 0b1) == 1)
 			{
-				sen.writeUint8(static_cast<uint8_t>(data[((half_size << 1) * 4) + 3] & 0b11110000));
+				stream.writeUint8(static_cast<uint8_t>(data[((half_size << 1) * 4) + 3] & 0b11110000));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto is_padded_size(
@@ -420,12 +409,12 @@ namespace Sen::Kernel::Support::Texture
 				}
 			}
 			auto packets = PVRTC::encode_rgba_4bpp<std::uint8_t>(source_data, newWidth);
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			for (auto i : Range<std::size_t>(packets.size()))
 			{
-				sen.writeUint64(packets[i].PvrTcWord);
+				stream.writeUint64(packets[i].PvrTcWord);
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_pvrtc_4bpp(
@@ -469,12 +458,12 @@ namespace Sen::Kernel::Support::Texture
 				}
 			}
 			auto packets = PVRTC::encode_rgb_4bpp<std::uint8_t>(source_data, newWidth);
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			for (auto i : Range<std::uint64_t>(packets.size()))
 			{
-				sen.writeUint64(packets[i].PvrTcWord);
+				stream.writeUint64(packets[i].PvrTcWord);
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto rgb_pvrtc_4bpp_a8(
@@ -518,88 +507,88 @@ namespace Sen::Kernel::Support::Texture
 				}
 			}
 			auto packets = PVRTC::encode_rgba_4bpp<std::uint8_t>(source_data, newWidth);
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			for (auto i : Range<int>(packets.size()))
 			{
-				sen.writeUint64(packets[i].PvrTcWord);
+				stream.writeUint64(packets[i].PvrTcWord);
 			}
 			for (auto i : Range<int>(image.width * image.height))
 			{
-				sen.writeUint8(image_data[i * 4 + 3]);
+				stream.writeUint8(image_data[i * 4 + 3]);
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto a_8(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint8(data[i + 3]);
+				stream.writeUint8(data[i + 3]);
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto argb_1555(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint16(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
+				stream.writeUint16(static_cast<unsigned int>(((data[i + 3] & 0x80) << 8) | (data[i + 2] >> 3) | ((data[i + 1] & 0xF8) << 2) | ((data[i] & 0xF8) << 7)));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto argb_4444(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint16(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
+				stream.writeUint16(static_cast<unsigned int>((data[i + 2] >> 4) | (data[i + 1] & 0xF0) | ((data[i] & 0xF0) << 4) | ((data[i + 3] & 0xF0) << 8)));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto l_8(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint8(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2]));
+				stream.writeUint8(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2]));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto la_44(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint8(Encode::convert_luminance_from_rgba(data[i], data[i + 1], data[i + 2], data[i + 3]));
+				stream.writeUint8(Encode::convert_luminance_from_rgba(data[i], data[i + 1], data[i + 2], data[i + 3]));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 
 		inline static auto la_88(
 			const Image<int> &image) -> std::vector<unsigned char>
 		{
-			auto sen = DataStreamView{};
+			auto stream = DataStreamView{};
 			auto data = image.data();
 			for (auto i = 0; i < image.area() * 4; i += 4)
 			{
-				sen.writeUint16(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
+				stream.writeUint16(static_cast<uint16_t>(Encode::convert_luminance_from_rgb(data[i], data[i + 1], data[i + 2], data[i + 3])));
 			}
-			return sen.toBytes();
+			return stream.toBytes();
 		}
 	};
 

@@ -531,6 +531,10 @@ namespace Sen::Kernel::Definition
             {
                 auto res = std::vector<uint8_t>(sizeof(T));
                 *(reinterpret_cast<T *>(res.data())) = val;
+                if constexpr (use_big_endian)
+                {
+                    std::reverse(res.begin(), res.end());
+                }
                 return res;
             }
 
@@ -742,7 +746,7 @@ namespace Sen::Kernel::Definition
             template <typename... Args>
                 requires(IsValidArgument<Args> && ...)
             inline auto writeCharByInt16(
-                const std::string &value,
+                wchar_t value,
                 Args... args) const -> void
             {
                 static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
@@ -750,17 +754,7 @@ namespace Sen::Kernel::Definition
                 {
                     thiz.write_pos = std::get<0>(std::make_tuple(args...));
                 }
-                for (auto i : Range(2))
-                {
-                    if (i > value.size())
-                    {
-                        thiz.writeInt8(int8_t{0});
-                    }
-                    else
-                    {
-                        thiz.writeInt8(static_cast<int8_t>(value[i]));
-                    }
-                }
+                thiz.writeInt16(static_cast<int16_t>(value));
                 return;
             }
 
@@ -1261,7 +1255,14 @@ namespace Sen::Kernel::Definition
                                        "readFloat");
                     thiz.read_pos = view;
                 }
-                return this->template read<float>();
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverse_endian(this->template read<float>());
+                }
+                else
+                {
+                    return this->template read<float>();
+                }
             }
 
             template <typename... Args>
@@ -1277,7 +1278,14 @@ namespace Sen::Kernel::Definition
                                        "readDouble");
                     thiz.read_pos = view;
                 }
-                return this->template read<double>();
+                if constexpr (use_big_endian)
+                {
+                    return thiz.reverse_endian(this->template read<double>());
+                }
+                else
+                {
+                    return this->template read<double>();
+                }
             }
 
             template <typename... Args>
@@ -1321,7 +1329,7 @@ namespace Sen::Kernel::Definition
             template <typename... Args>
                 requires(IsValidArgument<Args> && ...)
             inline auto readCharByInt16(
-                Args... args) const -> std::string
+                Args... args) const -> wchar_t
             {
                 static_assert(sizeof...(Args) == 1 || sizeof...(Args) == 0, "Expected 0 or 1 argument only");
                 if constexpr (sizeof...(Args) == 1)
@@ -1331,11 +1339,7 @@ namespace Sen::Kernel::Definition
                                        "readCharByInt16");
                     thiz.read_pos = view;
                 }
-                auto value = std::string{};
-                auto first_char = static_cast<char>(thiz.readInt8());
-                auto next_char = static_cast<char>(thiz.readInt8());
-                value += first_char;
-                value += next_char;
+                auto value = static_cast<wchar_t>(thiz.readInt16());
                 return value;
             }
 
@@ -1695,8 +1699,9 @@ namespace Sen::Kernel::Definition
             ) const -> void
             {
                 thiz.data.clear();
-                thiz.read_pos = 0;
-                thiz.write_pos = 0;
+                thiz.length = 0_size;
+                thiz.read_pos = 0_size;
+                thiz.write_pos = 0_size;
                 return;
             }
         };

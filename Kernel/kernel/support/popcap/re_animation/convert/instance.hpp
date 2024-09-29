@@ -65,10 +65,8 @@ namespace Sen::Kernel::Support::PopCap::ReAnimation::Convert {
 			from_flash.process(source, reanim);
 			auto encode = Encode{};
 			encode.process(reanim, platform);
-            encode.stream->out_file(destination);
+            encode.stream.out_file(destination);
 			return;
 		} 
-
-
 	};
 }

@@ -374,6 +374,18 @@ declare namespace Sen {
              * @returns A new image object representing the joined image.
              */
             export function join(dimension: Kernel.Dimension.Structure, data: Array<Sen.Kernel.Dimension.Image>): Kernel.Dimension.Image;
+
+            /**
+             * Joins multiple image objects into a single image object.
+             *
+             * This function assumes the image objects have compatible dimensions
+             * (e.g., same width and height) for proper joining.
+             *
+             * @param dimension An object defining the dimensions (width and height) of the joined image.
+             * @param data An array of image objects to be joined together.
+             * @returns A new image object representing the joined image.
+             */
+            export function join_extend(dimension: Kernel.Dimension.Structure, data: Array<Sen.Kernel.Dimension.Image>): Kernel.Dimension.Image;
         }
 
         /**
@@ -1230,11 +1242,87 @@ declare namespace Sen {
          */
         declare namespace Support {
             declare namespace Miscellaneous {
-                declare namespace Modding {
-                    export function unpack_packet_contain_resource(source: string, destination: string): void;
-                    export function pack_packet_contain_resource(source: string, destination: string): void;
-                    export function unpack_rsb(source: string, destination: string, is_ios_format: bigint): void;
-                    export function pack_rsb(source: string, destination: string, rton_list: Array<string>, json_list: Array<string>): void;
+                declare namespace Custom {
+                    declare namespace StreamCompressedGroup {
+                        /**
+                        * Check a Stream Compressed Group is compsite.
+                        *
+                        * @param source The path to the source SCG file to be check.
+                        * @throws {Error} If there is an error during decoding.
+                        */
+                        export function check_scg_composite(source: string): boolean;
+
+                        /**
+                        * Decodes an SCG file.
+                        *
+                        * @param source {string} Path to the source SCG file.
+                        * @param destination {string} Path to the destination directory where the unpacked files will be written.
+                        * @param setting A Setting object containing configuration options for the SCG custom process.
+                        * @returns {void} No return value, function unpacks the group to the destination directory.
+                        */
+                        export function decode_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting): void;
+
+                        /**
+                        * Encode_fs a directory containing resources into an SCG file.
+                        *
+                        *
+                        * @param source {string} Path to the source directory containing the resources to be packed.
+                        * @param destination {string} Path to the destination SCG group file.
+                        * @param setting A Setting object containing configuration options for the SCG custom process.
+                        * @returns {void} No return value, function packs the resources into the destination SCG group file.
+                        */
+                        export function encode_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting): void;
+                    }
+                    declare namespace ResourceStreamBundle {
+                        /**
+                        * Unpacks an RSG bundle file to specific directory contains SCG files.
+                        *
+                        * @param source {string} Path to the source RSB bundle file.
+                        * @param destination {string} Path to the destination directory where the unpacked files will be written.
+                        * @param setting A Setting object containing configuration options for the RSB unpack custom process.
+                        * @returns {void} No return value, function unpacks the bundle to the destination directory.
+                        */
+                        export function unpack_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting): void;
+
+                        /**
+                        * Packs a directory containing resources into an RSB bundle file.
+                        *
+                        *
+                        * @param source {string} Path to the source directory containing the resources to be packed.
+                        * @param destination {string} Path to the destination RSB bundle file.
+                        * @param setting A Setting object containing configuration options for the RSB pack custom process.
+                        * @returns {void} No return value, function packs the resources into the destination RSB bundle file.
+                        */
+                        export function pack_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting): void;
+                    }
+                }
+            }
+
+            /**
+             * Namespace for marmalade manipulation functionalities.
+             *
+             * This namespace provides functions for encoding and decoding marmalade, likely
+             * utilizing the capabilities of the kernel or a specific framework.
+             */
+            declare namespace Marmalade {
+                declare namespace DZip {
+                    /**
+                         * Unpack a DZip file.
+                         *
+                         * @param source {string} Path to the source file to be decoded.
+                         * @param destination {string} Path to the destination file where the decoded data will be written.
+                         * @returns {void} No return value, function writes decoded data to the destination file.
+                         */
+                    export function unpack_fs(source: string, destination: string): void;
+
+                    /**
+                     * Pack a DZip file.
+                     *
+                     * @param source {string} Path to the source file to be encoded.
+                     * @param destination {string} Path to the destination file where the encoded data will be written.
+                     * @returns {void} No return value, function writes encoded data to the destination file.
+                     */
+                    export function pack_fs(source: string, destination: string): void;
                 }
             }
 
@@ -1533,13 +1621,18 @@ declare namespace Sen {
 
                 declare namespace Particles {
                     /**
+                     * Denotes the target platform for file system operations.
+                     */
+                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "tv";
+
+                    /**
                      * Decodes a particle data file.
                      *
                      * @param source {string} Path to the source file to be decoded.
                      * @param destination {string} Path to the destination file where the decoded data will be written.
                      * @returns {void} No return value, function writes decoded data to the destination file.
                      */
-                    export function decode_fs(source: string, destination: string): void;
+                    export function decode_fs(source: string, destination: string, platform: Platform): void;
 
                     /**
                      * Decodes and uncompresses a particle data file.
@@ -1551,7 +1644,7 @@ declare namespace Sen {
                      * @param destination {string} Path to the destination file where the decoded data will be written.
                      * @returns {void} No return value, function writes decoded data to the destination file.
                      */
-                    export function uncompress_and_encode(source: string, destination: string): void;
+                    // export function uncompress_and_encode(source: string, destination: string): void;
 
                     /**
                      * Encodes a particle data file.
@@ -1560,7 +1653,7 @@ declare namespace Sen {
                      * @param destination {string} Path to the destination file where the encoded data will be written.
                      * @returns {void} No return value, function writes encoded data to the destination file.
                      */
-                    export function encode_fs(source: string, destination: string): void;
+                    export function encode_fs(source: string, destination: string, platform: Platform): void;
 
                     /**
                      * Encodes and compresses a particle data file.
@@ -1572,8 +1665,59 @@ declare namespace Sen {
                      * @param destination {string} Path to the destination file where the compressed data will be written.
                      * @returns {void} No return value, function writes compressed data to the destination file.
                      */
-                    export function encode_and_compress_fs(source: string, destination: string): void;
+                    // export function encode_and_compress_fs(source: string, destination: string): void;
+
+                    /**
+                     * Convert particles json to xml.
+                     *
+                     * @param source {string} Path to the source file.
+                     * @param destination {string} Path to the destination file where the xml data will be written.
+                     * @returns {void} No return value, function writes xml data to the destination file.
+                     */
+                    export function to_xml(source: string, destination: string): void;
+
+                    /**
+                     * Convert particles xml to json.
+                     *
+                     * @param source {string} Path to the source file.
+                     * @param destination {string} Path to the destination file where the json data will be written.
+                     * @returns {void} No return value, function writes json data to the destination file.
+                     */
+                    export function from_xml(source: string, destination: string): void;
                 }
+
+                /**
+                 * PlayerInfo Support
+                 *
+                 * This namespace provides functions for decoding and encoding player info data files.
+                 */
+
+                declare namespace PlayerInfo {
+                    /**
+                     * Denotes the target platform for file system operations.
+                     */
+                    // export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "tv";
+
+                    /**
+                     * Decodes a particle data file.
+                     *
+                     * @param source {string} Path to the source file to be decoded.
+                     * @param destination {string} Path to the destination file where the decoded data will be written.
+                     * @returns {void} No return value, function writes decoded data to the destination file.
+                     */
+                    export function decode_fs(source: string, destination: string): void;
+
+                    /**
+                     * Encodes a particle data file.
+                     *
+                     * @param source {string} Path to the source file to be encoded.
+                     * @param destination {string} Path to the destination file where the encoded data will be written.
+                     * @returns {void} No return value, function writes encoded data to the destination file.
+                     */
+                    export function encode_fs(source: string, destination: string): void;
+
+                }
+
 
                 /**
                  * Compiled Text Support
@@ -1633,19 +1777,6 @@ declare namespace Sen {
                     export function encode_fs(source: string, destination: string): void;
 
                     /**
-                     * Resizes a filesystem to a specified resolution.
-                     *
-                     * @param source - The path to the filesystem to resize.
-                     * @param resolution - The target resolution of the filesystem.
-                     *                    The unit depends on the specific filesystem type.
-                     *
-                     * @throws {Error} -  If an error occurs during resize operation.
-                     *                   (Implementation specific)
-                     */
-
-                    export function resize_fs(source: string, resolution: number): void;
-
-                    /**
                      * Flash Conversion Support
                      *
                      * This namespace provides functions for converting animation data between PopCap and Flash formats.
@@ -1661,6 +1792,18 @@ declare namespace Sen {
                          * @returns {void} No return value, function writes converted XFL files to the destination directory.
                          */
                         export function convert_fs(source: string, destination: string, resolution: bigint, has_label: boolean): void;
+
+
+                        /**
+                         * Converts a PopCap Animation (PAM) file to Flash XFL format.
+                         *
+                         * @param animation {Sen.Script.Support.PopCap.Animation.SexyAnimation} animation struct to be converted.
+                         * @param destination {string} Path to the destination directory where the converted XFL files will be written.
+                         * @param resolution {bigint} The resolution to use for the generated XFL file (specific interpretation may depend on the implementation).
+                         * @returns {void} No return value, function writes converted XFL files to the destination directory.
+                         */
+                        export function process(animation: Sen.Script.Support.PopCap.Animation.SexyAnimation, destination: string, resolution: bigint, has_label: boolean): void;
+
                     }
 
                     declare namespace FromFlash {
@@ -1781,6 +1924,19 @@ declare namespace Sen {
                         }
 
                         /**
+                         * Resizes a filesystem to a specified resolution.
+                         *
+                         * @param source - The path to the filesystem to resize.
+                         * @param resolution - The target resolution of the filesystem.
+                         *                    The unit depends on the specific filesystem type.
+                         *
+                         * @throws {Error} -  If an error occurs during resize operation.
+                         *                   (Implementation specific)
+                         */
+
+                        export function resize_fs(source: string, resolution: number): void;
+
+                        /**
                          * Function to save a document object to a specified location
                          * @param source  Path to the source document
                          * @param document The document object to be saved
@@ -1829,6 +1985,19 @@ declare namespace Sen {
                          * @param destination Path to save the converted data in the project's format
                          */
                         export function from_flash(source: string, destination: string, has_label: boolean): void;
+                    }
+
+                    /**
+                     * Namespace for potential conversion to/from a specific game engine or development tool (possibly Flash)
+                     */
+                    declare namespace Miscellaneous {
+                        /**
+                         * Function resize Flash xfl
+                         * @param source  Path to the source data file
+                         * @param resolution Resolution for the converted data (likely in pixels)
+                         */
+                        export function resize_fs(source: string, resolution: bigint): void;
+
                     }
                 }
 
@@ -2125,7 +2294,7 @@ declare namespace Sen {
                     /**
                      * Denotes the target platform for file system operations.
                      */
-                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "raw-xml" | "tv";
+                    export type Platform = "pc" | "game-console" | "phone-32" | "phone-64" | "tv";
 
                     // Interface to define the structure of a single Reanim transform
                     export interface ReanimTransform extends Record<string, unknown> {
@@ -2212,6 +2381,24 @@ declare namespace Sen {
                      * @returns {void}
                      */
                     export function encode_fs(source: string, destination: string, platform: Platform): void;
+
+                    /**
+                     * Convert reanim json to xml.
+                     *
+                     * @param source {string} Path to the source file.
+                     * @param destination {string} Path to the destination file where the xml data will be written.
+                     * @returns {void} No return value, function writes xml data to the destination file.
+                     */
+                    export function to_xml(source: string, destination: string): void;
+
+                    /**
+                     * Convert reanim xml to json.
+                     *
+                     * @param source {string} Path to the source file.
+                     * @param destination {string} Path to the destination file where the json data will be written.
+                     * @returns {void} No return value, function writes json data to the destination file.
+                     */
+                    export function from_xml(source: string, destination: string): void;
 
                     /**
                      * Instance namespace for convert method
@@ -2632,6 +2819,20 @@ declare namespace Sen {
                      */
                     export function encode_fs(source: string, destination: string): void;
                     export function hash(source: string, destination: UInteger32): void;
+
+                    /**
+                    * WWise Miscellaneous Support
+                    */
+
+                    /*
+                    declare namespace Miscellaneous {
+                        //TODO.
+                        export function add_music(source: string, global_data_source: string, media_path: string, media_list: bigint[]): void; 
+
+
+                        export function create_soundbank(source: string, destination: string): void; 
+                    }
+                    */
                 }
             }
         }

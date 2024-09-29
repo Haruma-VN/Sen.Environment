@@ -674,7 +674,7 @@ namespace Sen.Script.Third.MaxRectsAlgorithm {
             allowRotation: false,
             tag: false,
             exclusiveTag: true,
-            border: 0,
+            border: 1,
             logic: PACKING_LOGIC.MAX_EDGE,
         };
 
@@ -686,7 +686,7 @@ namespace Sen.Script.Third.MaxRectsAlgorithm {
          * @param {IOption} [options={}] (Optional) packing options
          * @memberof MaxRectsPacker
          */
-        constructor(public width: number = EDGE_MAX_VALUE, public height: number = EDGE_MAX_VALUE, public padding: number = 0, options: IOption = {}) {
+        constructor(public width: number = EDGE_MAX_VALUE, public height: number = EDGE_MAX_VALUE, public padding: number = 2, options: IOption = {}) {
             this.bins = [];
             this.options = { ...this.options, ...options };
         }

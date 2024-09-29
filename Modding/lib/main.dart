@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modding/model/theme.dart';
 import 'package:modding/provider/filter_provider.dart';
@@ -52,13 +53,22 @@ class Application extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Sen: Environment',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: Provider.of<SettingProvider>(context).themeData,
-      home: const RootScreen(title: 'Sen: Environment'),
-    );
+    if (Platform.isIOS || Platform.isMacOS) {
+      return const CupertinoApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Sen: Environment',
+        theme: CupertinoDesign.lightTheme,
+        home: RootScreen(title: 'Sen: Environment'),
+      );
+    } else {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Sen: Environment',
+        theme: MaterialDesign.lightTheme,
+        darkTheme: MaterialDesign.darkTheme,
+        themeMode: Provider.of<SettingProvider>(context).themeData,
+        home: const RootScreen(title: 'Sen: Environment'),
+      );
+    }
   }
 }

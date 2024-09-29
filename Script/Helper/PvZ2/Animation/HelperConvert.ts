@@ -24,7 +24,6 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
 
     export interface AnimationSpriteHelper {
         name: string;
-        description: string;
         work_area: SquareHelper;
         frame: Array<AnimationFrameHelper>;
     }
@@ -43,8 +42,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
         const rewrite_sprite = (e: Animation.AnimationSprite) => {
             const sprite: AnimationSpriteHelper = {
                 name: e.name,
-                description: e.description,
-                work_area: [e.work_area.index, e.work_area.duration],
+                work_area: [e.work_area.start, e.work_area.duration],
                 frame: e.frame.map(function (f) {
                     const frame_helper: AnimationFrameHelper = {
                         label: f.label,
@@ -72,7 +70,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
             size: [animation.size.width, animation.size.height],
             image: animation.image.map(function (e) {
                 const image_helper: AnimationImageHelper = {
-                    name: `${e.name}|${e.id}`,
+                    name: `${e.path}|${e.id}`,
                     size: [e.size.width, e.size.height],
                     transform: e.transform,
                 };

@@ -23,9 +23,16 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             assert_conditional((index != k_version_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_version")), std::to_string(static_cast<int>(definition.version))), "process");
             auto resource_information_structure = std::map<std::string, ResourceInformation>{};
             auto resource_data_section_view_stored = std::map<std::string_view, DataStreamView>{};
+            /*
+            auto sort_resource = definition.resource;
+            std::sort(sort_resource.begin(), sort_resource.end(), [](Resource &a, Resource &b) {
+                return a.path < b.path;
+            });
+            */
+            auto texture_resource_index = static_cast<int>(k_begin_index);
             for (auto &resource_definition : definition.resource)
             {
-                auto resource_definition_path = String::to_windows_style(resource_definition.path);
+                auto resource_definition_path = toupper_back(String::to_windows_style(resource_definition.path));
                 auto resource_data = std::vector<uint8_t>{};
                 if constexpr (std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value)
                 {
@@ -41,9 +48,10 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
                 {
                     current_resource_type = k_texture_type_string;
                     resource_information.read_texture_additional = true;
-                    resource_information.texture_value.index = resource_definition.texture_additional.value.index;
+                    resource_information.texture_value.index = texture_resource_index;
                     resource_information.texture_value.width = resource_definition.texture_additional.value.dimension.width;
                     resource_information.texture_value.height = resource_definition.texture_additional.value.dimension.height;
+                    ++texture_resource_index;
                 }
                 resource_information.resource_data_section_offset = resource_data_section_view_stored[current_resource_type].write_pos;
                 resource_information.resource_data_section_size = resource_data.size();

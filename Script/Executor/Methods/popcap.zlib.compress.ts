@@ -69,7 +69,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Compress {
             },
             is_enabled: true,
             configuration: undefined!,
-            filter: ["file", /(.+)\.(rsb|bin|xml)$/i],
+            filter: ["file", /(.+)\.(rsb|obb|bin|xml)$/i],
         });
         return;
     }

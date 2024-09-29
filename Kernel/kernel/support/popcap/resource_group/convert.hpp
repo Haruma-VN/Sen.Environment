@@ -195,11 +195,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 			) -> nlohmann::ordered_json
 			{
 				auto result = nlohmann::ordered_json {
-					{"type", nullptr},
-					{"packet", nlohmann::ordered_json{
-						{"type", "File"}
-					}}
+					{"type", nullptr}
 				};
+				if (subgroup.find("loc") != subgroup.end()) {
+					result["loc"] = subgroup["loc"];
+				}
+				result["packet"] = nlohmann::ordered_json{{"type", "File"}};
 				auto data = nlohmann::ordered_json{};
 				for(auto & element : subgroup["resources"]) {
 					auto sub_data = nlohmann::ordered_json{};

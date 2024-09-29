@@ -29,7 +29,7 @@ namespace Sen::Kernel {
 
 	inline constexpr auto operator "" _us(
 		unsigned long long int n
-	) -> unsigned int
+	) -> unsigned short
 	{
     	return static_cast<unsigned short>(n);
 	}

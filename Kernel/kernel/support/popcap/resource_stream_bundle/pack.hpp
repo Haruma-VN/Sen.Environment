@@ -7,8 +7,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 {
     using namespace Definition;
 
-    using DataSectionViewStored = std::map<std::string, std::vector<uint8_t>, decltype(&case_insensitive_compare)>;
-
     struct Pack : Common
     {
     protected:
@@ -134,7 +132,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         }
 
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value
         inline static auto process_package(
             DataStreamView &stream,
             BundleStructure const &definition,
@@ -161,7 +159,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 for (auto &[subgroup_id, subgroup_information] : group_information.subgroup)
                 {
                     auto packet_data = std::vector<uint8_t>{};
-                    if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>> || std::is_same<Args, DataSectionViewStored>::value)
+                    if constexpr (std::is_same_v<Args, std::map<std::string, std::vector<uint8_t>>>)
                     {
                         packet_data = std::move(args.at(subgroup_id));
                     }
@@ -177,8 +175,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     ResourceStreamGroup::Common::exchange_header(packet_stream, packet_header_structure);
                     // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
                     // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
-                    try_assert(packet_structure.version == definition.version, "invalid_packet_version");
-                    try_assert(packet_structure.resource.size() == subgroup_information.resource.size(), "invalid_resource_size");
+                    compare_conditional(packet_structure.version, definition.version, subgroup_id, "popcap.rsb.mismatch_packet_version"_sv);
+                    compare_conditional(packet_structure.resource.size(), subgroup_information.resource.size(), subgroup_id, "popcap.rsb.mismatch_resource_size"_sv);
                     auto simple_subgroup_information_structure = SimpleSubgroupInformation{};
                     simple_subgroup_information_structure.index = static_cast<uint32_t>(global_subgroup_index);
                     simple_subgroup_information_structure.resolution = subgroup_information.category.resolution;
@@ -198,6 +196,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     pool_information_structure.flag = 0_ui;
                     auto texture_resource_begin = global_texture_resource_index;
                     auto texture_resource_count = k_none_size;
+                    auto texture_resource_index_total = k_none_size;
                     for (auto &resource_information : subgroup_information.resource)
                     {
                         auto &resource_path = resource_information.path;
@@ -212,15 +211,15 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                         }
                         try_assert(packet_resource_index + 1_size <= packet_structure.resource.size(), "invalid_packet_resource_index");
                         auto &packet_structure_resource = packet_structure.resource[packet_resource_index];
-                        try_assert(resource_information.use_texture_additional_instead == packet_structure_resource.use_texture_additional_instead, "invalid_texture_additional");
+                        compare_conditional(resource_information.use_texture_additional_instead, packet_structure_resource.use_texture_additional_instead, subgroup_id, "popcap.rsb.mismatch_texture_additional"_sv);
                         if (!resource_information.use_texture_additional_instead)
                         {
                             ++global_general_resource_index;
                         }
                         else
                         {
-                            try_assert(resource_information.texture_additional.value.dimension.width == packet_structure_resource.texture_additional.value.dimension.width, "invalid_texture_width");
-                            try_assert(resource_information.texture_additional.value.dimension.height == packet_structure_resource.texture_additional.value.dimension.height, "invalid_texture_height");
+                            compare_conditional(packet_structure_resource.texture_additional.value.dimension.width, resource_information.texture_additional.value.dimension.width, subgroup_id, "popcap.rsb.mismatch_texture_width"_sv);
+                            compare_conditional(packet_structure_resource.texture_additional.value.dimension.height, resource_information.texture_additional.value.dimension.height, subgroup_id, "popcap.rsb.mismatch_texture_height"_sv);
                             try_assert(definition.texture_information_section_size == resource_information.texture_additional.value.texture_resource_information_section_block_size, "invalid_information_section_block_size");
                             auto texture_information_structure = TextureInfomation{};
                             texture_information_structure.size_width = resource_information.texture_additional.value.dimension.width;
@@ -236,13 +235,20 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                                 texture_information_structure.alpha_size = resource_information.texture_additional.value.texture_infomation.alpha_size;
                                 texture_information_structure.scale = resource_information.texture_additional.value.texture_infomation.scale;
                             }
-                            information_structure.texture_resource_information.emplace_back(texture_information_structure);
+                            try_assert(packet_structure_resource.texture_additional.value.index >= static_cast<int>(k_none_size), "index_must_higher_than_zero");
+                            auto texture_resource_information_index = global_texture_resource_index + static_cast<size_t>(packet_structure_resource.texture_additional.value.index);
+                            try_assert(!information_structure.texture_resource_information.contains(texture_resource_information_index), "invalid_texture_resource_information_index");
+                            information_structure.texture_resource_information[texture_resource_information_index] = texture_information_structure;
+                            texture_resource_index_total += packet_structure_resource.texture_additional.value.index;
                             ++texture_resource_count;
-                            ++global_texture_resource_index;
                         }
                         packet_structure.resource.erase(packet_structure.resource.begin() + packet_resource_index);
                     }
-                    try_assert(packet_structure.resource.size() == k_none_size, "packet_resource_empty");
+                    if (texture_resource_count != k_none_size) {
+                        assert_conditional(texture_resource_index_total == ((texture_resource_count - 1_size) * texture_resource_count / 2_size), String::format(fmt::format("{}", Language::get("popcap.rsb.pack.invalid_index")), subgroup_id), "process_package");
+                        global_texture_resource_index += texture_resource_count;
+                    }
+                    try_assert(packet_structure.resource.size() == k_none_size, "packet_resource_mismatch_size");
                     basic_subgroup_information_structure.resource_data_section_compression = packet_header_structure.resource_data_section_compression;
                     basic_subgroup_information_structure.information_section_size = packet_header_structure.information_section_size;
                     basic_subgroup_information_structure.general_resource_data_section_offset = packet_header_structure.general_resource_data_section_offset;
@@ -272,6 +278,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 information_structure.group_information.emplace_back(simple_group_information_structure);
                 ++global_group_index;
             }
+            try_assert(information_structure.texture_resource_information.size() == global_texture_resource_index, "invalid_texture_count");
             auto k_use_resource_manifest_information = definition.version <= 3_ui;
             stream.writeNull(!k_use_resource_manifest_information ? information_header_section_size - stream.write_pos : information_header_section_size - stream.write_pos - k_block_size);
             information_structure.header.resource_path_section_offset = stream.write_pos;
@@ -300,17 +307,23 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             {
             case k_texture_resource_information_section_block_size_version_0:
             {
-                exchange_list(stream, information_structure.texture_resource_information, &exchange_from_texture<k_texture_resource_information_section_block_size_version_0>);
+                for (auto &[e, texture_resource_information_value] : information_structure.texture_resource_information) {
+                    exchange_from_texture<k_texture_resource_information_section_block_size_version_0>(stream, texture_resource_information_value);
+                }
                 break;
             }
             case k_texture_resource_information_section_block_size_version_1:
             {
-                exchange_list(stream, information_structure.texture_resource_information, &exchange_from_texture<k_texture_resource_information_section_block_size_version_1>);
+                for (auto &[e, texture_resource_information_value] : information_structure.texture_resource_information) {
+                    exchange_from_texture<k_texture_resource_information_section_block_size_version_1>(stream, texture_resource_information_value);
+                }
                 break;
             }
             case k_texture_resource_information_section_block_size_version_2:
             {
-                exchange_list(stream, information_structure.texture_resource_information, &exchange_from_texture<k_texture_resource_information_section_block_size_version_2>);
+                for (auto &[e, texture_resource_information_value] : information_structure.texture_resource_information) {
+                    exchange_from_texture<k_texture_resource_information_section_block_size_version_2>(stream, texture_resource_information_value);
+                }
                 break;
             }
             }
@@ -358,7 +371,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
 
     public:
         template <typename Args>
-            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, DataSectionViewStored>::value || std::is_same<Args, std::string>::value
+            requires std::is_same<Args, std::map<std::string, std::vector<uint8_t>>>::value || std::is_same<Args, std::string>::value
         inline static auto process_whole(
             DataStreamView &stream,
             BundleStructure const &definition,
@@ -385,5 +398,4 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             return;
         }
     };
-
 }

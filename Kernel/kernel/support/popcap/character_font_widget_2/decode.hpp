@@ -42,12 +42,9 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 				CharacterFontWidget2* cfw2_json
 			) -> void
 			{
-				/*
 				for (auto i : Range<int>(16)) {
 					cfw2_json->unknown[i] = view->readUint8();
 				}
-				*/
-				view->read_pos += 16;
 				(*cfw2_json).ascent = view->readInt32();
 				(*cfw2_json).ascent_padding = view->readInt32();
 				(*cfw2_json).height = view->readInt32();
@@ -80,8 +77,8 @@ namespace Sen::Kernel::Support::PopCap::CharacterFontWidget2
 					auto kerning = std::vector<FontKerning>{};
 					for (auto k : Range<uint32_t>(kerning_count)) {
 						kerning.emplace_back(FontKerning {
-							view->readUint16(),
-							view->readCharByInt16()
+							view->readCharByInt16(),
+							static_cast<unsigned short>(view->readUint16())
 						});
 					}
 					auto character_count = view->readUint32();

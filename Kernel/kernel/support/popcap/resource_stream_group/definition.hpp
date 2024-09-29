@@ -96,7 +96,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann::ordered_json &nlohmann_json_j,
         const TextureValue &nlohmann_json_t) -> void
     {
-        nlohmann_json_j["index"] = nlohmann_json_t.index;
+        //nlohmann_json_j["index"] = nlohmann_json_t.index; 
         nlohmann_json_j["dimension"] = nlohmann_json_t.dimension;
         switch (nlohmann_json_t.texture_resource_information_section_block_size)
         {
@@ -129,7 +129,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         const nlohmann::ordered_json &nlohmann_json_j,
         TextureValue &nlohmann_json_t) -> void
     {
-        nlohmann_json_j.at("index").get_to(nlohmann_json_t.index);
+        //nlohmann_json_j.at("index").get_to(nlohmann_json_t.index);
         nlohmann_json_j.at("dimension").get_to(nlohmann_json_t.dimension);
         auto texture_resource_information_section_block_size = size_t{0};
         try
@@ -215,7 +215,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         }
         else
         {
-            nlohmann_json_j["texture_info"] = nlohmann_json_t.texture_additional.value;
+            nlohmann_json_j["additional"] = nlohmann_json_t.texture_additional.value;
         }
         return;
     }
@@ -227,33 +227,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j.at("path").get_to(nlohmann_json_t.path);
         try
         {
-            nlohmann_json_j.at("texture_info").get_to(nlohmann_json_t.texture_additional.value);
+            nlohmann_json_j.at("additional").get_to(nlohmann_json_t.texture_additional.value);
             nlohmann_json_t.use_texture_additional_instead = true;
         }
         catch (nlohmann::ordered_json::exception &e)
         {
         }
-        /*
-        switch (hash_sv(nlohmann_json_j["additional"]["type"].get<std::string_view>()))
-        {
-        case hash_sv(Common::k_general_type_string):
-        {
-            nlohmann_json_t.use_texture_additional_instead = false;
-            nlohmann_json_j.at("additional").get_to(nlohmann_json_t.general_additional);
-            break;
-        }
-        case hash_sv(Common::k_texture_type_string):
-        {
-            nlohmann_json_t.use_texture_additional_instead = true;
-            nlohmann_json_j.at("additional").get_to(nlohmann_json_t.texture_additional);
-            break;
-        }
-        default:
-        {
-            assert_conditional(false, "invalid_rsg_additional_type", "convert_json"); // TODO: add to localization.
-        }
-        }
-        */
         return;
     }
 
