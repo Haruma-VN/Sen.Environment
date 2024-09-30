@@ -1,15 +1,10 @@
 import React, { useState } from "react";
-import { AppBar, Toolbar, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, useMediaQuery } from "@mui/material";
-import InfoIcon from "@mui/icons-material/Info";
+import { AppBar, Toolbar, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, useMediaQuery } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const Navbar: React.FC = () => {
     const [open, setOpen] = useState(false);
-
-    // Detect the system's color scheme preference
     const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-
-    // Create a theme that switches between dark and light mode
     const theme = React.useMemo(
         () =>
             createTheme({
@@ -20,10 +15,6 @@ const Navbar: React.FC = () => {
         [prefersDarkMode],
     );
 
-    const handleInfoClick = () => {
-        setOpen(true);
-    };
-
     const handleClose = () => {
         setOpen(false);
     };
@@ -33,12 +24,9 @@ const Navbar: React.FC = () => {
             <React.Fragment>
                 <AppBar position="static">
                     <Toolbar>
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1, textAlign: "left" }}>
                             Sen.Environment
                         </Typography>
-                        <IconButton color="inherit" onClick={handleInfoClick}>
-                            <InfoIcon />
-                        </IconButton>
                     </Toolbar>
                 </AppBar>
 

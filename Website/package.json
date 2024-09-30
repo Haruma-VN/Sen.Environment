@@ -1,4 +1,5 @@
 {
+    "homepage": "https://haruma-vn.github.io/Sen.Environment",
     "name": "website",
     "private": true,
     "version": "0.0.0",
@@ -9,7 +10,7 @@
         "lint": "eslint .",
         "preview": "vite preview",
         "predeploy": "npm run build",
-        "deploy": "gh-pages -d build"
+        "deploy": "gh-pages -d dist"
     },
     "dependencies": {
         "@emotion/react": "^11.13.3",
@@ -17,7 +18,8 @@
         "@mui/icons-material": "^6.1.1",
         "@mui/material": "^6.1.1",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.26.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.9.0",
