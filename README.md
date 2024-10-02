@@ -20,8 +20,6 @@
 
 -   `Script` - Script control flows of the tool.
 
--   `WinShell` - Frontend for Windows. Having Windows 11 graphic interface, is exclusive for Windows Operating System.
-
 # Technology
 
 -   [CMake](https://cmake.org/): Used with both [Kernel](https://github.com/Haruma-VN/Sen.Environment/tree/master/Kernel) and [Shell](https://github.com/Haruma-VN/Sen.Environment/tree/master/Shell) to support cross-platform with C++
