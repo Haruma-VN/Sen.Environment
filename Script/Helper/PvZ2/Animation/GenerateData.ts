@@ -54,8 +54,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
         return result;
     }
 
-    export function process(source: string, destination: string, resolution: bigint): void {
-        const data = process_fs(resolution, source, "IMAGE_PLANT_BONKCHOY");
+    export function process(source: string, destination: string, resolution: bigint, image_posix: string): void {
+        const data = process_fs(resolution, source);
         Kernel.JSON.serialize_fs(destination, data, 1, false);
     }
 
@@ -64,7 +64,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
         const source = Console.path("input source", "directory");
         Console.argument("input image posix for id");
         const image_posix = Kernel.Console.readline();
-        process(source, `${source}/data.generated.json`, resolution);
+        process(source, `${source}/data.generated.json`, resolution, image_posix);
     }
 }
 Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData.execute();

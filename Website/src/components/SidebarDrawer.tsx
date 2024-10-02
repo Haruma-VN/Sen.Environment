@@ -5,7 +5,11 @@ import InfoIcon from "@mui/icons-material/Info";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import MenuIcon from "@mui/icons-material/Menu";
 
-const SidebarDrawer: React.FC<{ isDrawerOpen: boolean; toggleDrawer: () => void }> = ({ isDrawerOpen, toggleDrawer }) => {
+const SidebarDrawer: React.FC<{
+    isDrawerOpen: boolean;
+    toggleDrawer: () => void;
+    setActivePage: (page: string) => void;
+}> = ({ isDrawerOpen, toggleDrawer, setActivePage }) => {
     const isLargeScreen = useMediaQuery("(min-width:1024px)");
     const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -38,7 +42,7 @@ const SidebarDrawer: React.FC<{ isDrawerOpen: boolean; toggleDrawer: () => void 
             <Box sx={{ width: drawerWidth }}>
                 <List>
                     <ListItem key="Home" disablePadding>
-                        <ListItemButton>
+                        <ListItemButton onClick={() => setActivePage("Home")}>
                             <ListItemIcon>
                                 <HomeIcon />
                             </ListItemIcon>
@@ -46,7 +50,7 @@ const SidebarDrawer: React.FC<{ isDrawerOpen: boolean; toggleDrawer: () => void 
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="Documentation" disablePadding>
-                        <ListItemButton>
+                        <ListItemButton onClick={() => setActivePage("Documentation")}>
                             <ListItemIcon>
                                 <AssignmentIcon />
                             </ListItemIcon>
@@ -54,7 +58,7 @@ const SidebarDrawer: React.FC<{ isDrawerOpen: boolean; toggleDrawer: () => void 
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="About" disablePadding>
-                        <ListItemButton>
+                        <ListItemButton onClick={() => setActivePage("About")}>
                             <ListItemIcon>
                                 <InfoIcon />
                             </ListItemIcon>
