@@ -64,6 +64,8 @@ const MainContent: React.FC<{ setActivePage: (value: string) => void }> = ({ set
                     break;
                 case "android":
                     break;
+                default:
+                    throw new Error("Current operating system does not supported");
             }
             window.location.href = baseUrl;
             setDownloadCount(downloadCount + 1);

@@ -26,7 +26,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
 
     export type Sprite = Record<string, Record<string, string>>;
 
-    export function process_fs(resolution: bigint, source: string, image_posix: string): Data {
+    export function process(resolution: bigint, source: string, image_posix: string): Data {
         const document = {} as Kernel.Support.PopCap.Animation.Miscellaneous.Document;
         Kernel.Support.PopCap.Animation.Miscellaneous.dump_document(source, document);
         const result: Data = {
@@ -54,8 +54,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
         return result;
     }
 
-    export function process(source: string, destination: string, resolution: bigint, image_posix: string): void {
-        const data = process_fs(resolution, source);
+    export function process_fs(source: string, destination: string, resolution: bigint, image_posix: string): void {
+        const data = process(resolution, source, image_posix);
         Kernel.JSON.serialize_fs(destination, data, 1, false);
     }
 
@@ -64,7 +64,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
         const source = Console.path("input source", "directory");
         Console.argument("input image posix for id");
         const image_posix = Kernel.Console.readline();
-        process(source, `${source}/data.generated.json`, resolution, image_posix);
+        process_fs(source, `${source}/data.generated.json`, resolution, image_posix);
     }
 }
 Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData.execute();

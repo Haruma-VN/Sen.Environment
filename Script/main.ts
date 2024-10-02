@@ -144,7 +144,7 @@ namespace Sen.Script {
                         break loop;
                     }
                     default: {
-                        if (destination.startsWith("\"") && destination.endsWith("\"")) {
+                        if (destination.startsWith('"') && destination.endsWith('"')) {
                             destination = destination.slice(1, destination.length - 1);
                         }
                         if (type === "file") {
@@ -285,7 +285,7 @@ namespace Sen.Script {
         Shell.callback(["finish"]);
         return;
     }
-    
+
     /**
      * --------------------------------------------------
      * Main thread
@@ -386,6 +386,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.animation.decode_and_to_flash.js",
             "~/Executor/Methods/popcap.animation.from_flash_and_encode.js",
             "~/Executor/Methods/animation.flash.resize.js",
+            "~/Executor/Methods/popcap.animation.to_apng.js",
             "~/Executor/Methods/popcap.cfw2.decode.js",
             "~/Executor/Methods/popcap.cfw2.encode.js",
             "~/Executor/Methods/popcap.compiled_text.decode.js",

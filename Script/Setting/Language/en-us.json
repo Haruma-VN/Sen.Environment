@@ -602,7 +602,7 @@
     "popcap.reanim.from_xml": "PopCap Reanim: XML to JSON",
     "animation.flash.resize": "Adobe Animate Flash Animation: Resize",
     "script.orgainize_resources.source_file": "Input Resources.json path",
-    "popcap.rsb.pack.invalid_index": "invalid image index in at {}. Try repack it" ,
+    "popcap.rsb.pack.invalid_index": "invalid image index in at {}. Try repack it",
     "script.rsb.unpack_custom.resolution_additional": "Resolution Additional",
     "popcap.rsb.pack_custom.manifest_compress": "Manifest Compression",
     "popcap.rsb.pack_custom.packages_compress": "Packages Compression",
@@ -611,6 +611,6 @@
     "script.helper.pvz2.animation.generate_flash_from_media.total_image_count": "Total image",
     "script.helper.pvz2.animation.generate_flash_from_media.animation_name_must_not_cotain_space_char": "Animation name must not cotain blank space",
     "script.helper.pvz2.animation.generate_flash_from_media.animation_name_must_be_ascii": "Animation name must be ascii string",
-    "popcap.animation.from_flash.missing_label_xml": "Label {} is missing"
-    
+    "popcap.animation.from_flash.missing_label_xml": "Label {} is missing",
+    "popcap.animation.to_apng": "PopCap Animation: To APNG"
 }

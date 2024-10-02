@@ -55,7 +55,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
 
     const initial_transform: number[] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 
-        const initial_color: number[] = [1.0, 1.0, 1.0, 1.0];
+    const initial_color: number[] = [1.0, 1.0, 1.0, 1.0];
 
     export function read_image(image: AnimationImage, index: bigint): FrameStruct {
         return {
@@ -577,7 +577,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         Console.finished("All Sprites loaded");
         const sprite_length = animation.sprite.length;
         for (let i = 0; i < sprite_length; ++i) {
-            Console.send(`     ${i + 1}: ${animation.sprite[i].name}`);
+            Kernel.Console.print(`    ${i + 1}: ${animation.sprite[i].name}`);
         }
         Console.argument(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.input_sprite_to_disable"));
         let sprite_to_disable: string = "";
@@ -603,9 +603,9 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
 
     export function before_start(animation: SexyAnimation, setting: Setting): void {
         Console.argument(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite"));
-        Console.send(`      1. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.enable_all")}`);
-        Console.send(`      2. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_all")}`);
-        Console.send(`      3. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.select_to_disable")}`);
+        Kernel.Console.print(`    1. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.enable_all")}`);
+        Kernel.Console.print(`    2. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_all")}`);
+        Kernel.Console.print(`    3. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.select_to_disable")}`);
         const result = Executor.input_integer([1n, 2n, 3n]);
         setting.sprite_layers_remove_list = [];
         switch (result) {

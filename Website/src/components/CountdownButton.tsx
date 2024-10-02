@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const CountdownButton = () => {
-    const [timeLeft, setTimeLeft] = useState("");
+    const [timeLeft, setTimeLeft] = useState<string>("");
 
     useEffect(() => {
         const targetDate = new Date("2024-10-26").getTime();
