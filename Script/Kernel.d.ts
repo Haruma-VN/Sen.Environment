@@ -1245,54 +1245,54 @@ declare namespace Sen {
                 declare namespace Custom {
                     declare namespace StreamCompressedGroup {
                         /**
-                        * Check a Stream Compressed Group is compsite.
-                        *
-                        * @param source The path to the source SCG file to be check.
-                        * @throws {Error} If there is an error during decoding.
-                        */
+                         * Check a Stream Compressed Group is compsite.
+                         *
+                         * @param source The path to the source SCG file to be check.
+                         * @throws {Error} If there is an error during decoding.
+                         */
                         export function check_scg_composite(source: string): boolean;
 
                         /**
-                        * Decodes an SCG file.
-                        *
-                        * @param source {string} Path to the source SCG file.
-                        * @param destination {string} Path to the destination directory where the unpacked files will be written.
-                        * @param setting A Setting object containing configuration options for the SCG custom process.
-                        * @returns {void} No return value, function unpacks the group to the destination directory.
-                        */
+                         * Decodes an SCG file.
+                         *
+                         * @param source {string} Path to the source SCG file.
+                         * @param destination {string} Path to the destination directory where the unpacked files will be written.
+                         * @param setting A Setting object containing configuration options for the SCG custom process.
+                         * @returns {void} No return value, function unpacks the group to the destination directory.
+                         */
                         export function decode_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting): void;
 
                         /**
-                        * Encode_fs a directory containing resources into an SCG file.
-                        *
-                        *
-                        * @param source {string} Path to the source directory containing the resources to be packed.
-                        * @param destination {string} Path to the destination SCG group file.
-                        * @param setting A Setting object containing configuration options for the SCG custom process.
-                        * @returns {void} No return value, function packs the resources into the destination SCG group file.
-                        */
+                         * Encode_fs a directory containing resources into an SCG file.
+                         *
+                         *
+                         * @param source {string} Path to the source directory containing the resources to be packed.
+                         * @param destination {string} Path to the destination SCG group file.
+                         * @param setting A Setting object containing configuration options for the SCG custom process.
+                         * @returns {void} No return value, function packs the resources into the destination SCG group file.
+                         */
                         export function encode_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting): void;
                     }
                     declare namespace ResourceStreamBundle {
                         /**
-                        * Unpacks an RSG bundle file to specific directory contains SCG files.
-                        *
-                        * @param source {string} Path to the source RSB bundle file.
-                        * @param destination {string} Path to the destination directory where the unpacked files will be written.
-                        * @param setting A Setting object containing configuration options for the RSB unpack custom process.
-                        * @returns {void} No return value, function unpacks the bundle to the destination directory.
-                        */
+                         * Unpacks an RSG bundle file to specific directory contains SCG files.
+                         *
+                         * @param source {string} Path to the source RSB bundle file.
+                         * @param destination {string} Path to the destination directory where the unpacked files will be written.
+                         * @param setting A Setting object containing configuration options for the RSB unpack custom process.
+                         * @returns {void} No return value, function unpacks the bundle to the destination directory.
+                         */
                         export function unpack_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting): void;
 
                         /**
-                        * Packs a directory containing resources into an RSB bundle file.
-                        *
-                        *
-                        * @param source {string} Path to the source directory containing the resources to be packed.
-                        * @param destination {string} Path to the destination RSB bundle file.
-                        * @param setting A Setting object containing configuration options for the RSB pack custom process.
-                        * @returns {void} No return value, function packs the resources into the destination RSB bundle file.
-                        */
+                         * Packs a directory containing resources into an RSB bundle file.
+                         *
+                         *
+                         * @param source {string} Path to the source directory containing the resources to be packed.
+                         * @param destination {string} Path to the destination RSB bundle file.
+                         * @param setting A Setting object containing configuration options for the RSB pack custom process.
+                         * @returns {void} No return value, function packs the resources into the destination RSB bundle file.
+                         */
                         export function pack_fs(source: string, destination: string, setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting): void;
                     }
                 }
@@ -1307,12 +1307,12 @@ declare namespace Sen {
             declare namespace Marmalade {
                 declare namespace DZip {
                     /**
-                         * Unpack a DZip file.
-                         *
-                         * @param source {string} Path to the source file to be decoded.
-                         * @param destination {string} Path to the destination file where the decoded data will be written.
-                         * @returns {void} No return value, function writes decoded data to the destination file.
-                         */
+                     * Unpack a DZip file.
+                     *
+                     * @param source {string} Path to the source file to be decoded.
+                     * @param destination {string} Path to the destination file where the decoded data will be written.
+                     * @returns {void} No return value, function writes decoded data to the destination file.
+                     */
                     export function unpack_fs(source: string, destination: string): void;
 
                     /**
@@ -1715,9 +1715,7 @@ declare namespace Sen {
                      * @returns {void} No return value, function writes encoded data to the destination file.
                      */
                     export function encode_fs(source: string, destination: string): void;
-
                 }
-
 
                 /**
                  * Compiled Text Support
@@ -1793,7 +1791,6 @@ declare namespace Sen {
                          */
                         export function convert_fs(source: string, destination: string, resolution: bigint, has_label: boolean): void;
 
-
                         /**
                          * Converts a PopCap Animation (PAM) file to Flash XFL format.
                          *
@@ -1803,7 +1800,6 @@ declare namespace Sen {
                          * @returns {void} No return value, function writes converted XFL files to the destination directory.
                          */
                         export function process(animation: Sen.Script.Support.PopCap.Animation.SexyAnimation, destination: string, resolution: bigint, has_label: boolean): void;
-
                     }
 
                     declare namespace FromFlash {
@@ -1832,7 +1828,7 @@ declare namespace Sen {
                             /** Array of paths to media files */
                             media: Array<string>;
                             /** Array of action definitions (likely for user interactions) */
-                            action: Array<string>;
+                            label: Array<string>;
                         }
 
                         /**
@@ -1997,7 +1993,6 @@ declare namespace Sen {
                          * @param resolution Resolution for the converted data (likely in pixels)
                          */
                         export function resize_fs(source: string, resolution: bigint): void;
-
                     }
                 }
 
@@ -2821,15 +2816,13 @@ declare namespace Sen {
                     export function hash(source: string, destination: UInteger32): void;
 
                     /**
-                    * WWise Miscellaneous Support
-                    */
+                     * WWise Miscellaneous Support
+                     */
 
-                    
                     declare namespace Miscellaneous {
-                        export function add_music(source: string, global_data_source: string, media_path: string, media_list: bigint[]): void; 
+                        export function add_music(source: string, global_data_source: string, media_path: string, media_list: bigint[]): void;
 
-
-                        export function create_soundbank(source: string, destination: string): void; 
+                        export function create_soundbank(source: string, destination: string): void;
                     }
                 }
             }

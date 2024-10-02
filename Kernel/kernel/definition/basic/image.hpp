@@ -705,11 +705,11 @@ namespace Sen::Kernel::Definition {
 				#else
 				auto fp = std::unique_ptr<FILE, decltype(Language::close_file)>(std::fopen(source.data(), "rb"), Language::close_file);
 				#endif
-				if(!fp){
+				if(fp == nullptr){
 					throw Exception(fmt::format("{}: {}", Language::get("image.open_png_failed"), source), std::source_location::current(), "read_png");
 				}
 				auto png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-				if(!png_ptr){
+				if(png_ptr == nullptr){
 					throw Exception(fmt::format("{}: {}", Language::get("image.png_pointer_init_failed"), source), std::source_location::current(), "read_png");
 				}
 				auto info_ptr = png_create_info_struct(png_ptr);  

@@ -113,7 +113,7 @@ namespace Sen.Script.Support.PopCap.Atlas.Split {
             const sprite_destination: string = Sen.Kernel.Path.join(destination, "media");
             const by_path: boolean = method === "path";
             const style_use_string: boolean = style === "string";
-            Sen.Kernel.FileSystem.create_directory(sprite_destination);
+            Kernel.FileSystem.create_directory(sprite_destination);
             const image_wrapper: Map<string, Array<Sen.Kernel.Image.RectangleFileIO>> = new Map<string, Array<Sen.Kernel.Image.RectangleFileIO>>();
             images.forEach((e: string) => image_wrapper.set(e.toUpperCase(), []));
             for (const current_resource of resource.resources) {

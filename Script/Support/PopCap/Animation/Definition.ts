@@ -6,9 +6,9 @@ namespace Sen.Script.Support.PopCap.Animation {
     };
 
     export type ImageInfo = {
-        name: string,
-        size: Sen.Script.Support.PopCap.Animation.AnimationSize
-    }
+        name: string;
+        size: Sen.Script.Support.PopCap.Animation.AnimationSize;
+    };
 
     export interface Model {
         index?: bigint;
@@ -86,7 +86,7 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     export interface AnimationSprite {
-        name: string,
+        name: string;
         work_area: AnimationWorkArea;
         frame: AnimationFrame[];
     }

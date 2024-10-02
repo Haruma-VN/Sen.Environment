@@ -8372,7 +8372,8 @@ namespace Sen::Kernel::Interface::Script
 		{
 			M_JS_PROXY_WRAPPER(context, {
 				try_assert(argc == 1, fmt::format("{} 1, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
-				auto image = Sen::Kernel::Definition::ImageIO::read_png(JS::Converter::get_string(context, argv[0]));
+				auto source = JS::Converter::get_string(context, argv[0]);
+				auto image = Sen::Kernel::Definition::ImageIO::read_png(source);
 				auto image_obj = JSValue{};
 				auto area_func = JS_NewCFunction(context, area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);

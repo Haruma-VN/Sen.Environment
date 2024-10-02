@@ -12,7 +12,7 @@ const DownloadButton: React.FC<{ handleDownload: () => void }> = ({ handleDownlo
     }, []);
 
     return isDownloadAvailable ? (
-        <Button onClick={handleDownload} variant="contained" color="primary" sx={{ borderRadius: "8px" }}>
+        <Button onClick={handleDownload} variant="contained" color="primary" sx={{ borderRadius: "8px", marginTop: 10 }}>
             Download
         </Button>
     ) : (
