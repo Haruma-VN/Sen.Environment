@@ -1,14 +1,14 @@
 project(
 	fmt
-	VERSION 3.11.3
+	VERSION 11.0.2
 	HOMEPAGE_URL https://github.com/fmtlib/fmt
-	LANGUAGES CXX
 )
 
 add_library(${PROJECT_NAME} INTERFACE)
 
 target_sources(${PROJECT_NAME} INTERFACE
 	./include/fmt/args.h
+	./include/fmt/base.h
 	./include/fmt/chrono.h
 	./include/fmt/color.h
 	./include/fmt/compile.h
@@ -33,6 +33,12 @@ if(MSVC)
   add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 else()
   add_compile_options(-finput-charset=UTF-8)
+endif()
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} INTERFACE /utf-8)
+else()
+    target_compile_options(${PROJECT_NAME} INTERFACE -finput-charset=UTF-8)
 endif()
 
 if (MSVC)

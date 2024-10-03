@@ -1,5 +1,6 @@
 project(
 	canvas_ity
+	VERSION 1.0.0
 	HOMEPAGE_URL https://github.com/a-e-k/canvas_ity/tree/main
 	LANGUAGES CXX
 )

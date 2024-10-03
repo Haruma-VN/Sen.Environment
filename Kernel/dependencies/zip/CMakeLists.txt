@@ -10,7 +10,7 @@ project(
 add_definitions(-DZIP_ENABLE_SHARABLE_FILE_OPEN)
 
 if (MSVC)
-add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
+	add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
 endif()
 
 add_library(

@@ -663,7 +663,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				}
 				if (std::find(animation_name_list.sprite.begin(), animation_name_list.sprite.end(), sprite_name) != animation_name_list.sprite.end())
 				{
-					auto new_sprite_name = fmt::format("{}_{}", sprite_name, extra.sprite[sprite.name].size());
+					auto new_sprite_name = fmt::format("{}_{}", sprite_name, extra.sprite[sprite.name].size() + 1_size);
 					extra.sprite[sprite.name].emplace_back(new_sprite_name);
 					animation_name_list.sprite.emplace_back(new_sprite_name);
 				}

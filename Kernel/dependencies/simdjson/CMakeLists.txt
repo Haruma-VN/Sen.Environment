@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(
     simdjson
-    VERSION 3.6.3
+    VERSION 3.10.1
     HOMEPAGE_URL https://simdjson.org/
     LANGUAGES CXX
 )

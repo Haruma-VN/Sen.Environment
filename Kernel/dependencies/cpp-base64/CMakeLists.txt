@@ -1,7 +1,7 @@
 project(
 	cpp-base64
 	LANGUAGES CXX
-  HOMEPAGE_URL https://github.com/ReneNyffenegger/cpp-base64
+  	HOMEPAGE_URL https://github.com/ReneNyffenegger/cpp-base64
 )
 
 add_library(

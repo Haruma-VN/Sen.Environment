@@ -3,17 +3,23 @@
 
 #include "id.hpp"
 #include "utf8.hpp"
+#ifndef CTRE_IN_A_MODULE
 #include <type_traits>
 #include <tuple>
 #include <string_view>
 #include <string>
 #include <iterator>
+#include <optional>
 #ifdef _MSC_VER
 #include <memory>
 #endif
 #include <iosfwd>
 #if __has_include(<charconv>)
 #include <charconv>
+#endif
+#if __cpp_concepts >= 202002L
+#include <concepts>
+#endif
 #endif
 
 namespace ctre {
@@ -118,16 +124,22 @@ template <size_t Id, typename Name = void> struct captured_content {
 		}
 		
 #if __has_include(<charconv>)
-		template <typename R = int> constexpr CTRE_FORCE_INLINE auto to_number(int base = 10) const noexcept -> R {
+		template <typename R = int, typename... Ts> constexpr CTRE_FORCE_INLINE auto to_number(Ts && ... args) const noexcept -> R {
 			R result{0};
 			const auto view = to_view();
-			std::from_chars(view.data(), view.data() + view.size(), result, base);
+			std::from_chars(view.data(), view.data() + view.size(), result, std::forward<Ts>(args)...);
 			return result;
+		}
+		
+		template <typename R = int, typename... Ts> constexpr CTRE_FORCE_INLINE auto to_optional_number(Ts && ... args) const noexcept -> std::optional<R> {
+			if (!static_cast<bool>(*this)) {
+				return std::nullopt;
+			}
+		
+			return to_number<R>(std::forward<Ts>(args)...);
 		}
 #endif
 		
-		template <typename T> struct identify;
-
 		template <typename It = Iterator> constexpr CTRE_FORCE_INLINE auto to_view() const noexcept {
 			// random access, because C++ (waving hands around)
 			constexpr bool must_be_nonreverse_contiguous_iterator = is_random_accessible<typename std::iterator_traits<std::remove_const_t<It>>::iterator_category> && !is_reverse_iterator<It>;
@@ -135,6 +147,17 @@ template <size_t Id, typename Name = void> struct captured_content {
 			static_assert(must_be_nonreverse_contiguous_iterator, "To convert capture into a basic_string_view you need to provide a pointer or a contiguous non-reverse iterator/range to regex.");
 	
 			return std::basic_string_view<char_type>(data_unsafe(), static_cast<size_t>(unit_size()));
+		}
+		
+		constexpr CTRE_FORCE_INLINE auto view() const noexcept {
+			return to_view();
+		}
+		
+		template <typename It = Iterator> constexpr CTRE_FORCE_INLINE auto to_optional_view() const noexcept -> std::optional<std::basic_string_view<char_type>> {
+			if (!static_cast<bool>(*this)) {
+				return std::nullopt;
+			}
+			return to_view();
 		}
 		
 		constexpr CTRE_FORCE_INLINE std::basic_string<char_type> to_string() const noexcept {
@@ -149,11 +172,14 @@ template <size_t Id, typename Name = void> struct captured_content {
 			#endif
 		}
 		
-		constexpr CTRE_FORCE_INLINE auto view() const noexcept {
-			return to_view();
+		constexpr CTRE_FORCE_INLINE auto str() const noexcept {
+			return to_string();
 		}
 		
-		constexpr CTRE_FORCE_INLINE auto str() const noexcept {
+		template <typename It = Iterator> constexpr CTRE_FORCE_INLINE auto to_optional_string() const noexcept -> std::optional<std::basic_string<char_type>> {
+			if (!static_cast<bool>(*this)) {
+				return std::nullopt;
+			}
 			return to_string();
 		}
 		
@@ -163,6 +189,14 @@ template <size_t Id, typename Name = void> struct captured_content {
 		
 		constexpr CTRE_FORCE_INLINE explicit operator std::basic_string<char_type>() const noexcept {
 			return to_string();
+		}
+		
+		constexpr CTRE_FORCE_INLINE operator std::optional<std::basic_string_view<char_type>>() const noexcept {
+			return to_optional_view();
+		}
+		
+		constexpr CTRE_FORCE_INLINE explicit operator std::optional<std::basic_string<char_type>>() const noexcept {
+			return to_optional_string();
 		}
 		
 		constexpr CTRE_FORCE_INLINE static size_t get_id() noexcept {
@@ -187,9 +221,26 @@ template <size_t Id, typename Name = void> struct captured_content {
 	};
 };
 
+#if __cpp_concepts >= 202002L
+template <typename T> concept capture_group = requires(const T & cap) {
+	{ T::get_id() } -> std::same_as<size_t>;
+	{ cap.view() };
+	{ cap.str() };
+	{ cap.to_string() };
+	{ cap.to_view() };
+	{ cap.unit_size() } -> std::same_as<size_t>;
+	{ cap.size() } -> std::same_as<size_t>;
+	{ static_cast<bool>(cap) };
+	{ cap.data() };
+	{ cap.data_unsafe() };
+	{ cap.begin() };
+	{ cap.end() };
+};
+#endif
+
 struct capture_not_exists_tag { };
 
-static constexpr inline auto capture_not_exists = capture_not_exists_tag{};
+constexpr auto capture_not_exists = capture_not_exists_tag{};
 
 template <typename... Captures> struct captures;
 
@@ -311,18 +362,39 @@ public:
 	// special constructor for deducting
 	constexpr CTRE_FORCE_INLINE regex_results(Iterator, ctll::list<Captures...>) noexcept { }
 	
-	template <size_t Id, typename = std::enable_if_t<decltype(_captures)::template exists<Id>()>> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
-		return _captures.template select<Id>();
+	template <size_t Id> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
+		constexpr bool capture_of_provided_id_must_exists = decltype(_captures)::template exists<Id>();
+		static_assert(capture_of_provided_id_must_exists);
+		
+		if constexpr (capture_of_provided_id_must_exists) {
+			return _captures.template select<Id>();
+		} else {
+			return false;
+		}
 	}
-	template <typename Name, typename = std::enable_if_t<decltype(_captures)::template exists<Name>()>> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
-		return _captures.template select<Name>();
+	template <typename Name> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
+		constexpr bool capture_of_provided_name_must_exists = decltype(_captures)::template exists<Name>();
+		static_assert(capture_of_provided_name_must_exists);
+	
+		if constexpr (capture_of_provided_name_must_exists) {
+			return _captures.template select<Name>();
+		} else {
+			return false;
+		}
 	}
 #if CTRE_CNTTP_COMPILER_CHECK
-	template <ctll::fixed_string Name, typename = std::enable_if_t<decltype(_captures)::template exists<Name>()>> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
+	template <ctll::fixed_string Name> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
 #else
-	template <const auto & Name, typename = std::enable_if_t<decltype(_captures)::template exists<Name>()>> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
+	template <const auto & Name> CTRE_FORCE_INLINE constexpr auto get() const noexcept {
 #endif
-		return _captures.template select<Name>();
+		constexpr bool capture_of_provided_name_must_exists = decltype(_captures)::template exists<Name>();
+		static_assert(capture_of_provided_name_must_exists);
+	
+		if constexpr (capture_of_provided_name_must_exists) {
+			return _captures.template select<Name>();
+		} else {
+			return false;
+		}
 	}
 	static constexpr size_t count() noexcept {
 		return sizeof...(Captures) + 1;
@@ -339,6 +411,7 @@ public:
 		return bool(_captures.template select<0>());
 	}
 	
+	// implicit conversions
 	constexpr CTRE_FORCE_INLINE operator std::basic_string_view<char_type>() const noexcept {
 		return to_view();
 	}
@@ -347,27 +420,54 @@ public:
 		return to_string();
 	}
 	
+	constexpr CTRE_FORCE_INLINE operator std::optional<std::basic_string_view<char_type>>() const noexcept {
+		return to_optional_view();
+	}
+	
+	constexpr CTRE_FORCE_INLINE explicit operator std::optional<std::basic_string<char_type>>() const noexcept {
+		return to_optional_string();
+	}
+	
+	// conversion to numbers
 #if __has_include(<charconv>)
-	template <typename R = int> constexpr CTRE_FORCE_INLINE auto to_number(int base = 10) const noexcept -> R {
-		return _captures.template select<0>().template to_number<R>(base);
+	template <typename R = int, typename... Ts> constexpr CTRE_FORCE_INLINE auto to_number(Ts && ... args) const noexcept -> R {
+		return _captures.template select<0>().template to_number<R>(std::forward<Ts>(args)...);
+	}
+	
+	template <typename R = int, typename... Ts> constexpr CTRE_FORCE_INLINE auto to_optional_number(Ts && ... args) const noexcept -> std::optional<R> {
+		return _captures.template select<0>().template to_optional_number<R>(std::forward<Ts>(args)...);
 	}
 #endif
 	
+	// conversion to basic_string_view
 	constexpr CTRE_FORCE_INLINE auto to_view() const noexcept {
 		return _captures.template select<0>().to_view();
 	}
 	
+	constexpr CTRE_FORCE_INLINE auto view() const noexcept {
+		return _captures.template select<0>().view(); // this should be deprecated (??)
+	}
+	
+	constexpr CTRE_FORCE_INLINE auto to_optional_view() const noexcept {
+		return _captures.template select<0>().to_optional_view();
+	}
+	
+	// conversion to basic_string
 	constexpr CTRE_FORCE_INLINE auto to_string() const noexcept {
 		return _captures.template select<0>().to_string();
 	}
 	
-	constexpr CTRE_FORCE_INLINE auto view() const noexcept {
-		return _captures.template select<0>().view();
+	constexpr CTRE_FORCE_INLINE auto str() const noexcept {
+		return _captures.template select<0>().to_string();  // this should be deprecated (??)
 	}
 	
-	constexpr CTRE_FORCE_INLINE auto str() const noexcept {
-		return _captures.template select<0>().to_string();
+	constexpr CTRE_FORCE_INLINE auto to_optional_string() const noexcept {
+		return _captures.template select<0>().to_optional_string();
 	}
+	
+	
+	
+	
 	
 	constexpr CTRE_FORCE_INLINE size_t size() const noexcept {
 		return _captures.template select<0>().size();
@@ -415,7 +515,13 @@ public:
 		return bool(rhs) ? lhs != rhs.view() : true;
 	}
 	friend CTRE_FORCE_INLINE std::ostream & operator<<(std::ostream & str, const regex_results & rhs) {
+#ifdef CTRE_IN_A_MODULE
+		auto view = rhs.view();
+		str.write(view.data(), view.size());
+		return str;
+#else
 		return str << rhs.view();
+#endif
 	}
 };
 
@@ -424,6 +530,18 @@ template <size_t Id, typename Iterator, typename... Captures> constexpr auto get
 }
 
 template <typename Iterator, typename... Captures> regex_results(Iterator, ctll::list<Captures...>) -> regex_results<Iterator, Captures...>;
+
+template <typename> struct is_regex_results_t: std::false_type { };
+
+template <typename Iterator, typename... Captures> struct is_regex_results_t<regex_results<Iterator, Captures...>>: std::true_type { };
+
+template <typename T> constexpr bool is_regex_results_v = is_regex_results_t<T>();
+
+#if __cpp_concepts >= 201907L
+template <typename T> concept capture_groups = is_regex_results_v<T>;
+#endif
+
+
 
 template <typename ResultIterator, typename Pattern> using return_type = decltype(regex_results(std::declval<ResultIterator>(), find_captures(Pattern{})));
 

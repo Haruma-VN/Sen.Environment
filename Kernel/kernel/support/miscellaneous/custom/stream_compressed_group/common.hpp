@@ -341,7 +341,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                     }
                     catch (nlohmann::ordered_json::exception &e)
                     {
-                        assert_conditional(false, fmt::format("{}: {}", element["id"], e.what()), "convert_general");
+                        assert_conditional(false, fmt::format("{}: {}", element["id"].get<std::string>(), e.what()), "convert_general");
                     }
                 }
                 else

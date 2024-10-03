@@ -67,7 +67,7 @@ namespace Sen::Kernel::Support::PopCap::NewTypeObjectNotation {
 						group["parent"] = sen->readString(static_cast<size_t>(sen->readUint32()));
 					}
 					if (group_type == 0x01) {
-						assert_conditional(resources_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.resource_must_be_null_with_composite"), group["id"]), "process");
+						assert_conditional(resources_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.resource_must_be_null_with_composite"), group["id"].get<std::string>()), "process");
 						auto subgroups = nlohmann::ordered_json::array_t{};
 						for (auto subgroups_index : Range<int>(subgroups_count)) {
 							auto subgroup = nlohmann::ordered_json{};
@@ -82,7 +82,7 @@ namespace Sen::Kernel::Support::PopCap::NewTypeObjectNotation {
 						groups.emplace_back(group);
 					}
 					if(group_type == 0x02){
-						assert_conditional(subgroups_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.subgroup_must_be_null_with_simple"), group["id"]), "process");
+						assert_conditional(subgroups_count == 0x00, fmt::format("{}, id: {}", Kernel::Language::get("popcap.newton.decode.subgroup_must_be_null_with_simple"), group["id"].get<std::string>()), "process");
 						auto resources = nlohmann::ordered_json::array_t{};
 						for (auto resources_index : Range<int>(resources_count)){
           					auto sub_resources = nlohmann::ordered_json{};
