@@ -294,7 +294,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                                     auto general_subgroup = GenenalSubgroupCompressedInfo{};
                                     if (data["groups"][element_index].find("loc") != data["groups"][element_index].end())
                                     {
-                                        general_subgroup.locale = data["groups"][element_index]["loc"].get<std::string>();
+                                        general_subgroup.locale = data["groups"][element_index]["loc"].template get<std::string>();
                                     }
                                     convert_general<use_string_for_style>(data["groups"][element_index]["resources"], general_subgroup);
                                     if (general_subgroup.data.size() == k_none_size)
@@ -1152,11 +1152,14 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                 stream.read_pos = static_cast<size_t>(subgroup.resource_content_information_offset);
                 auto resource_content_information = ResourceContentInformation{};
                 exchange_resouce_content_information(stream, resource_content_information);
-                try_assert(resource_content_information.magic == k_resource_content_information_magic_identifier, "invalid_resource_content_magic", "exchange_stream_resource_group");
-                try_assert(resource_content_information.version == k_resource_content_information_version, "invalid_resource_content_version", "exchange_stream_resource_group");
+                // TODO : Add localization
+                assert_conditional(resource_content_information.magic == k_resource_content_information_magic_identifier, "invalid_resource_content_magic", "exchange_stream_resource_group");
+                // TODO : Add localization
+                assert_conditional(resource_content_information.version == k_resource_content_information_version, "invalid_resource_content_version", "exchange_stream_resource_group");
                 auto compressed_data = stream.readString(static_cast<size_t>(resource_content_information.information_compressed_size));
                 auto content_data_string = Sen::Kernel::Definition::Encryption::Base64::decode(compressed_data);
-                try_assert(content_data_string.size() == static_cast<size_t>(resource_content_information.information_string_size), "invalid_resource_content_size", "exchange_stream_resource_group");
+                // TODO : Add localization
+                assert_conditional(content_data_string.size() == static_cast<size_t>(resource_content_information.information_string_size), "invalid_resource_content_size", "exchange_stream_resource_group");
                 packet_subgroup.info = nlohmann::ordered_json::parse(content_data_string);
             }
             return;

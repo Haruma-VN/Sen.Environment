@@ -89,7 +89,7 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
         seed_zombie_gargantuar,
         seed_zombie_imp,
         num_seeds_in_chooser = 49,
-        seed_none = -1
+        seed_none = 255
     };
 
     enum class GerdenType : uint8_t

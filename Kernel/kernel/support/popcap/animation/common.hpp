@@ -90,20 +90,13 @@ namespace Sen::Kernel::Support::PopCap::Animation
         };
 
         
-        struct ValueRate {
-
-			inline static constexpr auto time = 65536.0f;
-
-			inline static constexpr auto size = 20.0f;
-
-			inline static constexpr auto angle = 1000.0f;
-
-			inline static constexpr auto matrix = 65536.0f;
-
-			inline static constexpr auto matrix_exact = 20.0f * 65536.0f;
-
-			inline static constexpr auto color = 255.0f;
-
-		};
+        enum class ValueRate : uint8_t {
+            time,
+            size,
+            angle,
+            matrix,
+            matrix_exact,
+            color
+        };
     };
 }

@@ -88,7 +88,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 auto index_value = exchange_enumeration<ArgsValue, uint8_t>(value);
                 for (auto bit_index : Range(exchange_enumeration<ArgsValue, size_t>(value)))
                 {
-                    flag.set(current_index, static_cast<boolean>(clip_bit(index_value, bit_index, 1_size)));
+                    flag.set(current_index, static_cast<bool>(clip_bit(index_value, bit_index, 1_size)));
                     ++current_index;
                 }
             }
@@ -850,7 +850,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                         {
                             exchange_bit_multi<uint8_t>(stream, positioning_value.listener_routing.position_source.update_at_each_frame);
                         }
-                        if (positioning_value.listener_routing.position_source.mode == AudioPositioningSettingListenerRoutingPositionSourceMode::user_defined())
+                        if (positioning_value.listener_routing.position_source.mode == AudioPositioningSettingListenerRoutingPositionSourceMode::user_defined)
                         {
                             exchange_bit_multi<uint8_t>(
                                 stream,

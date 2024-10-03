@@ -237,7 +237,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 {
                     if (k_version < 112_ui)
                     {
-                        constexpr auto value_package = {
+                        constexpr auto value_package = std::array<std::pair<uint8_t, AudioSourceType>, 3>{
                             std::pair(0, AudioSourceType::embedded),
                             std::pair(1, AudioSourceType::streamed),
                             std::pair(2, AudioSourceType::streamed_prefetched)};
@@ -265,7 +265,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     }
                     else
                     {
-                        constexpr auto value_package = {
+                        constexpr auto value_package = std::array<std::pair<uint8_t, AudioSourceType>, 3>{
                             std::pair(0, AudioSourceType::embedded),
                             std::pair(2, AudioSourceType::streamed),
                             std::pair(1, AudioSourceType::streamed_prefetched)};

@@ -12,6 +12,29 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct Encode : Common
     {
     protected:
+        template <typename value, auto rate>
+        requires std::is_integral_v<value> || std::is_floating_point_v<value>
+        inline static auto exchange_floater_with_rate(
+            double const &data,
+            DataStreamView &stream
+        ) -> void
+        {
+            static_assert(sizeof(rate) == sizeof(ValueRate), "Rate must be a valid ValueRate enum");
+            if constexpr (rate == ValueRate::time) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * 65536.0f)));
+            } else if constexpr (rate == ValueRate::size) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * 20.0f)));
+            } else if constexpr (rate == ValueRate::angle) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * 1000.0f)));
+            } else if constexpr (rate == ValueRate::matrix) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * 65536.0f)));
+            } else if constexpr (rate == ValueRate::matrix_exact) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * (20.0f * 65536.0f))));
+            } else if constexpr (rate == ValueRate::color) {
+                stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * 255.0f)));
+            }
+        }
+
 
         template <typename RawShortValue, typename RawLongValue, auto flag_count> requires std::is_arithmetic_v<RawShortValue> && std::is_arithmetic_v<RawLongValue>
         inline static auto exchange_integer_variant_with_flag(

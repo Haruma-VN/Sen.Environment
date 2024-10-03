@@ -331,7 +331,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         inline static auto number_is_equal(
             double const &x,
             double const &y,
-            double const &tolerance) -> boolean
+            double const &tolerance
+        ) -> bool
         {
             return std::abs(x - y) < tolerance;
         }

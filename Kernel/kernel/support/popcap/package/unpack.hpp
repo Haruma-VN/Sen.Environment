@@ -16,7 +16,7 @@ namespace Sen::Kernel::Support::PopCap::Package
 
         inline static auto process_package(
             DataStreamView &stream,
-            typename PackageInfomartion &definition,
+            PackageInfomartion &definition,
             std::string_view resource_directory) -> void
         {
             auto k_magic_package = stream.readInt32();
@@ -128,7 +128,7 @@ namespace Sen::Kernel::Support::PopCap::Package
     public:
         inline static auto process_whole(
             DataStreamView &stream,
-            typename PackageInfomartion &definition,
+            PackageInfomartion &definition,
             std::string_view source,
             std::string_view destination) -> void
         {

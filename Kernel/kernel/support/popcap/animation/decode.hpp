@@ -14,6 +14,29 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
     protected:
 
+        template <typename value, auto rate> requires std::is_arithmetic<value>::value
+        inline static auto exchange_floater_with_rate(
+            DataStreamView &stream,
+            double &data
+        ) -> void
+        {
+            static_assert(sizeof(rate) == sizeof(ValueRate), "Rate must be a valid ValueRate enum");
+            if constexpr (rate == ValueRate::time) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / 65536.0f);
+            } else if constexpr (rate == ValueRate::size) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / 20.0f);
+            } else if constexpr (rate == ValueRate::angle) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / 1000.0f);
+            } else if constexpr (rate == ValueRate::matrix) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / 65536.0f);
+            } else if constexpr (rate == ValueRate::matrix_exact) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / (20.0f * 65536.0f));
+            } else if constexpr (rate == ValueRate::color) {
+                data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / 255.0f);
+            }
+        }
+
+
         inline static auto exchange_image(
             DataStreamView &stream,
             AnimationImage &value) -> void

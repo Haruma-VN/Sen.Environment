@@ -254,29 +254,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         return value.value();
     }
 
-
-    template <typename value, auto rate>
-        requires std::is_arithmetic_v<value>
-    inline static auto exchange_floater_with_rate(
-        DataStreamView &stream,
-        double &data) -> void
-    {
-        static_assert(sizeof(rate) == sizeof(float));
-        data = static_cast<double>(static_cast<float>(stream.read_of<value>()) / rate);
-        return;
-    }
-
-    template <typename value, auto rate>
-        requires std::is_integral_v<value> || std::is_floating_point_v<value>
-    inline static auto exchange_floater_with_rate(
-        double const &data,
-        DataStreamView &stream) -> void
-    {
-        static_assert(sizeof(rate) == sizeof(float));
-        stream.write_of<value>(static_cast<value>(std::round(static_cast<float>(data) * rate)));
-        return;
-    }
-
     template <typename Type, typename Exchanger, typename... Size>
         requires true && ((std::is_same<Size, std::size_t>::value || std::is_arithmetic<Size>::value) && ...) && (!std::is_void_v<Type>) && (!std::is_void_v<Exchanger>) &&
                      (!std::is_reference_v<Exchanger>) && (std::is_same_v<Exchanger, std::remove_cvref_t<Exchanger>>)

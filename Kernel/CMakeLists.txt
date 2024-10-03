@@ -73,12 +73,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 if(ANDROID)
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    ANDROID_STL c++_shared
-  )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
+    set_target_properties(${TARGET_NAME} PROPERTIES
+        ANDROID_STL c++_shared
+        CMAKE_ANDROID_ARCH_ABI "arm64-v8a"  # or "armeabi-v7a", "x86", etc.
+        CMAKE_ANDROID_NDK 27
+        ANDROID_PLATFORM android-29 #  (Android 10) is minimum
+    )
 endif()
+
 
 include(InstallRequiredSystemLibraries)
 

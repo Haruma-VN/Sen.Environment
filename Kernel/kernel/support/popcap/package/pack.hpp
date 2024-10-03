@@ -12,7 +12,7 @@ namespace Sen::Kernel::Support::PopCap::Package
     protected:
         inline static auto process_package(
             DataStreamView &stream,
-            typename PackageInfomartion const &definition,
+            PackageInfomartion const &definition,
             std::string_view resource_directory) -> void
         {
             if (definition.package_platform == PackagePlatformEnumeration::Type::tv_package_platform_version)
@@ -75,7 +75,7 @@ namespace Sen::Kernel::Support::PopCap::Package
     public:
         inline static auto process_whole(
             DataStreamView &stream,
-            typename PackageInfomartion const &definition,
+            PackageInfomartion const &definition,
             std::string_view source,
             std::string_view destination) -> void
         {

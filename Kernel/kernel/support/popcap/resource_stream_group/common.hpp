@@ -69,7 +69,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
 
         inline static auto exchange_header(
             DataStreamView &stream,
-            typename HeaderInformaiton &value) -> void
+            HeaderInformaiton &value) -> void
         {
             stream.read_pos = k_begin_index;
             value.magic = stream.readUint32();
@@ -92,7 +92,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         }
 
         inline static auto exchange_header(
-            typename HeaderInformaiton const &value,
+            HeaderInformaiton const &value,
             DataStreamView &stream) -> void
         {
             stream.write_pos = k_begin_index;
