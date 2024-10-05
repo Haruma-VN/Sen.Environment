@@ -220,12 +220,12 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                                     break;
                                 }
                             }
-                            assert_conditional(process_done, fmt::format("{}", Language::get("popcap.rsb.custom.cannot_find_image_in_packet")), "exchange_packet");
+                            assert_conditional(process_done, fmt::format("{}: {}", Language::get("popcap.rsb.custom.cannot_find_image_in_packet"), packet_value.path), "exchange_packet");
                         }
                     }
                     else {
                         //subgroup_raw_content.info.general.locale = subgroup_information.category.locale;
-                        try_assert(subgroup_raw_content.info.general.locale == subgroup_information.category.locale, "mismatch_locale");
+                        try_assert(subgroup_raw_content.info.general.locale == subgroup_information.category.locale, fmt::format("mismatch_locale_at_{}", subgroup_id));
                     }
                     packet_data_section_view_stored.erase(toupper_back(subgroup_id));
                 }

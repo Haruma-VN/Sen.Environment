@@ -1,5 +1,4 @@
 namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
-
     // Generic
 
     export type Generic = Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Generic;
@@ -60,30 +59,30 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
             rton_count: 0n,
             json_count: 0n,
             key: "",
-            iv: ""
-        }
+            iv: "",
+        };
         if (packages_info_flag !== 0n) {
             const packages_list = Kernel.FileSystem.read_directory(`${source}/packages`);
-            if (packages_info_flag % 2n == 0n) {
-                const json_file_list: string[] = [];
+            if (packages_info_flag % 2n === 0n) {
+                const json_file_list = new Set<string>();
                 for (let element of packages_list) {
-                    if (Kernel.Path.extname(element).toLowerCase() == ".json") {
-                        json_file_list.push(element.slice(0, element.length - 5));
+                    const currentElement = element.slice(0, element.length - 5);
+                    if (Kernel.Path.extname(element).toLowerCase() === ".json") {
+                        json_file_list.add(currentElement);
                         ++packages_setting.json_count;
                     }
-                    if (Kernel.Path.extname(element).toLowerCase() == ".rton") {
-                        const index = json_file_list.indexOf(element.slice(0, element.length - 5));
-                        if (index !== -1) {
-                            json_file_list.splice(index, 1);
+                    if (Kernel.Path.extname(element).toLowerCase() === ".rton") {
+                        const hasValue: boolean = json_file_list.has(currentElement);
+                        if (hasValue) {
+                            json_file_list.delete(currentElement);
                         }
                         ++packages_setting.rton_count;
                     }
                 }
-                packages_setting.rton_count += BigInt(json_file_list.length);
-            }
-            else {
+                packages_setting.rton_count += BigInt(json_file_list.size);
+            } else {
                 for (let element of packages_list) {
-                    if (Kernel.Path.extname(element).toLowerCase() == ".rton") {
+                    if (Kernel.Path.extname(element).toLowerCase() === ".rton") {
                         ++packages_setting.rton_count;
                     }
                 }
@@ -122,8 +121,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
                         }
                     }
                     Console.output(`${Kernel.Language.get("popcap.rsb.pack_custom.total_rton_count")}: ${packages_setting.rton_count}`);
-                }
-                else {
+                } else {
                     Console.output(Kernel.Language.get("popcap.rsb.pack_custom.packages_does_not_use"));
                 }
                 const setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting = {
@@ -132,8 +130,8 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
                     packages_setting,
                     compression_setting: {
                         manifest: argument.manifest!,
-                        packages: argument.packages!
-                    }
+                        packages: argument.packages!,
+                    },
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.pack_fs(argument.source, argument.destination!, setting);

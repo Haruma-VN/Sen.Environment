@@ -511,10 +511,20 @@ namespace Sen.Script.Executor {
         return;
     }
 
-    export function execute<Argument extends Base>(argument: Argument, id: string, forward: Forward): string {
+    export function execute<Argument extends Base>(argument: Argument, id: string, forward: Forward, load: ExecuteType): string {
         let result: string = undefined!;
         try {
-            run_as_module<Argument>(id, argument, forward);
+            switch (load) {
+                case "simple":
+                    run_as_module<Argument>(id, argument, forward);
+                    break;
+                case "whole":
+                    // TODO : Add localization
+                    assert(Array.isArray(argument.source), "argument must be array of string");
+                    (argument.source as Array<string>).forEach((e) => {
+                        run_as_module<Argument>(id, { ...argument, source: e }, forward);
+                    });
+            }
         } catch (e: any) {
             result = Exception.make_exception(e);
             Console.error(result);
@@ -522,7 +532,9 @@ namespace Sen.Script.Executor {
         return result;
     }
 
-    export function load_module<Argument extends Base>(argument: Argument): void {
+    export type ExecuteType = "simple" | "whole" | "js";
+
+    export function load_module<Argument extends Base>(argument: Argument, load: ExecuteType): void {
         const modules: Map<bigint, string> = new Map<bigint, string>();
         const query = (
             callback: (([type, method]: [MethodType, RegExp], source: string) => boolean) | (([type, method]: [MethodType, ...Array<RegExp>], source: Array<string>) => boolean),
@@ -562,12 +574,12 @@ namespace Sen.Script.Executor {
                 break;
             }
             case 1: {
-                execute<Argument>(argument, modules.get(view[0])!, Forward.DIRECT);
+                execute<Argument>(argument, modules.get(view[0])!, Forward.DIRECT, load);
                 break;
             }
             default: {
                 const input_value: bigint = input_integer(view);
-                execute<Argument>(argument, modules.get(input_value)!, Forward.DIRECT);
+                execute<Argument>(argument, modules.get(input_value)!, Forward.DIRECT, load);
             }
         }
         return;
@@ -670,7 +682,7 @@ namespace Sen.Script.Executor {
             if (loader.method !== undefined) {
                 const method = loader.method;
                 delete (loader as any).method;
-                execute(loader as Argument, method, Forward.DIRECT);
+                execute(loader as Argument, method, Forward.DIRECT, "simple");
                 return;
             }
         }
@@ -701,13 +713,13 @@ namespace Sen.Script.Executor {
             const input: bigint = input_integer([1n, 2n, 3n, 4n, 5n]);
             switch (input) {
                 case 1n: {
-                    // to do
+                    load_module({ source: argument.source }, "whole");
+                    // TODO : Add localization
+                    Console.finished(`Total ${(argument.source as Array<string>).length} files are executed`);
                     break;
                 }
                 case 2n: {
-                    (argument.source as Array<string>).forEach(function process_package(e: string) {
-                        load_module({ source: e });
-                    });
+                    load_module({ source: argument.source }, "simple");
                     break;
                 }
                 case 3n: {
@@ -715,17 +727,17 @@ namespace Sen.Script.Executor {
                     break;
                 }
                 case 4n: {
-                    execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT);
+                    execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT, "simple");
                     break;
                 }
                 case 5n: {
-                    execute<Argument>(argument, "popcap.atlas.split_by_res_info", Forward.DIRECT);
+                    execute<Argument>(argument, "popcap.atlas.split_by_res_info", Forward.DIRECT, "simple");
                     break;
                 }
             }
         } else {
             (argument.source as Array<string>).forEach(function process_package(e: string) {
-                load_module({ source: e });
+                load_module({ source: e }, "simple");
             });
         }
         return;
