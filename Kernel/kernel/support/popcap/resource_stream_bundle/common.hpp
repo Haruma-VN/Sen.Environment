@@ -488,7 +488,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
         {
             static_assert(sizeof(string_block_size) == sizeof(size_t));
             auto value = stream.readStringByEmpty();
-            try_assert(value.size() < string_block_size, "out_of_range");
+            assert_conditional(value.size() < string_block_size, fmt::format("{}", Language::get("popcap.rsb.out_of_range")),"exchange_string_block");
             stream.read_pos += (string_block_size - value.size() - size_t{1});
             return value;
         }

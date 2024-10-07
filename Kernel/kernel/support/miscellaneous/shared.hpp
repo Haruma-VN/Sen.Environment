@@ -223,7 +223,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         else if (character < 0b11'000000)
         {
-            try_assert(false, "first utf-8 character is valid");
+            assert_conditional(false, fmt::format("{}", Language::get("utf8_charset_invalid")), "compute_utf8_character_extra_size");
         }
         else if (character < 0b111'00000)
         {
@@ -239,7 +239,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
         }
         else
         {
-            try_assert(false, "first utf-8 character is valid");
+            assert_conditional(false, fmt::format("{}", Language::get("utf8_charset_invalid")), "compute_utf8_character_extra_size");
         }
         return extra_size;
     }

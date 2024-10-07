@@ -61,74 +61,72 @@ namespace Sen::Kernel::Support::Marmalade::DZip
                     chunk_data.resize(static_cast<size_t>(chunk_information_structure.size_uncompressed));
                     auto chunk_size_compressed = static_cast<size_t>(chunk_information_structure.size_compressed);
                     auto chunk_flag = std::bitset<ChunkFlag::k_count>{static_cast<u_long>(chunk_information_structure.flag)};
-                    // TODO : Remove try_assert with assert_conditional
-                    // TODO : Ad localization
-                    try_assert(!chunk_flag.test(ChunkFlag::unused_2), "invalid_bitset_unused_2");
+                    assert_conditional(!chunk_flag.test(ChunkFlag::unused_2), fmt::format("{}", Language::get("marmalade.dzip.invalid_bitset_unused_2")), "process_package");
                     auto chunk_ok = false;
                     if (chunk_flag.test(ChunkFlag::combuf)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        assert_conditional(false, "invalid_chunk_flag", "process_package");
+                        assert_conditional(false, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_flag")), "process_package");
                     }
                     if (chunk_flag.test(ChunkFlag::dzip)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        assert_conditional(false, "invalid_chunk_flag", "process_package");
+                        assert_conditional(false, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_flag")), "process_package");
                     }
                     if (chunk_flag.test(ChunkFlag::zlib)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        try_assert(chunk_size_compressed == chunk_data.size(), "invalid_chunk_size");
+                        assert_conditional(chunk_size_compressed == chunk_data.size(), String::format(fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_size")), std::to_string(chunk_size_compressed), std::to_string(chunk_data.size())), "process_package");
                         chunk_definition.flag = ChunkFlagEnum::zlib;
                         stream.read_pos += 10_size;
                         chunk_data = Kernel::Definition::Compression::Zlib::uncompress_deflate(stream.readBytes(chunk_size_compressed - 10_size));
                     }
                     if (chunk_flag.test(ChunkFlag::bzip2)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        try_assert(chunk_size_compressed == chunk_data.size(), "invalid_chunk_size");
+                        assert_conditional(chunk_size_compressed == chunk_data.size(), String::format(fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_size")), std::to_string(chunk_size_compressed), std::to_string(chunk_data.size())), "process_package");
                         chunk_definition.flag = ChunkFlagEnum::bzip2;
                         auto chunk_stream = DataStreamView{};
                         chunk_data = Kernel::Definition::Compression::Bzip2::uncompress(stream.readBytes(chunk_size_compressed));
                     }
                     if (chunk_flag.test(ChunkFlag::mp3)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        assert_conditional(false, "invalid_chunk_flag", "process_package");
+                        assert_conditional(false, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_flag")), "process_package");
                     }
                     if (chunk_flag.test(ChunkFlag::jpeg)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        assert_conditional(false, "invalid_chunk_flag", "process_package");
+                        assert_conditional(false, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_flag")), "process_package");
                     }
                     if (chunk_flag.test(ChunkFlag::zerod_out)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        try_assert(chunk_size_compressed == k_none_size, "invalid_chunk_size");
+                        assert_conditional(chunk_size_compressed == k_none_size, String::format(fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_size")), std::to_string(chunk_size_compressed), std::to_string(chunk_data.size())), "process_package");
                         chunk_definition.flag = ChunkFlagEnum::zerod_out;
                     }
                     if (chunk_flag.test(ChunkFlag::copy_coded)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        try_assert(chunk_size_compressed == chunk_data.size(), "invalid_chunk_size");
+                        assert_conditional(chunk_size_compressed == chunk_data.size(), String::format(fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_size")), std::to_string(chunk_size_compressed), std::to_string(chunk_data.size())), "process_package");
                         chunk_definition.flag = ChunkFlagEnum::copy_coded;
                         auto chunk_stream = DataStreamView{};
                         chunk_data = stream.readBytes(chunk_size_compressed);
                     }
                     if (chunk_flag.test(ChunkFlag::lzma)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        try_assert(chunk_size_compressed == chunk_data.size(), "invalid_chunk_size");
+                        assert_conditional(chunk_size_compressed == chunk_data.size(), String::format(fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_size")), std::to_string(chunk_size_compressed), std::to_string(chunk_data.size())), "process_package");
                         chunk_definition.flag = ChunkFlagEnum::lzma;
                         auto chunk_stream = DataStreamView{};
                         chunk_data = Kernel::Definition::Compression::Lzma::uncompress<false>(stream.readBytes(chunk_size_compressed));
                     }
                     if (chunk_flag.test(ChunkFlag::random_access)) {
-                        try_assert(!chunk_ok, "invalid_chunk_test");
+                        assert_conditional(!chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                         chunk_ok = true;
-                        assert_conditional(false, "invalid_chunk_flag", "process_package");
+                        assert_conditional(false, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_flag")), "process_package");
                     }
-                    try_assert(chunk_ok, "invalid_chunk_test");
+                    assert_conditional(chunk_ok, fmt::format("{}", Language::get("marmalade.dzip.invalid_chunk_test")), "process_package");
                    // package_data_end_position = package_data_end_position > stream.read_pos ? package_data_end_position : stream.read_pos;
                 }
                 write_bytes(fmt::format("{}/{}", resource_directory, resource_definition.path), chunk_data_list.front());

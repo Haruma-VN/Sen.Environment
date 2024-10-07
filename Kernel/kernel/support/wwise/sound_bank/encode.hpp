@@ -1418,7 +1418,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 auto b7 = false;
                 auto b8 = false;
                 exchange_bit_multi<uint8_t>(stream, time_setting_override, b2, b3, b4, b5, b6, b7, b8);
-                try_assert(b2 == b3 && b3 == b4 && b4 == b5 && b5 == b6 && b6 == b7 && b7 == b8, "invalid_time_setting_override");
+                assert_conditional(b2 == b3 && b3 == b4 && b4 == b5 && b5 == b6 && b6 == b7 && b7 == b8, fmt::format("{}", Language::get("wwise.sound_bank.invalid_time_setting_override")), "exchange_section_sub");
             }
             else
             {
@@ -2136,10 +2136,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             }
             default:
             {
-                try_assert(false, "invalid_action_type");
+                assert_conditional(false, fmt::format("{}", Language::get("wwise.sound_bank.invalid_action_type")), "exchange_section");
             }
             };
-            try_assert(has_case, "must_has_an_action_type");
+            assert_conditional(has_case, fmt::format("{}", Language::get("wwise.sound_bank.must_has_an_action_type")), "exchange_section");
             auto current_pos = stream.write_pos;
             stream.writeUint8(type, type_data_begin);
             stream.write_pos = current_pos;

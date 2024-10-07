@@ -124,12 +124,12 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             stream.read_pos = information_structure.header.subgroup_information_section_offset;
             if (definition.version == 1_ui)
             {
-                try_assert(definition.version == 1_ui && information_structure.header.unknown_1 == 1_ui, "invalid_header_block");
+                assert_conditional(definition.version == 1_ui && information_structure.header.unknown_1 == 1_ui, fmt::format("{}", Language::get("popcap.rsb.invalid_header_block")), "process_package");
                 exchange_list(stream, information_structure.subgroup_information, &exchange_to_basic_subgroup<1_ui>, static_cast<size_t>(information_structure.header.subgroup_information_section_block_count));
             }
             else
             {
-                try_assert(definition.version >= 3_ui && information_structure.header.unknown_1 == 0_ui, "invalid_header_block");
+                assert_conditional(definition.version >= 3_ui && information_structure.header.unknown_1 == 0_ui, fmt::format("{}", Language::get("popcap.rsb.invalid_header_block")), "process_package");
                 exchange_list(stream, information_structure.subgroup_information, &exchange_to_basic_subgroup<3_ui>, static_cast<size_t>(information_structure.header.subgroup_information_section_block_count));
             }
             stream.read_pos = information_structure.header.pool_information_section_offset;
@@ -164,7 +164,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             }
             if (information_structure.header.group_manifest_information_section_offset != 0_ui || information_structure.header.resource_manifest_information_section_offset != 0_ui || information_structure.header.string_manifest_information_section_offset != 0_ui)
             {
-                try_assert(information_structure.header.group_manifest_information_section_offset != 0_ui && information_structure.header.resource_manifest_information_section_offset != 0_ui && information_structure.header.string_manifest_information_section_offset != 0_ui, "invalid_manifest_block_section_offset");
+                assert_conditional(information_structure.header.group_manifest_information_section_offset != 0_ui && information_structure.header.resource_manifest_information_section_offset != 0_ui && information_structure.header.string_manifest_information_section_offset != 0_ui, fmt::format("{}", Language::get("popcap.rsb.invalid_manifest_block_section_offset")), "process_package");
                 process_package_manifest(stream, information_structure.header, manifest);
             }
             definition.texture_information_section_size = texture_resource_information_section_block_size;
@@ -196,15 +196,15 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     // packet_compression_from_data(basic_subgroup_information.resource_data_section_compression, subgroup_information.compression);
                     auto texture_resource_begin = basic_subgroup_information.texture_resource_begin;
                     auto texture_resource_count = basic_subgroup_information.texture_resource_count;
-                    try_assert(pool_information.texture_resource_begin == 0_ui, "invalid_texture_resource");
-                    try_assert(pool_information.texture_resource_count == 0_ui, "invalid_texture_resource");
+                    assert_conditional(pool_information.texture_resource_begin == 0_ui, fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource")), "process_package");
+                    assert_conditional(pool_information.texture_resource_count == 0_ui, fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource")), "process_package");
                     auto packet_data = stream.getBytes(basic_subgroup_information.offset, basic_subgroup_information.offset + basic_subgroup_information.size);
                     auto packet_stream = DataStreamView{packet_data};
                     auto packet_structure = PacketStructure{};
                     auto get_packet_structure_only = true;
                     ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, get_packet_structure_only);
-                    // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
-                    // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
+                    // assert_conditional(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
+                    // assert_conditional(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
                     for (auto &packet_resource : packet_structure.resource)
                     {
                         if (packet_resource.use_texture_additional_instead)

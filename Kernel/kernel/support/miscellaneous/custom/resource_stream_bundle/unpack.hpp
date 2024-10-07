@@ -46,7 +46,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                             write_json(fmt::format("{}/unuse_resource/{}.json", destination, group["id"].get<std::string>()), group);
                             ++group_size_left;
                         }
-                        try_assert(res_temp["groups"].size() == group_size_left, "group_must_empty");
+                        assert_conditional(res_temp["groups"].size() == group_size_left, "group_must_empty", "exchange_manifest_group");
                     };
                     auto resource_data_section_view_stored = DataSectionViewStored{};
                     unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);
@@ -225,7 +225,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                     }
                     else {
                         //subgroup_raw_content.info.general.locale = subgroup_information.category.locale;
-                        try_assert(subgroup_raw_content.info.general.locale == subgroup_information.category.locale, fmt::format("mismatch_locale_at_{}", subgroup_id));
+                        assert_conditional(subgroup_raw_content.info.general.locale == subgroup_information.category.locale, fmt::format("mismatch_locale_at_{}", subgroup_id), "exchange_packet");
                     }
                     packet_data_section_view_stored.erase(toupper_back(subgroup_id));
                 }

@@ -218,7 +218,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             }
             case TextureFormatCategory::Chinese:
             {
-                assert_conditional(resolution == 1200, "chinese_format_only_has_1200_resolution", "get_animation_resolution");
+                assert_conditional(resolution == 1200, fmt::format("{}", Language::get("popcap.rsb.project.chinese_version_only_have_1200_resolution")), "get_animation_resolution");
                 return resolution;
             }
             default:
@@ -279,7 +279,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                     {
                     case DataType::Image:
                     {
-                        // assert_conditional(!is_program_path(resource_info.path), "image_type_cannot_contain_!program", "exchange_texture_advanced");
                         if (is_program_path(resource_info.path))
                         {
                             packet_information[fmt::format("{}_Common", subgroup_id)].subgroup_content_information.general.data[resource_id] = DataCompressedInfo{
@@ -361,7 +360,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                     {
                         if (before_resolution != highest_resolution)
                         {
-                            assert_conditional(before_resolution > resize_resolution, "resolution_to_resize_must_be_lower", "exchange_texture_advanced");
+                            assert_conditional(before_resolution > resize_resolution, String::format(fmt::format("{}", Language::get("popcap.rsb.project.resize_resolution_must_be_lower")), std::to_string(before_resolution), std::to_string(resize_resolution)), "exchange_texture_advanced");
                         }
                         auto subgroup_id_with_resize_resolution = fmt::format("{}_{}", subgroup_id, resize_resolution);
                         auto &packet_info_resize = packet_information[subgroup_id_with_resize_resolution];
@@ -448,7 +447,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                         auto before_resolution = highest_resolution;
                         for (auto resize_resolution : resolution_list)
                         {
-                            assert_conditional(before_resolution > resize_resolution, "resolution_to_resize_must_be_lower", "exchange_texture_simple");
+                            assert_conditional(before_resolution > resize_resolution, String::format(fmt::format("{}", Language::get("popcap.rsb.project.resize_resolution_must_be_lower")), std::to_string(before_resolution), std::to_string(resize_resolution)), "exchange_texture_simple");
                             auto subgroup_id_with_resize_resolution = fmt::format("{}_{}", subgroup_id, resize_resolution);
                             auto &packet_info_resize = packet_information[subgroup_id_with_resize_resolution];
                             packet_info_resize.packet_structure.version = definition.version;
@@ -500,12 +499,12 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             Setting const &setting) -> void
         {
             auto resolution_list = definition.category.resolution;
-            assert_conditional(resolution_list.size() != k_none_size, "must_contains_at_least_a_resolution", "exchange_texture_additional");
+            assert_conditional(resolution_list.size() != k_none_size, fmt::format("{}", Language::get("popcap.rsb.project.category_must_contains_one_resolution")), "exchange_texture_additional");
             std::sort(resolution_list.begin(), resolution_list.end(), std::greater<int>());
             for (auto &resoulution : resolution_list)
             {
                 auto is_vaild_resoulution = std::find(k_vaild_resolution_list.begin(), k_vaild_resolution_list.end(), resoulution) != k_vaild_resolution_list.end();
-                assert_conditional(is_vaild_resoulution, "resolution_is_invalid_in_list", "exchange_texture_additional");
+                assert_conditional(is_vaild_resoulution, String::format(fmt::format("{}", Language::get("popcap.rsb.project.invalid_resolution")), std::to_string(resoulution), std::string{"[1536, 768, 384, 640, 1200]"}), "exchange_texture_additional");
             }
             switch (setting.decode_method)
             {
@@ -594,7 +593,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
         {
             for (auto &[subgroup_id, packet_value] : subgroup)
             {
-                // assert_conditional(!packet_value.is_image, "general_cannot_contain_image", "exchange_general_additional");
                 auto &packet_info = packet_information[subgroup_id];
                 packet_info.packet_structure.version = definition.version;
                 packet_info.subgroup_content_information.general.locale = packet_value.category.locale;

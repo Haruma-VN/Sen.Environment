@@ -646,7 +646,7 @@ namespace Sen::Kernel::FileSystem
 		#ifdef _WIN32
 				watch_windows();
 		#else
-				assert_conditional(false, "process cannot be started on other os than windows", "start");
+				assert_conditional(false, fmt::format("{}", Language::get("os.system.process_invalid")), "start");
 		#endif
 			}
 
@@ -666,7 +666,7 @@ namespace Sen::Kernel::FileSystem
 					FILE_FLAG_BACKUP_SEMANTICS,
 					nullptr
 				);
-				assert_conditional(!(hDir == INVALID_HANDLE_VALUE), "Fail to open directory handle", "watch_windows");
+				assert_conditional(!(hDir == INVALID_HANDLE_VALUE), fmt::format("{}", Language::get("windows.process.failed_to_open_directory_to_handle")), "watch_windows");
 				char buffer[1024];
 				auto bytesReturned = DWORD{};
 				while (true) {

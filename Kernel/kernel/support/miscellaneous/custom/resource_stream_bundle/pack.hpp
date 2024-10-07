@@ -119,8 +119,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                     }
                 }
             }
-            try_assert(json_count == k_none_size, "json_count_mismatch");
-            try_assert(rton_count == k_none_size, "rton_count_mismatch");
+            assert_conditional(json_count == k_none_size, "json_count_mismatch", "exchange_packages");
+            assert_conditional(rton_count == k_none_size, "rton_count_mismatch", "exchange_packages");
             auto packet_stream = DataStreamView{};
             Sen::Kernel::Support::PopCap::ResourceStreamGroup::Pack::process_whole(packet_stream, packet_definition, resource_data_section_view_stored);
             packet_data_section_view_stored[packages_string] = std::move(packet_stream.toBytes());

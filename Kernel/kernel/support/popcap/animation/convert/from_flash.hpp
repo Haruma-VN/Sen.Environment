@@ -297,7 +297,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					}
 					else
 					{
-						assert_conditional(frame_node.resource == model.resource && frame_node.sprite == model.sprite, "invalid_instance", "exchange_frame_node");
+						assert_conditional(frame_node.resource == model.resource && frame_node.sprite == model.sprite, String::format(fmt::format("{}", Language::get("popcap.animation.invalid_instance")), std::to_string(frame_node.index)), "exchange_frame_node");
 					}
 					model.frame_start = frame_index;
 					model.frame_duration = frame_duration;
@@ -424,7 +424,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
 				frame_count -= frame_duration;
 			}
-			assert_conditional(frame_count == k_begin_index_int, "main_frame_has_no_vaild_length", "exchange_dom_document");
+			assert_conditional(frame_count == k_begin_index_int, String::format(fmt::format("{}", Language::get("popcap.animation.main_frame_has_no_vaild_length")), std::to_string(frame_count), std::to_string(k_begin_index)), "exchange_dom_document");
 			if (!definition.main_sprite.frame.back().stop)
 			{
 				definition.main_sprite.frame.back().stop = true; // fix last stop to true.

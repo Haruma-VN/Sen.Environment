@@ -112,7 +112,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
             decode_zlib<false>();
             stream.read_pos = 0x8_size;
             definition.emitters.resize(static_cast<size_t>(stream.readInt32()));
-            try_assert(stream.readInt32() == k_32bit_block_byte_1, "invalid_block_1");
+            assert_conditional(stream.readInt32() == k_32bit_block_byte_1, fmt::format("{}", Language::get("popcap.particles.invalid_block_1")), "decode_pc");
             if (definition.emitters.size() != 0_size)
             {
                 definition.emitters_is_null = false;
@@ -199,7 +199,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                 emitter.system_brightness_is_null = read_track_nodes(emitter.system_brightness);
                 emitter.launch_speed_is_null = read_track_nodes(emitter.launch_speed);
                 emitter.launch_angle_is_null = read_track_nodes(emitter.launch_angle);
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_pc");
                 if (!emitter.field_is_null)
                 {
                     for (auto &field : emitter.field)
@@ -217,7 +217,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                         field.y_is_null = read_track_nodes(field.y);
                     }
                 }
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_pc");
                 if (!emitter.system_field_is_null)
                 {
                     for (auto &field : emitter.system_field)
@@ -261,7 +261,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
             decode_zlib<false>();
             stream.read_pos = 0x8_size;
             definition.emitters.resize(static_cast<size_t>(stream.readInt32()));
-            try_assert(stream.readInt32() == k_32bit_block_byte_1, "invalid_block_1");
+            assert_conditional(stream.readInt32() == k_32bit_block_byte_1, fmt::format("{}", Language::get("popcap.particles.invalid_block_1")), "decode_tv");
             if (definition.emitters.size() != 0_size)
             {
                 definition.emitters_is_null = false;
@@ -353,7 +353,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                 emitter.system_brightness_is_null = read_track_nodes(emitter.system_brightness);
                 emitter.launch_speed_is_null = read_track_nodes(emitter.launch_speed);
                 emitter.launch_angle_is_null = read_track_nodes(emitter.launch_angle);
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_tv");
                 if (!emitter.field_is_null)
                 {
                     for (auto &field : emitter.field)
@@ -371,7 +371,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                         field.y_is_null = read_track_nodes(field.y);
                     }
                 }
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_tv");
                 if (!emitter.system_field_is_null)
                 {
                     for (auto &field : emitter.system_field)
@@ -415,7 +415,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
             decode_zlib<false>();
             stream.read_pos = 0x8_size;
             definition.emitters.resize(static_cast<size_t>(stream.readInt32()));
-            try_assert(stream.readInt32() == k_32bit_block_byte_1, "invalid_block_1");
+            assert_conditional(stream.readInt32() == k_32bit_block_byte_1, fmt::format("{}", Language::get("popcap.particles.invalid_block_1")), "decode_phone_32");
             if (definition.emitters.size() != 0_size)
             {
                 definition.emitters_is_null = false;
@@ -503,7 +503,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                 emitter.system_brightness_is_null = read_track_nodes(emitter.system_brightness);
                 emitter.launch_speed_is_null = read_track_nodes(emitter.launch_speed);
                 emitter.launch_angle_is_null = read_track_nodes(emitter.launch_angle);
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_phone_32");
                 if (!emitter.field_is_null)
                 {
                     for (auto &field : emitter.field)
@@ -521,7 +521,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                         field.y_is_null = read_track_nodes(field.y);
                     }
                 }
-                try_assert(stream.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_phone_32");
                 if (!emitter.system_field_is_null)
                 {
                     for (auto &field : emitter.system_field)
@@ -566,7 +566,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
             stream.read_pos = 12_size;
             definition.emitters.resize(static_cast<size_t>(stream.readInt32()));
             stream.read_pos += 0x4_size;
-            try_assert(stream.readInt32() == k_64bit_block_byte_1, "invalid_block_1");
+            assert_conditional(stream.readInt32() == k_64bit_block_byte_1, fmt::format("{}", Language::get("popcap.particles.invalid_block_1")), "decode_phone_64");
             if (definition.emitters.size() != 0_size)
             {
                 definition.emitters_is_null = false;
@@ -654,7 +654,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                 emitter.system_brightness_is_null = read_track_nodes(emitter.system_brightness);
                 emitter.launch_speed_is_null = read_track_nodes(emitter.launch_speed);
                 emitter.launch_angle_is_null = read_track_nodes(emitter.launch_angle);
-                try_assert(stream.readInt32() == k_64bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream.readInt32() == k_64bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_phone_64");
                 if (!emitter.field_is_null)
                 {
                     for (auto &field : emitter.field)
@@ -672,7 +672,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                         field.y_is_null = read_track_nodes(field.y);
                     }
                 }
-                try_assert(stream.readInt32() == k_64bit_block_byte_2, "invalid_block_3");
+                assert_conditional(stream.readInt32() == k_64bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_3")), "decode_phone_64");
                 if (!emitter.system_field_is_null)
                 {
                     for (auto &field : emitter.system_field)
@@ -718,7 +718,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
             stream_big.writeBytes(stream.toBytes());
             stream_big.read_pos = 0x8_size;
             definition.emitters.resize(static_cast<size_t>(stream_big.readInt32()));
-            try_assert(stream_big.readInt32() == k_32bit_block_byte_1, "invalid_block_1");
+            assert_conditional(stream_big.readInt32() == k_32bit_block_byte_1, fmt::format("{}", Language::get("popcap.particles.invalid_block_1")), "decode_game_console");
             if (definition.emitters.size() != 0_size)
             {
                 definition.emitters_is_null = false;
@@ -805,7 +805,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                 emitter.system_brightness_is_null = read_track_nodes_big(stream_big, emitter.system_brightness);
                 emitter.launch_speed_is_null = read_track_nodes_big(stream_big, emitter.launch_speed);
                 emitter.launch_angle_is_null = read_track_nodes_big(stream_big, emitter.launch_angle);
-                try_assert(stream_big.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream_big.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_game_console");
                 if (!emitter.field_is_null)
                 {
                     for (auto &field : emitter.field)
@@ -823,7 +823,7 @@ namespace Sen::Kernel::Support::PopCap::Particles
                         field.y_is_null = read_track_nodes_big(stream_big, field.y);
                     }
                 }
-                try_assert(stream_big.readInt32() == k_32bit_block_byte_2, "invalid_block_2");
+                assert_conditional(stream_big.readInt32() == k_32bit_block_byte_2, fmt::format("{}", Language::get("popcap.particles.invalid_block_2")), "decode_game_console");
                 if (!emitter.system_field_is_null)
                 {
                     for (auto &field : emitter.system_field)

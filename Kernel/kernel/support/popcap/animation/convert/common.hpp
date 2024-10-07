@@ -287,10 +287,11 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             }
             else
             {
-                assert_conditional(false, "invalid_transform_size", "exchange_transform_from_variant_to_standard");
+                assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.animation.invalid_transform_size")), std::to_string(data.size())), "exchange_transform_from_variant_to_standard");
             }
             return;
         }
+
 
         inline static auto exchange_transform_from_standard_to_variant(
             Transform const &data,
@@ -321,7 +322,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             std::vector<double> const &data,
             Transform &value) -> void
         {
-            try_assert(data.size() == 3_size, "invalid_animation_transform_length");
+            assert_conditional(data.size() == 3_size, String::format(fmt::format("{}", Language::get("popcap.animation.invalid_animation_transform_length")), std::string{"3"}, std::to_string(data.size())), "exchange_tranform_from_rotate_to_standard");
             auto cos = std::cos(data[0]);
             auto sin = std::sin(data[0]);
             value = Transform{cos, sin, -sin, cos, data[1], data[2]};
@@ -341,12 +342,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             Transform const &data,
             std::vector<double> &value) -> void
         {
-            try_assert(data[0] == data[3] && data[1] == -data[2], "invalid_animation_transform");
+            assert_conditional(data[0] == data[3] && data[1] == -data[2], fmt::format("{}", Language::get("popcap.animation.invalid_animation_transform")), "exchange_transform_from_standard_to_rotate");
             auto cos = data[0];
             auto sin = data[1];
             auto radian = std::atan(sin / cos) + k_pi * (cos >= 0.0 ? 0.0 : sin >= 0 ? +1.0
                                                                                      : -1.0);
-            try_assert(number_is_equal(std::sin(radian), sin, 1e-2) && number_is_equal(std::cos(radian), cos, 1e-2), "radian_is_wrong");
+            assert_conditional(number_is_equal(std::sin(radian), sin, 1e-2) && number_is_equal(std::cos(radian), cos, 1e-2), fmt::format("{}", Language::get("popcap.animation.radian_is_wrong")), "exchange_transform_from_standard_to_rotate");
             value = std::vector<double>{radian, data[4], data[5]};
             return;
         }
@@ -355,7 +356,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             std::vector<double> const &data,
             Transform &value) -> void
         {
-            try_assert(data.size() == 6_size, "invalid_animation_transform_length");
+            assert_conditional(data.size() == 6_size, String::format(fmt::format("{}", Language::get("popcap.animation.invalid_animation_transform_length")), std::string{"6"}, std::to_string(data.size())), "exchange_tranform_by_copy");
             value = Transform{data[0], data[1], data[2], data[3], data[4], data[5]};
             return;
         }
@@ -364,7 +365,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
             Transform const &data,
             std::vector<double> &value) -> void
         {
-            try_assert(data.size() == 6_size, "invalid_animation_transform_length");
+            assert_conditional(data.size() == 6_size, String::format(fmt::format("{}", Language::get("popcap.animation.invalid_animation_transform_length")), std::string{"6"}, std::to_string(data.size())), "exchange_tranform_by_copy");
             value = std::vector<double>{data[0], data[1], data[2], data[3], data[4], data[5]};
             return;
         }

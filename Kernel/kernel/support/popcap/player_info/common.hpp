@@ -41,7 +41,7 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
             DataStreamView &data,
             ZombatarStructure &value) -> void
         {
-            try_assert(data.readUint32() == 0xFFFFFFFF, "invalid_section");
+            assert_conditional(data.readUint32() == 0xFFFFFFFF, fmt::format("{}", Language::get("popcap.player_info.invalid_section")), "exchange_to_zombatar_struct");
             value.skin_color = data.readInt32();
             value.clothes_type = data.readInt32();
             value.clothes_color = data.readInt32();

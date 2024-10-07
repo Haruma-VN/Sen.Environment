@@ -2381,7 +2381,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             {
                 if constexpr (std::is_same<ReturnType, size_t>::value)
                 {
-                    try_assert(false, "common property type is not return size");
+                    assert_conditional(false, fmt::format("{}", Language::get("wwise.sound_bank.common_property_is_not_return_size")), "exchange_enumeration");
                 }
                 else
                 {
@@ -2480,7 +2480,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 {
                     if (k_version >= 112_ui)
                     {
-                        try_assert(false, "common property type is not return size");
+                        assert_conditional(false, fmt::format("{}", Language::get("wwise.sound_bank.common_property_is_not_return_size")), "exchange_enumeration");
                     }
                 }
                 else
@@ -2586,7 +2586,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             {
                 if constexpr (std::is_same<ReturnType, size_t>::value)
                 {
-                    try_assert(false, "common property type is not return size");
+                    assert_conditional(false, fmt::format("{}", Language::get("wwise.sound_bank.common_property_is_not_return_size")), "exchange_enumeration");
                 }
                 else
                 {

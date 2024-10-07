@@ -240,7 +240,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                 {
                     return 0;
                 }
-                try_assert(false, "invalid_res_type");
+                assert_conditional(false, "invalid_res_type", "exchange_custom_resource_info");
             };
             auto first_where = [](
                                    nlohmann::ordered_json const &data,
@@ -741,8 +741,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             ResourceContentInformation const &data,
             DataStreamView &stream) -> void
         {
-            try_assert(data.magic == k_resource_content_information_magic_identifier, "invalid_magic");
-            try_assert(data.version == k_resource_content_information_version, "invalid_version");
+            assert_conditional(data.magic == k_resource_content_information_magic_identifier, "invalid_magic", "exchange_resouce_content_information", "exchange_packages");
+            assert_conditional(data.version == k_resource_content_information_version, "invalid_version", "exchange_resouce_content_information", "exchange_packages");
             stream.writeUint32(data.magic);
             stream.writeUint32(data.version);
             stream.writeUint32(data.information_compressed_size);
@@ -912,8 +912,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             std::string const &path) -> std::string
         {
             auto string_list = Sen::Kernel::String(path).split("/"_sv);
-            // assert_conditional(string_list.size() != k_none_size && string_list.size() > 2_size, "invalid_path", "exchange_image_path");
-            // assert_conditional(compare_string(string_list.front(), "images"_sv), "must_be_in_images_folder", "exchange_image_path");
             if (string_list.size() == k_none_size && string_list.size() < 2_size)
             {
                 return path;
@@ -937,8 +935,6 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             int const &resolution) -> std::string
         {
             auto string_list = Sen::Kernel::String(path).split("/"_sv);
-            // assert_conditional(string_list.size() != k_none_size && string_list.size() > 2_size, "invalid_path", "restore_image_path");
-            // assert_conditional(compare_string(string_list.front(), "images"_sv), "must_be_in_images_folder", "exchange_image_path");
             if (compare_string(string_list.front(), "images"_sv))
             {
                 string_list.insert(string_list.begin() + 1, std::to_string(resolution));
@@ -1136,7 +1132,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
             }
             else
             {
-                assert_conditional(false, "invalid_texture_format_category", "exchange_stream_resource_group");
+                assert_conditional(false, fmt::format("{}", Language::get("pvz2.scg.invalid_texture_format_category")), "exchange_stream_resource_group");
             }
             auto subgroup_information_list = std::vector<SubgroupInformation>{};
             stream.read_pos = header_information.subgroup_information_section_offset;
@@ -1152,14 +1148,11 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                 stream.read_pos = static_cast<size_t>(subgroup.resource_content_information_offset);
                 auto resource_content_information = ResourceContentInformation{};
                 exchange_resouce_content_information(stream, resource_content_information);
-                // TODO : Add localization
-                assert_conditional(resource_content_information.magic == k_resource_content_information_magic_identifier, "invalid_resource_content_magic", "exchange_stream_resource_group");
-                // TODO : Add localization
-                assert_conditional(resource_content_information.version == k_resource_content_information_version, "invalid_resource_content_version", "exchange_stream_resource_group");
+                assert_conditional(resource_content_information.magic == k_resource_content_information_magic_identifier, String::format(fmt::format("{}", Language::get("popcap.rsb.project.invalid_resource_content_magic")), std::to_string(resource_content_information.magic), std::to_string(k_resource_content_information_magic_identifier)), "exchange_stream_resource_group");
+                assert_conditional(resource_content_information.version == k_resource_content_information_version, String::format(fmt::format("{}", Language::get("pvz2.scg.invalid_resource_content_version")), std::to_string(resource_content_information.version), std::to_string(k_resource_content_information_version)), "exchange_stream_resource_group");
                 auto compressed_data = stream.readString(static_cast<size_t>(resource_content_information.information_compressed_size));
                 auto content_data_string = Sen::Kernel::Definition::Encryption::Base64::decode(compressed_data);
-                // TODO : Add localization
-                assert_conditional(content_data_string.size() == static_cast<size_t>(resource_content_information.information_string_size), "invalid_resource_content_size", "exchange_stream_resource_group");
+                assert_conditional(content_data_string.size() == static_cast<size_t>(resource_content_information.information_string_size), String::format(fmt::format("{}", Language::get("pvz2.scg.invalid_resource_content_size")), std::to_string(resource_content_information.version), std::to_string(k_resource_content_information_version)), "exchange_stream_resource_group");
                 packet_subgroup.info = nlohmann::ordered_json::parse(content_data_string);
             }
             return;

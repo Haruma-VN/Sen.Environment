@@ -173,8 +173,8 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                     ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_structure, get_packet_structure_only);
                     auto packet_header_structure = ResourceStreamGroup::Common::HeaderInformaiton{};
                     ResourceStreamGroup::Common::exchange_header(packet_stream, packet_header_structure);
-                    // try_assert(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
-                    // try_assert(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
+                    // assert_conditional(subgroup_information.compression.general == packet_structure.compression.general, "invalid_general_compression");
+                    // assert_conditional(subgroup_information.compression.texture == packet_structure.compression.texture, "invalid_texture_compression");
                     compare_conditional(packet_structure.version, definition.version, subgroup_id, "popcap.rsb.mismatch_packet_version"_sv);
                     compare_conditional(packet_structure.resource.size(), subgroup_information.resource.size(), subgroup_id, "popcap.rsb.mismatch_resource_size"_sv);
                     auto simple_subgroup_information_structure = SimpleSubgroupInformation{};
@@ -209,7 +209,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                                 break;
                             }
                         }
-                        try_assert(packet_resource_index + 1_size <= packet_structure.resource.size(), "invalid_packet_resource_index");
+                        assert_conditional(packet_resource_index + 1_size <= packet_structure.resource.size(), String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_packet_resource_index")), std::to_string(packet_resource_index), std::to_string(packet_structure.resource.size() - 1)), "process_package");
                         auto &packet_structure_resource = packet_structure.resource[packet_resource_index];
                         compare_conditional(resource_information.use_texture_additional_instead, packet_structure_resource.use_texture_additional_instead, subgroup_id, "popcap.rsb.mismatch_texture_additional"_sv);
                         if (!resource_information.use_texture_additional_instead)
@@ -220,7 +220,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                         {
                             compare_conditional(packet_structure_resource.texture_additional.value.dimension.width, resource_information.texture_additional.value.dimension.width, subgroup_id, "popcap.rsb.mismatch_texture_width"_sv);
                             compare_conditional(packet_structure_resource.texture_additional.value.dimension.height, resource_information.texture_additional.value.dimension.height, subgroup_id, "popcap.rsb.mismatch_texture_height"_sv);
-                            try_assert(definition.texture_information_section_size == resource_information.texture_additional.value.texture_resource_information_section_block_size, "invalid_information_section_block_size");
+                            assert_conditional(definition.texture_information_section_size == resource_information.texture_additional.value.texture_resource_information_section_block_size, fmt::format("{}", Language::get("popcap.rsb.invalid_information_section_block_size")), "process_package");
                             auto texture_information_structure = TextureInfomation{};
                             texture_information_structure.size_width = resource_information.texture_additional.value.dimension.width;
                             texture_information_structure.size_height = resource_information.texture_additional.value.dimension.height;
@@ -235,9 +235,9 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                                 texture_information_structure.alpha_size = resource_information.texture_additional.value.texture_infomation.alpha_size;
                                 texture_information_structure.scale = resource_information.texture_additional.value.texture_infomation.scale;
                             }
-                            try_assert(packet_structure_resource.texture_additional.value.index >= static_cast<int>(k_none_size), "index_must_higher_than_zero");
+                            assert_conditional(packet_structure_resource.texture_additional.value.index >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.rsb.index_must_higher_than_zero")), std::to_string(packet_structure_resource.texture_additional.value.index)), "process_package");
                             auto texture_resource_information_index = global_texture_resource_index + static_cast<size_t>(packet_structure_resource.texture_additional.value.index);
-                            try_assert(!information_structure.texture_resource_information.contains(texture_resource_information_index), "invalid_texture_resource_information_index");
+                            assert_conditional(!information_structure.texture_resource_information.contains(texture_resource_information_index), fmt::format("{}", Language::get("popcap.rsb.invalid_texture_resource_information_index")), "process_package");
                             information_structure.texture_resource_information[texture_resource_information_index] = texture_information_structure;
                             texture_resource_index_total += packet_structure_resource.texture_additional.value.index;
                             ++texture_resource_count;
@@ -248,7 +248,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                         assert_conditional(texture_resource_index_total == ((texture_resource_count - 1_size) * texture_resource_count / 2_size), String::format(fmt::format("{}", Language::get("popcap.rsb.pack.invalid_index")), subgroup_id), "process_package");
                         global_texture_resource_index += texture_resource_count;
                     }
-                    try_assert(packet_structure.resource.size() == k_none_size, "packet_resource_mismatch_size");
+                    assert_conditional(packet_structure.resource.size() == k_none_size, String::format(fmt::format("{}", Language::get("popcap.rsb.packet_resource_mismatch_size")), std::to_string(k_none_size), std::to_string(packet_structure.resource.size())), "process_package");
                     basic_subgroup_information_structure.resource_data_section_compression = packet_header_structure.resource_data_section_compression;
                     basic_subgroup_information_structure.information_section_size = packet_header_structure.information_section_size;
                     basic_subgroup_information_structure.general_resource_data_section_offset = packet_header_structure.general_resource_data_section_offset;
@@ -278,7 +278,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
                 information_structure.group_information.emplace_back(simple_group_information_structure);
                 ++global_group_index;
             }
-            try_assert(information_structure.texture_resource_information.size() == global_texture_resource_index, "invalid_texture_count");
+            assert_conditional(information_structure.texture_resource_information.size() == global_texture_resource_index, String::format(fmt::format("{}", Language::get("popcap.rsb.invalid_texture_count")), std::to_string(information_structure.texture_resource_information.size()), std::to_string(global_texture_resource_index)), "process_package");
             auto k_use_resource_manifest_information = definition.version <= 3_ui;
             stream.writeNull(!k_use_resource_manifest_information ? information_header_section_size - stream.write_pos : information_header_section_size - stream.write_pos - k_block_size);
             information_structure.header.resource_path_section_offset = stream.write_pos;
@@ -360,7 +360,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle
             {
                 exchange_list(stream, information_structure.subgroup_information, &exchange_from_basic_subgroup<3_ui>);
             }
-            try_assert(stream.write_pos == information_structure.header.pool_information_section_offset, "invalid_basic_subgroup_offset");
+            assert_conditional(stream.write_pos == information_structure.header.pool_information_section_offset, fmt::format("{}", Language::get("popcap.rsb.invalid_basic_subgroup_offset")), "process_package");
             information_structure.header.magic = Common::k_magic_identifier;
             information_structure.header.version = definition.version;
             exchange_from_header(stream, information_structure.header);

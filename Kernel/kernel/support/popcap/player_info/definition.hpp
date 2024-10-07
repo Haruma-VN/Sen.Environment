@@ -1426,7 +1426,7 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
                 nlohmann_json_j["no_fungus_among_us"] = nlohmann_json_t.no_fungus_among_us;
                 if (nlohmann_json_t.num_of_achievement > 13)
                 {
-                    try_assert(nlohmann_json_t.num_of_achievement == 25, "invalid_num_of_achievement");
+                    assert_conditional(nlohmann_json_t.num_of_achievement == 25, fmt::format("{}", Language::get("popcap.player_info.invalid_num_of_achievement")), "to_json");
                     nlohmann_json_j["last_mown_stading"] = nlohmann_json_t.last_mown_stading;
                     nlohmann_json_j["below_zero"] = nlohmann_json_t.below_zero;
                     nlohmann_json_j["flower_power"] = nlohmann_json_t.flower_power;
@@ -1637,7 +1637,7 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
                 }
                 if (nlohmann_json_t.num_of_achievement > 13)
                 {
-                    try_assert(nlohmann_json_t.num_of_achievement == 25, "invalid_num_of_achievement");
+                    assert_conditional(nlohmann_json_t.num_of_achievement == 25, fmt::format("{}", Language::get("popcap.player_info.invalid_num_of_achievement")), "from_json");
                 }
             }
             else

@@ -915,7 +915,8 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
             value.num_of_achievement = data.earned_achievements.size();
             for (auto i : Range(data.earned_achievements.size()))
             {
-                switch (exchange_enumeration<uint8_t, AchievementId>(static_cast<uint8_t>(i)))
+                auto achivement_id = exchange_enumeration<uint8_t, AchievementId>(static_cast<uint8_t>(i));
+                switch (achivement_id)
                 {
                 case AchievementId::home_security:
                 {
@@ -1225,7 +1226,7 @@ namespace Sen::Kernel::Support::PopCap::PlayerInfo
                 }
                 default:
                 {
-                    assert_conditional(false, "invalid_achievement_id", "exchange_challenge");
+                    assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.player_info.invalid_achievement_id")), std::to_string(static_cast<std::uint8_t>(achivement_id))), "exchange_challenge");
                 }
                 }
             }

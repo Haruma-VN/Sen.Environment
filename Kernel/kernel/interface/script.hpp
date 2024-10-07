@@ -1152,7 +1152,7 @@ namespace Sen::Kernel::Interface::Script
 			{
 				auto byte_len = size_t{};
 				auto data = JS_GetArrayBuffer(ctx, &byte_len, array_buffer);
-				assert_conditional(byte_len != 0, "ArrayBuffer is empty", "from_arraybuffer");
+				assert_conditional(byte_len != 0, fmt::format("{}", Kernel::Language::get("js.array_buffer_is_empty")), "from_arraybuffer");
 				return std::vector<uint8_t>(data, data + byte_len);
 			}
 

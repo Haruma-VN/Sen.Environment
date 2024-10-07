@@ -60,7 +60,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
                 process_sub(information_section_before, stream_patch, stream_after, information_section_patch_size);
             }
             read_package_information_structure(stream_after, information_section_after_structure);
-            try_assert(packet_count == information_section_after_structure.subgroup_information.size(), "invalid_packet_count");
+            assert_conditional(packet_count == information_section_after_structure.subgroup_information.size(), fmt::format("{}", Language::get("popcap.rsb_patch.invalid_packet_count")), "process");
             auto packet_before_subgroup_information_index_map = std::map<std::string, size_t>{};
             indexing_subgroup_information_by_id(information_section_before_structure.subgroup_information, packet_before_subgroup_information_index_map);
             for (auto packet_index : Range(packet_count)) {
@@ -78,7 +78,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundlePatch
                 }
                 test_hash(packet_before, packet_information.before_hash);
                 if (!packet_patch_exist) {
-                    try_assert(packet_patch_size == k_none_size, "invalid_packet_patch_size");
+                    assert_conditional(packet_patch_size == k_none_size, fmt::format("{}", Language::get("popcap.rsb_patch.invalid_packet_patch_size")), "process");
                     stream_after.writeBytes(packet_before);
                 }
                 else {

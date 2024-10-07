@@ -55,7 +55,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                     break;
                 }
             }
-            try_assert(has_play_music_world, "global_data_has_no_play_music_world_event");
+            assert_conditional(has_play_music_world, "global_data_has_no_play_music_world_event", "add_music");
             for (auto &[child_event, exist] : event_exist)
             {
                 auto add_hierarchy = Hierarchy{};
@@ -137,7 +137,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                 }
                 default:
                 {
-                    try_assert(false, "invalid_event");
+                    assert_conditional(false, "invalid_event", "add_music");
                     break;
                 }
                 }
@@ -197,8 +197,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                 auto sounbank_event_list = std::vector<Hierarchy>{};
                 for (auto &soundbank_event : soundbank.events)
                 {
-                    assert_conditional(soundbank_event.type == EventActionProperty::Type::play_audio, "it_current_only_support_play_audio_action_event", "create_soundbank");
-                    debug(soundbank_event.name);
+                    assert_conditional(soundbank_event.type == EventActionProperty::Type::play_audio, fmt::format("{}", Language::get("wwise.soundbank.encode.only_support_play_audio_action_event")), "create_soundbank");
                     auto event_id = Common::fnv_hash(soundbank_event.name);
                     auto event_hierarchy = Hierarchy{
                         .id = event_id,
@@ -212,7 +211,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                         // Common::fnv_hash(fmt::format("switch_{}_{}", switch_group.name, index));
                         for (auto &position : position_source.position)
                         {
-                            assert_conditional(position.group_index.size() == position.child_index.size(), "group_index_and_child_index_must_same_length", "create_soundbank");
+                            assert_conditional(position.group_index.size() == position.child_index.size(), fmt::format("{}", Language::get("wwise.soundbank.encode.group_index_and_child_index_must_same_length")), "create_soundbank");
                             auto result = std::reduce(position.group_index.begin(), position.group_index.end());
                             next_id = Common::fnv_hash(fmt::format("position_id_{}", result));
                             for (auto index : Range(position.group_index.size()))
@@ -283,13 +282,6 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                         auto playlist_hierarchy = Hierarchy{
                             .id = Common::fnv_hash(fmt::format("playlist_{}", next_id)),
                             .type = HierarchyType::music_playlist_container};
-                        /*
-                        if (std::find_if(soundbank_information.hierarchy.begin(), soundbank_information.hierarchy.end(), [&](auto &data)
-                                         { return data.id = playlist_hierarchy.id; }) != soundbank_information.hierarchy.end())
-                        {
-                            assert_conditional(false, "contain_media_same", "create_soundbank");
-                        }
-                        */
                         auto &music_playlist_container = playlist_hierarchy.music_playlist_container;
                         music_playlist_container.parent = next_id;
                         music_playlist_container.output_bus.bus = 3803692087_ui;

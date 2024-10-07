@@ -700,17 +700,15 @@ namespace Sen.Script.Executor {
             if (Shell.is_gui) {
                 Kernel.Console.print(`${1n}. ${Kernel.Language.get("js.process_whole")}`);
                 Kernel.Console.print(`${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
-                Kernel.Console.print(`${3n}. ${Kernel.Language.get("js.process_in_script")}`);
-                Kernel.Console.print(`${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
-                Kernel.Console.print(`${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+                Kernel.Console.print(`${3n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
+                Kernel.Console.print(`${4n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
             } else {
                 Kernel.Console.print(`    ${1n}. ${Kernel.Language.get("js.process_whole")}`);
                 Kernel.Console.print(`    ${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
-                Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("js.process_in_script")}`);
-                Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
-                Kernel.Console.print(`    ${5n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
+                Kernel.Console.print(`    ${3n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);
+                Kernel.Console.print(`    ${4n}. ${Kernel.Language.get("popcap.atlas.split_by_res_info")}`);
             }
-            const input: bigint = input_integer([1n, 2n, 3n, 4n, 5n]);
+            const input: bigint = input_integer([1n, 2n, 3n, 4n]);
             switch (input) {
                 case 1n: {
                     load_module({ source: argument.source }, "whole");
@@ -723,14 +721,10 @@ namespace Sen.Script.Executor {
                     break;
                 }
                 case 3n: {
-                    // to do
-                    break;
-                }
-                case 4n: {
                     execute<Argument>(argument, "popcap.atlas.split_by_resource_group", Forward.DIRECT, "simple");
                     break;
                 }
-                case 5n: {
+                case 4n: {
                     execute<Argument>(argument, "popcap.atlas.split_by_res_info", Forward.DIRECT, "simple");
                     break;
                 }

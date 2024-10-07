@@ -318,11 +318,8 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
     {
         nlohmann_json_j.at("setting").get_to(nlohmann_json_t.setting);
         nlohmann_json_j.at("media").get_to(nlohmann_json_t.media);
-        debug("switches");
         nlohmann_json_j.at("switches").get_to(nlohmann_json_t.switches);
-        debug("states");
         nlohmann_json_j.at("states").get_to(nlohmann_json_t.states);
-        debug("soundbank");
         nlohmann_json_j.at("soundbank").get_to(nlohmann_json_t.soundbank);
         return;
     }
