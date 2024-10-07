@@ -57,6 +57,17 @@ declare namespace Sen {
          * @param params An optional array of strings passed as additional arguments.
          */
         export function test(param: Record<string, unknown>): void;
+        declare type Event = "delete" | "add" | "update" | "rename";
+
+        declare type WatchContent = (source: string) => void;
+
+        declare class FileWatcher {
+            public constructor(source: string);
+
+            public on(event: Event, callback: WatchContent): void;
+
+            public start(): void;
+        }
 
         /**
          * Sub-namespace for XML processing functionalities within the kernel.
@@ -700,6 +711,13 @@ declare namespace Sen {
                  * @param destination - The destination path or directory
                  */
                 export function copy(source: string, destination: string): void;
+
+                /**
+                 * Copy a file or directory.
+                 * @param source - The path of the file or directory to copy
+                 * @param destination - The destination path or directory
+                 */
+                export function copy_directory(source: string, destination: string): void;
 
                 /**
                  * Remove a file or directory.

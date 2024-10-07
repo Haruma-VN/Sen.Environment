@@ -4569,6 +4569,8 @@ namespace Sen::Kernel::Interface::Script
 			struct Data
 			{
 
+				static_assert(sizeof(T) == sizeof(char) || sizeof(T) == sizeof(unsigned char) || sizeof(T) == sizeof(wchar_t), "invalid size");
+
 				T value;
 
 				Data() = default;
@@ -8251,6 +8253,29 @@ namespace Sen::Kernel::Interface::Script
 					auto destination = JS::Converter::get_string(context, argv[1]);
 					Kernel::Path::Script::copy(source, destination);
 					return JS::Converter::get_undefined(); }, "copy"_sv);
+			}
+
+			/**
+			 * ----------------------------------------
+			 * JS copy file
+			 * @param argv[0]: source file
+			 * @param argv[1]: destination file
+			 * @return: undefined
+			 * ----------------------------------------
+			 */
+
+			inline static auto copy_directory(
+				JSContext *context,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst *argv) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(context, {
+					try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto source = JS::Converter::get_string(context, argv[0]);
+					auto destination = JS::Converter::get_string(context, argv[1]);
+					Kernel::Path::Script::copy_directory(source, destination);
+					return JS::Converter::get_undefined(); }, "copy_directory"_sv);
 			}
 
 			/**
@@ -12399,7 +12424,7 @@ namespace Sen::Kernel::Interface::Script
 					JSValueConst *argv) -> JSValue
 				{
 					M_JS_PROXY_WRAPPER(context, {
-				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+						try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
 						auto source = JS::Converter::get_string(context, argv[0]);
 						auto destination = JS::Converter::get_string(context, argv[1]);
 						Kernel::Support::WWise::SoundBank::Decode::process_fs(source, destination);
@@ -12447,6 +12472,197 @@ namespace Sen::Kernel::Interface::Script
 				}
 			}
 		}
+	}
+
+	namespace FileWatcher {
+
+		using FileSystemWatcher = Kernel::FileSystem::FileSystemWatcher;
+
+		struct JSCallback {
+			JSValue jsCallback;                     
+			std::function<void(JSValue)> function;  
+		};
+
+		class JSFileWatcher {
+			public:
+				JSFileWatcher(JSContext* ctx, const std::string& directory)
+					: ctx(ctx), directory(directory), stopFlag(false), watcher(nullptr) {}
+
+				void start() {
+					watcher = new FileSystemWatcher(directory);
+					watcher->start([this](const std::string& event, const std::string& filename) {
+						this->onFileEvent(event, filename);
+					});
+				}
+
+				void onFileEvent(const std::string& event, const std::string& filename) {
+					std::lock_guard<std::mutex> lock(mtx);
+					auto it = eventCallbacks.find(event);
+					if (it != eventCallbacks.end()) {
+						JSValue jsFilename = JS_NewStringLen(ctx, filename.c_str(), filename.size());
+						it->second.function(jsFilename);  
+						JS_FreeValue(ctx, jsFilename);
+					}
+				}
+
+				void on(const std::string& eventType, JSValue callback) {
+					auto lock = std::lock_guard<std::mutex>(mtx);
+					JS_DupValue(ctx, callback);
+					auto cb = JSCallback{
+						callback, 
+						[this, callback](JSValue filename) {
+							JSValue args[] = { filename };
+							JS_Call(ctx, callback, JS_UNDEFINED, 1, args);
+						}
+					};
+					eventCallbacks.insert(std::pair<std::string, JSCallback>(eventType, cb));
+				}
+
+				void stop() {
+					auto lock = std::lock_guard<std::mutex>(mtx);
+					stopFlag = true;
+					for (auto& [event, callbackStruct] : eventCallbacks) {
+						JS_FreeValue(ctx, callbackStruct.jsCallback); 
+					}
+					eventCallbacks.clear();
+					if (watcher != nullptr) {
+						delete watcher;
+						watcher = nullptr;
+					}
+				}
+
+				~JSFileWatcher() {
+					for (auto& [event, callbackStruct] : eventCallbacks) {
+						JS_FreeValue(ctx, callbackStruct.jsCallback); 
+					}
+					stop();
+				}
+
+			private:
+				JSContext* ctx;
+				std::string directory;
+				FileSystemWatcher* watcher;
+				std::mutex mtx;
+				std::unordered_map<std::string, JSCallback> eventCallbacks;
+				bool stopFlag;
+			};
+
+
+		inline static JSClassID js_filewatcher_class_id;
+
+		inline static auto finalizer(
+			JSRuntime* rt, 
+			JSValue val
+		) -> void
+		{
+			auto watcher = static_cast<JSFileWatcher*>(JS_GetOpaque(val, js_filewatcher_class_id));
+			if (watcher != nullptr) {
+				delete watcher;
+			}
+		}
+
+
+		inline static auto constructor(
+			JSContext *ctx,
+			JSValueConst new_target,
+			int argc,
+			JSValueConst *argv
+		) -> JSElement::undefined
+		{
+			M_JS_PROXY_WRAPPER(ctx, {
+				auto s = static_cast<JSFileWatcher*>(nullptr);
+				auto obj = JS_UNDEFINED;
+				auto proto = JSElement::Prototype{};
+				if (argc == 1) {
+					auto source = JS::Converter::get_string(ctx, argv[0]);
+					s = new JSFileWatcher(ctx, source);
+				}
+				else {
+					JS_ThrowInternalError(ctx, "FileWatcher cannot be initialized because argument does not satisfy constructor");
+					return JS_EXCEPTION;
+				}
+				proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+				if (JS_IsException(proto)) {
+					goto fail;
+				}
+				obj = JS_NewObjectProtoClass(ctx, proto, js_filewatcher_class_id);
+				JS_FreeValue(ctx, proto);
+				if (JS_IsException(obj)) {
+					goto fail;
+				}
+				JS_SetOpaque(obj, s);
+				return obj;
+				fail:
+					js_free(ctx, s);
+					JS_FreeValue(ctx, obj);
+					return JS_EXCEPTION; 
+				}, "proxy_register");
+			}
+
+		inline static auto on(
+			JSContext* ctx,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue {
+			if (argc < 2) {
+				return JS_EXCEPTION; 
+			}
+			auto event = JS::Converter::get_string(ctx, argv[0]);
+			auto callback = argv[1];
+			auto watcher = static_cast<JSFileWatcher*>(JS_GetOpaque2(ctx, this_val, js_filewatcher_class_id));
+			if (watcher == nullptr) {
+				return JS_EXCEPTION;
+			}
+			watcher->on(event, callback);
+			return JS_UNDEFINED;
+		}
+
+		inline static auto start(
+			JSContext* ctx,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst* argv
+		) -> JSValue {
+			auto watcher = static_cast<JSFileWatcher*>(JS_GetOpaque2(ctx, this_val, js_filewatcher_class_id));
+			if (watcher == nullptr) {
+				return JS_EXCEPTION;
+			}
+			watcher->start();
+			return JS_UNDEFINED;
+		}
+
+		inline static const JSCFunctionListEntry proto_functions[] = {
+			JS_CPPFUNC_DEF("start", 0, start),
+			JS_CPPFUNC_DEF("on", 2, on),
+		};
+
+		static JSClassDef js_filewatcher_class = JSClassDef{
+			.class_name = "FileWatcher",
+			.finalizer = finalizer,
+		};
+
+		inline static auto register_class(
+			JSContext *ctx
+		) -> void
+		{
+			JS_NewClassID(&js_filewatcher_class_id);
+			assert_conditional(JS_NewClass(JS_GetRuntime(ctx), js_filewatcher_class_id, &js_filewatcher_class) == 0, "FileWatcher class register failed", "register_class");
+			auto class_name = "FileWatcher"_sv;
+			auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
+			auto proto = JS_NewObject(ctx);
+			JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
+			JS_SetConstructor(ctx, point_ctor, proto);
+			auto global_obj = JS_GetGlobalObject(ctx);
+			JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
+			JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
+			JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+			JS_FreeValue(ctx, global_obj);
+			JS_FreeValue(ctx, obj1);
+			JS_FreeValue(ctx, obj2);
+			return;
+		}
+
 	}
 
 	namespace Miscellaneous

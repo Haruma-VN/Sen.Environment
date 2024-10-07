@@ -438,6 +438,7 @@ namespace Sen.Script {
             "~/Executor/Methods/popcap.player_info.encode.js",
             "~/Executor/Methods/pvz2.custom.scg.encode.js",
             "~/Executor/Methods/pvz2.custom.scg.decode.js",
+            "~/Executor/Methods/popcap.rsb.watch.js",
         ];
     }
 }

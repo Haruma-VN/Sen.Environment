@@ -61,6 +61,8 @@ namespace Sen::Kernel::Support::Marmalade::DZip
                     chunk_data.resize(static_cast<size_t>(chunk_information_structure.size_uncompressed));
                     auto chunk_size_compressed = static_cast<size_t>(chunk_information_structure.size_compressed);
                     auto chunk_flag = std::bitset<ChunkFlag::k_count>{static_cast<u_long>(chunk_information_structure.flag)};
+                    // TODO : Remove try_assert with assert_conditional
+                    // TODO : Ad localization
                     try_assert(!chunk_flag.test(ChunkFlag::unused_2), "invalid_bitset_unused_2");
                     auto chunk_ok = false;
                     if (chunk_flag.test(ChunkFlag::combuf)) {

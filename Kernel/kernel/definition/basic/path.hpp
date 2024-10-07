@@ -451,6 +451,21 @@ namespace Sen::Kernel::Path
 				return;
 			}
 
+			inline static auto copy_directory (
+				std::string_view source,
+				std::string_view destination
+			) -> void
+			{
+				#if WINDOWS
+					std::filesystem::copy(std::filesystem::path{String::utf8_to_utf16(source.data())}, std::filesystem::path{String::utf8_to_utf16(destination.data())},
+					std::filesystem::copy_options::recursive | 
+					std::filesystem::copy_options::overwrite_existing);
+				#else
+					std::filesystem::copy(std::filesystem::path{source.data()}, std::filesystem::path{destination.data()}, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+				#endif
+				return;
+			}
+
 			inline static auto copy (
 				std::string_view source,
 				std::string_view destination
@@ -458,6 +473,8 @@ namespace Sen::Kernel::Path
 			{
 				#if WINDOWS
 					std::filesystem::copy(std::filesystem::path{String::utf8_to_utf16(source.data())}, std::filesystem::path{String::utf8_to_utf16(destination.data())});
+
+
 				#else
 					std::filesystem::copy(std::filesystem::path{source.data()}, std::filesystem::path{destination.data()});
 				#endif

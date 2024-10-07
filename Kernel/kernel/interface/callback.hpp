@@ -144,6 +144,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::FileSystem::Operation::remove_all, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "remove_all"_sv);
 					// operation : copy
 					javascript->add_proxy(Script::FileSystem::Operation::copy, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "copy"_sv);
+					// operation : copy_directory
+					javascript->add_proxy(Script::FileSystem::Operation::copy_directory, "Sen"_sv, "Kernel"_sv, "FileSystem"_sv, "Operation"_sv, "copy_directory"_sv);
 				}
 				// path
 				{
@@ -683,6 +685,8 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Image::register_class);
 				// Sprite
 				javascript->register_object(Script::Class::Sprite::register_class);
+				// FileWatcher
+				javascript->register_object(Script::FileWatcher::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
 				return;

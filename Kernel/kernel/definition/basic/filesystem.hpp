@@ -5,6 +5,10 @@
 #include "kernel/definition/basic/string.hpp"
 #include "kernel/definition/basic/path.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace Sen::Kernel::FileSystem
 {
 
@@ -628,4 +632,89 @@ namespace Sen::Kernel::FileSystem
 
 
 	};
+
+	class FileSystemWatcher {
+		public:
+			using Callback = std::function<void(const std::string& event, const std::string& filename)>;
+
+			FileSystemWatcher(const std::string& directory)
+				: directory(directory) {}
+
+			void start(Callback callback) {
+				this->callback = callback;
+
+		#ifdef _WIN32
+				watch_windows();
+		#else
+				assert_conditional(false, "process cannot be started on other os than windows", "start");
+		#endif
+			}
+
+		private:
+			std::string directory;
+			
+			Callback callback;
+
+		#ifdef _WIN32
+			void watch_windows() {
+				auto hDir = CreateFile(
+					directory.c_str(),
+					FILE_LIST_DIRECTORY,
+					FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+					nullptr,
+					OPEN_EXISTING,
+					FILE_FLAG_BACKUP_SEMANTICS,
+					nullptr
+				);
+				assert_conditional(!(hDir == INVALID_HANDLE_VALUE), "Fail to open directory handle", "watch_windows");
+				char buffer[1024];
+				auto bytesReturned = DWORD{};
+				while (true) {
+					if (ReadDirectoryChangesW(
+							hDir,
+							buffer,
+							sizeof(buffer),
+							TRUE,
+							FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE,
+							&bytesReturned,
+							nullptr,
+							nullptr
+						)) {
+
+						FILE_NOTIFY_INFORMATION *pNotify;
+						auto offset = int{0};
+						do {
+							pNotify = (FILE_NOTIFY_INFORMATION *) &buffer[offset];
+							auto wfilename = std::wstring(pNotify->FileName, pNotify->FileName + pNotify->FileNameLength / sizeof(WCHAR));
+							auto size_needed = WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), static_cast<int>(wfilename.size()), nullptr, 0, nullptr, nullptr);
+							auto filename = std::string(size_needed, 0);
+							WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), static_cast<int>(wfilename.size()), &filename[0], size_needed, nullptr, nullptr);
+							auto event = std::string{};
+							switch (pNotify->Action) {
+								case FILE_ACTION_ADDED:
+									event = "add";
+									break;
+								case FILE_ACTION_REMOVED:
+									event = "delete";
+									break;
+								case FILE_ACTION_MODIFIED:
+									event = "update";
+									break;
+								case FILE_ACTION_RENAMED_OLD_NAME:
+								case FILE_ACTION_RENAMED_NEW_NAME:
+									event = "rename";
+									break;
+								default:
+									event = "unknown";
+									break;
+								}
+							callback(event, filename);
+							offset += pNotify->NextEntryOffset;
+						} while (pNotify->NextEntryOffset != 0);
+					}
+				}
+				CloseHandle(hDir);
+			}
+		#endif
+		};
 }
