@@ -46,7 +46,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                             write_json(fmt::format("{}/unuse_resource/{}.json", destination, group["id"].get<std::string>()), group);
                             ++group_size_left;
                         }
-                        assert_conditional(res_temp["groups"].size() == group_size_left, "group_must_empty", "exchange_manifest_group");
+                        assert_conditional(res_temp["groups"].size() == group_size_left, fmt::format("{}", Language::get("popcap.rsb.project.group_must_be_empty")), "exchange_manifest_group");
                     };
                     auto resource_data_section_view_stored = DataSectionViewStored{};
                     unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);

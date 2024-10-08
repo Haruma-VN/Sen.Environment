@@ -240,7 +240,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup
                 {
                     return 0;
                 }
-                assert_conditional(false, "invalid_res_type", "exchange_custom_resource_info");
+                assert_conditional(false, fmt::format("{}", Language::get("popcap.rsb.project.invalid_res_type")), "exchange_custom_resource_info");
             };
             auto first_where = [](
                                    nlohmann::ordered_json const &data,

@@ -155,8 +155,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                             value.id = data.readUint32();
                 if (k_version < 140_ui) {
                     auto length = data.readUint32();
-                    // TODO : Add localization
-                    assert_conditional(length - 1_ui > k_none_size, "invalid_size", "exchange_plugin_chunk");
+                    assert_conditional(length - 1_ui > k_none_size, fmt::format("{}", Language::get("wwise.sound_bank.invalid_size")), "exchange_plugin_chunk");
                     value.library = data.readString(length - 1_ui);
                     exchange_raw_constant(data, 0_byte); // skip last empty byte.
                 }
@@ -1026,11 +1025,11 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     {
                         if (k_version < 88_ui)
                         {
-                            assert_conditional(!b2, "test", "exchange_section_sub");
+                            assert_conditional(!b2, fmt::format("{}", Language::get("wwise.sound_bank.invalid_bitset")), "exchange_section_sub");
                         }
                         if (k_version >= 88_ui && k_version < 112_ui)
                         {
-                            assert_conditional(b3, "test", "exchange_section_sub");
+                            assert_conditional(b3, fmt::format("{}", Language::get("wwise.sound_bank.invalid_bitset")), "exchange_section_sub");
                         }
                         positioning_value.speaker_panning.enable = b1;
                     }
@@ -1038,11 +1037,11 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     {
                         if (k_version < 88_ui)
                         {
-                            assert_conditional(b2, "test", "exchange_section_sub");
+                            assert_conditional(b2, fmt::format("{}", Language::get("wwise.sound_bank.invalid_bitset")), "exchange_section_sub");
                         }
                         if (k_version >= 88_ui && k_version < 112_ui)
                         {
-                            assert_conditional(!b3, "test", "exchange_section_sub");
+                            assert_conditional(!b3, fmt::format("{}", Language::get("wwise.sound_bank.invalid_bitset")), "exchange_section_sub");
                         }
                         positioning_value.listener_routing.position_source.mode = !b1 ? AudioPositioningSettingListenerRoutingPositionSourceMode::user_defined : AudioPositioningSettingListenerRoutingPositionSourceMode::game_defined;
                         exchange_raw_constant(stream, 0_byte);
@@ -1625,7 +1624,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 auto b7 = false;
                 auto b8 = false;
                 exchange_bit_multi<uint8_t>(stream, time_setting_override, b2, b3, b4, b5, b6, b7, b8);
-                assert_conditional(b2 == b3 && b3 == b4 && b4 == b5 && b5 == b6 && b6 == b7 && b7 == b8, "invalid_time_setting_override", "exchange_section_sub");
+                assert_conditional(b2 == b3 && b3 == b4 && b4 == b5 && b5 == b6 && b6 == b7 && b7 == b8, fmt::format("{}", Language::get("wwise.sound_bank.invalid_time_setting_override")), "exchange_section_sub");
             }
             else
             {
@@ -1740,7 +1739,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                               { exchange_bit_multi<uint8_t>(data, value.is_state); });
             }
             auto path_size = stream.readUint32();
-            assert_conditional(path_size % 12_size == 0_size, "invalid_path_size", "exchange_section_sub");
+            assert_conditional(path_size % 12_size == 0_size, fmt::format("{}", Language::get("wwise.sound_bank.invalid_path_size")), "exchange_section_sub");
             path_size /= 12_size;
             if (k_version < 88_ui)
             {
@@ -2386,10 +2385,10 @@ namespace Sen::Kernel::Support::WWise::SoundBank
             }
             default:
             {
-                assert_conditional(false, "invalid_action_type", "exchange_section");
+                assert_conditional(false, fmt::format("{}", Language::get("wwise.sound_bank.invalid_action_type")), "exchange_section");
             }
             };
-            assert_conditional(has_case, "must_has_an_action_type", "exchange_section");
+            assert_conditional(has_case, fmt::format("{}", Language::get("wwise.sound_bank.must_has_an_action_type")), "exchange_section");
             return;
         }
 
@@ -2708,14 +2707,14 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 {
                     auto override_positioning = false;
                     exchange_section_sub(stream, value.positioning, override_positioning);
-                    assert_conditional(override_positioning, "invalid_override_positioning", "exchange_section");
+                    assert_conditional(override_positioning, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_positioning")), "exchange_section");
                     if (k_version < 135_ui)
                     {
                         auto override_game_defined_auxiliary_send = false;
                         auto override_user_defined_auxiliary_send = false;
                         exchange_section_sub(stream, value.auxiliary_send, override_game_defined_auxiliary_send, override_user_defined_auxiliary_send);
-                        assert_conditional(override_game_defined_auxiliary_send, "invalid_override_game_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_user_defined_auxiliary_send, "invalid_override_user_defined_auxiliary_send", "exchange_section");
+                        assert_conditional(override_game_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_user_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_user_defined_auxiliary_send")), "exchange_section");
                     }
                     else
                     {
@@ -2723,9 +2722,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                         auto override_user_defined_auxiliary_send = false;
                         auto override_early_reflection_auxiliary_send = false;
                         exchange_section_sub(stream, value.auxiliary_send, override_game_defined_auxiliary_send, override_user_defined_auxiliary_send, override_early_reflection_auxiliary_send);
-                        assert_conditional(override_game_defined_auxiliary_send, "invalid_override_game_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_user_defined_auxiliary_send, "invalid_override_user_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_early_reflection_auxiliary_send, "invalid_override_early_reflection_auxiliary_send", "exchange_section");
+                        assert_conditional(override_game_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_user_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_early_reflection_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_early_reflection_auxiliary_send")), "exchange_section");
                     }
                 }
             }
@@ -2813,14 +2812,14 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 {
                     auto override_positioning = false;
                     exchange_section_sub(stream, value.positioning, override_positioning);
-                    assert_conditional(override_positioning, "invalid_override_positioning", "exchange_section");
+                    assert_conditional(override_positioning, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_positioning")), "exchange_section");
                     if (k_version < 135_ui)
                     {
                         auto override_game_defined_auxiliary_send = false;
                         auto override_user_defined_auxiliary_send = false;
                         exchange_section_sub(stream, value.auxiliary_send, override_game_defined_auxiliary_send, override_user_defined_auxiliary_send);
-                        assert_conditional(override_game_defined_auxiliary_send, "invalid_override_game_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_user_defined_auxiliary_send, "invalid_override_user_defined_auxiliary_send", "exchange_section");
+                        assert_conditional(override_game_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_user_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_user_defined_auxiliary_send")), "exchange_section");
                     }
                     else
                     {
@@ -2828,9 +2827,9 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                         auto override_user_defined_auxiliary_send = false;
                         auto override_early_reflection_auxiliary_send = false;
                         exchange_section_sub(stream, value.auxiliary_send, override_game_defined_auxiliary_send, override_user_defined_auxiliary_send, override_early_reflection_auxiliary_send);
-                        assert_conditional(override_game_defined_auxiliary_send, "invalid_override_game_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_user_defined_auxiliary_send, "invalid_override_user_defined_auxiliary_send", "exchange_section");
-                        assert_conditional(override_early_reflection_auxiliary_send, "invalid_override_early_reflection_auxiliary_send", "exchange_section");
+                        assert_conditional(override_game_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_user_defined_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_user_defined_auxiliary_send")), "exchange_section");
+                        assert_conditional(override_early_reflection_auxiliary_send, fmt::format("{}", Language::get("wwise.sound_bank.invalid_override_early_reflection_auxiliary_send")), "exchange_section");
                     }
                 }
             }
@@ -3708,7 +3707,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                 else if (k_version < 140_ui)
                 {
                     auto length = stream.readUint32();
-                    assert_conditional(length - 1_ui > k_none_size, "invalid_size", "exchange_platform_settings");
+                    assert_conditional(length - 1_ui > k_none_size, fmt::format("{}", Language::get("wwise.sound_bank.invalid_size")), "exchange_platform_settings");
                     value.platform = stream.readString(length - 1_ui);
                     exchange_raw_constant(stream, 0_byte); // skip last empty byte.
                 }
@@ -3776,7 +3775,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank
                     assert_conditional(false, fmt::format("{} | {}: {:02x}", Kernel::Language::get("wwise.decode.invalid_bnk"), Kernel::Language::get("offset"), stream.read_pos), "exchange_sound_bank");
                 }
             }
-            assert_conditional(stream.read_pos == stream.size(), "", "exchange_sound_bank");
+            assert_conditional(stream.read_pos == stream.size(), fmt::format("{}", Language::get("wwise.sound_bank.stream_is_not_full")), "exchange_sound_bank");
             return;
         }
 

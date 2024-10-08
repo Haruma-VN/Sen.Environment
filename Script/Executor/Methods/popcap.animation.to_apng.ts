@@ -72,8 +72,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToAPNG {
                 defined_or_default<Argument, string>(argument, "destination", Kernel.Path.resolve(`${argument.source}.animation`));
                 load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
                 if (argument.media === undefined) {
-                    // TODO : Add localization
-                    argument.media = Console.path("input media", "directory");
+                    argument.media = Console.path(Kernel.Language.get("popcap.animation.to_apng.input_media"), "directory");
                 }
                 clock.start_safe();
                 Support.PopCap.Animation.Miscellaenous.GenerateAnimation.process_fs(argument.source!, argument.media!, argument.destination!, {

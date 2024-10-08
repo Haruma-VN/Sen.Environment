@@ -117,18 +117,17 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                         packages: argument.packages!,
                     },
                 };
-                Console.warning("copying root directory, please do not delete current directory...");
+                Console.warning(Kernel.Language.get("popcap.rsb.watch.copying_root"));
                 Kernel.FileSystem.create_directory(`${argument.source}.repo`);
                 const repo = {
                     root: `${argument.source}.repo/root`,
                     directory: `${argument.source}.repo`,
                 };
                 Kernel.FileSystem.Operation.copy_directory(argument.source, repo.root);
-                // TODO : Add localization
                 const watcher = new Kernel.FileWatcher(argument.source);
                 watcher.on("delete", (e) => {
                     const timestamp = current_date();
-                    Console.obtained(`${timestamp}: Deleted ${e}`);
+                    Console.obtained(`${timestamp}: ${Kernel.Language.get("popcap.rsb.watch.delete")} ${e}`);
                     clock.start_safe();
                     setting.packages_setting = count_of();
                     const home = `${repo.directory}/${timestamp}`;
@@ -138,15 +137,15 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                     Kernel.FileSystem.write_file(`${repo.directory}/${timestamp}/change.txt`, `Delete ${e}`);
                     Kernel.FileSystem.Operation.remove(Kernel.Path.normalize(`${repo.root}/${e}`));
                     if (/(.*)\.scg$/i.test(`${argument.source}/${e}`) || /(.*)\.rton$/i.test(e)) {
-                        Console.output(`Repacking: ${argument.destination}`);
+                        Console.output(argument.destination!);
                         Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.pack_fs(argument.source, argument.destination!, setting);
                     }
                     clock.stop_safe();
-                    Console.finished(`Elapsed time: ${clock.duration.toFixed(3)}s`);
+                    Console.send(`${Kernel.Language.get("elapsed_time")}: ${clock.duration.toFixed(3)}s`, Definition.Console.Color.GREEN);
                 });
                 watcher.on("update", (e) => {
                     const timestamp = current_date();
-                    Console.obtained(`${timestamp.split("-")}: Updated ${e}`);
+                    Console.obtained(`${timestamp.split("-")}: ${Kernel.Language.get("popcap.rsb.watch.update")} ${e}`);
                     clock.start_safe();
                     const home = `${repo.directory}/${timestamp}`;
                     Kernel.FileSystem.create_directory(home);
@@ -154,13 +153,13 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                     backup_content(`${argument.source}/${e}`, `${repo.root}/${e}`);
                     Kernel.FileSystem.write_file(`${repo.directory}/${timestamp}/change.txt`, `Update ${e}`);
                     if (/(.*)\.scg$/i.test(`${argument.source}/${e}`) || /(.*)\.rton$/i.test(e)) {
-                        Console.output(`Repacking: ${argument.destination}`);
+                        Console.output(argument.destination!);
                         Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.pack_fs(argument.source, argument.destination!, setting);
                     }
                     clock.stop_safe();
-                    Console.finished(`Elapsed time: ${clock.duration.toFixed(3)}s`);
+                    Console.send(`${Kernel.Language.get("elapsed_time")}: ${clock.duration.toFixed(3)}s`, Definition.Console.Color.GREEN);
                 });
-                Console.argument(`${argument.source} is being watch`);
+                Console.argument(format(Kernel.Language.get("popcap.rsb.is_watching"), argument.source));
                 watcher.start();
                 return;
             },

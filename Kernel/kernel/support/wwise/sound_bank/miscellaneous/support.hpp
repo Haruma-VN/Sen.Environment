@@ -55,7 +55,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                     break;
                 }
             }
-            assert_conditional(has_play_music_world, "global_data_has_no_play_music_world_event", "add_music");
+            assert_conditional(has_play_music_world, fmt::format("{}", Language::get("wwise.sound_bank.global_data_has_no_play_music_world_event")), "add_music");
             for (auto &[child_event, exist] : event_exist)
             {
                 auto add_hierarchy = Hierarchy{};
@@ -137,7 +137,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                 }
                 default:
                 {
-                    assert_conditional(false, "invalid_event", "add_music");
+                    assert_conditional(false, String::format(fmt::format("{}", Language::get("wwise.sound_bank.invalid_event")), std::to_string(child_event)), "add_music");
                     break;
                 }
                 }
