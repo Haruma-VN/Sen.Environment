@@ -295,6 +295,23 @@ public:
         float e,
         float f );
 
+    /// @brief  Replace the current image color.
+    ///
+    /// The color and opacity values will be clamped to the 0.0 to 1.0 range,
+    /// inclusive.  Defaults a constant color with 1.0,
+    /// 1.0, 1.0, 1.0.
+    ///
+    /// @param red    sRGB red apply to the image
+    /// @param green  sRGB green apply to the image
+    /// @param blue   sRGB blue apply to the image
+    /// @param alpha  opacity apply to the image
+    ///
+    void set_image_color(
+        float red,
+        float green,
+        float blue,
+        float alpha );
+
     // ======== COMPOSITING ========
 
     /// @brief  Set the degree of opacity applied to all drawing operations.
@@ -1152,6 +1169,7 @@ private:
     int size_y;
     affine_matrix forward;
     affine_matrix inverse;
+    rgba image_color;
     float global_alpha;
     rgba shadow_color;
     float shadow_blur;
@@ -2629,6 +2647,8 @@ canvas::canvas(
       saves( 0 )
 {
     affine_matrix identity = { 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
+    rgba color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    image_color = color;
     forward = identity;
     inverse = identity;
     set_color( fill_style, 0.0f, 0.0f, 0.0f, 1.0f );
@@ -2708,6 +2728,16 @@ void canvas::set_transform(
         scaling * ( c * f - d * e ), scaling * ( b * e - a * f ) };
     forward = new_forward;
     inverse = new_inverse;
+}
+
+// add
+void canvas::set_image_color(
+    float red,
+    float blue,
+    float green,
+    float alpha)
+{
+    image_color =  clamped(rgba( red, green, blue, alpha ) );
 }
 
 void canvas::set_global_alpha(
@@ -2853,9 +2883,24 @@ void canvas::set_pattern(
         for ( int x = 0; x < width; ++x )
         {
             int index = y * stride + x * 4;
+            /*
             rgba color = rgba(
                 image[ index + 0 ] / 255.0f, image[ index + 1 ] / 255.0f,
                 image[ index + 2 ] / 255.0f, image[ index + 3 ] / 255.0f );
+                brush.colors.push_back( premultiplied( linearized( color ) ) );
+                 */
+            
+            /*
+            rgba color = premultiplied( linearized(  rgba(
+                image[ index + 0 ] / 255.0f, image[ index + 1 ] / 255.0f,
+                image[ index + 2 ] / 255.0f, image[ index + 3 ] / 255.0f ) ));
+            
+            brush.colors.push_back(rgba(color.r * image_color.r, color.g * image_color.g, color.b * image_color.b, color.a * image_color.a) );
+            */
+
+           rgba color = rgba(
+                image[ index + 0 ] *  image_color.r / 255.0f, image[ index + 1 ] *  image_color.g / 255.0f,
+                image[ index + 2 ] *  image_color.b / 255.0f, image[ index + 3 ] *  image_color.a / 255.0f );
             brush.colors.push_back( premultiplied( linearized( color ) ) );
         }
     brush.width = width;

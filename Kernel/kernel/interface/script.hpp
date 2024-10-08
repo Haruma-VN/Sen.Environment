@@ -5807,6 +5807,26 @@ namespace Sen::Kernel::Interface::Script
 					return JS_UNDEFINED; }, "arc_to"_sv);
 			}
 
+			// Set image color
+
+			inline static auto set_image_color(
+				JSContext *ctx,
+				JSValueConst this_val,
+				int argc,
+				JSValueConst *argv
+			) -> JSElement::undefined
+			{
+				M_JS_PROXY_WRAPPER(ctx, {
+					try_assert(argc == 4, fmt::format("{} 4, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+					auto s = static_cast<Data*>(JS_GetOpaque2(ctx, this_val, Detail::class_id));
+					if (s == nullptr) {
+						return JS_EXCEPTION;
+					}
+					s->set_image_color(JS::Converter::get_float32(ctx, argv[0]), JS::Converter::get_float32(ctx, argv[1]), JS::Converter::get_float32(ctx, argv[2]), JS::Converter::get_float32(ctx, argv[3]));
+					return JS_UNDEFINED; 
+				}, "set_image_color"_sv);
+			}
+
 			/*
 				arc
 			*/
@@ -6159,6 +6179,7 @@ namespace Sen::Kernel::Interface::Script
 				JS_CPPFUNC_DEF("put_image_data", 2, put_image_data),
 				JS_CPPFUNC_DEF("save", 0, save),
 				JS_CPPFUNC_DEF("restore", 0, restore),
+				JS_CPPFUNC_DEF("set_image_color", 2, set_image_color),
 			};
 
 			// Proxy call

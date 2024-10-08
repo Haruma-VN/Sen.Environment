@@ -7226,9 +7226,9 @@ declare namespace Sen {
              * Sets the drawing color for the specified brush type.
              *
              * @param type - The type of brush to apply the color to (0n for fill, 1n for stroke).
-             * @param red - Red component of the color (0-255).
-             * @param green - Green component of the color (0-255).
-             * @param blue - Blue component of the color (0-255).
+             * @param red - Red component of the color (0-1).
+             * @param green - Green component of the color (0-1).
+             * @param blue - Blue component of the color (0-1).
              * @param alpha - Alpha component of the color (0.0 for fully transparent, 1.0 for fully opaque).
              */
             public set_color(type: BrushType, red: number, green: number, blue: number, alpha: number): void;
@@ -7433,6 +7433,11 @@ declare namespace Sen {
              * Restores the most recently saved canvas state by popping the top entry off the stack.
              */
             public restore(): void;
+
+            /**
+             * Set the color of the image
+             */
+            public set_image_color(red: number, green: number, blue: number, alpha: number): void;
         }
 
         /**
