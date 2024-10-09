@@ -46,8 +46,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
             value.id = string_list[1];
             if (k_version >= 4_ui)
             {
-                value.size.width = stream.readInt16();
-                value.size.height = stream.readInt16();
+                value.dimension.width = stream.readUint16();
+                value.dimension.height = stream.readUint16();
             }
             if (k_version == 1_ui)
             {

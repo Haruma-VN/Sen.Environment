@@ -85,8 +85,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
         {
             stream.writeStringByUint16(String::join(std::vector<std::string>{ value.path, value.id}, vertical_bar));
             if (k_version >= 4_ui) {
-                stream.writeInt16(value.size.width);
-                stream.writeInt16(value.size.height);
+                stream.writeUint16(value.dimension.width);
+                stream.writeUint16(value.dimension.height);
             }
             if (k_version == 1_ui) {
                 exchange_floater_with_rate<int16_t, ValueRate::angle>(value.transform[0], stream);
@@ -275,8 +275,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
             }
             stream.writeUint16(static_cast<uint16_t>(value.frame.size()));
             if (k_version >= 5_size) {
-                stream.writeInt16(value.work_area.start);
-                stream.writeInt16(value.work_area.duration - 1);
+                stream.writeUint16(value.work_area.start);
+                stream.writeUint16(value.work_area.duration - 1);
             }
             exchange_list<false, uint16_t>(stream, value.frame, &exchange_frame);
             return;

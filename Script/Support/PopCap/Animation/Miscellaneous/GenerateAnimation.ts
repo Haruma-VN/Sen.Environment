@@ -1,120 +1,223 @@
 namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     export type Canvas = Kernel.Canvas;
-    export interface Setting {
-        use_image_id: boolean;
-        image_reslution: bigint;
-        x_position?: number;
-        y_position?: number;
-        width?: bigint;
-        height?: bigint;
-        image_layers_remove_list?: Array<bigint>;
-        sprite_layers_remove_list?: Array<bigint>;
-        frame_name?: string;
-        image_ratio?: number;
-        apng_delay_frame?: bigint;
-        apng_loop_count?: bigint;
+
+    export interface PostionAdditional {
+        /**  */
+        x: number;
+        /**  */
+        y: number;
     }
 
-    export type Transform = [number, number, number, number, number, number];
+    /**
+    * 
+    */
+    export interface RenderingSize {
+        /**  */
+        width: bigint;
+        /**  */
+        height: bigint;
+        /**  */
+        scale: number;
+    }
+
+    export interface AnimateImageSetting {
+        /**  */
+        make_apng: boolean;
+        /**  */
+        split_label: boolean;
+        /**  */
+        frame_rate: bigint;
+        /**  */
+        loop: bigint;
+    }
+
+    export interface Setting {
+        /**  */
+        image_id: boolean,
+        /** */
+        frame_name: string;
+        /**  */
+        sprite_disable: Array<bigint>;
+        /**  */
+        background_color: [bigint, bigint, bigint, bigint], // r, g, b, a
+        /**  */
+        rendering_size: RenderingSize;
+        /**  */
+        position_additional: PostionAdditional;
+        /** */
+        apng_setting: AnimateImageSetting;
+    }
+
+    export type Matrix = [number, number, number, number, number, number];
 
     export type Color = [number, number, number, number];
 
-    export interface AreaList {
-        width: Array<number>;
-        height: Array<number>;
-        x_pos: Array<number>;
-        y_pos: Array<number>;
+    export interface MediaSource {
+        size: AnimationSize;
+        matrix: Matrix;
+        image: Kernel.Dimension.Image;
     }
 
-    export interface FrameList {
-        frame_node_list: FrameNodeList;
-        action_list: ActionList;
+    export interface VisualLayer {
+        resource: number;
+        matrix: Matrix;
+        color: Color;
+        //children: Record<number, VisualLayer>;
+        sprite_frame: number | null;
     }
 
-    export interface FrameStruct {
-        resource: bigint | null;
-        is_sprite: boolean;
-        transform_list?: Transform;
-        color_list?: Color;
+    export interface Rectangle {
+        left: number;
+        top: number;
+        right: number;
+        bottom: number;
     }
 
-    export interface Layer {
-        name: string;
-        frame: Record<string, Array<FrameStruct>>;
-    }
+    export interface LabelInfo {
+        frame_start: bigint;
+        frame_end: bigint;
+    };
 
-    export interface AnimationStruct {
-        source_image_name: Array<string>;
-        source_layer: Array<FrameStruct>;
-        sprite_layer: Array<Layer>;
-        action_layer: Record<string, Record<string, Array<FrameStruct>>>;
-        action_length: Record<string, bigint>;
-    }
+    export type DataInfo = Record<string, LabelInfo>;
 
-    export type SourceLayerData = Array<Kernel.Dimension.Image>;
+    export type VisualSpriteFrame = Array<Record<number, VisualLayer>>;
 
-    const initial_transform: number[] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+    const k_initial_matrix: Matrix = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 
-    const initial_color: number[] = [1.0, 1.0, 1.0, 1.0];
+    const k_initial_color: Color = [1.0, 1.0, 1.0, 1.0];
 
-    export function read_image(image: AnimationImage, index: bigint): FrameStruct {
-        return {
-            resource: index,
-            is_sprite: false,
-            transform_list: [image.transform[0], image.transform[1], image.transform[2], image.transform[3], image.transform[4], image.transform[5]],
-        } as FrameStruct;
-    }
+    /**
+     * Detail namespace
+     */
 
-    export function to_transform(transform: number[]): Transform {
-        if (transform.length !== 6) {
-            throw new Error(format(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.invalid_transform_length"), transform.length));
+    export namespace Detail {
+        export function sprite_generic(): Array<[bigint, bigint, string]> {
+            return [
+                [1n, 0n, Kernel.Language.get("popcap.animation.miscellaneous.to_apng.enable_all")], // TODO: add localization.
+                [2n, 1n, Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_all")],
+                [3n, 2n, Kernel.Language.get("popcap.animation.miscellaneous.to_apng.select_to_disable")],
+            ];
         }
-        return [transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]] as Transform;
     }
 
-    export function to_color(color: number[]): Color {
-        if (color.length !== 4) {
-            throw new Error(format(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.invalid_color_length"), color.length));
+    export function load_bigint(rule: any): bigint {
+        const new_rule: Array<bigint> = [];
+        rule.forEach(function make_rule(e: [bigint, string] & any): void {
+            if (Shell.is_gui) {
+                Kernel.Console.print(`${e[0]}. ${e[2]}`);
+            } else {
+                Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
+            }
+            new_rule.push(e[0]);
+        });
+        return (rule)[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
+    }
+
+    export function exchange_sprite_disable(animation: SexyAnimation, setting: Setting) {
+        const sprite_information_map: Record<string, boolean> = {};
+        animation.sprite.map(e => {
+            sprite_information_map[e.name] = false;
+        });
+        const sprite_list = Object.keys(sprite_information_map);
+        if (sprite_list.length >= 0) {
+            Console.finished("All sprites loaded"); // TODO: add locale
+            sprite_list.map((e, i) => {
+                Kernel.Console.print(`    ${i + 1}: ${e}`);
+            });
+            Console.argument(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite")); // TODO: add localization.
+            const input_generic = load_bigint(Detail.sprite_generic());
+            switch (input_generic) {
+                case 0n: {
+                    break;
+                }
+                case 1n: {
+                    sprite_list.map((e, i) => {
+                        setting.sprite_disable.push(BigInt(i));
+                    });
+                    break;
+                }
+                case 2n: {
+                    const rule: Array<bigint> = [0n];
+                    sprite_list.map((e, i) => {
+                        rule.push(BigInt(i + 1));
+                    });
+                    let sprite_to_disable: string = "";
+                    const argument = (rule: Array<bigint>) => {
+                        const input: string = Kernel.Console.readline();
+                        const check_vaild = (range: Array<bigint>) => {
+                            if (range.length > 0) {
+                                return;
+                            }
+                            Console.warning(Sen.Kernel.Language.get("js.invalid_input_value"));
+                        }
+                        let range: Array<bigint> = [];
+                        /*
+                        if (input.includes(" ")) {
+                            range = input.split(" ").filter( e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e)); 
+                            check_vaild(range);
+                        }
+                        */
+                        if (input.includes(",")) {
+                            range = input.split(",").filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                            check_vaild(range);
+                        }
+                        else if (input.includes("-")) {
+                            const range_selected = input.split("-").filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                            if (range_selected.length == 2) {
+                                for (let i = range_selected[0]; i <= range_selected[1]; ++i) {
+                                    range.push(i);
+                                }
+                            }
+                            check_vaild(range);
+                        }
+                        else {
+                            range = [input].filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                            check_vaild(range);
+                        }
+                        return range;
+                    }
+                    while (true) {
+                        Console.argument(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.input_sprite_to_disable")}`); // TODO: add locale
+                        const argument_result: Array<bigint> = argument(rule);
+                        const selected_list: Array<bigint> = [];
+                        for (const index_result of argument_result) {
+                            if (index_result === 0n) {
+                                continue;
+                            }
+                            if (sprite_information_map[sprite_list[Number(index_result - 1n)]]) {
+                                selected_list.push(index_result);
+                                continue;
+                            }
+                            else {
+                                sprite_information_map[sprite_list[Number(index_result - 1n)]] = true;
+                            }
+                            sprite_to_disable += sprite_to_disable === "" ? `${index_result}` : `, ${index_result}`;
+                        }
+                        if (selected_list.length > 0) {
+                            Console.warning(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.sprite_already_selected")}: ${selected_list.join(", ")}`); //TODO: add locale
+                        }
+                        if (argument_result.includes(0n)) {
+                            Console.finished(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite")}: ${sprite_to_disable}`); // TODO: add locale
+                            break;
+                        }
+                        Console.send(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite")}: ${sprite_to_disable}`); // TODO: add locale
+                    }
+                    sprite_list.map((e, i) => {
+                        if (sprite_information_map[e]) {
+                            setting.sprite_disable.push(BigInt(i));
+                        }
+                    });
+                    break;
+                }
+            }
         }
-        return [color[0], color[1], color[2], color[3]] as Color;
-    }
-
-    export function calculation_area(frame_struct: FrameStruct, transform_list: Transform, image_max_area: AreaList, image_source_list: SourceLayerData, animation_struct: AnimationStruct): void {
-        const resource = Number(frame_struct.resource);
-        if (frame_struct.is_sprite) {
-            const frame = animation_struct.sprite_layer[resource].frame["1"][0];
-            const transform = mix_transform(transform_list, frame.transform_list!);
-            calculation_area(frame, transform, image_max_area, image_source_list, animation_struct);
-        } else {
-            const transform = mix_transform(transform_list, animation_struct.source_layer[resource].transform_list!);
-            const image_width = transform[4] + Number(image_source_list[resource].width);
-            const image_height = transform[5] + Number(image_source_list[resource].height);
-            image_max_area.width.push(image_width);
-            image_max_area.height.push(image_height);
-            image_max_area.x_pos.push(transform[4]);
-            image_max_area.y_pos.push(transform[5]);
+        else {
+            Console.finished("Animation has no sprite"); //TODO: add locale
         }
         return;
     }
 
-    export function check_base_frame(transform: number[], color: number[], resource: bigint | null): boolean {
-        for (let i = 0; i < transform.length; ++i) {
-            if (transform[i] !== initial_transform[i]) {
-                return true;
-            }
-        }
-        for (let i = 0; i < color.length; ++i) {
-            if (color[i] !== initial_color[i]) {
-                return true;
-            }
-        }
-        if (resource !== null) {
-            return true;
-        }
-        return false;
-    }
-
-    export function variant_to_standard(transform: number[]): number[] {
+    export function variant_to_matrix(transform: number[]): Matrix {
         switch (transform.length) {
             case 2: {
                 return [1.0, 0.0, 0.0, 1.0, transform[0], transform[1]];
@@ -125,277 +228,15 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                 return [cos, sin, -sin, cos, transform[1], transform[2]];
             }
             case 6: {
-                return [...transform];
+                return [...transform] as Matrix;
             }
             default: {
-                throw new Error(Kernel.Language.get("popcap.animation.from_animation.invalid_transform"));
+                throw new Error(Kernel.Language.get("popcap.animation.from_animation.invalid_transform")); //TODO: add locale
             }
         }
     }
 
-    export function decode_frame_list(animation_sprite: AnimationSprite, animation: SexyAnimation): FrameList {
-        const sprite_model: SpriteModel = {};
-        const frame_node_list: FrameNodeList = {
-            "0": [
-                {
-                    index: 0n,
-                    duration: BigInt(animation_sprite["frame"].length),
-                    resource: null,
-                    sprite: false,
-                    transform: [...initial_transform],
-                    color: [...initial_color],
-                },
-            ],
-        };
-        const frame_length: number = animation_sprite["frame"].length;
-        let main_label: string = "";
-        const action_list: ActionList = {};
-        for (let i = 0; i < frame_length; ++i) {
-            const label: string = animation_sprite["frame"][i]["label"];
-            if (label !== null && label !== "") {
-                if (main_label !== "") {
-                    action_list[main_label]["duration"] = BigInt(i);
-                }
-                main_label = label;
-            }
-            if (main_label !== "") {
-                if (!action_list.hasOwnProperty(main_label)) {
-                    action_list[main_label] = {
-                        start_index: BigInt(i),
-                        duration: 0n,
-                        frame_index: [],
-                    };
-                }
-                if (i === frame_length - 1) {
-                    action_list[main_label]["duration"] = BigInt(i + 1);
-                }
-            }
-            const frame_removes: bigint[] = animation_sprite["frame"][i]["remove"];
-            for (let k = 0; k < frame_removes.length; ++k) {
-                sprite_model[`${frame_removes[k]}`]["state"] = false;
-            }
-            const frame_additives: AnimationAppend[] = animation_sprite["frame"][i]["append"];
-            for (let k = 0; k < frame_additives.length; ++k) {
-                sprite_model[`${frame_additives[k]["index"]}`] = {
-                    state: null,
-                    resource: frame_additives[k]["resource"],
-                    sprite: frame_additives[k]["sprite"],
-                    transform: [...initial_transform],
-                    color: [...initial_color],
-                    frame_start: BigInt(i),
-                    frame_duration: BigInt(i),
-                };
-                frame_node_list[`${frame_additives[k]["index"] + 1n}`] = [];
-                if (i > 0) {
-                    frame_node_list[`${frame_additives[k]["index"] + 1n}`].push({
-                        index: 0n,
-                        duration: BigInt(i),
-                        resource: null,
-                        sprite: false,
-                        transform: [...initial_transform],
-                        color: [...initial_color],
-                    });
-                }
-            }
-            const frame_moves: AnimationMove[] = animation_sprite["frame"][i]["change"];
-            for (let k = 0; k < frame_moves.length; ++k) {
-                const frame_change: AnimationMove = frame_moves[k];
-                const layers: Model = sprite_model[`${frame_change["index"]}`];
-                layers["state"] = true;
-                const static_transform: number[] = variant_to_standard(frame_change["transform"]);
-                layers["transform"] = static_transform;
-                if (
-                    frame_change["color"] !== null &&
-                    (frame_change["color"][0] !== initial_color[0] ||
-                        frame_change["color"][1] !== initial_color[1] ||
-                        frame_change["color"][2] !== initial_color[2] ||
-                        frame_change["color"][3] !== initial_color[3])
-                ) {
-                    layers["color"] = frame_change["color"];
-                }
-            }
-            const model_keys: string[] = Object.keys(sprite_model);
-            for (let k = 0; k < model_keys.length; ++k) {
-                const layers_index: bigint = BigInt(model_keys[k]);
-                if (main_label !== "") {
-                    if (!action_list[main_label]["frame_index"].includes(layers_index + 1n)) {
-                        action_list[main_label]["frame_index"].push(layers_index + 1n);
-                    }
-                }
-                const layers: Model = sprite_model[`${layers_index}`];
-                const frame_node: FrameNode[] = frame_node_list[`${layers_index + 1n}`];
-                if (layers["state"] !== null) {
-                    if (frame_node.length > 0) {
-                        frame_node[`${frame_node.length - 1}`]["duration"] = layers["frame_duration"];
-                    }
-                }
-                if (layers["state"] === true) {
-                    let first_frame: bigint = layers["sprite"] ? (BigInt(i) - layers["frame_start"]) % BigInt(animation.sprite[Number(layers["resource"])]["frame"].length) : 0n;
-                    frame_node.push({
-                        index: BigInt(i),
-                        duration: 0n,
-                        resource: layers["resource"],
-                        sprite: layers["sprite"],
-                        first_frame: first_frame,
-                        transform: layers["transform"],
-                        color: layers["color"],
-                    });
-                    layers["state"] = null;
-                    layers["frame_duration"] = 0n;
-                }
-                if (layers["state"] === false) {
-                    delete sprite_model[`${layers_index}`];
-                }
-                ++layers["frame_duration"];
-            }
-        }
-        const model_keys: string[] = Object.keys(sprite_model);
-        for (let i = 0; i < model_keys.length; ++i) {
-            const layers_index: bigint = BigInt(model_keys[i]);
-            const layer: Model = sprite_model[`${layers_index}`];
-            const frame_node: FrameNode[] = frame_node_list[`${layers_index + 1n}`];
-            frame_node[`${frame_node.length - 1}`]["duration"] = layer["frame_duration"];
-            delete sprite_model[`${layers_index}`];
-        }
-        return {
-            frame_node_list: frame_node_list,
-            action_list: action_list,
-        };
-    }
-
-    export function write_action(frame_list: FrameList): Record<string, Record<string, FrameNode[]>> {
-        const action_list: ActionList = frame_list["action_list"];
-        const action_keys: string[] = Object.keys(action_list);
-        const action_node_list: Record<string, Record<string, FrameNode[]>> = {};
-        const frame_node_list: FrameNodeList = frame_list["frame_node_list"];
-        const frame_keys: string[] = Object.keys(frame_node_list);
-        for (let label of action_keys) {
-            const action_node: Action = action_list[label];
-            const start_index: bigint = action_node["start_index"];
-            const action_duration: bigint = action_node["duration"];
-            action_node_list[label] = { "0": [] };
-            const last_frames_list: bigint[] = [];
-            let last_index: number = 0;
-            for (let i = 0; i < frame_keys.length; ++i) {
-                if (!action_node["frame_index"].includes(BigInt(i))) continue;
-                const action_frame_node: FrameNode[] = [];
-                const frame_node: FrameNode[] = frame_node_list[i];
-                for (let k = 0; k < frame_node.length; ++k) {
-                    const index: bigint = frame_node[k]["index"];
-                    const duration: bigint = frame_node[k]["duration"];
-                    if (index + duration <= start_index) continue;
-                    if (index >= action_duration) break;
-                    const frame_node_template = Kernel.Miscellaneous.make_copy<FrameNode>(frame_node[k]);
-                    if (index + duration > action_duration) {
-                        if (index < action_duration) {
-                            if (index < start_index) {
-                                frame_node_template["index"] = start_index;
-                                frame_node_template["duration"] -= duration - action_duration - index + start_index;
-                            } else {
-                                frame_node_template["duration"] -= duration + index - action_duration;
-                            }
-                        }
-                        frame_node_template["index"] -= start_index;
-                        action_frame_node.push(frame_node_template);
-                    } else {
-                        if (index < start_index) {
-                            frame_node_template["index"] = start_index;
-                            frame_node_template["duration"] -= start_index - index;
-                        }
-                        frame_node_template["index"] -= start_index;
-                        action_frame_node.push(frame_node_template);
-                    }
-                    last_frames_list.push(frame_node_template["index"] + frame_node_template["duration"]);
-                }
-                action_node_list[label][`${i}`] = action_frame_node;
-                last_index = i;
-            }
-            const last_frame: bigint = BigIntMax(...last_frames_list);
-            if (last_frame < action_duration - start_index) {
-                action_node_list[label][`${last_index + 1}`] = [
-                    {
-                        index: 0n,
-                        duration: action_duration - start_index,
-                        resource: null,
-                        sprite: false,
-                        transform: [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                        color: [1.0, 1.0, 1.0, 1.0],
-                    },
-                ];
-            }
-        }
-        return action_node_list;
-    }
-
-    function BigIntMax(...args: bigint[]): bigint {
-        return args.reduce((m, e) => (e > m ? e : m));
-    }
-
-    export function read_sprite_for_action(
-        frame_node_list: FrameNodeList,
-        image_max_area: AreaList,
-        image_source_list: SourceLayerData,
-        animation_struct: AnimationStruct,
-    ): Record<string, Array<FrameStruct>> {
-        const frame_keys = Object.keys(frame_node_list);
-        const layers_list = {} as Record<string, Array<FrameStruct>>;
-        for (let i = frame_keys.length - 1; i > 0; --i) {
-            // const layer_index = frame_keys[i];
-            const frame_node = frame_node_list[frame_keys[i]];
-            const frame_list = [];
-            for (let k = 0; k < frame_node.length; ++k) {
-                const frame_struct = {
-                    resource: null,
-                    is_sprite: frame_node[k].sprite,
-                } as FrameStruct;
-                const transform = frame_node[k].transform;
-                const color = frame_node[k].color;
-                const resource = frame_node[k].resource;
-                if (check_base_frame(transform, color, resource)) {
-                    frame_struct.resource = resource;
-                    frame_struct.transform_list = to_transform(transform);
-                    frame_struct.color_list = to_color(color);
-                    calculation_area(frame_struct, frame_struct.transform_list, image_max_area, image_source_list, animation_struct);
-                }
-                for (let h = 0n; h < frame_node[k].duration; ++h) {
-                    frame_list.push(frame_struct);
-                }
-            }
-            if (frame_list.length > 0) layers_list[`${i}`] = frame_list;
-        }
-        return layers_list;
-    }
-
-    export function read_sprite(frame_node_list: FrameNodeList): Record<string, Array<FrameStruct>> {
-        const frame_keys = Object.keys(frame_node_list);
-        const layers_list = {} as Record<string, Array<FrameStruct>>;
-        for (let i = frame_keys.length - 1; i > 0; --i) {
-            // const layer_index = frame_keys[i];
-            const frame_node = frame_node_list[frame_keys[i]];
-            const frame_list = [];
-            for (let k = 0; k < frame_node.length; ++k) {
-                const frame_struct = {
-                    resource: null,
-                    is_sprite: frame_node[k].sprite,
-                } as FrameStruct;
-                const transform = frame_node[k].transform;
-                const color = frame_node[k].color;
-                const resource = frame_node[k].resource;
-                if (check_base_frame(transform, color, resource)) {
-                    frame_struct.resource = resource;
-                    frame_struct.transform_list = to_transform(transform);
-                    frame_struct.color_list = to_color(color);
-                }
-                for (let h = 0n; h < frame_node[k].duration; ++h) {
-                    frame_list.push(frame_struct);
-                }
-            }
-            if (frame_list.length > 0) layers_list[`${i}`] = frame_list;
-        }
-        return layers_list;
-    }
-
-    export function mix_transform(source: Transform, change: Transform): Transform {
+    export function mix_matrix(source: Matrix, change: Matrix) {
         return [
             change[0] * source[0] + change[2] * source[1],
             change[1] * source[0] + change[3] * source[1],
@@ -403,243 +244,283 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             change[1] * source[2] + change[3] * source[3],
             change[0] * source[4] + change[2] * source[5] + change[4],
             change[1] * source[4] + change[3] * source[5] + change[5],
-        ] as Transform;
+        ] as Matrix;
     }
 
-    export function mix_color(source: Color, change: Color): Color {
+    export function mix_color(source: Color, change: Color) {
         return [change[0] * source[0], change[1] * source[1], change[2] * source[2], change[3] * source[3]] as Color;
     }
 
-    export function composite_image(
-        frame_index: number,
-        canvas: Kernel.Canvas,
-        frame: FrameStruct,
-        transform_list: Transform,
-        color_list: Color,
-        animation_struct: AnimationStruct,
-        source_layer_list: SourceLayerData,
-        setting: Setting,
-    ): void {
-        const resource = Number(frame.resource);
-        if (frame.is_sprite) {
-            if (setting.sprite_layers_remove_list!.includes(frame.resource!)) return;
-            const sprite = animation_struct.sprite_layer[resource].frame;
-            for (const [layer_index, frame] of Object.entries(sprite)) {
-                const last_frame = frame_index >= frame.length ? frame.length - 1 : frame_index;
-                const transform = mix_transform(transform_list, frame[last_frame].transform_list!);
-                const color = mix_color(color_list, frame[last_frame].color_list!);
-                composite_image(frame_index, canvas, frame[last_frame], transform, color, animation_struct, source_layer_list, setting);
+    export function load_media_source(animation: SexyAnimation, media_source: string, setting: Setting) {
+        const media_source_list: Array<MediaSource> = [];
+        const scale_image = (image: Kernel.Dimension.Image) => {
+            const percent = setting.rendering_size.scale;
+            if (percent !== 1) {
+                const new_width = BigInt(Math.round(Number(image.width) * percent));
+                const new_height = BigInt(Math.round(Number(image.height) * percent));
+                const resized_image_data = new Uint8ClampedArray(Number(new_width * new_height * 4n));
+                const source_data = new Uint8ClampedArray(Kernel.Miscellaneous.copyArrayBuffer(image.data));
+                for (let j = 0n; j < new_height; j++) {
+                    for (let i = 0n; i < new_width; i++) {
+                        const old_pixel_height = BigInt(Math.round(Number(j) / percent));
+                        const old_pixel_width = BigInt(Math.round(Number(i) / percent));
+                        const old_index = Number((old_pixel_height * image.width + old_pixel_width) * 4n);
+                        const new_index = Number((j * new_width + i) * 4n);
+                        for (let k = 0; k < 4; k++) {
+                            resized_image_data[new_index + k] = source_data[old_index + k];
+                        }
+                    }
+                }
+                image.width = new_width;
+                image.height = new_height;
+                image.data = resized_image_data.buffer;
             }
-            return;
-        }
-        if (setting.image_layers_remove_list!.includes(frame.resource!)) {
-            return;
-        }
-        const transform = mix_transform(transform_list!, animation_struct.source_layer[resource].transform_list!);
-        canvas.set_transform(transform[0], transform[1], transform[2], transform[3], transform[4] + setting.x_position!, transform[5] + setting.y_position!);
-        const image = source_layer_list[Number(frame.resource)];
-        let image_data = image.data;
-        if (color_list[0] !== 1.0 || color_list[1] !== 1.0 || color_list[2] !== 1.0 || color_list[3] !== 1.0) {
-            const new_image_data = new Uint8ClampedArray(Kernel.Miscellaneous.copyArrayBuffer(image_data));
-            for (let i = 0; i < image_data.byteLength / 4; ++i) {
-                if (color_list[0] !== 1.0) {
-                    new_image_data[i * 4] = color_list[0];
-                }
-                if (color_list[1] !== 1.0) {
-                    new_image_data[i * 4 + 1] *= color_list[1];
-                }
-                if (color_list[2] !== 1.0) {
-                    new_image_data[i * 4 + 2] *= color_list[2];
-                }
-                if (color_list[3] !== 1.0) {
-                    new_image_data[i * 4 + 3] *= color_list[3];
-                }
-            }
-            image_data = new_image_data.buffer;
-        }
-        canvas.draw_image(image_data, image.width, image.height, image.width * 4n, 0, 0, Number(image.width) * setting.image_ratio!, Number(image.height) * setting.image_ratio!);
-        return;
-    }
-
-    export function write_image(animation_struct: AnimationStruct, destination: string, source_layer_list: SourceLayerData, setting: Setting): void {
-        const width = setting.width!;
-        const height = setting.width!;
-        const main_image_path_list = [] as Array<string>;
-        const main_frame_list = [] as Array<bigint>;
-        for (const [key, value] of Object.entries(animation_struct.action_layer)) {
-            const image_path_list = [] as Array<string>;
-            const frame_list = [] as Array<bigint>;
-            Kernel.FileSystem.create_directory(`${destination}/${key}`);
-            for (let i = 0; i < animation_struct.action_length[key]; i++) {
-                const canvas = new Kernel.Canvas(width, height);
-                for (const [layer_index, frame] of Object.entries(value)) {
-                    if (i >= frame.length || frame[i].resource === null) continue;
-                    composite_image(i, canvas, frame[i], frame[i].transform_list!, frame[i].color_list!, animation_struct, source_layer_list, setting);
-                }
-                const image_data = new ArrayBuffer(Number(width * height * 4n));
-                canvas.get_image_data(image_data, width, height, width * 4n, 0n, 0n);
-                const png_path = `${destination}/${key}/${setting.frame_name}_${i}.png`;
-                Kernel.ImageView.write_fs(png_path, Kernel.ImageView.instance(width, height, image_data));
-                image_path_list.push(png_path);
-                frame_list.push(setting.apng_delay_frame!);
-            }
-            main_image_path_list.push(...image_path_list);
-            main_frame_list.push(...frame_list);
-            //make apng
-            Kernel.Miscellaneous.to_apng(
-                image_path_list,
-                `${destination}/${key}.apng`,
-                new Kernel.APNGMakerSetting(frame_list, new Kernel.UInteger32(setting.apng_loop_count), new Kernel.UInteger32(width), new Kernel.UInteger32(height), new Kernel.Boolean(false)),
-            );
-        }
-        Kernel.Miscellaneous.to_apng(
-            main_image_path_list,
-            `${destination}/main.apng`,
-            new Kernel.APNGMakerSetting(main_frame_list, new Kernel.UInteger32(setting.apng_loop_count), new Kernel.UInteger32(width), new Kernel.UInteger32(height), new Kernel.Boolean(false)),
-        );
-        return;
-    }
-
-    export function apply_setting(setting: Setting, image_max_area: Array<number>): void {
-        setting.image_ratio = 1200 / Number(setting.image_reslution);
-        if (setting.frame_name === undefined) {
-            setting.frame_name = "frame";
-        }
-        if (setting.width === undefined) {
-            setting.width = BigInt(Math.ceil(image_max_area[0]));
-        }
-        if (setting.height === undefined) {
-            setting.height = BigInt(Math.ceil(image_max_area[1]));
-        }
-        if (setting.x_position === undefined) {
-            setting.x_position = 0;
-        }
-        setting.x_position += Math.abs(image_max_area[2]);
-        if (setting.y_position === undefined) {
-            setting.y_position = 0;
-        }
-        setting.y_position += Math.abs(image_max_area[3]);
-        if (setting.apng_delay_frame === undefined) {
-            setting.apng_delay_frame = 30n;
-        }
-        if (setting.apng_loop_count === undefined) {
-            setting.apng_loop_count = 0n;
-        }
-        if (setting.image_layers_remove_list === undefined) {
-            setting.image_layers_remove_list = [];
-        }
-        if (setting.sprite_layers_remove_list === undefined) {
-            setting.sprite_layers_remove_list = [];
-        }
-        return;
-    }
-
-    export type BaseWrapper = {
-        image_source_list: SourceLayerData;
-        image_max_area: Array<number>;
-    };
-
-    export function create_animation_struct(animation_struct: AnimationStruct, animation: SexyAnimation, media_source: string, setting: Setting): BaseWrapper {
-        let image_index = 0n;
-        const image_source_list = [] as SourceLayerData;
-        const image_max_area = { width: [], height: [], x_pos: [], y_pos: [] } as AreaList;
-        for (let image of animation.image) {
-            const image_name = setting.use_image_id ? image.id : image.path;
-            image_source_list.push(Kernel.Image.open(`${media_source}/${image_name}.png`));
-            animation_struct.source_image_name.push();
-            animation_struct.source_layer.push(read_image(image, image_index++));
-        }
-        for (let sprite of animation.sprite) {
-            const frame_list = decode_frame_list(sprite, animation);
-            animation_struct.sprite_layer.push({
-                name: sprite.name,
-                frame: read_sprite(frame_list.frame_node_list),
+            return image;
+        };
+        for (const image of animation.image) {
+            media_source_list.push({
+                size: {
+                    width: Number(image.dimension.width),
+                    height: Number(image.dimension.height),
+                },
+                matrix: variant_to_matrix(image.transform),
+                image: scale_image(Kernel.Image.open(`${media_source}/${setting.image_id ? image.id : image.path}.png`))
             });
         }
-        const frame_list = decode_frame_list(animation.main_sprite, animation);
-        const action_node_list = write_action(frame_list);
-        for (const [key, value] of Object.entries(action_node_list)) {
-            const action = read_sprite_for_action(value, image_max_area, image_source_list, animation_struct);
-            animation_struct.action_layer[key] = action;
-            animation_struct.action_length[key] = frame_list.action_list[key].duration - frame_list.action_list[key].start_index;
-        }
-        const max_width = Math.max(...image_max_area.width);
-        const max_height = Math.max(...image_max_area.height);
-        const min_x = Math.min(...image_max_area.x_pos);
-        const min_y = Math.min(...image_max_area.y_pos);
-        return {
-            image_source_list,
-            image_max_area: [max_width, max_height, min_x, min_y] as Array<number>,
-        };
+        return media_source_list;
     }
 
-    export function add_sprite_to_disable(animation: SexyAnimation, setting: Setting): void {
-        Console.finished("All Sprites loaded");
-        const sprite_length = animation.sprite.length;
-        for (let i = 0; i < sprite_length; ++i) {
-            Kernel.Console.print(`    ${i + 1}: ${animation.sprite[i].name}`);
-        }
-        Console.argument(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.input_sprite_to_disable"));
-        let sprite_to_disable: string = "";
-        const add_sprite = () => {
-            const result = Executor.input_integer([0n, ...setting.sprite_layers_remove_list!]);
-            const sprite_index = BigInt(result) - 1n;
-            if (BigInt(result) === 0n) {
-                return;
+    export function visualize_sprite(sprite: AnimationSprite, setting: Setting) {
+        const visual_frame_sprite: VisualSpriteFrame = [];
+        const layer_list: Record<number, VisualLayer> = {};
+        for (const frame of sprite.frame) {
+            for (const remove_index of frame.remove) {
+                delete layer_list[Number(remove_index)];
             }
-            if (setting.sprite_layers_remove_list!.includes(sprite_index)) {
-                Console.error(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.sprite_already_selected"));
-                add_sprite();
-            } else {
-                setting.sprite_layers_remove_list!.push(sprite_index);
-                sprite_to_disable += `${result} `;
-                add_sprite();
-            }
-        };
-        add_sprite();
-        Console.argument(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite")}: ${sprite_to_disable}`);
-        return;
-    }
-
-    export function before_start(animation: SexyAnimation, setting: Setting): void {
-        Console.argument(Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_sprite"));
-        Kernel.Console.print(`    1. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.enable_all")}`);
-        Kernel.Console.print(`    2. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.disable_all")}`);
-        Kernel.Console.print(`    3. ${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.select_to_disable")}`);
-        const result = Executor.input_integer([1n, 2n, 3n]);
-        setting.sprite_layers_remove_list = [];
-        switch (result) {
-            case 1n: {
-                break;
-            }
-            case 2n: {
-                for (let i = 0; i < animation.sprite.length; ++i) {
-                    setting.sprite_layers_remove_list!.push(BigInt(i));
+            for (const append of frame.append) {
+                if (append.sprite && setting.sprite_disable.includes(append.resource)) {
+                    continue;
                 }
-                break;
+                const layer: VisualLayer = {
+                    resource: Number(append.resource),
+                    matrix: k_initial_matrix,
+                    color: k_initial_color,
+                    sprite_frame: append.sprite ? 0 : null
+                };
+                layer_list[Number(append.index)] = layer;
             }
-            case 3n: {
-                add_sprite_to_disable(animation, setting);
-                break;
+            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+                const layer = layer_list[layer_index];
+                if (layer.sprite_frame !== null) {
+                    ++layer.sprite_frame;
+                }
             }
+            for (const change of frame.change) {
+                if (!layer_list.hasOwnProperty(Number(change.index))) {
+                    continue;
+                }
+                const layer = layer_list[Number(change.index)];
+                if (layer.sprite_frame !== null) {
+                    layer.sprite_frame = 0; // reset.
+                }
+                layer.matrix = variant_to_matrix(change.transform);
+                if (change.color !== null) {
+                    layer.color = change.color;
+                }
+            }
+            visual_frame_sprite.push(Kernel.Miscellaneous.make_copy(layer_list));
+        }
+        return visual_frame_sprite;
+    }
+
+    export function draw_image(canvas: Kernel.Canvas, layer: VisualLayer, sprite_list: Array<VisualSpriteFrame>, media_source: Array<MediaSource>, setting: Setting) {
+        if (layer.sprite_frame !== null) {
+            const sprite = sprite_list[layer.resource];
+            let frame_index = layer.sprite_frame;
+            while (frame_index >= sprite.length) {
+                frame_index -= sprite.length;
+            }
+            const sprite_frame = sprite[frame_index];
+            for (const layer_index of Object.keys(sprite_frame).map(e => Number(e))) {
+                const viusal_layer: VisualLayer = {...sprite_frame[layer_index]};
+                viusal_layer.matrix = mix_matrix(viusal_layer.matrix, layer.matrix);
+                viusal_layer.color = mix_color(viusal_layer.color, layer.color);
+                draw_image(canvas, viusal_layer, sprite_list, media_source, setting);
+            }
+        }
+        else {
+            const media = media_source[layer.resource];
+            const matrix = mix_matrix(media.matrix, layer.matrix);
+            const resize_matrix = mix_matrix(matrix, [setting.rendering_size.scale, 0, 0, setting.rendering_size.scale, 0, 0]);
+            canvas.set_transform(resize_matrix[0], resize_matrix[1], resize_matrix[2], resize_matrix[3], resize_matrix[4] + setting.position_additional.x, resize_matrix[5] + setting.position_additional.y);
+            canvas.set_image_color(layer.color[0], layer.color[1], layer.color[2], layer.color[3]);
+            canvas.draw_image(media.image.data, media.image.width, media.image.height, media.image.width * 4n, 0, 0, media.size.width, media.size.height);
+        }
+    }
+
+    export function color_clamped(color: [bigint, bigint, bigint, bigint] | Color) {
+        const clamped = (data: number | bigint) => {
+            let c = 0;
+            if (typeof data === "bigint") {
+                c = Number(Math.max(0, Math.min(255, c))) / 255;
+            }
+            else { 
+                c = data;
+            }
+            return Math.max(0, Math.min(255, c));
+        }
+        return [clamped(color[0]), clamped(color[1]), clamped(color[2]), clamped(color[3])];
+    }
+
+    export function write_frames(visual_sprite_frame: VisualSpriteFrame, sprite_list: Array<VisualSpriteFrame>, media_source: Array<MediaSource>,  destination: string, setting: Setting) {
+        const width = setting.rendering_size.width;
+        const height = setting.rendering_size.height;
+        Kernel.FileSystem.create_directory(destination);
+        for (const frame_index in visual_sprite_frame) {
+            const layer_list = visual_sprite_frame[frame_index];
+            const canvas = new Kernel.Canvas(width, height);
+            const background_color = color_clamped(setting.background_color);
+            canvas.set_color(0n, background_color[0], background_color[1], background_color[2], background_color[3]);
+            canvas.fill_rectangle(0, 0, Number(width), Number(height));
+            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+                const layer = layer_list[layer_index];
+                draw_image(canvas, layer, sprite_list, media_source, setting);
+            }
+            const image_path = `${destination}/${setting.frame_name!}_${Number(frame_index) + 1}.png`;
+            const image_data = new ArrayBuffer(Number(width * height * 4n));
+            canvas.get_image_data(image_data, width, height, width * 4n, 0n, 0n);
+            Kernel.ImageView.write_fs(image_path, Kernel.ImageView.instance(width, height, image_data));
         }
         return;
     }
 
-    export function process(animation: SexyAnimation, media_source: string, destination: string, setting: Setting): void {
-        before_start(animation, setting); //TODO rewrite this funciton;
-        Kernel.FileSystem.create_directory(destination);
-        const animation_struct = { source_image_name: [], source_layer: [], sprite_layer: [], action_layer: {}, action_length: {} } as AnimationStruct;
-        const helper = create_animation_struct(animation_struct, animation, media_source, setting);
-        // Kernel.JSON.serialize_fs(`${destination}/struct.json`, animation_struct, 1, true);
-        apply_setting(setting, helper.image_max_area);
-        write_image(animation_struct, destination, helper.image_source_list, setting);
+    export function exchange_area(visual_sprite_frame: VisualSpriteFrame, sprite_list: Array<VisualSpriteFrame>, media_source: Array<MediaSource>, setting: Setting) {
+        const rectangle: Rectangle = {
+            left: Infinity,
+            top: Infinity,
+            right: -Infinity,
+            bottom: -Infinity
+        };
+        const clamped = (data: number) => {
+            return data < 0 ? 0 : data;
+        }
+        const calculator_dimension = (dimension: AnimationSize, matrix: Matrix) => {
+            return {
+                width: clamped(matrix[0] * dimension.width + matrix[1] * dimension.height),
+                height: clamped(matrix[2] * dimension.width + matrix[3] * dimension.height),
+            } as AnimationSize;
+        }
+        const rect_image = (layer: VisualLayer) => {
+            if (layer.sprite_frame !== null) {
+                const sprite = sprite_list[layer.resource];
+                let frame_index = layer.sprite_frame;
+                while (frame_index >= sprite.length) {
+                    frame_index -= sprite.length;
+                }
+                const sprite_frame = sprite[frame_index];
+                for (const layer_index of Object.keys(sprite_frame).map(e => Number(e))) {
+                    const viusal_layer: VisualLayer = {...sprite_frame[layer_index]};
+                    viusal_layer.matrix = mix_matrix(viusal_layer.matrix, layer.matrix);
+                    viusal_layer.color = mix_color(viusal_layer.color, layer.color);
+                    rect_image(viusal_layer);
+                }
+            }
+            else {
+                const media = media_source[layer.resource];
+                const matrix = mix_matrix(media.matrix, layer.matrix);
+                const resize_matrix = mix_matrix(matrix, [setting.rendering_size.scale, 0, 0, setting.rendering_size.scale, 0, 0]);
+                const after_apply_matrix_to_media_dimension = calculator_dimension(media.size, resize_matrix);
+                rectangle.left = Math.min(rectangle.left, resize_matrix[4]);
+                rectangle.top = Math.min(rectangle.top, resize_matrix[5]);
+                rectangle.right = Math.max(rectangle.right, resize_matrix[4] + after_apply_matrix_to_media_dimension.width);
+                rectangle.bottom = Math.max(rectangle.bottom, resize_matrix[5] + after_apply_matrix_to_media_dimension.height);
+            }
+        }
+        for (const frame_index in visual_sprite_frame) {
+            const layer_list = visual_sprite_frame[frame_index];
+            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+                const layer = layer_list[layer_index];
+                rect_image(layer);
+            }
+        }
+        setting.position_additional.x += -rectangle.left;
+        setting.position_additional.y += -rectangle.top;
+        setting.rendering_size.width = BigInt(Math.ceil(-rectangle.left + rectangle.right));
+        setting.rendering_size.height = BigInt(Math.ceil(-rectangle.top + rectangle.bottom));
         return;
     }
 
-    export function process_fs(source: string, media_source: string, destination: string, setting: Setting): void {
-        const animation: SexyAnimation = Kernel.JSON.deserialize_fs<SexyAnimation>(source);
-        process(animation, media_source, destination, setting);
+    export function exchange_label(sprite: AnimationSprite) {
+        const data_info: DataInfo = {};
+        let label_name = "animation";
+        for (const frame_index in sprite.frame) {
+            if (sprite.frame[frame_index].label !== "") {
+                label_name = sprite.frame[frame_index].label;
+                data_info[label_name] = {
+                    frame_start: BigInt(frame_index) + 1n, 
+                    frame_end: BigInt(frame_index) + 1n
+                }
+            }
+            else {
+                ++data_info[label_name].frame_end;
+            }
+        }
+        return data_info;
+    }
+
+    //public:
+    export function process(animation: SexyAnimation, media_source: string, destination: string, setting: Setting) {
+        if (setting.rendering_size.scale < 0n) {
+            setting.rendering_size.scale = 1;
+        }
+        const media_source_list = load_media_source(animation, media_source, setting);
+        const visual_sprite_list: Array<VisualSpriteFrame> = [];
+        for (const sprite of animation.sprite) {
+            visual_sprite_list.push(visualize_sprite(sprite, setting));
+        }
+        const main_visual_sprite = visualize_sprite(animation.main_sprite, setting);
+        if (setting.rendering_size.width <= 0n && setting.rendering_size.height <= 0n) {
+            exchange_area(main_visual_sprite, visual_sprite_list, media_source_list, setting);
+        }
+        Console.output(`Animation Width: ${setting.rendering_size.width}`); // TODO
+        Console.output(`Animation Height: ${setting.rendering_size.height}`);
+        write_frames(main_visual_sprite, visual_sprite_list, media_source_list, `${destination}/frames`, setting);
+        const definition: DataInfo = exchange_label(animation.main_sprite);
+        Kernel.JSON.serialize_fs(`${destination}/data.json`, definition, 1, true);
+        if (setting.apng_setting.make_apng) {
+            const frame_rate = setting.apng_setting.frame_rate <= 0n ? animation.frame_rate : setting.apng_setting.frame_rate;
+            const write_apng = (path_list: Array<string>, destination: string, frame_list: Array<bigint>) => {
+                Kernel.Miscellaneous.to_apng(
+                    path_list, destination,
+                    new Kernel.APNGMakerSetting(frame_list, new Kernel.UInteger32(setting.apng_setting.loop), new Kernel.UInteger32(setting.rendering_size.width), new Kernel.UInteger32(setting.rendering_size.height), new Kernel.Boolean(false)),
+                );
+            }
+            if (setting.apng_setting.split_label) {
+                const main_animation_path_list: Array<string> = [];
+                const main_animation_frame_list: Array<bigint> = [];
+                for (const [label_name, label_info] of Object.entries(definition)) {
+                    const label_path_list: Array<string> = [];
+                    const label_frame_list: Array<bigint> = [];
+                    for (let i = label_info.frame_start; i <= label_info.frame_end; i++) {
+                        label_path_list.push(`${destination}/frames/${setting.frame_name}_${i}.png`);
+                        label_frame_list.push(frame_rate);
+                    }
+                    write_apng(label_path_list, `${destination}/label/${label_name}.apng`, label_frame_list);
+                    main_animation_path_list.push(...label_path_list);
+                    main_animation_frame_list.push(...label_frame_list);
+                }
+                write_apng(main_animation_path_list, `${destination}/animation.apng`, main_animation_frame_list);
+            }
+            else {
+                const main_animation_path_list: Array<string> = [];
+                const main_animation_frame_list: Array<bigint> = [];
+                for (const frame_index in main_visual_sprite) {
+                    main_animation_path_list.push(`${destination}/frames/${setting.frame_name}_${Number(frame_index) + 1}.png`);
+                    main_animation_frame_list.push(frame_rate);
+                }
+                write_apng(main_animation_path_list, `${destination}/animation.apng`, main_animation_frame_list);
+            }
+        }
         return;
     }
 }

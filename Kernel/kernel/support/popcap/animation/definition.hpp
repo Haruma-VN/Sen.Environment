@@ -5,6 +5,49 @@
 namespace Sen::Kernel::Support::PopCap::Animation
 {
 
+
+#pragma region AnimationDimension
+    struct AnimationDimension
+    {
+    public:
+        uint16_t width;
+        uint16_t height;
+        explicit AnimationDimension(
+
+            ) = default;
+
+        explicit constexpr AnimationDimension(
+            uint16_t width,
+            uint16_t height) : width(width), height(height)
+        {
+        }
+
+        ~AnimationDimension(
+
+            ) = default;
+    };
+
+    inline static auto to_json(
+        nlohmann::ordered_json &json,
+        const AnimationDimension &anim) -> void
+    {
+        json = nlohmann::ordered_json{
+            {"width", anim.width},
+            {"height", anim.height}};
+        return;
+    };
+
+    inline static auto from_json(
+        const nlohmann::ordered_json &json,
+        AnimationDimension &anim) -> void
+    {
+        json.at("width").get_to(anim.width);
+        json.at("height").get_to(anim.height);
+        return;
+    }
+
+#pragma endregion
+
 #pragma region AnimationSize
     struct AnimationSize
     {
@@ -102,7 +145,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     public:
         std::string path;
         std::string id;
-        AnimationSize size;
+        AnimationDimension dimension;
         std::vector<double> transform;
     };
 
@@ -113,7 +156,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
         json = nlohmann::ordered_json{
             {"path", anim.path},
             {"id", anim.id},
-            {"size", anim.size},
+            {"dimension", anim.dimension},
             {"transform", anim.transform}};
         return;
     };
@@ -124,7 +167,7 @@ namespace Sen::Kernel::Support::PopCap::Animation
     {
         json.at("path").get_to(anim.path);
         json.at("id").get_to(anim.id);
-        json.at("size").get_to(anim.size);
+        json.at("dimension").get_to(anim.dimension);
         json.at("transform").get_to(anim.transform);
         return;
     }
@@ -136,8 +179,8 @@ namespace Sen::Kernel::Support::PopCap::Animation
     struct AnimationWorkArea
     {
     public:
-        int16_t start = 0;
-        int16_t duration = 0;
+        int16_t start;
+        int16_t duration;
         explicit AnimationWorkArea(
 
             ) = default;

@@ -80,6 +80,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			auto dom_bitmap_instance = elements->FirstChildElement("DOMBitmapInstance");
 			assert_conditional(dom_bitmap_instance != nullptr, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.image_has_no_DOMBitmapInstance")), image_name), "exchange_image_document");
 			auto media_name = std::string{dom_bitmap_instance->FindAttribute("libraryItemName")->Value()}.substr(6_size);
+			if (compare_string(Path::getExtension(media_name), ".png"_sv)) {
+				media_name = media_name.substr(k_begin_index, media_name.size() - ".png"_sv.size());
+			}
 			assert_conditional(media_name == image.path, String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_path")), image_name), "exchange_image_document");
 			auto matrix = dom_bitmap_instance->FirstChildElement("matrix");
 			auto image_transform_matrix = Transform{};
@@ -539,14 +542,14 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				assert_conditional(extra.image.contains(image_name), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_image_in_data")), image_name), "exchange_definition");
 				auto &image_value = extra.image.at(image_name);
-				assert_conditional(image_value.size.width >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_width")), image_name), "exchange_definition");
-				assert_conditional(image_value.size.height >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_height")), image_name), "exchange_definition");
+				assert_conditional(image_value.dimension.width >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_width")), image_name), "exchange_definition");
+				assert_conditional(image_value.dimension.height >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_height")), image_name), "exchange_definition");
 				auto image = AnimationImage{
 					.path = !image_value.path.empty() ? image_value.path : image_name,
 					.id = image_value.id,
-					.size = AnimationSize{
-						static_cast<double>(image_value.size.width),
-						static_cast<double>(image_value.size.height)}};
+					.dimension = AnimationDimension{
+						static_cast<uint16_t>(image_value.dimension.width),
+						static_cast<uint16_t>(image_value.dimension.height)}};
 				exchange_image_document(image, image_name, package_library.image[image_name]);
 				definition.image.emplace_back(image);
 			}

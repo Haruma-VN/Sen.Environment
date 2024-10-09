@@ -640,9 +640,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					extra.image[image_name] = ImageInfo{
 						.path = image_is_changed ? image.path : "",
 						.id = image.id,
-						.size = ImageDimension{
-							.width = static_cast<int>(image.size.width),
-							.height = static_cast<int>(image.size.height)}};
+						.dimension = ImageDimension{
+							.width = static_cast<int>(image.dimension.width),
+							.height = static_cast<int>(image.dimension.height)}};
 				}
 			}
 			for (auto image_index : Range(definition.image.size()))

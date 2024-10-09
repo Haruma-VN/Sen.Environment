@@ -123,10 +123,10 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 
     struct ImageInfo
     {
-        std::string comment;
+       // std::string comment;
         std::string path;
         std::string id;
-        ImageDimension size;
+        ImageDimension dimension;
         bool use_image_additional;
         ImageAdditional additional;
     };
@@ -135,16 +135,18 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         nlohmann::ordered_json &nlohmann_json_j,
         const ImageInfo &nlohmann_json_t) -> void
     {
+        /*
         if (!nlohmann_json_t.comment.empty())
         {
             nlohmann_json_j["#comment"] = nlohmann_json_t.comment;
         }
+        */
         if (!nlohmann_json_t.path.empty())
         {
             nlohmann_json_j["path"] = nlohmann_json_t.path;
         }
         nlohmann_json_j["id"] = nlohmann_json_t.id;
-        nlohmann_json_j["size"] = nlohmann_json_t.size;
+        nlohmann_json_j["dimension"] = nlohmann_json_t.dimension;
         if (nlohmann_json_t.use_image_additional) {
             nlohmann_json_j["additional"] = nlohmann_json_t.additional;
         }
@@ -163,7 +165,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
         {
         }
         nlohmann_json_j.at("id").get_to(nlohmann_json_t.id);
-        nlohmann_json_j.at("size").get_to(nlohmann_json_t.size);
+        nlohmann_json_j.at("dimension").get_to(nlohmann_json_t.dimension);
         try
         {
             nlohmann_json_j.at("additional").get_to(nlohmann_json_t.additional);

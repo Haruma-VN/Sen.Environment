@@ -7,9 +7,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToAPNG {
         source: string;
         destination?: string;
         media?: string;
-        resolution?: bigint;
     }
-
     /**
      * Argument for batch method
      */
@@ -28,25 +26,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToAPNG {
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
         resolution: bigint;
-    }
-    /**
-     * Detail
-     */
-
-    export namespace Detail {
-        /**
-         * Input resolution are supported covered here
-         */
-
-        export const resolution = (): Array<[bigint, bigint, string]> => {
-            return [
-                [1n, 1536n, Kernel.Language.get("popcap.animation.to_flash.resolution.1536n")],
-                [2n, 768n, Kernel.Language.get("popcap.animation.to_flash.resolution.768n")],
-                [3n, 384n, Kernel.Language.get("popcap.animation.to_flash.resolution.384n")],
-                [4n, 1200n, Kernel.Language.get("popcap.animation.to_flash.resolution.1200n")],
-                [5n, 640n, Kernel.Language.get("popcap.animation.to_flash.resolution.640n")],
-            ];
-        };
     }
 
     /**
@@ -69,16 +48,36 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.ToAPNG {
                 is_valid_source(argument, false);
                 Console.obtained(argument.source);
                 Console.output(argument.source!);
-                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.resolve(`${argument.source}.animation`));
-                load_bigint(argument, "resolution", this.configuration, Detail.resolution(), Kernel.Language.get("popcap.animation.to_flash.resolution"));
+                defined_or_default<Argument, string>(argument, "destination", Kernel.Path.resolve(`${argument.source}.animation`)); // TODO: change dest folder name
                 if (argument.media === undefined) {
                     argument.media = Console.path(Kernel.Language.get("popcap.animation.to_apng.input_media"), "directory");
                 }
+                const setting: Support.PopCap.Animation.Miscellaenous.GenerateAnimation.Setting = {
+                    image_id: false,
+                    frame_name: "frame",
+                    sprite_disable: [], // nothing to do
+                    background_color: [0n, 0n, 0n, 0n], //black with fully transparent,
+                    rendering_size: {
+                        width: 0n, // if width, height = 0 use pre-calculated area
+                        height: 0n,
+                        scale: 1 // scaling of the animation, it cannot <= 0
+                    },
+                    position_additional: {
+                        x: 0,
+                        y: 0
+                    },
+                    apng_setting: {
+                        make_apng: true,
+                        split_label: true,
+                        frame_rate: 0n, 
+                        loop: 0n // 0 - infinity 
+                    }
+                }; // TODO: make setting json
+                const animation: Sen.Script.Support.PopCap.Animation.SexyAnimation = Kernel.JSON.deserialize_fs<Sen.Script.Support.PopCap.Animation.SexyAnimation>(argument.source!);
+                Support.PopCap.Animation.Miscellaenous.GenerateAnimation.exchange_sprite_disable(animation, setting); 
+                Console.output(`Total animation frames: ${animation.main_sprite.frame.length}`); // TODO
                 clock.start_safe();
-                Support.PopCap.Animation.Miscellaenous.GenerateAnimation.process_fs(argument.source!, argument.media!, argument.destination!, {
-                    use_image_id: false,
-                    image_reslution: argument.resolution!,
-                });
+                Support.PopCap.Animation.Miscellaenous.GenerateAnimation.process(animation, argument.media!, argument.destination!, setting);
                 clock.stop_safe();
                 return;
             },

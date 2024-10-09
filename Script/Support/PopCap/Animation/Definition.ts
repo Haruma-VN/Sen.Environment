@@ -1,60 +1,37 @@
 namespace Sen.Script.Support.PopCap.Animation {
-    // extra_info
-    export type ExtraInfo = {
-        version: bigint;
-        group: Record<string, ImageInfo>;
-    };
+    export type Transform = [number, number, number, number, number, number];
 
-    export type ImageInfo = {
-        name: string;
-        size: Sen.Script.Support.PopCap.Animation.AnimationSize;
-    };
-
-    export interface Model {
-        index?: bigint;
-        state: boolean | null;
-        resource: bigint;
-        sprite: boolean;
-        transform: number[];
-        color: number[];
-        frame_start: bigint;
-        frame_duration: bigint;
-    }
-
-    export type SpriteModel = Record<string, Model>;
+    export type Color = [number, number, number, number];
 
     export interface FrameNode {
         index: bigint;
         duration: bigint;
-        resource: bigint | null;
+        resource: number;
         sprite: boolean;
         first_frame?: bigint;
-        transform: number[];
-        color: number[];
+        transform: Transform;
+        color: Color;
     }
 
-    export interface ActionFrameNode {
-        index: bigint;
-        duration: bigint;
-        use_transform: boolean;
-        transform?: number[] | null;
-        use_color: boolean;
-        color?: number[] | null;
+    export type FrameNodeList = Array<FrameNode>;
+
+    export type FrameNodeStructure = Record<number, FrameNodeList>;
+
+    export enum State {
+        state_null,
+        state_false,
+        state_true
     }
 
-    export type FrameNodeList = Record<string, FrameNode[]>;
-
-    export interface Action {
-        start_index: bigint;
-        duration: bigint;
-        frame_index: bigint[];
-    }
-
-    export type ActionList = Record<string, Action>;
-
-    export interface Instance {
-        resource: bigint;
+    export interface Model {
+        state: State;
+        resource: number;
         sprite: boolean;
+        transform: Transform;
+        color: Color;
+        frame_start: bigint;
+        frame_duration: bigint;
+        index?: bigint;
     }
 
     // animation
@@ -73,15 +50,20 @@ namespace Sen.Script.Support.PopCap.Animation {
         y: bigint;
     }
 
-    export interface AnimationSize {
+    export interface AnimationDimension {
         width: bigint;
         height: bigint;
+    }
+
+    export interface AnimationSize {
+        width: number;
+        height: number;
     }
 
     export interface AnimationImage {
         path: string;
         id: string;
-        size: AnimationSize;
+        dimension: AnimationDimension;
         transform: number[];
     }
 
@@ -122,9 +104,9 @@ namespace Sen.Script.Support.PopCap.Animation {
 
     export interface AnimationMove {
         index: bigint;
-        transform: number[];
-        color: number[] | null;
-        source_rectangle: number[] | null;
+        transform: Array<number>;
+        color: Color | null;
+        source_rectangle: Array<number> | null;
         sprite_frame_number: bigint;
     }
 }
