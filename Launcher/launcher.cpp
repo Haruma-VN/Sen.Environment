@@ -165,7 +165,6 @@ MAIN{
                 arguments += L" \"" + arg + L"\"";
             }
             execute_windows_command(shell_path, arguments);
-            return 0;
         #else
             auto home = get_executable_path();
             if (home.empty()) {
@@ -177,19 +176,12 @@ MAIN{
             for (auto i = 1; i < argc; ++i) {
                 command += " \"" + std::string(argv[i]) + "\"";
             }
-            auto result = system(command.c_str());
-            return result;
+            system(command.c_str());
         #endif
     }
     catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        #ifdef _WIN32
-            std::wcout << L"Press any key to exit program...";
-            std::system("pause");
-        #else
-            std::cout << "Press any key to exit program...";
-            std::system("pause");
-        #endif
     }
+    std::system("pause");
     return -1;
 }
