@@ -67,11 +67,11 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
             version: animation.version,
             frame_rate: animation.frame_rate,
             position: [animation.position.x, animation.position.y],
-            size: [animation.size.width, animation.size.height],
+            size: [BigInt(animation.size.width), BigInt(animation.size.height)],
             image: animation.image.map(function (e) {
                 const image_helper: AnimationImageHelper = {
                     name: `${e.path}|${e.id}`,
-                    size: [e.size.width, e.size.height],
+                    size: [BigInt(animation.size.width), BigInt(animation.size.height)],
                     transform: e.transform,
                 };
                 return image_helper;

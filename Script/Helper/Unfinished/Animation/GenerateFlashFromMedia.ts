@@ -1,5 +1,4 @@
 namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMedia {
-
     /**
      * Configuration file if needed
      */
@@ -30,7 +29,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
         export const has_label = (): Array<[bigint, bigint, string]> => {
             return [
                 [1n, 1n, Kernel.Language.get("input.set_argument_to_true")],
-                [2n, 0n, Kernel.Language.get("input.set_argument_to_false")]
+                [2n, 0n, Kernel.Language.get("input.set_argument_to_false")],
             ];
         };
     }
@@ -45,7 +44,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
             }
             new_rule.push(e[0]);
         });
-        return (rule)[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
+        return rule[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
     }
 
     export function read_animation_name(): string {
@@ -56,19 +55,17 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
                 Console.warning(Kernel.Language.get("script.helper.pvz2.animation.generate_flash_from_media.animation_name_must_not_cotain_space_char"));
                 animation_name = Kernel.Console.readline();
                 index = 0;
-            }
-            else if (animation_name.charCodeAt(index) > 127) {
+            } else if (animation_name.charCodeAt(index) > 127) {
                 Console.warning(Kernel.Language.get("script.helper.pvz2.animation.generate_flash_from_media.animation_name_must_be_ascii"));
                 animation_name = Kernel.Console.readline();
                 index = 0;
-            }
-            else {
+            } else {
                 ++index;
             }
         }
         return animation_name;
     }
-    
+
     export function execute(): void {
         const source = Console.path(Kernel.Language.get("script.helper.pvz2.animation.generate_flash_from_media.input_media_path"), "directory");
         Console.argument(Kernel.Language.get("script.helper.pvz2.animation.generate_flash_from_media.enter_animation_name"));
@@ -81,8 +78,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
                 y: 0n,
             },
             size: {
-                width: 390n,
-                height: 390n
+                width: 390,
+                height: 390,
             },
             image: [],
             sprite: [],
@@ -90,17 +87,19 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
                 name: "",
                 work_area: {
                     start: 0n,
-                    duration: 1n
+                    duration: 1n,
                 },
-                frame: [{
-                    label: "animation",
-                    stop: false,
-                    remove: [],
-                    append: [],
-                    change: [],
-                    command: []
-                }]
-            }
+                frame: [
+                    {
+                        label: "animation",
+                        stop: false,
+                        remove: [],
+                        append: [],
+                        change: [],
+                        command: [],
+                    },
+                ],
+            },
         };
         Console.argument(Kernel.Language.get("popcap.animation.to_flash.resolution"));
         const input_generic = load_bigint(Detail.resolution());
@@ -118,26 +117,25 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
         const k_resolution_ratio = 1200 / Number(input_generic);
         const k_default_transform: number[] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
         Kernel.FileSystem.create_directory(`${destination}/library/media`);
-        const image_dulicate: Record<string, bigint> = {}
+        const image_dulicate: Record<string, bigint> = {};
         for (let e of image_list) {
             const image = Kernel.Image.open(e);
             const image_width = BigInt(Math.round(Number(image.width) * k_resolution_ratio));
             const image_height = BigInt(Math.round(Number(image.height) * k_resolution_ratio));
             let image_dimension = `${image_width}x${image_height}`;
             if (image_dulicate.hasOwnProperty(image_dimension)) {
-                image_dimension += `_${++image_dulicate[image_dimension]}`
-            }
-            else {
+                image_dimension += `_${++image_dulicate[image_dimension]}`;
+            } else {
                 image_dulicate[image_dimension] = 1n;
             }
             animation.image.push({
                 path: `${animation_name}_${image_dimension}`,
                 id: `image_${animation_name}_${animation_name}_${image_dimension}`.toUpperCase(),
-                size: {
+                dimension: {
                     width: image_width,
-                    height: image_height
+                    height: image_height,
                 },
-                transform: k_default_transform
+                transform: k_default_transform,
             });
             Kernel.Image.write(`${destination}/library/media/${animation_name}_${image_dimension}.png`, image);
         }
