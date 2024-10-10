@@ -164,7 +164,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                 return;
             },
             batch_forward: undefined!,
-            is_enabled: true,
+            is_enabled: false,
             configuration: undefined!,
             filter: ["directory", /(.*)\.bundle$/i],
         });

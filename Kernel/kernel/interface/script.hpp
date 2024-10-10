@@ -12843,6 +12843,37 @@ namespace Sen::Kernel::Interface::Script
 		}
 
 		/*
+			Copy ArrayBuffer
+		*/
+
+		inline static auto compareArrayBuffer(
+			JSContext *context,
+			JSValueConst this_val,
+			int argc,
+			JSValueConst *argv
+		) -> JSElement::boolean
+		{
+			M_JS_PROXY_WRAPPER(context, {
+				try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+				auto size_1 = std::size_t{};
+				auto data_1 = JS_GetArrayBuffer(context, &size_1, argv[0]);
+				auto size_2 = std::size_t{};
+				auto data_2 = JS_GetArrayBuffer(context, &size_2, argv[1]);
+				if (size_1 != size_2) {
+					return JS::Converter::to_bool(context, false);
+				}
+				auto is_same = true;
+				for (auto i : Range<std::size_t>(size_1)) {
+					if (data_1[i] != data_2[i]) {
+						is_same = false;
+						break;
+					}
+				}
+				return JS::Converter::to_bool(context, is_same); 
+			}, "compareArrayBuffer"_sv);
+		}
+
+		/*
 		UTF16 Support
 		*/
 

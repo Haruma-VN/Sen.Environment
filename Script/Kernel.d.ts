@@ -7493,6 +7493,18 @@ declare namespace Sen {
             export function copyArrayBuffer(value: ArrayBuffer): ArrayBuffer;
 
             /**
+             * Compares two ArrayBuffers for equality.
+             *
+             * @param source The first ArrayBuffer to compare.
+             * @param destination The second ArrayBuffer to compare.
+             * @returns `true` if the two ArrayBuffers are equal, `false` otherwise.
+             *
+             * **Note:** This function only compares the contents of the ArrayBuffers, not their memory addresses.
+             * Two ArrayBuffers with identical contents but different memory locations will be considered equal.
+             */
+            export function compareArrayBuffer(source: ArrayBuffer, destination: ArrayBuffer): boolean;
+
+            /**
              * to_apng function
              *
              * This function generates an Animated Portable Network Graphic (APNG) image from a list of image paths.

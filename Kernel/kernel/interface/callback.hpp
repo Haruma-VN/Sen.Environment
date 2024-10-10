@@ -622,6 +622,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Miscellaneous::cast_movable_String_to_ArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "cast_movable_String_to_ArrayBuffer"_sv);
 					// copyArrayBuffer
 					javascript->add_proxy(Script::Miscellaneous::copyArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "copyArrayBuffer"_sv);
+					// compareArrayBuffer
+					javascript->add_proxy(Script::Miscellaneous::compareArrayBuffer, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "compareArrayBuffer"_sv);
 					// to_apng
 					javascript->add_proxy(Script::Miscellaneous::to_apng, "Sen"_sv, "Kernel"_sv, "Miscellaneous"_sv, "to_apng"_sv);
 				}
