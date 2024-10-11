@@ -78,7 +78,12 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         frame_end: bigint;
     };
 
-    export type DataInfo = Record<string, LabelInfo>;
+    export interface DataInfo {
+        frame_rate: bigint;
+        frame_name: string;
+        dimension: AnimationDimension;
+        label: Record<string, LabelInfo>;
+    };
 
     export type VisualSpriteFrame = Array<Record<number, VisualLayer>>;
 
@@ -251,32 +256,31 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         return [change[0] * source[0], change[1] * source[1], change[2] * source[2], change[3] * source[3]] as Color;
     }
 
+    export function scale_image(image: Kernel.Dimension.Image, percent: number) {
+        if (percent !== 1) {
+            const new_width = BigInt(Math.round(Number(image.width) * percent));
+            const new_height = BigInt(Math.round(Number(image.height) * percent));
+            const resized_image_data = new DataView(new ArrayBuffer(Number(new_width * new_height * 4n)));
+            const source_data = new DataView(image.data);
+            for (let j = 0n; j < new_height; j++) {
+                for (let i = 0n; i < new_width; i++) {
+                    const old_pixel_height = BigInt(Math.round(Number(j) / percent));
+                    const old_pixel_width = BigInt(Math.round(Number(i) / percent));
+                    const old_index = Number((old_pixel_height * image.width + old_pixel_width) * 4n);
+                    const new_index = Number((j * new_width + i) * 4n);
+                    resized_image_data.setUint32(new_index, source_data.getUint32(old_index));
+                }
+            }
+            image.width = new_width;
+            image.height = new_height;
+            image.data = resized_image_data.buffer;
+        }
+        return image;
+    };
+
     export function load_media_source(animation: SexyAnimation, media_source: string, setting: Setting) {
         const media_source_list: Array<MediaSource> = [];
-        const scale_image = (image: Kernel.Dimension.Image) => {
-            const percent = setting.rendering_size.scale;
-            if (percent !== 1) {
-                const new_width = BigInt(Math.round(Number(image.width) * percent));
-                const new_height = BigInt(Math.round(Number(image.height) * percent));
-                const resized_image_data = new Uint8ClampedArray(Number(new_width * new_height * 4n));
-                const source_data = new Uint8ClampedArray(Kernel.Miscellaneous.copyArrayBuffer(image.data));
-                for (let j = 0n; j < new_height; j++) {
-                    for (let i = 0n; i < new_width; i++) {
-                        const old_pixel_height = BigInt(Math.round(Number(j) / percent));
-                        const old_pixel_width = BigInt(Math.round(Number(i) / percent));
-                        const old_index = Number((old_pixel_height * image.width + old_pixel_width) * 4n);
-                        const new_index = Number((j * new_width + i) * 4n);
-                        for (let k = 0; k < 4; k++) {
-                            resized_image_data[new_index + k] = source_data[old_index + k];
-                        }
-                    }
-                }
-                image.width = new_width;
-                image.height = new_height;
-                image.data = resized_image_data.buffer;
-            }
-            return image;
-        };
+        
         for (const image of animation.image) {
             media_source_list.push({
                 size: {
@@ -284,7 +288,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     height: Number(image.dimension.height),
                 },
                 matrix: variant_to_matrix(image.transform),
-                image: scale_image(Kernel.Image.open(`${media_source}/${setting.image_id ? image.id : image.path}.png`))
+                image: scale_image(Kernel.Image.open(`${media_source}/${setting.image_id ? image.id : image.path}.png`), setting.rendering_size.scale)
             });
         }
         return media_source_list;
@@ -450,22 +454,21 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         return;
     }
 
-    export function exchange_label(sprite: AnimationSprite) {
-        const data_info: DataInfo = {};
+    export function exchange_label(sprite: AnimationSprite, data_info: DataInfo) {
         let label_name = "animation";
         for (const frame_index in sprite.frame) {
             if (sprite.frame[frame_index].label !== "") {
                 label_name = sprite.frame[frame_index].label;
-                data_info[label_name] = {
+                data_info.label[label_name] = {
                     frame_start: BigInt(frame_index) + 1n, 
                     frame_end: BigInt(frame_index) + 1n
                 }
             }
             else {
-                ++data_info[label_name].frame_end;
+                ++data_info.label[label_name].frame_end;
             }
         }
-        return data_info;
+        return;
     }
 
     //public:
@@ -485,10 +488,19 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
         Console.output(`Animation Width: ${setting.rendering_size.width}`); // TODO
         Console.output(`Animation Height: ${setting.rendering_size.height}`);
         write_frames(main_visual_sprite, visual_sprite_list, media_source_list, `${destination}/frames`, setting);
-        const definition: DataInfo = exchange_label(animation.main_sprite);
+        const frame_rate = setting.apng_setting.frame_rate <= 0n ? animation.frame_rate : setting.apng_setting.frame_rate;
+        const definition: DataInfo = {
+            frame_rate,
+            frame_name: setting.frame_name,
+            dimension: {
+                width: setting.rendering_size.width,
+                height: setting.rendering_size.height
+            },
+            label: {}
+        };
+        exchange_label(animation.main_sprite, definition);
         Kernel.JSON.serialize_fs(`${destination}/data.json`, definition, 1, true);
         if (setting.apng_setting.make_apng) {
-            const frame_rate = setting.apng_setting.frame_rate <= 0n ? animation.frame_rate : setting.apng_setting.frame_rate;
             const write_apng = (path_list: Array<string>, destination: string, frame_list: Array<bigint>) => {
                 Kernel.Miscellaneous.to_apng(
                     path_list, destination,

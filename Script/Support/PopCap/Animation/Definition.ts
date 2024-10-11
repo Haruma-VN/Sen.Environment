@@ -46,8 +46,8 @@ namespace Sen.Script.Support.PopCap.Animation {
     }
 
     export interface AnimationPosition {
-        x: bigint;
-        y: bigint;
+        x: number;
+        y: number;
     }
 
     export interface AnimationDimension {
@@ -99,7 +99,7 @@ namespace Sen.Script.Support.PopCap.Animation {
         sprite: boolean;
         additive: boolean;
         preload_frame: bigint;
-        time_scale: bigint;
+        time_scale: number;
     }
 
     export interface AnimationMove {

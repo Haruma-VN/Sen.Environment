@@ -61,6 +61,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
 
     export function execute(): void {
         let resolution = 1536n;
+        // TODO: Add localization
         const source = Console.path("input source", "directory");
         Console.argument("input image posix for id");
         const image_posix = Kernel.Console.readline();
