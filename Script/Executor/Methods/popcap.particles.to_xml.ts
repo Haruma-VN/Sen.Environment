@@ -1,5 +1,4 @@
 namespace Sen.Script.Executor.Methods.PopCap.Particles.ToXML {
-
     /**
      * Argument for the current method
      */
@@ -18,19 +17,11 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.ToXML {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
     export interface Configuration extends Sen.Script.Executor.Configuration {}
-    
+
     /**
      * ----------------------------------------------
      * JavaScript forward method, this method need
@@ -42,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.ToXML {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Particles.ToXML.Argument,
             Sen.Script.Executor.Methods.PopCap.Particles.ToXML.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Particles.ToXML.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Particles.ToXML.Configuration
         >({
             id: "popcap.particles.to_xml",
@@ -63,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.ToXML {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)(\.xml)\.json$/i],
+            option: 29n,
         });
         return;
     }

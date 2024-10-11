@@ -23,17 +23,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-        key?: string;
-        iv?: string;
-        use_64_bit_variant?: boolean;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -54,7 +43,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode.Argument,
             Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode.Configuration
         >({
             id: "popcap.rton.decrypt_and_decode",
@@ -77,6 +65,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RTON.DecryptAndDecode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)(\.rton|pp\.dat)$/i],
+            option: 65n,
         });
         return;
     }

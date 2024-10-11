@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML.Argument,
             Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML.Configuration
         >({
             id: "popcap.reanim.from_xml",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ReAnimation.FromXML {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)(\.reanim\.xml)$/i],
+            option: 41n,
         });
         return;
     }

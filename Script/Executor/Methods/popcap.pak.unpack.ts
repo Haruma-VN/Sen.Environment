@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PAK.Unpack {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PAK.Unpack {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.PAK.Unpack.Argument,
             Sen.Script.Executor.Methods.PopCap.PAK.Unpack.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.PAK.Unpack.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.PAK.Unpack.Configuration
         >({
             id: "popcap.pak.unpack",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PAK.Unpack {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.pak$/i],
+            option: 25n,
         });
         return;
     }

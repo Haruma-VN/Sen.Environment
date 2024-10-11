@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument<source extends string, destination extends string> extends Sen.Script.Executor.Base {
-        parameter: Array<[source, destination]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.Data.Base64.Encode.Argument,
             Sen.Script.Executor.Methods.Data.Base64.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.Data.Base64.Encode.AsyncArgument<string, string>,
             Sen.Script.Executor.Methods.Data.Base64.Encode.Configuration
         >({
             id: "data.base64.encode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.Data.Base64.Encode {
             is_enabled: false,
             configuration: undefined!,
             filter: ["file", /.*/],
+            option: 4n,
         });
         return;
     }

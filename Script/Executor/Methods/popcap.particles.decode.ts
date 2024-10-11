@@ -23,14 +23,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -67,7 +59,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Particles.Decode.Argument,
             Sen.Script.Executor.Methods.PopCap.Particles.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Particles.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Particles.Decode.Configuration
         >({
             id: "popcap.particles.decode",
@@ -90,6 +81,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Particles.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)(\.xml|\.xml\.compiled)$/i],
+            option: 27n,
         });
         return;
     }

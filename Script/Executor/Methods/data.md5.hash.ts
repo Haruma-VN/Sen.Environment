@@ -15,8 +15,6 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
         directory: string;
     }
 
-    export interface AsyncArgument extends Sen.Script.Executor.Base {}
-
     /**
      * Configuration file if needed
      */
@@ -34,7 +32,6 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.Data.MD5.Hash.Argument,
             Sen.Script.Executor.Methods.Data.MD5.Hash.BatchArgument,
-            Sen.Script.Executor.Methods.Data.MD5.Hash.AsyncArgument,
             Sen.Script.Executor.Methods.Data.MD5.Hash.Configuration
         >({
             id: "data.md5.hash",
@@ -53,6 +50,7 @@ namespace Sen.Script.Executor.Methods.Data.MD5.Hash {
             is_enabled: false,
             configuration: undefined!,
             filter: ["file", /.*/],
+            option: 2n,
         });
         return;
     }

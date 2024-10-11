@@ -11800,7 +11800,8 @@ namespace Sen::Kernel::Interface::Script
 						JSContext *context,
 						JSValueConst this_val,
 						int argc,
-						JSValueConst *argv) -> JSValue
+						JSValueConst *argv
+					) -> JSValue
 					{
 						M_JS_PROXY_WRAPPER(context, {
 							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
@@ -11813,7 +11814,8 @@ namespace Sen::Kernel::Interface::Script
 							JS_SetPropertyStr(context, destination, "image", JS::Converter::to_array(context, doc.image));
 							JS_SetPropertyStr(context, destination, "media", JS::Converter::to_array(context, doc.media));
 							JS_SetPropertyStr(context, destination, "action", JS::Converter::to_array(context, doc.action));
-							return JS::Converter::get_undefined(); }, "dump_document"_sv);
+							return JS::Converter::get_undefined(); 
+						}, "dump_document"_sv);
 					}
 
 					inline static auto generate_image(
@@ -11831,7 +11833,28 @@ namespace Sen::Kernel::Interface::Script
 								return JS_EXCEPTION;
 							}
 							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Generator::generate_image(destination, source);
-							return JS::Converter::get_undefined(); }, "generate_image"_sv);
+							return JS::Converter::get_undefined(); 
+						}, "generate_image"_sv);
+					}
+
+					inline static auto generate_document(
+						JSContext *context,
+						JSValueConst this_val,
+						int argc,
+						JSValueConst *argv
+					) -> JSElement::undefined
+					{
+						M_JS_PROXY_WRAPPER(context, {
+							try_assert(argc == 2, fmt::format("{} 2, {}: {}", Kernel::Language::get("kernel.argument_expected"), Kernel::Language::get("kernel.argument_received"), argc));
+							auto destination = JS::Converter::get_string(context, argv[0]);
+							try_assert(JS_IsObject(argv[1]), fmt::format("{}", Kernel::Language::get("popcap.animation.miscellaneous.argument_must_be_object")));
+							auto source = Kernel::Support::PopCap::Animation::Miscellaneous::BasicDocument{};
+							source.media = JS::Converter::get_vector<std::string>(context, JS_GetPropertyStr(context, argv[1], "media"));
+							source.sprite = JS::Converter::get_vector<std::string>(context, JS_GetPropertyStr(context, argv[1], "sprite"));
+							source.image = JS::Converter::get_vector<std::string>(context, JS_GetPropertyStr(context, argv[1], "image"));
+							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Generator::generate_document(destination, &source);
+							return JS::Converter::get_undefined(); 
+						}, "generate_document"_sv);
 					}
 
 					inline static auto generate_sprite(

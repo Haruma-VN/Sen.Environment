@@ -16,12 +16,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode {
     export interface BatchArgument extends Sen.Script.Executor.Base {}
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {}
-
-    /**
      * Configuration file if needed
      */
 
@@ -38,7 +32,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.Argument,
             Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode.Configuration
         >({
             id: "popcap.rsb_patch.encode",
@@ -58,6 +51,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSBPatch.Encode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)(\.rsb|\.obb)$/i],
+            option: 53n,
         });
         return;
     }

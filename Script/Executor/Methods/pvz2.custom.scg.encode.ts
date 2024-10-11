@@ -21,14 +21,6 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -45,7 +37,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode {
             return [
                 [1n, 0n, Kernel.Language.get("simple")],
                 [2n, 1n, Kernel.Language.get("advanced")],
-                [3n, 2n, Kernel.Language.get("debug")]
+                [3n, 2n, Kernel.Language.get("debug")],
             ];
         }
     }
@@ -66,7 +58,6 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode.Argument,
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode.Configuration
         >({
             id: "pvz2.custom.scg.encode",
@@ -87,7 +78,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode {
                 }
                 const setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting = {
                     decode_method: argument.generic!,
-                    animation_split_label: argument.animation_split_label! ?? false
+                    animation_split_label: argument.animation_split_label! ?? false,
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.StreamCompressedGroup.encode_fs(argument.source, argument.destination!, setting);
@@ -100,6 +91,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Encode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.*)\.package$/i],
+            option: 74n,
         });
         return;
     }

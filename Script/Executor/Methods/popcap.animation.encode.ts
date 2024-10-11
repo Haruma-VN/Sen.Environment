@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Animation.Encode.Argument,
             Sen.Script.Executor.Methods.PopCap.Animation.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Animation.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Animation.Encode.Configuration
         >({
             id: "popcap.animation.encode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.Encode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /.*\.pam\.json$/i],
+            option: 9n,
         });
         return;
     }

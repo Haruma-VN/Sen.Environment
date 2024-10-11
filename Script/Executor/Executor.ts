@@ -17,12 +17,7 @@ namespace Sen.Script.Executor {
 
     // Method Executor should implement direct forward, batch forward and async forward
 
-    export interface MethodExecutor<
-        Argument extends Sen.Script.Executor.Base,
-        BatchArgument extends Sen.Script.Executor.Base,
-        AsyncArgument extends Sen.Script.Executor.Base,
-        Configuration extends Sen.Script.Executor.Configuration,
-    > {
+    export interface MethodExecutor<Argument extends Sen.Script.Executor.Base, BatchArgument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration> {
         id: string;
         configuration_file: string;
         direct_forward: (argument: Argument) => void;
@@ -30,6 +25,7 @@ namespace Sen.Script.Executor {
         is_enabled: boolean;
         configuration: Configuration;
         filter: [MethodType, RegExp] | [MethodType, ...Array<RegExp>];
+        option: bigint;
     }
 
     /**
@@ -57,7 +53,7 @@ namespace Sen.Script.Executor {
      *
      */
 
-    const methods: Map<string, Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration>> = new Map();
+    const methods: Map<string, Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration>> = new Map();
 
     /**
      * ----------------------------------------------------------
@@ -69,18 +65,15 @@ namespace Sen.Script.Executor {
      * ----------------------------------------------------------
      */
 
-    export function push_as_module<
-        Argument extends Sen.Script.Executor.Base,
-        BatchArgument extends Sen.Script.Executor.Base,
-        AsyncArgument extends Sen.Script.Executor.Base,
-        Configuration extends Sen.Script.Executor.Configuration,
-    >(worker: MethodExecutor<Argument, BatchArgument, AsyncArgument, Configuration>): void {
+    export function push_as_module<Argument extends Sen.Script.Executor.Base, BatchArgument extends Sen.Script.Executor.Base, Configuration extends Sen.Script.Executor.Configuration>(
+        worker: MethodExecutor<Argument, BatchArgument, Configuration>,
+    ): void {
         const primary_id: string = worker.id!;
         delete (worker as any).id;
         if (methods.get(primary_id) !== undefined) {
             throw new Error(`${primary_id} is already existed`);
         }
-        methods.set(primary_id, worker as MethodExecutor<Base, Base, Base, Configuration>);
+        methods.set(primary_id, worker as MethodExecutor<Base, Base, Configuration>);
         return;
     }
 
@@ -468,7 +461,7 @@ namespace Sen.Script.Executor {
      */
 
     export function run_as_module<Argument extends Sen.Script.Executor.Base>(id: string, argument: Argument, forward_type: Sen.Script.Executor.Forward): void {
-        const worker: Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration> | undefined = methods.get(id);
+        const worker: Sen.Script.Executor.MethodExecutor<Sen.Script.Executor.Base, Sen.Script.Executor.Base, Sen.Script.Executor.Configuration> | undefined = methods.get(id);
         if (worker === undefined) {
             throw new Error(format(Kernel.Language.get("js.method_not_found"), id));
         }
@@ -535,15 +528,15 @@ namespace Sen.Script.Executor {
     export type ExecuteType = "simple" | "whole" | "js";
 
     export function load_module<Argument extends Base>(argument: Argument, load: ExecuteType): void {
-        const modules: Map<bigint, string> = new Map<bigint, string>();
+        let modules: Map<bigint, string> = new Map<bigint, string>();
         const query = (
             callback: (([type, method]: [MethodType, RegExp], source: string) => boolean) | (([type, method]: [MethodType, ...Array<RegExp>], source: Array<string>) => boolean),
             filter: [MethodType, RegExp | Array<RegExp>],
             source: string | string[],
-            method_name: string,
+            [method_name, option_number]: [method_name: string, option_number: bigint],
         ) => {
             if (callback(filter as [MethodType, RegExp], source as string & string[])) {
-                modules.set(BigInt(modules.size) + 1n, method_name);
+                modules.set(option_number, method_name);
             }
             return;
         };
@@ -552,14 +545,15 @@ namespace Sen.Script.Executor {
                 return;
             }
             if (is_string(argument.source)) {
-                query(test, worker.filter as [MethodType, RegExp], argument.source as string, method_name);
+                query(test, worker.filter as [MethodType, RegExp], argument.source as string, [method_name, worker.option]);
             }
             if (is_array(argument.source)) {
-                query(test_array, worker.filter as [MethodType, RegExp], argument.source as string[], method_name);
+                query(test_array, worker.filter as [MethodType, RegExp], argument.source as string[], [method_name, worker.option]);
             }
         });
         display_argument(argument.source as string | string[]);
         Console.send(`${Kernel.Language.get("execution_argument")}: ${Kernel.Language.get("js.input_an_method_to_start")}`, Definition.Console.Color.CYAN);
+        modules = new Map([...modules.entries()].sort((a, b) => Number(a[0] - b[0])));
         modules.forEach(function print_statement(name: string, num: bigint): void {
             if (Shell.is_gui) {
                 Kernel.Console.print(`${num}. ${Kernel.Language.get(name)}`);
@@ -740,9 +734,8 @@ namespace Sen.Script.Executor {
     export function basic_batch<
         Argument extends Sen.Script.Executor.Base,
         BatchArgument extends Sen.Script.Executor.Base & { directory: string },
-        AsyncArgument extends Sen.Script.Executor.Base,
         Configuration extends Sen.Script.Executor.Configuration,
-    >(thiz: MethodExecutor<Argument, BatchArgument, AsyncArgument, Configuration>, argument: BatchArgument, is_directory: boolean, other?: Record<string, unknown>): void {
+    >(thiz: MethodExecutor<Argument, BatchArgument, Configuration>, argument: BatchArgument, is_directory: boolean, other?: Record<string, unknown>): void {
         let callback: (source: string) => boolean = is_directory ? Kernel.FileSystem.is_directory : Kernel.FileSystem.is_file;
         const files: Array<string> = Kernel.FileSystem.read_directory(argument.directory).filter((path: string) => callback(path) && thiz.filter[1].test(path));
         files.forEach((source: string) => thiz.direct_forward({ source: source as string, ...other } as any));

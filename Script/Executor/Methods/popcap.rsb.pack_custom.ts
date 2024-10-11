@@ -95,7 +95,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.Argument,
             Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.Configuration
         >({
             id: "popcap.rsb.pack_custom",
@@ -142,6 +141,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.*)\.bundle$/i],
+            option: 55n,
         });
         return;
     }

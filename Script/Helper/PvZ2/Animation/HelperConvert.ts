@@ -66,7 +66,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.HelperConvert {
         const animation_helper: SexyAnimationHelper = {
             version: animation.version,
             frame_rate: animation.frame_rate,
-            position: [animation.position.x, animation.position.y],
+            position: [BigInt(animation.position.x), BigInt(animation.position.y)],
             size: [BigInt(animation.size.width), BigInt(animation.size.height)],
             image: animation.image.map(function (e) {
                 const image_helper: AnimationImageHelper = {

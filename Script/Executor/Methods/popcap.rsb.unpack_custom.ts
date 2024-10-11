@@ -64,7 +64,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom.Argument,
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom.Configuration
         >({
             id: "popcap.rsb.unpack_custom",
@@ -83,12 +82,12 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom {
                         rton_count: 0n,
                         json_count: 0n,
                         key: "",
-                        iv: ""
+                        iv: "",
                     },
                     compression_setting: {
                         manifest: true,
-                        packages: true
-                    }
+                        packages: true,
+                    },
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.unpack_fs(argument.source, argument.destination!, setting);
@@ -101,6 +100,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.(rsb|obb)$/i],
+            option: 58n,
         });
         return;
     }

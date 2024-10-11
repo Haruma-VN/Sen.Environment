@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.Argument,
             Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash.Configuration
         >({
             id: "popcap.reanim.from_flash",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Reanim.FromFlash {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.+)(\.reanim\.xfl)$/i],
+            option: 40n,
         });
         return;
     }

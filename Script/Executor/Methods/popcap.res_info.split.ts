@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Split {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Split {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Argument,
             Sen.Script.Executor.Methods.PopCap.ResInfo.Split.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ResInfo.Split.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.ResInfo.Split.Configuration
         >({
             id: "popcap.res_info.split",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ResInfo.Split {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.json$/i],
+            option: 47n,
         });
         return;
     }

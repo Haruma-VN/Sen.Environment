@@ -18,14 +18,6 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Encode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -52,7 +44,7 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Encode {
                 [2n, "adpcm", "Platinum 4-bit ADPCM (adpcm)"],
                 [3n, "vorbis", "Custom Vorbis (vorbis)"],
                 [4n, "wemopus", "libopus Opus (wemopus)"],
-               // [5n, "acc", "AAC (Advanced Audio Coding) (acc)"]
+                // [5n, "acc", "AAC (Advanced Audio Coding) (acc)"]
             ];
         }
     }
@@ -68,7 +60,6 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.WWise.Media.Encode.Argument,
             Sen.Script.Executor.Methods.WWise.Media.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.WWise.Media.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.WWise.Media.Encode.Configuration
         >({
             id: "wwise.media.encode",
@@ -90,6 +81,7 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Encode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.wav$/i],
+            option: 76n,
         });
         return;
     }

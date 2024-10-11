@@ -529,6 +529,8 @@ namespace Sen::Kernel::Interface {
 					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::resize_fs, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous", "resize_fs"_sv);
 					// dump_document
 					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::dump_document, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "dump_document"_sv);
+					// generate_document
+					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::generate_document, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "generate_document"_sv);
 					// generate_image
 					javascript->add_proxy(Script::Support::PopCap::Animation::Miscellaneous::generate_image, "Sen"_sv, "Kernel"_sv, "Support"_sv, "PopCap"_sv, "Animation"_sv, "Miscellaneous"_sv, "generate_image"_sv);
 					// generate_sprite

@@ -28,12 +28,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {}
-
-    /**
      * Configuration file if needed
      */
 
@@ -128,7 +122,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.PTX.Decode.Argument,
             Sen.Script.Executor.Methods.PopCap.PTX.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.PTX.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.PTX.Decode.Configuration
         >({
             id: "popcap.ptx.decode",
@@ -156,6 +149,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PTX.Decode {
             },
             is_enabled: true,
             filter: ["file", /(.+)\.ptx$/i],
+            option: 33n,
         });
         return;
     }

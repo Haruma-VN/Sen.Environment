@@ -23,17 +23,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-        key?: string;
-        iv?: string;
-        use_64_bit_variant?: boolean;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -54,7 +43,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.Argument,
             Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress.Configuration
         >({
             id: "popcap.zlib.uncompress",
@@ -76,6 +64,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Zlib.Uncompress {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.(compiled|smf|bin)$/i],
+            option: 72n,
         });
         return;
     }

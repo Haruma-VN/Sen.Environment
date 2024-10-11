@@ -19,15 +19,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-        layout: string;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -84,7 +75,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.Argument,
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert.Configuration
         >({
             id: "popcap.resource_group.convert",
@@ -106,6 +96,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Convert {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.json$/i],
+            option: 49n,
         });
         return;
     }

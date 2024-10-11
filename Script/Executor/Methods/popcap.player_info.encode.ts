@@ -1,7 +1,7 @@
 namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
     // Using platform
 
-   // export type Platform = Kernel.Support.PopCap.PlayerInfo.Platform;
+    // export type Platform = Kernel.Support.PopCap.PlayerInfo.Platform;
 
     /**
      * Argument for the current method
@@ -10,7 +10,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
     export interface Argument extends Sen.Script.Executor.Base {
         source: string;
         destination?: string;
-      //  platform?: Platform;
+        //  platform?: Platform;
     }
 
     /**
@@ -19,15 +19,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
 
     export interface BatchArgument extends Sen.Script.Executor.Base {
         directory: string;
-       // platform?: Platform;
-    }
-
-    /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
+        // platform?: Platform;
     }
 
     /**
@@ -46,8 +38,8 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
          * Platform supported
          */
 
-        export const _platform: Array<Kernel.Support.PopCap.Particles.Platform> = ["pc", "game-console", "phone-32", "phone-64", "tv"];
-        /**
+    export const _platform: Array<Kernel.Support.PopCap.Particles.Platform> = ["pc", "game-console", "phone-32", "phone-64", "tv"];
+    /**
          *
          * Typical Style
          *
@@ -59,7 +51,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
     }
 
     */
-   
+
     /**
      * ----------------------------------------------
      * JavaScript forward method, this method need
@@ -71,7 +63,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode.Argument,
             Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode.Configuration
         >({
             id: "popcap.player_info.encode",
@@ -82,7 +73,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
                 defined_or_default<Argument, string>(argument, "destination", `${Kernel.Path.except_extension(argument.source)}`);
                 Console.output(argument.destination!);
                 //Console.argument(Kernel.Language.get("popcap.particles.decode.generic"));
-               // configurate_or_input(argument, "platform", Detail.platform());
+                // configurate_or_input(argument, "platform", Detail.platform());
                 clock.start_safe();
                 Kernel.Support.PopCap.PlayerInfo.encode_fs(argument.source, argument.destination!);
                 clock.stop_safe();
@@ -94,6 +85,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PlayerInfo.Encode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.dat\.json$/i],
+            option: 32n,
         });
         return;
     }

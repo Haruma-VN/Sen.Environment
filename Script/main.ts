@@ -347,6 +347,7 @@ namespace Sen.Script {
             "~/Support/PopCap/Atlas/MultiResolution.js",
             "~/Support/PopCap/Animation/Definition.js",
             "~/Support/PopCap/Animation/Miscellaneous/GenerateAnimation.js",
+            "~/Support/PopCap/Animation/Miscellaneous/AddLibrary.js",
             "~/Support/PopCap/LawnStrings/Convert.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/Obfuscate.js",
             "~/Support/PopCap/ResourceStreamBundle/Miscellaneous/ConvertAndroidToiOS.js",
@@ -439,6 +440,7 @@ namespace Sen.Script {
             "~/Executor/Methods/pvz2.custom.scg.encode.js",
             "~/Executor/Methods/pvz2.custom.scg.decode.js",
             "~/Executor/Methods/popcap.rsb.watch.js",
+            "~/Executor/Methods/popcap.animation.add_library.js",
         ];
     }
 }

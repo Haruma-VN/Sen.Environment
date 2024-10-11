@@ -17,12 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
     export interface BatchArgument extends Sen.Script.Executor.Base {}
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {}
-
-    /**
      * Configuration file if needed
      */
 
@@ -87,7 +81,6 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.Argument,
             Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert.Configuration
         >({
             id: "popcap.pvz2.lawnstrings.convert",
@@ -108,6 +101,7 @@ namespace Sen.Script.Executor.Methods.PopCap.PvZ2.LawnStrings.Convert {
             batch_forward: undefined!,
             is_enabled: true,
             filter: ["file", /(.+)(\.json|\.txt)$/i],
+            option: 35n,
         });
         return;
     }

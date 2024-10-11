@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.WWise.Media.Decode.Argument,
             Sen.Script.Executor.Methods.WWise.Media.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.WWise.Media.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.WWise.Media.Decode.Configuration
         >({
             id: "wwise.media.decode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.WWise.Media.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.wem$/i],
+            option: 75n,
         });
         return;
     }

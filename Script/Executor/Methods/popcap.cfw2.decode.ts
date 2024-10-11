@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Argument,
             Sen.Script.Executor.Methods.PopCap.CFW2.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.CFW2.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.CFW2.Decode.Configuration
         >({
             id: "popcap.cfw2.decode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CFW2.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.cfw2$/i],
+            option: 17n,
         });
         return;
     }

@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Argument,
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge.Configuration
         >({
             id: "popcap.resource_group.merge",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.ResourceGroup.Merge {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /.*\.info$/i],
+            option: 50n,
         });
         return;
     }

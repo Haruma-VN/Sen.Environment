@@ -1846,7 +1846,7 @@ declare namespace Sen {
                             /** Array of paths to media files */
                             media: Array<string>;
                             /** Array of action definitions (likely for user interactions) */
-                            label: Array<string>;
+                            action: Array<string>;
                         }
 
                         /**
@@ -1956,6 +1956,13 @@ declare namespace Sen {
                          * @param document The document object to be saved
                          */
                         export function dump_document(source: string, document: Document): void;
+
+                        /**
+                         * Function to save a document object to a specified location
+                         * @param destination  Path to the destination document
+                         * @param document The document object to be saved
+                         */
+                        export function generate_document(destination: string, document: Document): void;
 
                         /**
                          * Function to create an image file based on an Image object

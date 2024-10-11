@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackResource {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackResource {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.PackResource.Argument,
             Sen.Script.Executor.Methods.PopCap.RSB.PackResource.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.PackResource.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSB.PackResource.Configuration
         >({
             id: "popcap.rsb.pack_resource",
@@ -60,6 +51,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackResource {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.*)\.bundle$/i],
+            option: 56n,
         });
         return;
     }

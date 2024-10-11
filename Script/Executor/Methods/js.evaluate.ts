@@ -16,14 +16,6 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument<source extends string, destination extends string> extends Sen.Script.Executor.Base {
-        parameter: Array<string>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -52,7 +44,6 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.JS.Evaluate.Argument,
             Sen.Script.Executor.Methods.JS.Evaluate.BatchArgument,
-            Sen.Script.Executor.Methods.JS.Evaluate.AsyncArgument<string, string>,
             Sen.Script.Executor.Methods.JS.Evaluate.Configuration
         >({
             id: "js.evaluate",
@@ -72,6 +63,7 @@ namespace Sen.Script.Executor.Methods.JS.Evaluate {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.js$/i],
+            option: 1n,
         });
         return;
     }

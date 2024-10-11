@@ -340,19 +340,19 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			auto dom_document = document.FirstChildElement("DOMDocument");
 			auto dom_timeline = dom_document->FirstChildElement("timelines")->FirstChildElement("DOMTimeline");
-			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_dom_document");
+			assert_conditional(std::string_view{dom_timeline->FindAttribute("name")->Value()} == "animation"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.document_name_must_be_animation")), "exchange_label_info");
 			auto label_layer = dom_timeline->FirstChildElement("layers")->FirstChildElement("DOMLayer");
-			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.label_layer_name_must_be_label")), "exchange_dom_document");
+			assert_conditional(std::string_view{label_layer->FindAttribute("name")->Value()} == "label"_sv, fmt::format("{}", Language::get("popcap.animation.from_flash.label_layer_name_must_be_label")), "exchange_label_info");
 			auto label_frames = label_layer->FirstChildElement("frames");
 			auto frame_count = k_begin_index_int;
 			for (auto dom_frame = label_frames->FirstChildElement("DOMFrame"); dom_frame != nullptr; dom_frame = dom_frame->NextSiblingElement("DOMFrame"))
 			{
-				assert_conditional(dom_frame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "exchange_dom_document");
+				assert_conditional(dom_frame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "exchange_label_info");
 				auto frame_index = std::stoi(dom_frame->FindAttribute("index")->Value());
 				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
 				frame_count += frame_duration;
 				auto label_name = dom_frame->FindAttribute("name");
-				assert_conditional(label_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.label_name_cannot_null")), "exchange_dom_document"); 
+				assert_conditional(label_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.label_name_cannot_null")), "exchange_label_info"); 
 				auto name = std::string(label_name->Value());
 				label[name].start = frame_index;
 				label[name].duration = frame_duration;

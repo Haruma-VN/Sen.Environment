@@ -21,14 +21,6 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -63,7 +55,6 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode.Argument,
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode.Configuration
         >({
             id: "pvz2.custom.scg.decode",
@@ -84,7 +75,7 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode {
                 }
                 const setting: Script.Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting = {
                     decode_method: argument.generic!,
-                    animation_split_label: argument.animation_split_label! ?? false
+                    animation_split_label: argument.animation_split_label! ?? false,
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.StreamCompressedGroup.decode_fs(argument.source, argument.destination!, setting);
@@ -97,10 +88,10 @@ namespace Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.scg$/i],
+            option: 73n,
         });
         return;
     }
-
 }
 
 Sen.Script.Executor.Methods.PvZ2.Custom.SCG.Decode.forward();

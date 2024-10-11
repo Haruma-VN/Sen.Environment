@@ -74,8 +74,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateFlashFromMed
             version: 6n,
             frame_rate: 30n,
             position: {
-                x: 0n,
-                y: 0n,
+                x: 0,
+                y: 0,
             },
             size: {
                 width: 390,

@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.Argument,
             Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate.Configuration
         >({
             id: "popcap.rsb.obfuscate",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Obfuscate {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.(rsb|obb)$/i],
+            option: 54n,
         });
         return;
     }

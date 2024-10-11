@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.WWise.SoundBank.Decode.Argument,
             Sen.Script.Executor.Methods.WWise.SoundBank.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.WWise.SoundBank.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.WWise.SoundBank.Decode.Configuration
         >({
             id: "wwise.soundbank.decode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.WWise.SoundBank.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.bnk$/i],
+            option: 77n,
         });
         return;
     }

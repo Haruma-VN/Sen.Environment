@@ -88,8 +88,6 @@ namespace Sen::Kernel::Support::PopCap::Animation::Miscellaneous {
 				dump.process(fmt::format("{}/DomDocument.xml", source), document);
 				return;
 			}
-
-
 	};
 
 	class Generator {
@@ -166,7 +164,7 @@ namespace Sen::Kernel::Support::PopCap::Animation::Miscellaneous {
 				auto DOMSymbolItem = document->NewElement("DOMSymbolItem");
 				DOMSymbolItem->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 				DOMSymbolItem->SetAttribute("xmlns", "http://ns.adobe.com/xfl/2008/");
-				DOMSymbolItem->SetAttribute("name", fmt::format("image/{}", sprite->name).data());
+				DOMSymbolItem->SetAttribute("name", fmt::format("sprite/{}", sprite->name).data());
 				DOMSymbolItem->SetAttribute("symbolType", "graphic");
 				auto timeline = document->NewElement("timeline");
 				auto DOMTimeline = document->NewElement("DOMTimeline");
@@ -213,6 +211,39 @@ namespace Sen::Kernel::Support::PopCap::Animation::Miscellaneous {
 				return;
 			}
 
+			inline auto make_dom (
+				XMLDocument* doc,
+				BasicDocument* newData
+			) -> void
+			{
+				auto root = doc->FirstChildElement("DOMDocument");
+				auto mediaElem = root->FirstChildElement("media");
+				if (mediaElem != nullptr) {
+					for (auto& mediaName : newData->media) {
+						auto newBitmap = doc->NewElement("DOMBitmapItem");
+						newBitmap->SetAttribute("name", ("media/" + mediaName).data());
+						newBitmap->SetAttribute("href", ("media/" + mediaName + ".png").data());
+						mediaElem->InsertEndChild(newBitmap);
+					}
+				}
+				auto symbolsElem = root->FirstChildElement("symbols");
+				if (symbolsElem != nullptr) {
+					for (auto& spriteName : newData->sprite) {
+						auto newSprite = doc->NewElement("Include");
+						newSprite->SetAttribute("href", ("sprite/" + spriteName + ".xml").data());
+						symbolsElem->InsertEndChild(newSprite);
+					}
+				}
+				if (symbolsElem != nullptr) {
+					for (auto& imageName : newData->image) {
+						auto newImage = doc->NewElement("Include");
+						newImage->SetAttribute("href", ("image/" + imageName + ".xml").data());
+						symbolsElem->InsertEndChild(newImage);
+					}
+				}
+				return;
+			}
+
 		public:
 
 			inline static auto generate_image(
@@ -223,6 +254,19 @@ namespace Sen::Kernel::Support::PopCap::Animation::Miscellaneous {
 				auto generator = Generator{};
 				auto xml = XMLDocument{};
 				generator.make_image(&xml, image);
+				FileSystem::write_xml(destination, &xml);
+				return;
+			}
+
+			inline static auto generate_document(
+				std::string_view destination,
+				BasicDocument* document
+			) -> void
+			{
+				auto generator = Generator{};
+				auto xml = XMLDocument{};
+				FileSystem::read_xml(destination, &xml);
+				generator.make_dom(&xml, document);
 				FileSystem::write_xml(destination, &xml);
 				return;
 			}

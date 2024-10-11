@@ -16,10 +16,10 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
 
     export interface ImageInfo {
         id: string;
-        size: Size;
+        dimension: Dimension;
     }
 
-    export interface Size {
+    export interface Dimension {
         width: bigint;
         height: bigint;
     }
@@ -45,7 +45,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateData {
             const distance: number = 1200 / Number(resolution);
             result.image[image_name] = {
                 id: `${image_posix}_${image_name.toUpperCase()}`,
-                size: {
+                dimension: {
                     width: BigInt(Math.round(Number(image.width) * distance)),
                     height: BigInt(Math.round(Number(image.height) * distance)),
                 },

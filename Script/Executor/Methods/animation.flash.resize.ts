@@ -18,14 +18,6 @@ namespace Sen.Script.Executor.Methods.Animation.Flash.Resize {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -64,7 +56,6 @@ namespace Sen.Script.Executor.Methods.Animation.Flash.Resize {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.Animation.Flash.Resize.Argument,
             Sen.Script.Executor.Methods.Animation.Flash.Resize.BatchArgument,
-            Sen.Script.Executor.Methods.Animation.Flash.Resize.AsyncArgument,
             Sen.Script.Executor.Methods.Animation.Flash.Resize.Configuration
         >({
             id: "animation.flash.resize",
@@ -86,6 +77,7 @@ namespace Sen.Script.Executor.Methods.Animation.Flash.Resize {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /.*(\.xfl|\.pam\.xfl)$/i],
+            option: 7n,
         });
         return;
     }

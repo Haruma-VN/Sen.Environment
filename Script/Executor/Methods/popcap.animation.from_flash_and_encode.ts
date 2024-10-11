@@ -18,14 +18,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -44,7 +36,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.Argument,
             Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode.Configuration
         >({
             id: "popcap.animation.from_flash_and_encode",
@@ -66,6 +57,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Animation.FromFlashAndEncode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["directory", /(.+)\.xfl$/i],
+            option: 11n,
         });
         return;
     }

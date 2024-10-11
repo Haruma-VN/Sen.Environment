@@ -19,15 +19,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-        key?: string;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -46,7 +37,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.Argument,
             Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt.Configuration
         >({
             id: "popcap.crypt_data.encrypt",
@@ -68,6 +58,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CryptData.Encrypt {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.bin$/i],
+            option: 22n,
         });
         return;
     }

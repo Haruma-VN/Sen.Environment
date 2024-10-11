@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.Marmalade.DZip.Unpack {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.Marmalade.DZip.Unpack {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.Marmalade.DZip.Unpack.Argument,
             Sen.Script.Executor.Methods.Marmalade.DZip.Unpack.BatchArgument,
-            Sen.Script.Executor.Methods.Marmalade.DZip.Unpack.AsyncArgument,
             Sen.Script.Executor.Methods.Marmalade.DZip.Unpack.Configuration
         >({
             id: "marmalade.dzip.unpack",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.Marmalade.DZip.Unpack {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.dz$/i],
+            option: 5n,
         });
         return;
     }

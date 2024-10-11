@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Newton.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Newton.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Newton.Decode.Argument,
             Sen.Script.Executor.Methods.PopCap.Newton.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Newton.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Newton.Decode.Configuration
         >({
             id: "popcap.newton.decode",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Newton.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.newton$/i],
+            option: 23n,
         });
         return;
     }

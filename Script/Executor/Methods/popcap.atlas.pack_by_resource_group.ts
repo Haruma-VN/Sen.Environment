@@ -17,12 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
     export interface BatchArgument extends Sen.Script.Executor.Base {}
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {}
-
-    /**
      * Configuration file if needed
      */
 
@@ -56,7 +50,6 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup.Argument,
             Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup.Configuration
         >({
             id: "popcap.atlas.pack_by_resource_group",
@@ -87,6 +80,7 @@ namespace Sen.Script.Executor.Methods.PopCap.Atlas.PackByResourceGroup {
             batch_forward: undefined!,
             is_enabled: true,
             filter: ["directory", /(.+)\.sprite$/i],
+            option: 16n,
         });
         return;
     }

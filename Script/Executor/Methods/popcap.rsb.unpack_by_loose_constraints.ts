@@ -17,14 +17,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -41,7 +33,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints.Argument,
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints.Configuration
         >({
             id: "popcap.rsb.unpack_by_loose_constraints",
@@ -62,6 +53,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackByLooseConstraints {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.*)\.(rsb|obb)$/i],
+            option: 57n,
         });
         return;
     }

@@ -23,17 +23,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
     }
 
     /**
-     * Async support
-     */
-
-    export interface AsyncArgument extends Sen.Script.Executor.Base {
-        parameter: Array<[string, string]>;
-        key?: string;
-        iv?: string;
-        use_64_bit_variant?: boolean;
-    }
-
-    /**
      * Configuration file if needed
      */
 
@@ -54,7 +43,6 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
         Sen.Script.Executor.push_as_module<
             Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Argument,
             Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.BatchArgument,
-            Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.AsyncArgument,
             Sen.Script.Executor.Methods.PopCap.CompiledText.Decode.Configuration
         >({
             id: "popcap.compiled_text.decode",
@@ -78,6 +66,7 @@ namespace Sen.Script.Executor.Methods.PopCap.CompiledText.Decode {
             is_enabled: true,
             configuration: undefined!,
             filter: ["file", /(.+)\.txt$/i],
+            option: 19n,
         });
         return;
     }
