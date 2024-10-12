@@ -10,17 +10,18 @@ import 'package:async/async.dart';
 import 'package:modding/model/build_distribution.dart';
 import 'package:modding/model/message.dart';
 import 'package:modding/provider/setting_provider.dart';
+import 'package:modding/service/file_service.dart';
 import 'package:modding/service/pointer_service.dart';
 import 'package:modding/widget/radio_button.dart';
 import 'package:provider/provider.dart';
 
 class ShellScreen extends StatefulWidget {
-  final String shellPath;
+  final String holderPath;
   final List<String> arguments;
 
   const ShellScreen({
     super.key,
-    required this.shellPath,
+    required this.holderPath,
     required this.arguments,
   });
 
@@ -53,10 +54,12 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _secondsPassed++;
-      });
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      if (mounted) {
+        setState(() {
+          _secondsPassed++;
+        });
+      }
     });
   }
 
@@ -598,11 +601,69 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 
+  void _onUploadFile() async {
+    var result = await FileService.uploadFile();
+    if (result != null && _inputController != null) {
+      _inputController!.text = result;
+    }
+  }
+
+  void _onUploadDirectory() async {
+    var result = await FileService.uploadDirectory();
+    if (result != null && _inputController != null) {
+      _inputController!.text = result;
+    }
+  }
+
+  void _onSelect() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text('Upload File'),
+              onTap: () {
+                _onUploadFile();
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder),
+              title: const Text('Select Directory'),
+              onTap: () {
+                _onUploadDirectory();
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history_outlined),
+              title: const Text('Recent files'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.cancel),
+              title: const Text('Cancel'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildInputStringStage() {
     return Row(
       children: [
         Expanded(
           child: TextField(controller: _inputController),
+        ),
+        IconButton(
+          onPressed: _onSelect,
+          icon: const Icon(Symbols.radio_button_checked_rounded),
         ),
         IconButton(
           onPressed: _onSendString,
@@ -615,6 +676,7 @@ class _ShellScreenState extends State<ShellScreen> {
   void _onSendString() {
     final inputData = _inputController!.text;
     _completer.complete(inputData);
+    _inputController!.text = '';
     setState(() {
       _outputData.add(Message(
         title: inputData,
@@ -776,8 +838,6 @@ class _ShellScreenState extends State<ShellScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sen: Environment'),
-        leading: const Icon(Icons.terminal_outlined),
-        actions: [],
       ),
       body: Column(
         children: [

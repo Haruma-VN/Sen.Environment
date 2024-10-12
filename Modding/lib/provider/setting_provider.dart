@@ -8,11 +8,21 @@ class SettingProvider with ChangeNotifier {
 
   String _toolchain = '';
 
+  bool _isValid = false;
+
   String get theme => _theme;
 
   bool get sendNotification => _sendNotification;
 
   String get toolChain => _toolchain;
+
+  bool get isValid => _isValid;
+
+  void setIsValid(bool value) async {
+    _isValid = value;
+    await _saveIsValid();
+    notifyListeners();
+  }
 
   ThemeMode get themeData {
     final Map<String, ThemeMode> exchanger = {
@@ -27,6 +37,7 @@ class SettingProvider with ChangeNotifier {
     _loadTheme();
     _loadOnNotification();
     _loadToolChain();
+    _loadValid();
   }
 
   void setTheme(String value) async {
@@ -60,9 +71,22 @@ class SettingProvider with ChangeNotifier {
     return;
   }
 
+  Future<void> _loadValid() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isValid = prefs.getBool('isValid') ?? false;
+    notifyListeners();
+    return;
+  }
+
   Future<void> _saveToolChain() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('toolchain', _toolchain);
+    return;
+  }
+
+  Future<void> _saveIsValid() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isValid', _isValid);
     return;
   }
 

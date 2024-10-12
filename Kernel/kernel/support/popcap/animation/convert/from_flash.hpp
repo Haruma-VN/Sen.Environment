@@ -349,11 +349,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				assert_conditional(dom_frame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "exchange_label_info");
 				auto frame_index = std::stoi(dom_frame->FindAttribute("index")->Value());
-				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
+				auto m_duration = dom_frame->FindAttribute("duration");
+				auto frame_duration = static_cast<int>(std::stoi((m_duration ? m_duration->Value() : "1")));
 				frame_count += frame_duration;
 				auto label_name = dom_frame->FindAttribute("name");
 				assert_conditional(label_name != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.label_name_cannot_null")), "exchange_label_info"); 
 				auto name = std::string(label_name->Value());
+				// debug(name);
 				label[name].start = frame_index;
 				label[name].duration = frame_duration;
 			}
@@ -424,7 +426,8 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			{
 				assert_conditional(dom_frame != nullptr, fmt::format("{}", Language::get("popcap.animation.from_flash.sprite_has_no_DOMFrame")), "exchange_dom_document");
 				auto frame_index = std::stoi(dom_frame->FindAttribute("index")->Value());
-				auto frame_duration = std::stoi(dom_frame->FindAttribute("duration")->Value());
+				auto m_duration = dom_frame->FindAttribute("duration");
+				auto frame_duration = static_cast<int>(std::stoi((m_duration ? m_duration->Value() : "1")));
 				frame_count -= frame_duration;
 			}
 			assert_conditional(frame_count == k_begin_index_int, String::format(fmt::format("{}", Language::get("popcap.animation.main_frame_has_no_vaild_length")), std::to_string(frame_count), std::to_string(k_begin_index)), "exchange_dom_document");
@@ -536,10 +539,12 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			FlashPackage &flash_package) -> void
 		{
 			auto &package_library = flash_package.library;
+			// debug("exchange_simple_definition");
 			exchange_simple_definition(definition, extra);
 			exchange_default_extra(extra);
 			for (auto &[image_name, _v] : package_library.image)
 			{
+				// debug(image_name);
 				assert_conditional(extra.image.contains(image_name), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.cannot_find_image_in_data")), image_name), "exchange_definition");
 				auto &image_value = extra.image.at(image_name);
 				assert_conditional(image_value.dimension.width >= static_cast<int>(k_none_size), String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.invalid_image_width")), image_name), "exchange_definition");
@@ -555,13 +560,16 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 			}
 			for (auto &element : package_library.sprite)
 			{
+				
 				auto &sprite_name = element.first;
+				// debug(sprite_name);
 				exchange_sprite_document<SpriteType::sprite>(sprite_name, package_library, package_library.frame_node, package_library.sprite[sprite_name]);
 				auto sprite = AnimationSprite(sprite_name);
 				exchange_frame_node(sprite.frame, package_library.frame_node);
 				exchange_sprite_duration(sprite);
 				definition.sprite.emplace_back(sprite);
 			}
+			// debug("exchange_label_info");
 			exchange_label_info(package_library.label, flash_package.document);
 			auto last_label_frame = package_library.label.size() == k_none_size ? k_begin_index_int : package_library.label.back().second.start + package_library.label.back().second.duration;
 			if constexpr (split_label)
@@ -570,17 +578,21 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 				for (auto &element : package_library.label)
 				{
 					auto &label_name = element.first;
+					// debug(label_name);
 					assert_conditional(package_library.label_document.find(label_name) != package_library.label_document.end(),  String::format(fmt::format("{}", Language::get("popcap.animation.from_flash.missing_label_xml")), label_name), "exchange_definition");
 					exchange_sprite_document<SpriteType::label>(label_name, package_library, label_frame_node[label_name], package_library.label_document.at(label_name));
 				}
+				// debug("exchange_label");
 				exchange_label(label_frame_node, package_library.label, package_library.frame_node);
 			}
 			else
 			{
 				exchange_sprite_document<SpriteType::main_sprite>(std::string{"main_sprite"}, package_library, package_library.frame_node, package_library.main_sprite);
 			}
+			// debug("exchange_frame_node");
 			exchange_frame_node(definition.main_sprite.frame, package_library.frame_node);
 			add_frame_if_need(definition.main_sprite.frame, last_label_frame);
+			// debug("exchange_sprite_duration");
 			exchange_sprite_duration(definition.main_sprite);
 			return;
 		}
@@ -614,9 +626,13 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 		{
 			static_assert(split_label == true || split_label == false, "split_label must be true or false");
 			auto flash_package = FlashPackage{};
+			// debug("load_flash_package");
 			load_flash_package(flash_package, extra, source);
+			// debug("exchange_definition");
 			exchange_definition(definition, extra, flash_package);
+			// debug("exchange_dom_document");
 			exchange_dom_document(definition, flash_package.library.label, flash_package.document);
+			// debug("exchange_sprite_duplicate");
 			exchange_sprite_duplicate(extra.sprite, definition.sprite);
 			return;
 		}

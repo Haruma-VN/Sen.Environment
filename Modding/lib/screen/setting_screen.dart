@@ -1,6 +1,8 @@
-import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:modding/provider/setting_provider.dart';
+import 'package:modding/service/file_service.dart';
 import 'package:provider/provider.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -85,7 +87,9 @@ class _SettingScreenState extends State<SettingScreen> {
         value: value,
         groupValue: settingProvider.sendNotification,
         onChanged: (bool? value) {
-          if (value == null) return;
+          if (value == null) {
+            return;
+          }
           settingProvider.setNotification(value);
         },
       ),
@@ -119,6 +123,39 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
+  void _onCheckValidator() {
+    final settingProvider = Provider.of<SettingProvider>(
+      context,
+      listen: false,
+    );
+    if (settingProvider.toolChain.isNotEmpty) {
+      settingProvider.setIsValid(
+        _existKernel(settingProvider.toolChain) &&
+            _existScript(settingProvider.toolChain),
+      );
+    }
+  }
+
+  bool _existKernel(String path) {
+    if (Platform.isAndroid) {
+      return true;
+    }
+    if (Platform.isWindows) {
+      return FileService.isFile('$path/Kernel.dll');
+    }
+    if (Platform.isLinux) {
+      return FileService.isFile('$path/libKernel.so');
+    }
+    if (Platform.isIOS || Platform.isMacOS) {
+      return FileService.isFile('$path/libKernel.dylib');
+    }
+    return false;
+  }
+
+  bool _existScript(String path) {
+    return FileService.isFile('$path/Script/main.js');
+  }
+
   void _onChangeToolChain() async {
     final settingProvider = Provider.of<SettingProvider>(
       context,
@@ -136,7 +173,9 @@ class _SettingScreenState extends State<SettingScreen> {
                 child: TextField(
                   controller: controller,
                   onChanged: (String value) {
-                    settingProvider.setToolChain(value);
+                    controller.text = value;
+                    settingProvider.setToolChain(controller.text);
+                    _onCheckValidator();
                   },
                 ),
               ),
@@ -144,12 +183,13 @@ class _SettingScreenState extends State<SettingScreen> {
                 message: 'Upload directory',
                 child: IconButton(
                   onPressed: () async {
-                    var directory =
-                        await FilePicker.platform.getDirectoryPath();
-                    if (directory == null || directory.isEmpty) {
+                    final directory = await FileService.uploadDirectory();
+                    if (directory == null) {
                       return;
                     }
                     controller.text = directory;
+                    settingProvider.setToolChain(directory);
+                    _onCheckValidator();
                   },
                   icon: const Icon(Icons.drive_folder_upload_outlined),
                 ),

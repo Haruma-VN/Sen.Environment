@@ -1,5 +1,4 @@
 namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
-
     export type Generic = Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Generic;
 
     export function load_bigint(rule: any): bigint {
@@ -12,15 +11,10 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
             }
             new_rule.push(e[0]);
         });
-        return (rule)[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
+        return rule[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
     }
 
-    export function process(
-        setting: any,
-        texture_format_category: bigint,
-        resolution_list: Array<bigint>,
-        source: string
-    ) {
+    export function process(setting: any, texture_format_category: bigint, resolution_list: Array<bigint>, source: string) {
         const rsb_setting = {
             texture_format_category,
             only_high_resolution: false,
@@ -28,17 +22,17 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
                 rton_count: 0n,
                 json_count: 0n,
                 key: "65bd1b2305f46eb2806b935aab7630bb",
-                iv: "1b2305f46eb2806b935aab76"
+                iv: "1b2305f46eb2806b935aab76",
             },
             compression_setting: {
                 manifest: true,
-                packages: true
-            }
+                packages: true,
+            },
         } as Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting;
 
         const scg_setting = {
             decode_method: setting.decode_method,
-            animation_split_label: false
+            animation_split_label: false,
         } as Support.Miscellaneous.Custom.StreamCompressedGroup.Configuration.Setting;
         if (setting.rebuild_rsb_by_loose_constraints_first) {
             Kernel.Support.PopCap.RSB.unpack_cipher(source, `${source}.temp_bundle`);
@@ -62,8 +56,7 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
                     }
                     Kernel.JSON.serialize_fs(`${scg_dest}/data.json`, data_info, 1, true);
                 }
-            }
-            catch (e: any) {
+            } catch (e: any) {
                 Console.warning(e);
                 error_log += `● ${Kernel.Language.get("unpack")}: ${Kernel.Path.basename(element)} | Catch: ${e}\n`;
             }
@@ -72,14 +65,13 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
             try {
                 Console.send(`${Kernel.Language.get("pack")}: ${Kernel.Path.basename(element)}`);
                 Kernel.Support.Miscellaneous.Custom.StreamCompressedGroup.encode_fs(element, `${source}.bundle/packet/${Kernel.Path.base_without_extension(element)}.scg`, scg_setting);
-            }
-            catch (e: any) {
+            } catch (e: any) {
                 Console.warning(e);
                 error_log += `● ${Kernel.Language.get("pack")}: ${Kernel.Path.basename(element)} | Catch: ${e}\n`;
             }
         }
-        const packages_info_flag: bigint = BigInt((Kernel.JSON.deserialize_fs(`${source}.bundle/data.json`) as any).packages_info_flag);
-        const packages_setting = Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.load_packages(`${source}.bundle`, packages_info_flag);
+        const packages_info = (Kernel.JSON.deserialize_fs(`${source}.bundle/data.json`) as any).packages_info;
+        const packages_setting = Sen.Script.Executor.Methods.PopCap.RSB.PackCustom.load_packages(`${source}.bundle`, packages_info);
         rsb_setting.packages_setting.json_count = packages_setting.json_count;
         rsb_setting.packages_setting.rton_count = packages_setting.rton_count;
         const destination = source.replace(Kernel.Path.extname(source), `_rebuild${Kernel.Path.extname(source)}`);
@@ -94,7 +86,7 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
         //setting.
         const setting = {
             rebuild_rsb_by_loose_constraints_first: false,
-            decode_method: 1n
+            decode_method: 1n,
         };
         const source: string = Console.path(Kernel.Language.get("script.unpack_custom.rebuild_rsb.source_file"), "file");
         const generic = Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom.Detail.generic();
@@ -133,7 +125,5 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
         Sen.Script.Executor.clock.stop_safe();
         return;
     }
-
 }
 Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB.execute();
-

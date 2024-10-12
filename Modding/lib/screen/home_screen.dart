@@ -1,17 +1,11 @@
-import 'dart:io';
-
-import 'package:delightful_toast/delight_toast.dart';
-import 'package:delightful_toast/toast/components/toast_card.dart';
-import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:modding/model/log_message.dart';
-import 'package:modding/provider/item_provider.dart';
-import 'package:modding/provider/log_provider.dart';
-import 'package:modding/provider/recent_provider.dart';
-import 'package:modding/service/platform_service.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:modding/model/item.dart';
+import 'package:modding/provider/setting_provider.dart';
+import 'package:modding/screen/js_pick.dart';
+import 'package:modding/screen/method_picker.dart';
+import 'package:modding/screen/shell_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,147 +15,122 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late TextEditingController _moddingDirectoryController;
+  final List<Item> items = [
+    Item(
+      title: 'Shell',
+      description: 'Use the Shell module',
+      icon: const Icon(Symbols.terminal_rounded, size: 50),
+    ),
+    Item(
+      title: 'Method Picker',
+      description: 'Select method to use from categories of methods',
+      icon: const Icon(Symbols.package_2, size: 50),
+    ),
+    Item(
+      title: 'JS Execute',
+      description: 'Run built-in JS',
+      icon: const Icon(Symbols.javascript_rounded, size: 50),
+    ),
+  ];
 
-  @override
-  void initState() {
-    _moddingDirectoryController = TextEditingController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _moddingDirectoryController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onUpload() async {
-    final logProvider = Provider.of<LogProvider>(context, listen: false);
-    final provider = Provider.of<ItemProvider>(context, listen: false);
-    final recentProvider = Provider.of<RecentProvider>(context, listen: false);
-    final result = await FilePicker.platform.getDirectoryPath();
-    logProvider.empty();
-    logProvider.add(
-        LogMessage(title: 'Upload modding directory', time: DateTime.now()));
-    if (result != null) {
-      provider.path = result;
-      _showSnackBar(
-        title: 'loaded: $result',
-        color: Colors.green.withOpacity(0.85),
-      );
-      logProvider.add(LogMessage(
-        title: 'Uploaded modding directory',
-        subtitle: result.replaceAll('\\', '/'),
-        time: DateTime.now(),
-      ));
-      recentProvider.addFile(result);
-    } else {
-      logProvider.add(
-        LogMessage(
-          title: 'Failed upload modding directory',
-          time: DateTime.now(),
-        ),
-      );
-    }
-  }
-
-  void _showSnackBar({
-    required String title,
-    Color? color,
+  void _initWidget({
+    required SettingProvider settingProvider,
   }) {
-    DelightToastBar(
-      autoDismiss: true,
-      position: DelightSnackbarPosition.bottom,
-      builder: (context) => ToastCard(
-        color: color,
-        leading: const Icon(Icons.done_outline, size: 30),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-        ),
-      ),
-    ).show(context);
-    return;
+    _initShellWidget(
+      holderPath: settingProvider.toolChain,
+    );
+    _initMethodPicker(
+      holderPath: settingProvider.toolChain,
+    );
+    _initJSModule(
+      holderPath: settingProvider.toolChain,
+    );
   }
 
-  List<Widget> _moddingDirectory() {
-    return [
-      const Text('Modding directory'),
-      Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _moddingDirectoryController,
-            ),
-          ),
-          Tooltip(
-            message: 'Upload directory',
-            child: IconButton(
-              onPressed: _onUpload,
-              icon: const Icon(Icons.folder_open_outlined),
-            ),
-          ),
-        ],
-      )
-    ];
+  void _initShellWidget({
+    required String holderPath,
+  }) {
+    items[0].onWidget = () {
+      return ShellScreen(holderPath: holderPath, arguments: const []);
+    };
   }
 
-  String? _revealMessage() {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return 'Open in Explorer';
-    }
-    return null;
+  void _initJSModule({
+    required String holderPath,
+  }) {
+    items[2].onWidget = () {
+      return JsPick(holder: holderPath);
+    };
   }
 
-  Widget? _subtitle(LogMessage e) {
-    return e.subtitle != null
-        ? GestureDetector(
-            onTap: () => PlatformService.revealInExplorer(e.subtitle!),
-            child: Tooltip(message: _revealMessage(), child: Text(e.subtitle!)),
-          )
-        : null;
-  }
-
-  String _formatDate(DateTime date) {
-    final DateFormat formatter = DateFormat('MM-dd-yyyy hh:mm a');
-    return formatter.format(date);
+  void _initMethodPicker({
+    required String holderPath,
+  }) {
+    items[1].onWidget = () {
+      return const MethodPicker();
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final itemProvider = Provider.of<ItemProvider>(context);
-    final logProvider = Provider.of<LogProvider>(context);
-    _moddingDirectoryController.text = itemProvider.path;
+    final settingProvider = Provider.of<SettingProvider>(context);
+    _initWidget(settingProvider: settingProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const itemWidth = 250.0;
+    int crossAxisCount = (screenWidth / itemWidth).floor();
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ..._moddingDirectory(),
-          const SizedBox(height: 15.0),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.blueAccent),
-              ),
-              child: ListView(
-                children: logProvider.list
-                    .map(
-                      (e) => Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.work_history_outlined),
-                          title: Text(e.title),
-                          subtitle: _subtitle(e),
-                          trailing: SelectableText(_formatDate(e.time)),
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          childAspectRatio: 1.0,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Card(
+            clipBehavior: Clip.hardEdge,
+            child: InkWell(
+              splashColor: Colors.blue.withAlpha(30),
+              onTap: settingProvider.isValid
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => item.onWidget(),
                         ),
-                      ),
-                    )
-                    .toList(),
+                      );
+                    }
+                  : null,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    item.icon,
+                    const SizedBox(height: 8),
+                    Text(
+                      item.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.description,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 15),
+                    settingProvider.isValid
+                        ? Container()
+                        : const Text('Toolchain is invalid'),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

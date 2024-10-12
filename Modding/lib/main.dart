@@ -1,16 +1,12 @@
 import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modding/model/theme.dart';
 import 'package:modding/provider/filter_provider.dart';
 import 'package:modding/provider/log_provider.dart';
-import 'package:modding/provider/manifest_provider.dart';
 import 'package:modding/provider/recent_provider.dart';
 import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/root_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:modding/provider/item_provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main(
@@ -26,9 +22,6 @@ Future<void> main(
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(
-        create: (_) => ItemProvider(),
-      ),
-      ChangeNotifierProvider(
         create: (_) => LogProvider(),
       ),
       ChangeNotifierProvider(
@@ -36,9 +29,6 @@ Future<void> main(
       ),
       ChangeNotifierProvider(
         create: (_) => RecentProvider(),
-      ),
-      ChangeNotifierProvider(
-        create: (_) => ManifestProvider(),
       ),
       ChangeNotifierProvider(
         create: (_) => SettingProvider(),
@@ -53,22 +43,13 @@ class Application extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isIOS || Platform.isMacOS) {
-      return const CupertinoApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Sen: Environment',
-        theme: CupertinoDesign.lightTheme,
-        home: RootScreen(title: 'Sen: Environment'),
-      );
-    } else {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Sen: Environment',
-        theme: MaterialDesign.lightTheme,
-        darkTheme: MaterialDesign.darkTheme,
-        themeMode: Provider.of<SettingProvider>(context).themeData,
-        home: const RootScreen(title: 'Sen: Environment'),
-      );
-    }
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Sen: Environment',
+      theme: MaterialDesign.lightTheme,
+      darkTheme: MaterialDesign.darkTheme,
+      themeMode: Provider.of<SettingProvider>(context).themeData,
+      home: const RootScreen(title: 'Sen: Environment'),
+    );
   }
 }

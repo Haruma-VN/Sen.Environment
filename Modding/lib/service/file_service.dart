@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 
 class FileService {
   static List<String> readDirectory({
@@ -35,5 +38,36 @@ class FileService {
     required String source,
   }) {
     return File(source).readAsStringSync();
+  }
+
+  static dynamic readJson({
+    required String source,
+  }) {
+    return jsonDecode(readFile(source: source));
+  }
+
+  static Future<String?> uploadDirectory() async {
+    var directory = await FilePicker.platform.getDirectoryPath();
+    if (directory == null || directory.isEmpty) {
+      return null;
+    }
+    return directory;
+  }
+
+  static Future<String?> uploadFile() async {
+    if (Platform.isAndroid) {
+      // TODO : Handle this
+      return null;
+    }
+    return _uploadFilePicker();
+  }
+
+  static Future<String?> _uploadFilePicker() async {
+    var result = await FilePicker.platform.pickFiles();
+    if (result == null) {
+      return null;
+    } else {
+      return result.files.single.path!;
+    }
   }
 }

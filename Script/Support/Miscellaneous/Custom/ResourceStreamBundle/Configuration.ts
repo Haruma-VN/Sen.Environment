@@ -9,7 +9,7 @@ namespace Sen.Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configura
         rton_count: bigint;
         json_count: bigint;
         key: string;
-        iv: string
+        iv: string;
     }
 
     export interface CompressionSetting extends Record<string, unknown> {
@@ -20,7 +20,6 @@ namespace Sen.Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configura
     export interface Setting extends Record<string, unknown> {
         texture_format_category: bigint;
         only_high_resolution: boolean;
-        packages_setting: PackagesSetting,
-        compression_setting: CompressionSetting
+        packages_setting: PackagesSetting;
     }
 }

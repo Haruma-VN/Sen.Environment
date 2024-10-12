@@ -77,15 +77,13 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                 defined_or_default<Argument, string>(argument, "destination", Kernel.Path.except_extension(argument.source));
                 Console.output(argument.destination!);
                 load_bigint(argument, "generic", this.configuration, Script.Executor.Methods.PopCap.RSB.UnpackCustom.Detail.generic(), Kernel.Language.get("popcap.rsb.custom.generic"));
-                const packages_info_flag: bigint = BigInt((Kernel.JSON.deserialize_fs(`${argument.source}/data.json`) as any).packages_info_flag);
+                const packages_info: PackCustom.PackagesInfo | null = (Kernel.JSON.deserialize_fs(`${argument.source}/data.json`) as any).packages_info;
                 const count_of = () => {
-                    const result: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.PackagesSetting = PackCustom.load_packages(argument.source, packages_info_flag);
-                    load_boolean(argument, "manifest", this.configuration.compression_setting, Kernel.Language.get("popcap.rsb.pack_custom.manifest_compress"));
-                    if (packages_info_flag !== 0n) {
-                        load_boolean(argument, "packages", this.configuration.compression_setting, Kernel.Language.get("popcap.rsb.pack_custom.packages_compress"));
-                        if (result.json_count !== 0n && packages_info_flag % 2n == 0n) {
+                    const result: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.PackagesSetting = PackCustom.load_packages(argument.source, packages_info);
+                    if (packages_info !== null) {
+                        if (result.json_count !== 0n && packages_info.encode) {
                             Console.output(`${Kernel.Language.get("popcap.rsb.pack_custom.total_json_count")}: ${result.json_count}`);
-                            if (result.json_count !== 0n && packages_info_flag % 4n == 0n) {
+                            if (result.json_count !== 0n && packages_info.chinese) {
                                 load_string(argument, "key", this.configuration.packages_setting, Kernel.Language.get("popcap.rsb.pack_custom.key"));
                                 load_string(argument, "iv", this.configuration.packages_setting, Kernel.Language.get("popcap.rsb.pack_custom.iv"));
                                 result.key = argument.key!;
