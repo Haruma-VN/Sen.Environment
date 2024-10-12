@@ -49,7 +49,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                         assert_conditional(res_temp["groups"].size() == group_size_left, fmt::format("{}", Language::get("popcap.rsb.project.group_must_be_empty")), "exchange_manifest_group");
                     };
                     auto resource_data_section_view_stored = DataSectionViewStored{};
-                    unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);
+                    manifest_info.compression = unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);
                     assert_conditional(resource_data_section_view_stored.size() != k_none_size, fmt::format("{}", Language::get("popcap.rsb.custom.manifest_is_empty")), "exchange_manifest_group");
                     for (auto &[resource_id, resource_data] : resource_data_section_view_stored)
                     {
@@ -81,10 +81,11 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             assert_conditional(false, String::format(fmt::format("{}", Language::get("popcap.rsb.custom.cannot_find_manifest"))), "exchange_manifest_group");
         }
 
-        inline static auto exchange_package(
+        inline static auto exchange_packages(
             DataSectionViewStored &packet_data_section_view_stored,
+            PackagesInfo &packages_info,
             CustomResourceInformation &resource_info,
-            std::string_view destination) -> uint32_t
+            std::string_view destination) -> void
         {
             auto check_rton_is_encrypted = [](std::vector<uint8_t> &data) -> bool
             {
@@ -105,7 +106,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                 if (compare_string(packet_id, packages_string))
                 {
                     auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
-                    unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);
+                    packages_info.is_contain_packages = true;
+                    packages_info.compression = unpack_rsg_without_definition(packet_data, resource_data_section_view_stored);
                     FileSystem::create_directory(tolower_back(fmt::format("{}/{}", destination, packages_string)));
                     auto async_work_process = std::vector<std::future<void>>{};
                     for (auto &[id, data] : resource_data_section_view_stored)
@@ -113,18 +115,15 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                         check_rton_is_encrypted(data) ? ++rton_encrypted_count : --rton_encrypted_count;
                         async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/{}", destination, id), data));
                     }
-                    auto package_info = PackagesInfoFlag{
-                        .automatically_converter = false,
-                        .encrypted = rton_encrypted_count > static_cast<int>(resource_data_section_view_stored.size() / 2_size)};
-                    auto package_info_flag = 0_ui;
-                    exchange_packages_info_flag(package_info, package_info_flag);
+                    packages_info.chinese = rton_encrypted_count > static_cast<int>(resource_data_section_view_stored.size() / 2_size);
+                    packages_info.encode = true;
                     async_process_list<void>(async_work_process);
                     packet_data_section_view_stored.erase(packet_id);
                     resource_info.group.erase(get_string(packages_string));
-                    return package_info_flag + 1_ui;
+                    return;
                 }
             }
-            return 0_ui;
+            return;
         }
 
         inline static auto exchange_stream(
@@ -257,7 +256,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             definition.texture_information_version = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(bundle.texture_information_section_size);
             auto resource_info = CustomResourceInformation{};
             exchange_manifest_group(resource_info, packet_data_section_view_stored, definition.manifest_info, destination);
-            definition.packages_info_flag = exchange_package(packet_data_section_view_stored, resource_info, destination);
+            exchange_packages(packet_data_section_view_stored, definition.packages_info, resource_info, destination);
             exchange_packet(definition, bundle, resource_info, packet_data_section_view_stored, destination, setting);
             return;
         }

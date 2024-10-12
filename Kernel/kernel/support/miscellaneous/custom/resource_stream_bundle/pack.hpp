@@ -32,7 +32,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             DataSectionViewStored &packet_data_section_view_stored,
             CustomResourceInformation &resource_info,
             BundleStructure &bundle,
-            PackagesInfoFlag const &package_info,
+            PackagesInfo const &packages_info,
             std::string const &packages_source,
             Setting const &setting) -> void
         {
@@ -49,10 +49,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             auto packages_list = FileSystem::read_whole_directory(packages_source);
             auto resource_data_section_view_stored = std::map<std::string, std::vector<uint8_t>>{};
             auto packet_definition = PacketStructure{
-                .version = bundle.version,
-                .compression = Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::PacketCompression{
-                    .general = setting.compression_setting.packages, // packages will not compress, maybe crash in old version and chinese.
-                    .texture = true}};
+                .version = bundle.version};
+            Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(packages_info.compression, packet_definition.compression);
             auto &packages_subgroup_info = resource_info.group[packages_string].subgroup[packages_string];
             auto json_count = static_cast<size_t>(packages_setting.json_count);
             auto rton_count = static_cast<size_t>(packages_setting.rton_count);
@@ -78,7 +76,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                 }
                 return;
             };
-            if (package_info.automatically_converter)
+            if (packages_info.encode)
             {
                 for (auto element : packages_list)
                 {
@@ -89,7 +87,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                         auto path = toupper_back(String::to_windows_style(element.substr(pos, (element.size() - pos - ".json"_sv.size())) + ".rton"));
                         auto resource_stream = DataStreamView{};
                         Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Encode::process_whole(resource_stream, FileSystem::read_file(element));
-                        if (package_info.encrypted)
+                        if (packages_info.chinese)
                         {
                             auto encrypted_stream = DataStreamView{};
                             Sen::Kernel::Support::PopCap::ReflectionObjectNotation::Instance::encrypt(resource_stream, encrypted_stream, packages_setting.key, packages_setting.iv);
@@ -220,10 +218,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             Setting const &setting) -> void
         {
             auto packet_definition = PacketStructure{
-                .version = bundle.version,
-                .compression = Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::PacketCompression{
-                    .general = setting.compression_setting.manifest, // manifest wil not compress, maybe crash in old version and chinese.
-                    .texture = true}};
+                .version = bundle.version};
+            Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(manifest_info.compression, packet_definition.compression);
             auto result = nlohmann::ordered_json{};
             if (manifest_info.allow_new_type_resource) {
                 
@@ -275,11 +271,9 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             auto manifest = ManifestStructure{};
             auto packet_data_section_view_stored = DataSectionViewStored{};
             auto resource_info = CustomResourceInformation{};
-            if (definition.packages_info_flag > static_cast<int>(k_none_size))
+            if (definition.packages_info.is_contain_packages)
             {
-                auto package_info = PackagesInfoFlag{};
-                exchange_packages_info_flag(definition.packages_info_flag - 1_ui, package_info);
-                exchange_packages(packet_data_section_view_stored, resource_info, bundle, package_info, fmt::format("{}/packages", source), setting);
+                exchange_packages(packet_data_section_view_stored, resource_info, bundle, definition.packages_info, fmt::format("{}/packages", source), setting);
             }
             exchange_packet(resource_info, bundle, packet_data_section_view_stored, definition, fmt::format("{}/packet", source), setting);
             exchange_manifest_group(bundle, packet_data_section_view_stored, resource_info, definition.manifest_info, setting);

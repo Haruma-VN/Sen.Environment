@@ -250,8 +250,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
         nlohmann_json_j["version"] = nlohmann_json_t.version;
         auto compression_data = 0_ui;
         Common::packet_compression_to_data(compression_data, nlohmann_json_t.compression);
-        auto index = std::find(Common::k_compression_list.begin(), Common::k_compression_list.end(), static_cast<uint32_t>(compression_data));
-        assert_conditional((index != Common::k_compression_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_rsg_compression")), std::to_string(static_cast<uint32_t>(compression_data))), "to_json");
         nlohmann_json_j["compression"] = compression_data;
         nlohmann_json_j["resource"] = nlohmann_json_t.resource;
         return;
@@ -263,8 +261,6 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
     {
         nlohmann_json_j.at("version").get_to(nlohmann_json_t.version);
         auto compression_data = nlohmann_json_j.at("compression").get<uint32_t>();
-        auto index = std::find(Common::k_compression_list.begin(), Common::k_compression_list.end(), static_cast<uint32_t>(compression_data));
-        assert_conditional((index != Common::k_compression_list.end()), String::format(fmt::format("{}", Language::get("popcap.rsg.invalid_rsg_compression")), std::to_string(static_cast<uint32_t>(compression_data))), "from_json"); 
         Common::packet_compression_from_data(compression_data, nlohmann_json_t.compression);
         nlohmann_json_j.at("resource").get_to(nlohmann_json_t.resource);
         return;

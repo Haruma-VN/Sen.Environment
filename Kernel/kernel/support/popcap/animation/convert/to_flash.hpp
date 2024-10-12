@@ -486,9 +486,9 @@ namespace Sen::Kernel::Support::PopCap::Animation::Convert
 					{
 						action_command_list.emplace_back("stop();");
 					}
-					// if (!frame.stop && static_cast<size_t> == definition.main_sprite.frame.size() - 1_size) {
-					// 	action_command_list.emplace_back("stop();");
-					// }
+					if (!frame.stop && static_cast<size_t>(frame_index) == definition.main_sprite.frame.size() - 1_size) {
+						action_command_list.emplace_back("stop();");
+					}
 				}
 				if (!action_command_list.empty())
 				{

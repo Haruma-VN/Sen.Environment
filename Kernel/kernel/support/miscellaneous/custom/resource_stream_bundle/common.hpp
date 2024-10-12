@@ -81,12 +81,14 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
         inline static auto unpack_rsg_without_definition(
             std::vector<uint8_t> const &data,
             DataSectionViewStored &value
-        ) -> void
+        ) -> uint32_t
         {
             auto packet_definition = PacketStructure{};
             auto packet_stream = DataStreamView{data};
             Sen::Kernel::Support::PopCap::ResourceStreamGroup::Unpack::process_whole(packet_stream, packet_definition, value);
-            return;
+            auto compression_data = 0_ui;
+            Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_to_data(compression_data, packet_definition.compression);
+            return compression_data;
         }
     };
 }
