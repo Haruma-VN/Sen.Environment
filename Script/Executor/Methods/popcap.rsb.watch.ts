@@ -13,8 +13,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
         generic?: Generic;
         key?: string;
         iv?: string;
-        manifest?: boolean;
-        packages?: boolean;
     }
 
     /**
@@ -31,7 +29,6 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
 
     export interface Configuration extends Sen.Script.Executor.Configuration {
         packages_setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.PackagesSetting;
-        compression_setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.CompressionSetting;
     }
 
     /**
@@ -100,11 +97,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.Watch {
                 const setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting = {
                     texture_format_category: argument.generic!,
                     only_high_resolution: false,
-                    packages_setting,
-                    compression_setting: {
-                        manifest: argument.manifest!,
-                        packages: argument.packages!,
-                    },
+                    packages_setting
                 };
                 Console.warning(Kernel.Language.get("popcap.rsb.watch.copying_root"));
                 Kernel.FileSystem.create_directory(`${argument.source}.repo`);

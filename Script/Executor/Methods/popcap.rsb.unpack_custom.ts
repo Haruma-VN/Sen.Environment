@@ -83,11 +83,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.UnpackCustom {
                         json_count: 0n,
                         key: "",
                         iv: "",
-                    },
-                    compression_setting: {
-                        manifest: true,
-                        packages: true,
-                    },
+                    }
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.unpack_fs(argument.source, argument.destination!, setting);

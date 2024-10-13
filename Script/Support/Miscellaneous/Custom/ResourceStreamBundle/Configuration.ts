@@ -12,11 +12,6 @@ namespace Sen.Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configura
         iv: string;
     }
 
-    export interface CompressionSetting extends Record<string, unknown> {
-        manifest: boolean;
-        packages: boolean;
-    }
-
     export interface Setting extends Record<string, unknown> {
         texture_format_category: bigint;
         only_high_resolution: boolean;

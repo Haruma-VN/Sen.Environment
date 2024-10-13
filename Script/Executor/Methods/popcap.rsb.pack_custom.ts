@@ -123,11 +123,7 @@ namespace Sen.Script.Executor.Methods.PopCap.RSB.PackCustom {
                 const setting: Script.Support.Miscellaneous.Custom.ResourceStreamBundle.Configuration.Setting = {
                     texture_format_category: argument.generic!,
                     only_high_resolution: false,
-                    packages_setting,
-                    compression_setting: {
-                        manifest: argument.manifest!,
-                        packages: argument.packages!,
-                    },
+                    packages_setting
                 };
                 clock.start_safe();
                 Kernel.Support.Miscellaneous.Custom.ResourceStreamBundle.pack_fs(argument.source, argument.destination!, setting);
