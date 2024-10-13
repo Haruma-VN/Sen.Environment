@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:modding/model/item.dart';
 import 'package:modding/provider/setting_provider.dart';
+import 'package:modding/screen/animation_viewer/main_screen.dart';
 import 'package:modding/screen/js_pick.dart';
 import 'package:modding/screen/method_picker.dart';
 import 'package:modding/screen/shell_screen.dart';
@@ -31,6 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
       description: 'Run built-in JS',
       icon: const Icon(Symbols.javascript_rounded, size: 50),
     ),
+    Item(
+      title: 'Animation Viewer',
+      description: 'View animation',
+      icon: const Icon(Symbols.animated_images, size: 50),
+    ),
   ];
 
   void _initWidget({
@@ -45,6 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _initJSModule(
       holderPath: settingProvider.toolChain,
     );
+    _initAnimationViewer();
+  }
+
+  void _initAnimationViewer() {
+    items[3].onWidget = () {
+      return const AnimationViewer();
+    };
   }
 
   void _initShellWidget({

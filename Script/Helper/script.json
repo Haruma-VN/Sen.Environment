@@ -1,0 +1,41 @@
+{
+    "kernel": 1,
+    "script": 1,
+    "data": [
+        {
+            "path": "./Debugger/CompareLanguageFile.js",
+            "name": "Compare language file",
+            "description": "Use to compare two language file"
+        },
+        {
+            "path": "./PvZ2/Animation/GenerateAtlasFromData.js",
+            "name": "Generate atlas.json",
+            "description": "Generate atlas.json from animation info file"
+        },
+        {
+            "path": "./PvZ2/Chinese/ToInternational.js",
+            "name": "Chinese content port",
+            "description": "Help you port chinese content to international version"
+        },
+        {
+            "path": "./PvZ2/Permanent/ErasePlantLevels.js",
+            "name": "Erase plant levels",
+            "description": "Erase levels from your plant levels"
+        },
+        {
+            "path": "./PvZ2/UnpackCustom/RebuildRSB.js",
+            "name": "Rebuild RSB",
+            "description": "Rebuild RSB before you init RSB Project"
+        },
+        {
+            "path": "./PvZ2/WorldMapData/Split.js",
+            "name": "Split Worldmap Data",
+            "description": "Split your worldmap data into pieces"
+        },
+        {
+            "path": "./PvZ2/WorldMapData/Merge.js",
+            "name": "Merge Worldmap Data",
+            "description": "Merge Worldmap Data into a single json file"
+        }
+    ]
+}
