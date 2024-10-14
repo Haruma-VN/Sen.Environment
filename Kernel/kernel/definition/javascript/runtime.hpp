@@ -111,7 +111,6 @@ namespace Sen::Kernel::Definition::JavaScript
 			 * JS Exception
 			*/
 			inline auto exception(
-				const JSValue & val
 			) -> std::string
 			{
 				auto result = std::string{};
@@ -204,6 +203,65 @@ namespace Sen::Kernel::Definition::JavaScript
 			}
 
 			/**
+			 * Check if a Promise still remain
+			*/
+
+			inline auto has_promise(
+			) -> bool
+			{
+				return static_cast<bool>(JS_IsJobPending(thiz.rt.get()));
+			}
+
+			inline static auto custom_module_loader(
+				JSContext * ctx,
+				char const * module_name,
+				void * opaque
+			) -> JSModuleDef *
+			{
+				auto source = std::string{module_name, std::strlen(module_name)};
+				auto file = FileSystem::read_file(source);
+				auto module_val = JS_Eval(ctx, file.data(), file.size(), module_name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+				if (JS_IsException(module_val)) {
+					JS_FreeValue(ctx, module_val);
+					JS_ThrowInternalError(ctx, "Cannot read module: %s", module_name);
+					return nullptr;
+				}
+				auto module_def = static_cast<JSModuleDef *>(JS_VALUE_GET_PTR(module_val));
+				JS_FreeValue(ctx, module_val);
+				return module_def;
+			}
+
+			inline auto enable_module_load (
+			) -> void
+			{
+				JS_SetModuleLoaderFunc(thiz.rt.get(), nullptr, &custom_module_loader, nullptr);
+				return;
+			}
+
+			inline auto disable_module_load (
+			) -> void
+			{
+				JS_SetModuleLoaderFunc(thiz.rt.get(), nullptr, nullptr, nullptr);
+				return;
+			}
+
+			/**
+			 * Check if a Promise still remain
+			*/
+
+			inline auto execute_pending_job(
+			) -> void
+			{
+				auto job_ctx = static_cast<JSContext *>(nullptr);
+				auto count = JS_ExecutePendingJob(thiz.rt.get(), &job_ctx);
+				assert_conditional(count == 0, "There is no pending job on the list", "execute_pending_job");
+				if (count < 0) {
+					throw Exception{thiz.exception()};
+				}
+				return;
+			}
+
+			/**
 			 * ------------------------------------------------------------
 			 * Evaluate JavaScript
 			 * @param source_data: the eval script data
@@ -219,7 +277,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			{
 				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
 				if(JS_IsException(eval_result)){
-					throw Exception(thiz.exception(eval_result), std::source_location::current(), "evaluate");
+					throw Exception(thiz.exception(), std::source_location::current(), "evaluate");
 				}
 				return eval_result;
 			}

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 
@@ -38,6 +39,22 @@ class FileService {
     required String source,
   }) {
     return File(source).readAsStringSync();
+  }
+
+  static Uint8List readBuffer({
+    required String source,
+  }) {
+    var file = File(source);
+    return file.readAsBytesSync();
+  }
+
+  static void writeBuffer({
+    required String source,
+    required Uint8List data,
+  }) {
+    var file = File(source);
+    file.writeAsBytesSync(data);
+    return;
   }
 
   static dynamic readJson({

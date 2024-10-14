@@ -693,6 +693,10 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::FileWatcher::register_class);
 				// execute the script
 				javascript->evaluate_fs(script_path);
+				// Execute other Promise
+				while (javascript->has_promise()) {
+					javascript->execute_pending_job();
+				}
 				return;
 			}
 

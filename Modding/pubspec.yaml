@@ -20,6 +20,7 @@ dependencies:
     path: ^1.9.0
     window_manager: ^0.3.9
     desktop_drop: ^0.5.0
+    image: ^4.2.0
 dev_dependencies:
     flutter_test:
         sdk: flutter
