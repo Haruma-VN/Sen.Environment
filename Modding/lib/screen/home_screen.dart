@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:modding/model/item.dart';
@@ -34,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     Item(
       title: 'Animation Viewer',
-      description: 'View animation',
+      description:
+          'Through Animation Viewer, view actual animation that will be performed',
       icon: const Icon(Symbols.animated_images, size: 50),
     ),
   ];
@@ -84,20 +87,69 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildUI() {
     final settingProvider = Provider.of<SettingProvider>(context);
-    _initWidget(settingProvider: settingProvider);
-    final screenWidth = MediaQuery.of(context).size.width;
-    const itemWidth = 250.0;
-    int crossAxisCount = (screenWidth / itemWidth).floor();
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
+    if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      const itemWidth = 250.0;
+      final crossAxisCount = (screenWidth / itemWidth).floor();
+      return GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           childAspectRatio: 1.0,
         ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Tooltip(
+            message: item.title,
+            child: Card(
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                splashColor: Colors.blue.withAlpha(30),
+                onTap: settingProvider.isValid
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => item.onWidget(),
+                          ),
+                        );
+                      }
+                    : null,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      item.icon,
+                      const SizedBox(height: 8),
+                      Text(
+                        item.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 4,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.description,
+                        textAlign: TextAlign.center,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 15),
+                      settingProvider.isValid
+                          ? Container()
+                          : const Text('Toolchain is invalid'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      return ListView.builder(
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
@@ -115,18 +167,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                   : null,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: ListTile(
+                leading: item.icon,
+                title: Text(
+                  item.title,
+                  maxLines: 4,
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    item.icon,
-                    const SizedBox(height: 8),
-                    Text(
-                      item.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 4,
-                    ),
                     const SizedBox(height: 4),
                     Text(
                       item.description,
@@ -140,11 +189,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         : const Text('Toolchain is invalid'),
                   ],
                 ),
+                onTap: settingProvider.isValid
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => item.onWidget(),
+                          ),
+                        );
+                      }
+                    : null,
               ),
             ),
           );
         },
-      ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settingProvider = Provider.of<SettingProvider>(context);
+    _initWidget(settingProvider: settingProvider);
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: _buildUI(),
     );
   }
 }

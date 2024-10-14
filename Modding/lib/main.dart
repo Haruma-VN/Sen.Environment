@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:modding/model/theme.dart';
-import 'package:modding/provider/filter_provider.dart';
 import 'package:modding/provider/log_provider.dart';
 import 'package:modding/provider/recent_provider.dart';
 import 'package:modding/provider/setting_provider.dart';
@@ -15,6 +14,7 @@ Future<void> main(
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await WindowManager.instance.ensureInitialized();
+    await windowManager.setMinimumSize(const Size(400, 400));
     await windowManager.center();
     await windowManager.waitUntilReadyToShow();
     await windowManager.show();
@@ -23,9 +23,6 @@ Future<void> main(
     providers: [
       ChangeNotifierProvider(
         create: (_) => LogProvider(),
-      ),
-      ChangeNotifierProvider(
-        create: (_) => FilterProvider(),
       ),
       ChangeNotifierProvider(
         create: (_) => RecentProvider(),

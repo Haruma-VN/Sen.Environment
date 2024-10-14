@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -478,6 +479,22 @@ class _ShellScreenState extends State<ShellScreen> {
     await WidgetsBinding.instance.endOfFrame;
   }
 
+  String _exchangeKernelPath({required SettingProvider provider}) {
+    if (Platform.isAndroid) {
+      return 'libKernel.so';
+    }
+    if (Platform.isWindows) {
+      return '${provider.toolChain}/kernel.dll';
+    }
+    if (Platform.isLinux) {
+      return '${provider.toolChain}/libKernel.so';
+    }
+    if (Platform.isMacOS || Platform.isIOS) {
+      return '${provider.toolChain}/Kernel.dylib';
+    }
+    throw Exception('unsupported platform');
+  }
+
   void _run(
     List<String> additionalArguments,
   ) async {
@@ -487,8 +504,10 @@ class _ShellScreenState extends State<ShellScreen> {
     _clearMessage();
     final mainReceivePort = ReceivePort();
     final mainStreamQueue = StreamQueue<dynamic>(mainReceivePort);
-    await Isolate.spawn(_sub,
-        [mainReceivePort.sendPort, '${settingProvider.toolChain}/kernel.dll']);
+    await Isolate.spawn(_sub, [
+      mainReceivePort.sendPort,
+      _exchangeKernelPath(provider: settingProvider),
+    ]);
     final subSendPort = await mainStreamQueue.next as SendPort;
     subSendPort.send([
       '${settingProvider.toolChain}/script/main.js',
@@ -659,7 +678,10 @@ class _ShellScreenState extends State<ShellScreen> {
     return Row(
       children: [
         Expanded(
-          child: TextField(controller: _inputController),
+          child: TextField(
+            controller: _inputController,
+            onSubmitted: (e) => _onSendString(),
+          ),
         ),
         IconButton(
           onPressed: _onSelect,
@@ -833,28 +855,49 @@ class _ShellScreenState extends State<ShellScreen> {
     return const SizedBox.shrink();
   }
 
+  Widget _buildUI() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                ..._outputData.map(
+                  (e) => _messageDisplay(e),
+                ),
+              ],
+            ),
+          ),
+        ),
+        _makeUserStage(),
+      ],
+    );
+  }
+
+  Widget _buildDragAndDrop(Widget data) {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return data;
+    }
+    return DropTarget(
+      onDragDone: (details) {
+        if (details.files.isNotEmpty) {
+          var file = details.files.first;
+          _inputController?.text = file.path;
+        }
+      },
+      child: data,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sen: Environment'),
+        title: const Text('Shell'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              child: Column(
-                children: [
-                  ..._outputData.map(
-                    (e) => _messageDisplay(e),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _makeUserStage(),
-        ],
+      body: _buildDragAndDrop(
+        _buildUI(),
       ),
     );
   }
