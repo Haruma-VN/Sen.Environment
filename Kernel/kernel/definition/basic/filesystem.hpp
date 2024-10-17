@@ -55,8 +55,12 @@ namespace Sen::Kernel::FileSystem
 		std::string_view source
 	) -> std::shared_ptr<nlohmann::ordered_json> const 
 	{
+		#if WINDOWS
 		auto file = std::ifstream(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 			String::to_windows_style(source.data()))).data());
+		#else
+		auto file = std::ifstream(source.data());
+		#endif
         if (!file.is_open()) {
 			throw Exception(fmt::format("{}: {}", Language::get("cannot_read_file"), String::to_posix_style(source.data())), std::source_location::current(), "read_json");
         }

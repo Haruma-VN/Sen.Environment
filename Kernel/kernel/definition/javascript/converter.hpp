@@ -613,6 +613,18 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				return js_array;
 			}
 
+			inline static auto to_array(
+				JSContext *ctx, 
+				std::vector<std::string> & vec
+			) -> JSValue
+			{
+				auto js_array = JS_NewArray(ctx);
+				for (auto i : Range<size_t>(vec.size())) {
+					JS_SetPropertyUint32(ctx, js_array, i, JS_NewStringLen(ctx, vec[i].data(), vec[i].size()));
+				}
+				return js_array;
+			}
+
 			inline static auto constexpr close_buffer = [](auto buffer)
 			{ free(buffer); return; };
 

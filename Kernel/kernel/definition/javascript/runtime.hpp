@@ -30,13 +30,19 @@ namespace Sen::Kernel::Definition::JavaScript
 		protected:
 			using JS = Runtime;
 
-			inline static auto constexpr free_runtime = [](auto rt) {
-				JS_FreeRuntime(rt);
+			inline static auto constexpr free_runtime = [](JSRuntime *rt)
+			{
+				if (rt != nullptr) {
+            		JS_RunGC(rt);
+					JS_FreeRuntime(rt);
+				}
 				return;
 			};
 
-			inline static auto constexpr free_context = [](auto ctx) {
-				JS_FreeContext(ctx);
+			inline static auto constexpr free_context = [](JSContext* ctx) {
+				if (ctx != nullptr) {
+					JS_FreeContext(ctx);
+				}
 				return;
 			};
 
@@ -148,6 +154,19 @@ namespace Sen::Kernel::Definition::JavaScript
 			}
 
 			/**
+			 * Use this to clean up an instance of JS Object
+			*/
+
+
+			inline auto unregister_object(
+				std::function<void (JSContext*)> callback
+			) -> void
+			{
+				callback(thiz.ctx.get());
+				return;
+			}
+
+			/**
 			 * Use this to register an instance of JS Object
 			*/
 
@@ -200,6 +219,16 @@ namespace Sen::Kernel::Definition::JavaScript
 			) -> bool
 			{
 				return JS_VALUE_GET_TAG(that) != JS_TAG_NULL;
+			}
+
+			inline auto get_property(
+				std::string_view object_name
+			) -> JSValue
+			{
+				M_GET_GLOBAL_OBJECT();
+				auto val = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
+				M_FREE_GLOBAL_OBJECT();
+				return val;
 			}
 
 			/**
@@ -1369,6 +1398,11 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			) 
 			{
+				if (ctx != nullptr) {
+            		JS_RunGC(rt.get());
+        		}
+				thiz.ctx.reset();
+				thiz.rt.reset();
 			}
 	};
 }

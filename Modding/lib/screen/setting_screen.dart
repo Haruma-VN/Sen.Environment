@@ -5,6 +5,7 @@ import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/service/android_service.dart';
 import 'package:modding/service/file_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -32,27 +33,28 @@ class _SettingScreenState extends State<SettingScreen> {
       context,
       listen: false,
     );
+    final los = AppLocalizations.of(context)!;
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Theme'),
+        title: Text(los.theme),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildThemeOptionTile(
               settingProvider: settingProvider,
-              title: 'System',
+              title: los.system,
               value: 'system',
             ),
             _buildThemeOptionTile(
               settingProvider: settingProvider,
-              title: 'Light',
+              title: los.light,
               value: 'light',
             ),
             _buildThemeOptionTile(
               settingProvider: settingProvider,
-              title: 'Dark',
+              title: los.dark,
               value: 'dark',
             ),
             const SizedBox(height: 10),
@@ -64,11 +66,12 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Widget _onCloseButton() {
+    final los = AppLocalizations.of(context)!;
     return TextButton(
       onPressed: () {
         Navigator.of(context).pop();
       },
-      child: const Text('Okay'),
+      child: Text(los.okay),
     );
   }
 
@@ -85,6 +88,24 @@ class _SettingScreenState extends State<SettingScreen> {
         onChanged: (String? value) {
           if (value == null) return;
           settingProvider.setTheme(value);
+        },
+      ),
+    );
+  }
+
+  Widget _buildLocaleOptionTitle({
+    required SettingProvider settingProvider,
+    required String title,
+    required String value,
+  }) {
+    return ListTile(
+      title: Text(title),
+      leading: Radio<String>(
+        value: value,
+        groupValue: settingProvider.locale,
+        onChanged: (String? value) {
+          if (value == null) return;
+          settingProvider.setLocale(value);
         },
       ),
     );
@@ -115,19 +136,20 @@ class _SettingScreenState extends State<SettingScreen> {
       context,
       listen: false,
     );
+    final los = AppLocalizations.of(context)!;
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Show notification'),
+        title: Text(los.send_notification),
         actions: [
           _buildNotificationOption(
             settingProvider: settingProvider,
-            title: 'Enabled',
+            title: los.enable,
             value: true,
           ),
           _buildNotificationOption(
             settingProvider: settingProvider,
-            title: 'Disabled',
+            title: los.disable,
             value: false,
           ),
           const SizedBox(height: 10),
@@ -182,11 +204,12 @@ class _SettingScreenState extends State<SettingScreen> {
       context,
       listen: false,
     );
+    final los = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: settingProvider.toolChain);
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Toolchain'),
+        title: Text(los.toolchain),
         actions: [
           Row(
             children: [
@@ -201,7 +224,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
               ),
               Tooltip(
-                message: 'Upload directory',
+                message: los.upload_directory,
                 child: IconButton(
                   onPressed: () async {
                     final directory = await FileService.uploadDirectory();
@@ -225,8 +248,54 @@ class _SettingScreenState extends State<SettingScreen> {
     controller.dispose();
   }
 
+  void _onChangeLocale() async {
+    final los = AppLocalizations.of(context)!;
+    final settingProvider = Provider.of<SettingProvider>(
+      context,
+      listen: false,
+    );
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(los.language),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLocaleOptionTitle(
+              settingProvider: settingProvider,
+              title: los.en,
+              value: 'en',
+            ),
+            _buildLocaleOptionTitle(
+              settingProvider: settingProvider,
+              title: los.vi,
+              value: 'vi',
+            ),
+            const SizedBox(height: 10),
+            _onCloseButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _exchangeLocale(String key) {
+    final localization = AppLocalizations.of(context)!;
+    final Map<String, String> data = {
+      'en': localization.en,
+      'vi': localization.vi,
+    };
+    return data[key] ?? key;
+  }
+
+  void _requestPermission() async {
+    await AndroidService.requestStoragePermission();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final los = AppLocalizations.of(context)!;
     final settingProvider = Provider.of<SettingProvider>(context);
     toolchainPath() => settingProvider.toolChain == ''
         ? 'Not specified'
@@ -237,49 +306,45 @@ class _SettingScreenState extends State<SettingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Default setting'),
+          Text(los.default_setting),
           const SizedBox(height: 15),
           ListTile(
             leading: const Icon(Icons.dark_mode_outlined),
-            title: const Text('Theme'),
+            title: Text(los.theme),
             onTap: _onChangeTheme,
           ),
           const SizedBox(height: 10),
           ListTile(
             leading: const Icon(Icons.translate_outlined),
-            title: const Text('Language'),
-            onTap: () {},
+            title: Text(los.language),
+            subtitle: Text(_exchangeLocale(settingProvider.locale)),
+            onTap: _onChangeLocale,
           ),
           const SizedBox(height: 10),
-          const ListTile(
-            leading: Icon(Icons.person_2_outlined),
-            title: Text('Author'),
-            subtitle: Text('Haruma'),
+          ListTile(
+            leading: const Icon(Icons.person_2_outlined),
+            title: Text(los.author),
+            subtitle: Text(los.author_of_this_locale),
           ),
           const Divider(),
-          const Text('Application setting'),
+          Text(los.application_setting),
           const SizedBox(height: 15),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Send notification'),
+            title: Text(los.send_notification),
             onTap: _onChangeNotification,
           ),
           const SizedBox(height: 10),
           ListTile(
             leading: const Icon(Icons.storage_outlined),
-            title: const Text('Storage permission'),
-            subtitle:
-                _hasPermission ? const Text('Granted') : const Text('Denied'),
-            onTap: !_hasPermission
-                ? () async {
-                    await AndroidService.requestStoragePermission();
-                  }
-                : null,
+            title: Text(los.storage_permission),
+            subtitle: _hasPermission ? Text(los.granted) : Text(los.denied),
+            onTap: !_hasPermission ? _requestPermission : null,
           ),
           const SizedBox(height: 10),
           ListTile(
             leading: const Icon(Icons.build_outlined),
-            title: const Text('Toolchain'),
+            title: Text(los.toolchain),
             subtitle: Text(toolchainPath()),
             onTap: _onChangeToolChain,
           ),

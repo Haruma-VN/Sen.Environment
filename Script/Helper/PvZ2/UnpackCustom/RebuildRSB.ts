@@ -4,7 +4,7 @@ namespace Sen.Script.Helper.PVZ2.UnpackCustom.RebuildRSB {
     export function load_bigint(rule: any): bigint {
         const new_rule: Array<bigint> = [];
         rule.forEach(function make_rule(e: [bigint, string] & any): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${e[0]}. ${e[2]}`);
             } else {
                 Kernel.Console.print(`    ${e[0]}. ${e[2]}`);

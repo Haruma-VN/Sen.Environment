@@ -168,7 +168,7 @@ concept IsValidArguments = true;
 				ThreadCount index
 			) -> void
 			{
-				assert_conditional(index < this->threads.size(), Language::get("os.system.invalid_thread"), "set_pointer");
+				assert_conditional(index < this->threads.size(), fmt::format("{}", Language::get("os.system.invalid_thread")), "set_pointer");
 				this->_current_pointer = index;
 				return;
 			}

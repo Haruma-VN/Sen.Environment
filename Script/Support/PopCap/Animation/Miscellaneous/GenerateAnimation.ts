@@ -9,8 +9,8 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     }
 
     /**
-    * 
-    */
+     *
+     */
     export interface RenderingSize {
         /**  */
         width: bigint;
@@ -33,13 +33,13 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
 
     export interface Setting {
         /**  */
-        image_id: boolean,
+        image_id: boolean;
         /** */
         frame_name: string;
         /**  */
         sprite_disable: Array<bigint>;
         /**  */
-        background_color: [bigint, bigint, bigint, bigint], // r, g, b, a
+        background_color: [bigint, bigint, bigint, bigint]; // r, g, b, a
         /**  */
         rendering_size: RenderingSize;
         /**  */
@@ -76,14 +76,14 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     export interface LabelInfo {
         frame_start: bigint;
         frame_end: bigint;
-    };
+    }
 
     export interface DataInfo {
         frame_rate: bigint;
         frame_name: string;
         dimension: AnimationDimension;
         label: Record<string, LabelInfo>;
-    };
+    }
 
     export type VisualSpriteFrame = Array<Record<number, VisualLayer>>;
 
@@ -108,19 +108,19 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
     export function load_bigint(rule: any): bigint {
         const new_rule: Array<bigint> = [];
         rule.forEach(function make_rule(e: [bigint, string] & any): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${e[0]}. ${e[2]}`);
             } else {
                 Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
             }
             new_rule.push(e[0]);
         });
-        return (rule)[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
+        return rule[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
     }
 
     export function exchange_sprite_disable(animation: SexyAnimation, setting: Setting) {
         const sprite_information_map: Record<string, boolean> = {};
-        animation.sprite.map(e => {
+        animation.sprite.map((e) => {
             sprite_information_map[e.name] = false;
         });
         const sprite_list = Object.keys(sprite_information_map);
@@ -154,7 +154,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                                 return;
                             }
                             Console.warning(Sen.Kernel.Language.get("js.invalid_input_value"));
-                        }
+                        };
                         let range: Array<bigint> = [];
                         /*
                         if (input.includes(" ")) {
@@ -163,24 +163,28 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                         }
                         */
                         if (input.includes(",")) {
-                            range = input.split(",").filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                            range = input
+                                .split(",")
+                                .filter((e) => !isNaN(Number(e)) && rule.includes(BigInt(e)))
+                                .map((e) => BigInt(e));
                             check_vaild(range);
-                        }
-                        else if (input.includes("-")) {
-                            const range_selected = input.split("-").filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                        } else if (input.includes("-")) {
+                            const range_selected = input
+                                .split("-")
+                                .filter((e) => !isNaN(Number(e)) && rule.includes(BigInt(e)))
+                                .map((e) => BigInt(e));
                             if (range_selected.length == 2) {
                                 for (let i = range_selected[0]; i <= range_selected[1]; ++i) {
                                     range.push(i);
                                 }
                             }
                             check_vaild(range);
-                        }
-                        else {
-                            range = [input].filter(e => !isNaN(Number(e)) && rule.includes(BigInt(e))).map(e => BigInt(e));
+                        } else {
+                            range = [input].filter((e) => !isNaN(Number(e)) && rule.includes(BigInt(e))).map((e) => BigInt(e));
                             check_vaild(range);
                         }
                         return range;
-                    }
+                    };
                     while (true) {
                         Console.argument(`${Kernel.Language.get("popcap.animation.miscellaneous.to_apng.input_sprite_to_disable")}`); // TODO: add locale
                         const argument_result: Array<bigint> = argument(rule);
@@ -192,8 +196,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                             if (sprite_information_map[sprite_list[Number(index_result - 1n)]]) {
                                 selected_list.push(index_result);
                                 continue;
-                            }
-                            else {
+                            } else {
                                 sprite_information_map[sprite_list[Number(index_result - 1n)]] = true;
                             }
                             sprite_to_disable += sprite_to_disable === "" ? `${index_result}` : `, ${index_result}`;
@@ -215,8 +218,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     break;
                 }
             }
-        }
-        else {
+        } else {
             Console.finished("Animation has no sprite"); //TODO: add locale
         }
         return;
@@ -276,11 +278,11 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             image.data = resized_image_data.buffer;
         }
         return image;
-    };
+    }
 
     export function load_media_source(animation: SexyAnimation, media_source: string, setting: Setting) {
         const media_source_list: Array<MediaSource> = [];
-        
+
         for (const image of animation.image) {
             media_source_list.push({
                 size: {
@@ -288,7 +290,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     height: Number(image.dimension.height),
                 },
                 matrix: variant_to_matrix(image.transform),
-                image: scale_image(Kernel.Image.open(`${media_source}/${setting.image_id ? image.id : image.path}.png`), setting.rendering_size.scale)
+                image: scale_image(Kernel.Image.open(`${media_source}/${setting.image_id ? image.id : image.path}.png`), setting.rendering_size.scale),
             });
         }
         return media_source_list;
@@ -309,11 +311,11 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     resource: Number(append.resource),
                     matrix: k_initial_matrix,
                     color: k_initial_color,
-                    sprite_frame: append.sprite ? 0 : null
+                    sprite_frame: append.sprite ? 0 : null,
                 };
                 layer_list[Number(append.index)] = layer;
             }
-            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+            for (const layer_index of Object.keys(layer_list).map((e) => Number(e))) {
                 const layer = layer_list[layer_index];
                 if (layer.sprite_frame !== null) {
                     ++layer.sprite_frame;
@@ -345,18 +347,24 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                 frame_index -= sprite.length;
             }
             const sprite_frame = sprite[frame_index];
-            for (const layer_index of Object.keys(sprite_frame).map(e => Number(e))) {
-                const viusal_layer: VisualLayer = {...sprite_frame[layer_index]};
+            for (const layer_index of Object.keys(sprite_frame).map((e) => Number(e))) {
+                const viusal_layer: VisualLayer = { ...sprite_frame[layer_index] };
                 viusal_layer.matrix = mix_matrix(viusal_layer.matrix, layer.matrix);
                 viusal_layer.color = mix_color(viusal_layer.color, layer.color);
                 draw_image(canvas, viusal_layer, sprite_list, media_source, setting);
             }
-        }
-        else {
+        } else {
             const media = media_source[layer.resource];
             const matrix = mix_matrix(media.matrix, layer.matrix);
             const resize_matrix = mix_matrix(matrix, [setting.rendering_size.scale, 0, 0, setting.rendering_size.scale, 0, 0]);
-            canvas.set_transform(resize_matrix[0], resize_matrix[1], resize_matrix[2], resize_matrix[3], resize_matrix[4] + setting.position_additional.x, resize_matrix[5] + setting.position_additional.y);
+            canvas.set_transform(
+                resize_matrix[0],
+                resize_matrix[1],
+                resize_matrix[2],
+                resize_matrix[3],
+                resize_matrix[4] + setting.position_additional.x,
+                resize_matrix[5] + setting.position_additional.y,
+            );
             canvas.set_image_color(layer.color[0], layer.color[1], layer.color[2], layer.color[3]);
             canvas.draw_image(media.image.data, media.image.width, media.image.height, media.image.width * 4n, 0, 0, media.size.width, media.size.height);
         }
@@ -367,16 +375,15 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             let c = 0;
             if (typeof data === "bigint") {
                 c = Number(Math.max(0, Math.min(255, c))) / 255;
-            }
-            else { 
+            } else {
                 c = data;
             }
             return Math.max(0, Math.min(255, c));
-        }
+        };
         return [clamped(color[0]), clamped(color[1]), clamped(color[2]), clamped(color[3])];
     }
 
-    export function write_frames(visual_sprite_frame: VisualSpriteFrame, sprite_list: Array<VisualSpriteFrame>, media_source: Array<MediaSource>,  destination: string, setting: Setting) {
+    export function write_frames(visual_sprite_frame: VisualSpriteFrame, sprite_list: Array<VisualSpriteFrame>, media_source: Array<MediaSource>, destination: string, setting: Setting) {
         const width = setting.rendering_size.width;
         const height = setting.rendering_size.height;
         Kernel.FileSystem.create_directory(destination);
@@ -386,7 +393,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             const background_color = color_clamped(setting.background_color);
             canvas.set_color(0n, background_color[0], background_color[1], background_color[2], background_color[3]);
             canvas.fill_rectangle(0, 0, Number(width), Number(height));
-            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+            for (const layer_index of Object.keys(layer_list).map((e) => Number(e))) {
                 const layer = layer_list[layer_index];
                 draw_image(canvas, layer, sprite_list, media_source, setting);
             }
@@ -403,17 +410,17 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             left: Infinity,
             top: Infinity,
             right: -Infinity,
-            bottom: -Infinity
+            bottom: -Infinity,
         };
         const clamped = (data: number) => {
             return data < 0 ? 0 : data;
-        }
+        };
         const calculator_dimension = (dimension: AnimationSize, matrix: Matrix) => {
             return {
                 width: clamped(matrix[0] * dimension.width + matrix[1] * dimension.height),
                 height: clamped(matrix[2] * dimension.width + matrix[3] * dimension.height),
             } as AnimationSize;
-        }
+        };
         const rect_image = (layer: VisualLayer) => {
             if (layer.sprite_frame !== null) {
                 const sprite = sprite_list[layer.resource];
@@ -422,14 +429,13 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     frame_index -= sprite.length;
                 }
                 const sprite_frame = sprite[frame_index];
-                for (const layer_index of Object.keys(sprite_frame).map(e => Number(e))) {
-                    const viusal_layer: VisualLayer = {...sprite_frame[layer_index]};
+                for (const layer_index of Object.keys(sprite_frame).map((e) => Number(e))) {
+                    const viusal_layer: VisualLayer = { ...sprite_frame[layer_index] };
                     viusal_layer.matrix = mix_matrix(viusal_layer.matrix, layer.matrix);
                     viusal_layer.color = mix_color(viusal_layer.color, layer.color);
                     rect_image(viusal_layer);
                 }
-            }
-            else {
+            } else {
                 const media = media_source[layer.resource];
                 const matrix = mix_matrix(media.matrix, layer.matrix);
                 const resize_matrix = mix_matrix(matrix, [setting.rendering_size.scale, 0, 0, setting.rendering_size.scale, 0, 0]);
@@ -439,10 +445,10 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                 rectangle.right = Math.max(rectangle.right, resize_matrix[4] + after_apply_matrix_to_media_dimension.width);
                 rectangle.bottom = Math.max(rectangle.bottom, resize_matrix[5] + after_apply_matrix_to_media_dimension.height);
             }
-        }
+        };
         for (const frame_index in visual_sprite_frame) {
             const layer_list = visual_sprite_frame[frame_index];
-            for (const layer_index of Object.keys(layer_list).map(e => Number(e))) {
+            for (const layer_index of Object.keys(layer_list).map((e) => Number(e))) {
                 const layer = layer_list[layer_index];
                 rect_image(layer);
             }
@@ -460,11 +466,10 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             if (sprite.frame[frame_index].label !== "") {
                 label_name = sprite.frame[frame_index].label;
                 data_info.label[label_name] = {
-                    frame_start: BigInt(frame_index) + 1n, 
-                    frame_end: BigInt(frame_index) + 1n
-                }
-            }
-            else {
+                    frame_start: BigInt(frame_index) + 1n,
+                    frame_end: BigInt(frame_index) + 1n,
+                };
+            } else {
                 ++data_info.label[label_name].frame_end;
             }
         }
@@ -494,19 +499,26 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
             frame_name: setting.frame_name,
             dimension: {
                 width: setting.rendering_size.width,
-                height: setting.rendering_size.height
+                height: setting.rendering_size.height,
             },
-            label: {}
+            label: {},
         };
         exchange_label(animation.main_sprite, definition);
         Kernel.JSON.serialize_fs(`${destination}/data.json`, definition, 1, true);
         if (setting.apng_setting.make_apng) {
             const write_apng = (path_list: Array<string>, destination: string, frame_list: Array<bigint>) => {
                 Kernel.Miscellaneous.to_apng(
-                    path_list, destination,
-                    new Kernel.APNGMakerSetting(frame_list, new Kernel.UInteger32(setting.apng_setting.loop), new Kernel.UInteger32(setting.rendering_size.width), new Kernel.UInteger32(setting.rendering_size.height), new Kernel.Boolean(false)),
+                    path_list,
+                    destination,
+                    new Kernel.APNGMakerSetting(
+                        frame_list,
+                        new Kernel.UInteger32(setting.apng_setting.loop),
+                        new Kernel.UInteger32(setting.rendering_size.width),
+                        new Kernel.UInteger32(setting.rendering_size.height),
+                        new Kernel.Boolean(false),
+                    ),
                 );
-            }
+            };
             if (setting.apng_setting.split_label) {
                 const main_animation_path_list: Array<string> = [];
                 const main_animation_frame_list: Array<bigint> = [];
@@ -522,8 +534,7 @@ namespace Sen.Script.Support.PopCap.Animation.Miscellaenous.GenerateAnimation {
                     main_animation_frame_list.push(...label_frame_list);
                 }
                 write_apng(main_animation_path_list, `${destination}/animation.apng`, main_animation_frame_list);
-            }
-            else {
+            } else {
                 const main_animation_path_list: Array<string> = [];
                 const main_animation_frame_list: Array<bigint> = [];
                 for (const frame_index in main_visual_sprite) {

@@ -7,6 +7,8 @@ import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/root_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> main(
   List<String> arguments,
@@ -47,6 +49,17 @@ class Application extends StatelessWidget {
       darkTheme: MaterialDesign.darkTheme,
       themeMode: Provider.of<SettingProvider>(context).themeData,
       home: const RootScreen(title: 'Sen: Environment'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('vi'),
+      ],
+      locale: Locale(Provider.of<SettingProvider>(context).locale),
     );
   }
 }

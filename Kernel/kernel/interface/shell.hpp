@@ -107,4 +107,20 @@ namespace Sen::Kernel::Interface {
 
 			bool is_gui;
 	};
+
+	struct Additional {
+
+		inline static std::unique_ptr<std::string> script{nullptr};
+		
+		inline static std::unique_ptr<std::vector<std::string>> arguments{nullptr};
+
+		static auto assign(
+			std::string &script_value,
+			std::vector<std::string>& arguments_value
+		) -> void
+		{
+			Additional::script = std::make_unique<std::string>(script_value);
+			Additional::arguments = std::make_unique<std::vector<std::string>>(arguments_value);
+		}
+	};
 }

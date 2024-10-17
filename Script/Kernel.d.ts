@@ -17,12 +17,12 @@ declare namespace Sen {
         /**
          * The version number of the current shell.
          */
-        export const version: number;
+        export function version(): number;
 
         /**
          * Boolean flag indicating whether the current shell is a graphical user interface (GUI) or a console.
          */
-        export const is_gui: boolean;
+        export function is_gui(): boolean;
 
         /**
          * Callback function for processing shell commands.
@@ -43,13 +43,13 @@ declare namespace Sen {
         /**
          * The current version number of the kernel.
          */
-        export const version: number;
+        export function version(): number;
 
         /**
          * Read-only access to the arguments passed to the kernel on startup.
          * This is likely a string array containing command-line arguments.
          */
-        export const arguments: Array<string>;
+        export function arguments(): Array<string>;
 
         /**
          * Simple test function that accepts optional string arguments and doesn't return a value (void).
@@ -1248,7 +1248,7 @@ declare namespace Sen {
              * executing script is located. It can be used to construct relative paths to other
              * resources within your application.
              */
-            export const script: string;
+            export function script(): string;
         }
 
         /**

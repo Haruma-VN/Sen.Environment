@@ -114,7 +114,7 @@ namespace Sen.Script.Executor {
         Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
             if ((rule as Array<[bigint, string, string]>).map((e) => e[1]).includes((argument as any)[key])) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(argument[key] as string);
                 } else {
                     Kernel.Console.print(`    ${argument[key]}`);
@@ -131,7 +131,7 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (rule.includes(configuration[key] as unknown as bigint & string)) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(configuration[key] as string);
                 } else {
                     Kernel.Console.print(`    ${configuration[key]}`);
@@ -167,7 +167,7 @@ namespace Sen.Script.Executor {
         Console.argument(title);
         if ((argument as any & Argument)[key] !== undefined) {
             if (((argument as any & Argument)[key] as bigint) <= rule[1] && ((argument as any & Argument)[key] as bigint) >= rule[0]) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(argument[key] as string);
                 } else {
                     Kernel.Console.print(`    ${argument[key]}`);
@@ -193,7 +193,7 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (/\d+/.test(configuration[key] as string) && rule[0] <= BigInt(configuration[key] as string) && rule[1] >= BigInt(configuration[key] as string)) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(configuration[key] as string);
                 } else {
                     Kernel.Console.print(`    ${configuration[key]}`);
@@ -233,7 +233,7 @@ namespace Sen.Script.Executor {
                 delete argument[key];
                 return load_string(argument, key, configuration, title, rule);
             }
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${argument[key]}`);
             } else {
                 Kernel.Console.print(`    ${argument[key]}`);
@@ -246,7 +246,7 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (!rule) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(`${configuration[key]}`);
                 } else {
                     Kernel.Console.print(`    ${configuration[key]}`);
@@ -255,7 +255,7 @@ namespace Sen.Script.Executor {
                 return;
             }
             if (rule.includes(configuration[key] as string)) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(`${configuration[key]}`);
                 } else {
                     Kernel.Console.print(`    ${configuration[key]}`);
@@ -294,7 +294,7 @@ namespace Sen.Script.Executor {
                 delete argument[key];
                 return load_boolean(argument, key, configuration, title);
             }
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${argument[key]}`);
             } else {
                 Kernel.Console.print(`    ${argument[key]}`);
@@ -307,7 +307,7 @@ namespace Sen.Script.Executor {
         }
         if (configuration[key] !== "?") {
             if (/^(true|false)$/.test(configuration[key] as string)) {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(`${configuration[key]}`);
                 } else {
                     Kernel.Console.print(`    ${configuration[key]}`);
@@ -323,7 +323,7 @@ namespace Sen.Script.Executor {
     }
 
     export function input_boolean(): boolean {
-        if (Shell.is_gui) {
+        if (Shell.is_gui()) {
             const result = Shell.callback(["input_boolean"]);
             return result === "1";
         } else {
@@ -342,7 +342,7 @@ namespace Sen.Script.Executor {
 
     export function input_integer(rule: Array<bigint>): bigint {
         let input: string = undefined!;
-        if (Shell.is_gui) {
+        if (Shell.is_gui()) {
             input = Shell.callback(["input_enumeration", ...rule.map((e) => e.toString())]);
         } else {
             while (true) {
@@ -371,7 +371,7 @@ namespace Sen.Script.Executor {
             if (typeof rule[0] === "object") {
                 const new_rule: Array<bigint> = [];
                 rule.forEach(function make_rule(e: [bigint, string] & any): void {
-                    if (Shell.is_gui) {
+                    if (Shell.is_gui()) {
                         Kernel.Console.print(`${e[0]}. ${e[2]}`);
                     } else {
                         Kernel.Console.print(`    ${e[0]}. ${e[2]}`);
@@ -494,7 +494,7 @@ namespace Sen.Script.Executor {
         } else {
             Console.send(`${Kernel.Language.get("execution_argument")}:`, Definition.Console.Color.CYAN);
             argument.forEach(function call_print(e): void {
-                if (Shell.is_gui) {
+                if (Shell.is_gui()) {
                     Kernel.Console.print(e);
                 } else {
                     Kernel.Console.print(`    ${e}`);
@@ -555,7 +555,7 @@ namespace Sen.Script.Executor {
         Console.send(`${Kernel.Language.get("execution_argument")}: ${Kernel.Language.get("js.input_an_method_to_start")}`, Definition.Console.Color.CYAN);
         modules = new Map([...modules.entries()].sort((a, b) => Number(a[0] - b[0])));
         modules.forEach(function print_statement(name: string, num: bigint): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${num}. ${Kernel.Language.get(name)}`);
             } else {
                 Kernel.Console.print(`    ${num}. ${Kernel.Language.get(name)}`);
@@ -687,11 +687,11 @@ namespace Sen.Script.Executor {
         if ((argument.source as Array<string>).length > 1) {
             Console.send(`${Kernel.Language.get("js.make_host.argument_obtained")}:`, Definition.Console.Color.CYAN);
             (argument.source as Array<string>).forEach((e, i) => {
-                if (Shell.is_gui) Kernel.Console.print(`${i + 1}. ${e}`);
+                if (Shell.is_gui()) Kernel.Console.print(`${i + 1}. ${e}`);
                 else Kernel.Console.print(`    ${i + 1}. ${e}`);
             });
             Console.send(format(`${Kernel.Language.get("js.obtained_argument")}:`, (argument.source as string).length), Definition.Console.Color.CYAN);
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${1n}. ${Kernel.Language.get("js.process_whole")}`);
                 Kernel.Console.print(`${2n}. ${Kernel.Language.get("js.process_in_queue")}`);
                 Kernel.Console.print(`${3n}. ${Kernel.Language.get("popcap.atlas.split_by_resource_group")}`);

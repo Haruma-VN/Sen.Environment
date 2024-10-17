@@ -6,7 +6,7 @@ namespace Sen.Script.Setting {
      * --------------------------------------------------
      */
 
-    export const setting_file: string = Sen.Script.Home.query(`~/Setting/Setting.json`);
+    export const setting_file: string = Home.query(`~/Setting/Setting.json`);
 
     /**
      * --------------------------------------------------
@@ -37,7 +37,7 @@ namespace Sen.Script.Setting {
 
     export function load(): void {
         setting = Sen.Kernel.JSON.deserialize_fs<Entry>(setting_file);
-        Sen.Kernel.Language.load_language(Sen.Script.Home.query(`~/Setting/Language/${setting.language}.json`));
+        Kernel.Language.load_language(Home.query(`~/Setting/Language/${setting.language}.json`));
         return;
     }
 }

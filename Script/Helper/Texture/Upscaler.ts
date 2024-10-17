@@ -1,5 +1,4 @@
 namespace Sen.Script.Support.Texture.Upscaler {
-
     /**
      * Detail namespace
      */
@@ -17,24 +16,24 @@ namespace Sen.Script.Support.Texture.Upscaler {
     export function load_string_by_int(rule: any): string {
         const new_rule: Array<bigint> = [];
         rule.forEach(function make_rule(e: [bigint, string] & any): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Kernel.Console.print(`${e[0]}. ${e[1]}`);
             } else {
                 Kernel.Console.print(`    ${e[0]}. ${e[1]}`);
             }
             new_rule.push(e[0]);
         });
-        return (rule)[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
+        return rule[Number(Sen.Script.Executor.input_integer(new_rule) - 1n)][1];
     }
 
     export function process(source: string, destination: string) {
         const operating_system = Kernel.OperatingSystem.current();
         assert(operating_system === "Windows" || operating_system === "macOS" || operating_system === "Linux", "unsupported_operating_system"); // TODO
         const real_esrgan_program_third_path = Home.query("~/../thirdapp/real_esrgan"); //
-        const real_esrgan_program_file_path = `${real_esrgan_program_third_path}/realesrgan-ncnn-vulkan${(operating_system === "Windows" ? ".exe" : "")}`;
+        const real_esrgan_program_file_path = `${real_esrgan_program_third_path}/realesrgan-ncnn-vulkan${operating_system === "Windows" ? ".exe" : ""}`;
         assert(Kernel.FileSystem.is_file(real_esrgan_program_file_path), "cannot_find_third"); // TODO
         assert(Kernel.FileSystem.is_directory(`${real_esrgan_program_third_path}/models`), "cannot_find_real_esrgan_models_folder"); // TODO
-        const model_list: Array<string> = Kernel.FileSystem.read_directory_only_file(`${real_esrgan_program_third_path}/models`).filter(e => Kernel.Path.extname(e).toLowerCase() === ".param");
+        const model_list: Array<string> = Kernel.FileSystem.read_directory_only_file(`${real_esrgan_program_third_path}/models`).filter((e) => Kernel.Path.extname(e).toLowerCase() === ".param");
         assert(model_list.length > 0, "real_esrgan_model_folder_is_empty");
         const model_rule: Array<[bigint, string]> = model_list.map((e, i) => [BigInt(i + 1), Kernel.Path.base_without_extension(e).toLowerCase()]);
         Console.argument("Enter model"); //TODO.
@@ -45,7 +44,7 @@ namespace Sen.Script.Support.Texture.Upscaler {
         assert(Kernel.FileSystem.is_file(destination), "failed_to_upscale_image"); //TODO
         return;
     }
- 
+
     export function process_fs(source: string, destination: string) {
         process(source, destination);
         return;

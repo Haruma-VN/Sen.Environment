@@ -108,3 +108,5 @@ endif ()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set_target_properties(kernel PROPERTIES OUTPUT_NAME "Kernel")

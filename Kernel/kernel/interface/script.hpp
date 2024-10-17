@@ -2503,7 +2503,8 @@ namespace Sen::Kernel::Interface::Script
 			template <auto use_big_endian>
 				requires BooleanConstraint
 			inline static auto register_class(
-				JSContext *ctx) -> void
+				JSContext *ctx
+			) -> void
 			{
 				static_assert(use_big_endian == true || use_big_endian == false, "use_big_endian can only be true or false");
 				static_assert(sizeof(use_big_endian) == sizeof(bool));
@@ -2525,10 +2526,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -2664,7 +2666,8 @@ namespace Sen::Kernel::Interface::Script
 			}
 
 			inline static auto register_class(
-				JSContext *ctx) -> void
+				JSContext *ctx
+			) -> void
 			{
 				JS_NewClassID(&class_id);
 				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "Boolean class register failed", "register_class");
@@ -2673,18 +2676,63 @@ namespace Sen::Kernel::Interface::Script
 				auto proto = JS_NewObject(ctx);
 				auto default_true_func_val = JS_NewCFunction(ctx, true_instance<true>, "true", 0);
 				auto default_false_func_val = JS_NewCFunction(ctx, true_instance<false>, "false", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "true", default_true_func_val);
-				JS_SetPropertyStr(ctx, point_ctor, "false", default_false_func_val);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "true", default_true_func_val, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "false", default_false_func_val, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
-				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
-				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				auto obj1 = JS_GetPropertyStr(ctx, global_obj, "Sen");
+				if (!JS_IsUndefined(obj1)) {
+					auto obj2 = JS_GetPropertyStr(ctx, obj1, "Kernel");
+					if (!JS_IsUndefined(obj2)) {
+						JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+						JS_FreeValue(ctx, obj2);
+					}
+					JS_FreeValue(ctx, obj1);
+				}
 				JS_FreeValue(ctx, global_obj);
-				JS_FreeValue(ctx, obj1);
-				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
+			}
+
+			inline static auto unregister_class(
+				JSContext *ctx
+			) -> void
+			{
+				auto global_obj = JS_GetGlobalObject(ctx);
+				auto sen_obj = JS_GetPropertyStr(ctx, global_obj, "Sen");
+				if (!JS_IsUndefined(sen_obj)) {
+					auto kernel_obj = JS_GetPropertyStr(ctx, sen_obj, "Kernel");
+					if (!JS_IsUndefined(kernel_obj)) {
+						auto boolean_obj = JS_GetPropertyStr(ctx, kernel_obj, "Boolean");
+						if (!JS_IsUndefined(boolean_obj)) {
+							auto true_atom = JS_NewAtom(ctx, "true");
+							JS_DeleteProperty(ctx, boolean_obj, true_atom, 0);
+							JS_FreeAtom(ctx, true_atom);
+							auto false_atom = JS_NewAtom(ctx, "false");
+							JS_DeleteProperty(ctx, boolean_obj, false_atom, 0);
+							JS_FreeAtom(ctx, false_atom);
+							auto constructor_atom = JS_NewAtom(ctx, "constructor");
+							JS_DeleteProperty(ctx, boolean_obj, constructor_atom, 0);
+							auto proto = JS_GetPropertyStr(ctx, boolean_obj, "prototype");
+							if (!JS_IsUndefined(proto)) {
+								JS_DeleteProperty(ctx, proto, constructor_atom, 0);
+								auto value_atom = JS_NewAtom(ctx, "value");
+								JS_DeleteProperty(ctx, proto, value_atom, 0);
+								JS_FreeAtom(ctx, value_atom);
+								auto prototype_atom = JS_NewAtom(ctx, "prototype");
+								JS_DeleteProperty(ctx, boolean_obj, prototype_atom, 0);
+								JS_FreeAtom(ctx, prototype_atom);
+								JS_FreeValue(ctx, proto);
+							}
+							JS_FreeAtom(ctx, constructor_atom);
+							JS_FreeValue(ctx, boolean_obj);
+						}
+						JS_FreeValue(ctx, kernel_obj);
+					}
+					JS_FreeValue(ctx, sen_obj);
+				}
+				JS_FreeValue(ctx, global_obj);
 			}
 
 		}
@@ -2846,7 +2894,7 @@ namespace Sen::Kernel::Interface::Script
 				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
-				JS_SetPropertyStr(ctx, obj6, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj6, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -2854,6 +2902,7 @@ namespace Sen::Kernel::Interface::Script
 				JS_FreeValue(ctx, obj4);
 				JS_FreeValue(ctx, obj5);
 				JS_FreeValue(ctx, obj6);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -3037,7 +3086,7 @@ namespace Sen::Kernel::Interface::Script
 				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
-				JS_SetPropertyStr(ctx, obj6, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj6, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -3045,6 +3094,7 @@ namespace Sen::Kernel::Interface::Script
 				JS_FreeValue(ctx, obj4);
 				JS_FreeValue(ctx, obj5);
 				JS_FreeValue(ctx, obj6);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -3224,10 +3274,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -3408,10 +3459,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -3625,10 +3677,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -3970,10 +4023,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -4192,10 +4246,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -4393,10 +4448,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -4544,16 +4600,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -4755,16 +4812,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor<T>, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance<T>, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions<T>, countof(proto_functions<T>));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -4956,7 +5014,8 @@ namespace Sen::Kernel::Interface::Script
 			}
 
 			inline static auto register_class(
-				JSContext *ctx) -> void
+				JSContext *ctx
+			) -> void
 			{
 				JS_NewClassID(&class_id);
 				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "String class register failed", "register_class");
@@ -4964,16 +5023,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -5293,7 +5353,8 @@ namespace Sen::Kernel::Interface::Script
 			}
 
 			inline static auto register_class(
-				JSContext *ctx) -> void
+				JSContext *ctx
+			) -> void
 			{
 				JS_NewClassID(&class_id);
 				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "BinaryView class register failed", "register_class");
@@ -5301,16 +5362,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -6197,10 +6259,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -6251,13 +6314,6 @@ namespace Sen::Kernel::Interface::Script
 						auto height = int64_t{};
 						auto v1 = JS_ToBigInt64(ctx, &width, width_val);
 						auto v2 = JS_ToBigInt64(ctx, &height, height_val);
-						if (JS_IsException(v1)) {
-							return JS_EXCEPTION;
-						}
-						if (JS_IsException(v2)) {
-							JS_FreeValue(ctx, width_val);
-							return JS_EXCEPTION;
-						}
 						s = new Data(
 							static_cast<int>(width),
 							static_cast<int>(height)
@@ -6378,10 +6434,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -6436,27 +6493,9 @@ namespace Sen::Kernel::Interface::Script
 						auto x = int64_t{};
 						auto y = int64_t{};
 						auto v1 = JS_ToBigInt64(ctx, &width, width_val);
-						if (JS_IsException(v1)) {
-							return JS_EXCEPTION;
-						}
 						auto v2 = JS_ToBigInt64(ctx, &height, height_val);
-						if (JS_IsException(v2)) {
-							JS_FreeValue(ctx, width_val);
-							return JS_EXCEPTION;
-						}
 						auto v3 = JS_ToBigInt64(ctx, &x, x_val);
-						if (JS_IsException(v3)) {
-							JS_FreeValue(ctx, width_val);
-							JS_FreeValue(ctx, height_val);
-							return JS_EXCEPTION;
-						}
 						auto v4 = JS_ToBigInt64(ctx, &y, y_val);
-						if (JS_IsException(v4)) {
-							JS_FreeValue(ctx, width_val);
-							JS_FreeValue(ctx, height_val);
-							JS_FreeValue(ctx, x_val);
-							return JS_EXCEPTION;
-						}
 						s = new Data(
 							x,
 							y,
@@ -6603,10 +6642,11 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -7120,28 +7160,29 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "instance", instance_c);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
 				auto default_cut = JS_NewCFunction(ctx, cut, "cut", 0);
 				auto default_resize = JS_NewCFunction(ctx, resize, "resize", 0);
 				auto default_scale = JS_NewCFunction(ctx, scale, "scale", 0);
 				auto default_rotate = JS_NewCFunction(ctx, rotate, "rotate", 0);
 				auto default_read_fs = JS_NewCFunction(ctx, read_fs, "read_fs", 0);
 				auto default_write_fs = JS_NewCFunction(ctx, write_fs, "write_fs", 0);
-				JS_SetPropertyStr(ctx, point_ctor, "cut", default_cut);
-				JS_SetPropertyStr(ctx, point_ctor, "resize", default_resize);
-				JS_SetPropertyStr(ctx, point_ctor, "scale", default_scale);
-				JS_SetPropertyStr(ctx, point_ctor, "rotate", default_rotate);
-				JS_SetPropertyStr(ctx, point_ctor, "read_fs", default_read_fs);
-				JS_SetPropertyStr(ctx, point_ctor, "write_fs", default_write_fs);
+				JS_DefinePropertyValueStr(ctx, point_ctor, "cut", default_cut, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "resize", default_resize, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "scale", default_scale, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "rotate", default_rotate, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "read_fs", default_read_fs, int{JS_PROP_C_W_E});
+				JS_DefinePropertyValueStr(ctx, point_ctor, "write_fs", default_write_fs, int{JS_PROP_C_W_E});
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
+				JS_FreeValue(ctx, proto);
 				return;
 			}
 
@@ -12700,10 +12741,11 @@ namespace Sen::Kernel::Interface::Script
 			auto global_obj = JS_GetGlobalObject(ctx);
 			JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 			JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-			JS_SetPropertyStr(ctx, obj2, class_name.data(), point_ctor);
+			JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
 			JS_FreeValue(ctx, global_obj);
 			JS_FreeValue(ctx, obj1);
 			JS_FreeValue(ctx, obj2);
+			JS_FreeValue(ctx, proto);
 			return;
 		}
 

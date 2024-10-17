@@ -46,3 +46,7 @@ target_link_libraries(
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
     target_compile_definitions(${PROJECT_NAME} PUBLIC PNG_ARM_NEON_OPT=0)
 endif()
+
+if (ANDROID)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC PNG_ARM_NEON_OPT=0)
+endif()

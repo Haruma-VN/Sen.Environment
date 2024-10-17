@@ -15,6 +15,7 @@ import 'package:modding/service/file_service.dart';
 import 'package:modding/service/pointer_service.dart';
 import 'package:modding/widget/radio_button.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ShellScreen extends StatefulWidget {
   final String holderPath;
@@ -75,9 +76,7 @@ class _ShellScreenState extends State<ShellScreen> {
     Pointer<CStringView> destination,
   ) {
     var result = PointerService.toList(list.ref);
-    assert(result.isNotEmpty, "result must be greater or equals 1");
     var command = result.removeAt(0);
-
     switch (command) {
       case 'display':
         _handleDisplayMessageCommand(result);
@@ -116,7 +115,6 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   static void _handlePushNotificationCallback(List<String> result) {
-    assert(result.length >= 2);
     _sendPort!.send(['push_notification', result[0], result[1]]);
   }
 
@@ -125,8 +123,6 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   static void _handleDisplayMessageCommand(List<String> result) {
-    assert(result.isNotEmpty, "argument must be greater than 1");
-
     switch (result.length) {
       case 1:
         _sendPort!.send(['display', result[0]]);
@@ -239,12 +235,11 @@ class _ShellScreenState extends State<ShellScreen> {
     arguments.ref
       ..size = argumentList.length
       ..value = argument;
-    final result = execute(
+    execute(
       script,
       arguments,
       Pointer.fromFunction(_callback),
     );
-    assert(result == 0);
     for (var i = 0; i < argumentList.length; ++i) {
       calloc.free((argument + i).ref.value.cast<Int8>());
     }
@@ -352,14 +347,15 @@ class _ShellScreenState extends State<ShellScreen> {
   void _sendDirectMessage(String message) {
     setState(() {
       _outputData.add(Message(title: message));
-      _scrollToBottom();
     });
+    _scrollToBottom();
   }
 
   void _sendMessageWithSubtitle(String message, String subtitle) {
     setState(() {
       _outputData.add(Message(title: message, subtitle: subtitle));
     });
+    _scrollToBottom();
   }
 
   void _sendMessageWithSubtitleAndColor(
@@ -369,8 +365,8 @@ class _ShellScreenState extends State<ShellScreen> {
   ) {
     setState(() {
       _outputData.add(Message(title: title, subtitle: subtitle, color: color));
-      _scrollToBottom();
     });
+    _scrollToBottom();
   }
 
   void _pushNotification(String message) {
@@ -380,14 +376,15 @@ class _ShellScreenState extends State<ShellScreen> {
   void _setFinishState() {
     setState(() {
       _finished = true;
-      _scrollToBottom();
     });
+    _scrollToBottom();
   }
 
   void _setPendingJob() {
     setState(() {
       _finished = false;
     });
+    _scrollToBottom();
   }
 
   void _clearMessage() {
@@ -399,6 +396,7 @@ class _ShellScreenState extends State<ShellScreen> {
   Future<void> _inputString(
     Pointer<CStringView> destination,
   ) async {
+    final los = AppLocalizations.of(context)!;
     final completer = Completer<String?>();
     setState(() {
       _stage = 'input_string';
@@ -408,7 +406,7 @@ class _ShellScreenState extends State<ShellScreen> {
     setState(() {
       _stage = 'any';
       _outputData.add(
-        Message(title: 'User provided', subtitle: e, color: 'default'),
+        Message(title: los.user_provided, subtitle: e, color: 'default'),
       );
     });
     final units = PointerService.toUint8List(e!);
@@ -425,6 +423,7 @@ class _ShellScreenState extends State<ShellScreen> {
     List<String> restStatement,
   ) async {
     final completer = Completer<String?>();
+    final los = AppLocalizations.of(context)!;
     setState(() {
       _enumeration = restStatement;
       _value = _enumeration[0];
@@ -436,7 +435,7 @@ class _ShellScreenState extends State<ShellScreen> {
       _stage = 'any';
       _outputData.add(
         Message(
-          title: 'User provided',
+          title: los.user_provided,
           subtitle: e,
           color: 'default',
         ),
@@ -455,6 +454,7 @@ class _ShellScreenState extends State<ShellScreen> {
     Pointer<CStringView> destination,
   ) async {
     final completer = Completer<String?>();
+    final los = AppLocalizations.of(context)!;
     setState(() {
       _stage = 'input_boolean';
       _completer = completer;
@@ -464,7 +464,7 @@ class _ShellScreenState extends State<ShellScreen> {
       _stage = 'any';
       _outputData.add(
         Message(
-          title: 'User provided',
+          title: los.user_provided,
           subtitle: e,
           color: 'default',
         ),
@@ -557,14 +557,16 @@ class _ShellScreenState extends State<ShellScreen> {
   void _setFinishedState() {
     setState(() {
       _finished = true;
-      _scrollToBottom();
     });
+    _scrollToBottom();
   }
 
   Widget _makeStage() {
     if (_finished) {
+      _scrollToBottom();
       return _buildFinishedStage();
     }
+    _scrollToBottom();
     switch (_stage) {
       case 'input_string':
         return _buildInputStringStage();
@@ -578,13 +580,15 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   Widget _buildFinishedStage() {
+    _scrollToBottom();
     _timer.cancel();
+    final los = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Elapsed Time: $_formattedTime'),
+        Text('${los.elapsed_time}: $_formattedTime'),
         const SizedBox(height: 10),
-        const Text('Execute again?'),
+        Text(los.execute_again),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -598,9 +602,9 @@ class _ShellScreenState extends State<ShellScreen> {
                   _startTimer();
                   _run(widget.arguments);
                 },
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('Yes'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(los.yes),
                 ),
               ),
             ),
@@ -608,9 +612,9 @@ class _ShellScreenState extends State<ShellScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed: _exit,
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('No'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(los.no),
                 ),
               ),
             ),
@@ -624,6 +628,7 @@ class _ShellScreenState extends State<ShellScreen> {
     var result = await FileService.uploadFile();
     if (result != null && _inputController != null) {
       _inputController!.text = result;
+      _scrollToBottom();
     }
   }
 
@@ -631,10 +636,12 @@ class _ShellScreenState extends State<ShellScreen> {
     var result = await FileService.uploadDirectory();
     if (result != null && _inputController != null) {
       _inputController!.text = result;
+      _scrollToBottom();
     }
   }
 
   void _onSelect() {
+    final los = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -642,7 +649,7 @@ class _ShellScreenState extends State<ShellScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: const Text('Upload File'),
+              title: Text(los.upload_file),
               onTap: () {
                 _onUploadFile();
                 Navigator.of(context).pop();
@@ -650,7 +657,7 @@ class _ShellScreenState extends State<ShellScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.folder),
-              title: const Text('Select Directory'),
+              title: Text(los.upload_directory),
               onTap: () {
                 _onUploadDirectory();
                 Navigator.of(context).pop();
@@ -658,12 +665,14 @@ class _ShellScreenState extends State<ShellScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.history_outlined),
-              title: const Text('Recent files'),
-              onTap: () {},
+              title: Text(los.recent_files),
+              onTap: () {
+                // TODO : Implement
+              },
             ),
             ListTile(
               leading: const Icon(Icons.cancel),
-              title: const Text('Cancel'),
+              title: Text(los.cancel),
               onTap: () {
                 Navigator.pop(context);
               },
@@ -742,8 +751,9 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   Widget _buildInputBooleanStage() {
+    final los = AppLocalizations.of(context)!;
     final radioButton = RadioButton(
-      options: const ['YES', 'NO'],
+      options: [los.yes, los.no],
       isRowProvider: true,
     );
     return Row(
@@ -759,7 +769,8 @@ class _ShellScreenState extends State<ShellScreen> {
 
   void _onSendBoolean(String currentOption) {
     final value = currentOption;
-    _completer.complete(value == 'YES' ? '1' : '2');
+    final los = AppLocalizations.of(context)!;
+    _completer.complete(value == los.yes ? '1' : '2');
   }
 
   Color? _color(Message e) {

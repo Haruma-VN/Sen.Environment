@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity: FlutterActivity() {
 
@@ -41,6 +42,61 @@ class MainActivity: FlutterActivity() {
         }
     }
 
+    public override fun onActivityResult(
+		requestCode: Int,
+		resultCode: Int,
+		data: Intent?,
+	): Unit {
+		super.onActivityResult(requestCode, resultCode, data)
+		this.registerOnActivityResult(requestCode, resultCode, data)
+		return
+	}
+
+	public override fun onRequestPermissionsResult(
+		requestCode: Int,
+		permissions: Array<out String>,
+		grantResults: IntArray,
+	): Unit {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+		this.registerOnRequestPermissionsResult(requestCode, permissions, grantResults)
+		return
+	}
+
+    public fun registerOnActivityResult(
+		requestCode: Int,
+		resultCode: Int,
+		data: Intent?,
+	): Unit {
+		when (requestCode) {
+			REQUEST_PICK_STORAGE_ITEM -> {
+				runBlocking {
+					this@MainActivity.continuation.send(data?.data)
+				}
+			}
+			REQUEST_REQUEST_EXTERNAL_STORAGE_PERMISSION -> {
+				runBlocking {
+					this@MainActivity.continuation.send(null)
+				}
+			}
+		}
+		return
+	}
+
+	public fun registerOnRequestPermissionsResult(
+		requestCode: Int,
+		permissions: Array<out String>,
+		grantResults: IntArray,
+	) {
+		when (requestCode) {
+			REQUEST_REQUEST_EXTERNAL_STORAGE_PERMISSION -> {
+				runBlocking {
+					this@MainActivity.continuation.send(null)
+				}
+			}
+		}
+		return
+	}
+    
     private suspend fun handle(
         call: MethodCall,
         result: MethodChannel.Result,
@@ -82,21 +138,18 @@ class MainActivity: FlutterActivity() {
         intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse("content://com.android.externalstorage.documents/document/primary%3A${Uri.encode("")}"))
         this@MainActivity.startActivityForResult(intent, REQUEST_PICK_STORAGE_ITEM)
         val targetUri = this.continuation.receive() as Uri?
-        val target = targetUri?.toString()
-		return target
+        return targetUri?.toString()
     }
 
     private suspend fun pickDirectoryFromDocument(): String? {
         val intent = Intent()
-        intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        intent.action = Intent.ACTION_OPEN_DOCUMENT_TREE
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-        val primaryDirectory = Environment.getExternalStorageDirectory().absolutePath + "/"
-        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse("content://com.android.externalstorage.documents/document/primary%3A${Uri.encode("")}"))
         this@MainActivity.startActivityForResult(intent, REQUEST_PICK_STORAGE_ITEM)
         val targetUri = this.continuation.receive() as Uri?
-        val target = targetUri?.toString()
-		return target
+        return targetUri?.toString()
     }
+
 
     private fun requestStoragePermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {

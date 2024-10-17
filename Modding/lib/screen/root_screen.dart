@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:modding/screen/home_screen.dart';
 import 'package:modding/screen/setting_screen.dart';
 import 'dart:io';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key, required this.title});
@@ -30,21 +30,22 @@ class _RootScreenState extends State<RootScreen> {
   }
 
   Widget? _makeNavigationBar() {
+    final los = AppLocalizations.of(context)!;
     if (Platform.isAndroid || Platform.isIOS) {
       return NavigationBar(
         labelBehavior: _labelBehavior,
         selectedIndex: _currentPageIndex,
         onDestinationSelected: _changeScreen,
-        destinations: const <Widget>[
+        destinations: <Widget>[
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_filled),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_filled),
+            label: los.home,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: los.settings,
           ),
         ],
       );
@@ -53,6 +54,7 @@ class _RootScreenState extends State<RootScreen> {
   }
 
   Widget _makeNavigationRail() {
+    final los = AppLocalizations.of(context)!;
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       return NavigationRail(
         selectedIndex: _currentPageIndex,
@@ -62,16 +64,16 @@ class _RootScreenState extends State<RootScreen> {
           });
         },
         labelType: NavigationRailLabelType.all,
-        destinations: const [
+        destinations: [
           NavigationRailDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_filled),
-            label: Text('Home'),
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_filled),
+            label: Text(los.home),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: Text('Settings'),
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: Text(los.settings),
           ),
         ],
       );

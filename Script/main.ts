@@ -15,7 +15,7 @@ namespace Sen.Script {
          */
 
         export function display(title: string, message: any, color: Definition.Console.Color = Definition.Console.Color.DEFAULT): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 if (message) Kernel.Console.print(title, message, color);
                 else Kernel.Console.print(title, "", color);
             } else {
@@ -53,7 +53,7 @@ namespace Sen.Script {
          */
 
         export function argument(str: any): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 display(`${Kernel.Language.get("execution_argument")}:`, str, Definition.Console.Color.CYAN);
             } else {
                 display(`${Kernel.Language.get("execution_argument")}: ${str}`, "", Definition.Console.Color.CYAN);
@@ -71,7 +71,7 @@ namespace Sen.Script {
          */
 
         export function finished(subtitle: string, message?: string): void {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 display(`${Kernel.Language.get(`execution_finished`)}: ${subtitle}`, message, Definition.Console.Color.GREEN);
             } else {
                 display(`${Kernel.Language.get(`execution_finished`)}: ${subtitle}`, message, Definition.Console.Color.GREEN);
@@ -193,7 +193,7 @@ namespace Sen.Script {
          */
 
         export function setup(): void {
-            participant = Kernel.Path.dirname(Sen.Kernel.Home.script);
+            participant = Kernel.Path.dirname(Sen.Kernel.Home.script());
             return;
         }
 
@@ -254,7 +254,7 @@ namespace Sen.Script {
          */
 
         export function make_exception(e: Error): string {
-            if (Shell.is_gui) {
+            if (Shell.is_gui()) {
                 Console.error(e.message);
                 Console.display(`stack`, `${make_stack(e.stack!)}`, Definition.Console.Color.RED);
                 return undefined!;
@@ -296,13 +296,14 @@ namespace Sen.Script {
     export function launch(): string {
         let result: string = undefined!;
         try {
-            Kernel.arguments.splice(0, 3);
+            const args = Kernel.arguments();
+            args.splice(0, 3);
             Home.setup();
             Module.load();
-            Console.send(`Sen ~ Shell: ${Shell.version} & Kernel: ${Kernel.version} & Script: ${version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
+            Console.send(`Sen ~ Shell: ${Shell.version()} & Kernel: ${Kernel.version()} & Script: ${version} ~ ${Kernel.OperatingSystem.current()} & ${Kernel.OperatingSystem.architecture()}`);
             Setting.load();
             Console.finished(Kernel.Language.get("current_status"), format(Kernel.Language.get("js.environment_has_been_loaded"), 1n, 1n, Module.script_list.length + 1));
-            Executor.forward({ source: Kernel.arguments });
+            Executor.forward({ source: args });
         } catch (e: any) {
             result = Exception.make_exception(e);
         }

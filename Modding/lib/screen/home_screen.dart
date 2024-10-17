@@ -9,6 +9,7 @@ import 'package:modding/screen/js_pick.dart';
 import 'package:modding/screen/method_picker.dart';
 import 'package:modding/screen/shell_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,29 +19,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Item> items = [
-    Item(
-      title: 'Shell',
-      description: 'Use the Shell module',
-      icon: const Icon(Symbols.terminal_rounded, size: 50),
-    ),
-    Item(
-      title: 'Method Picker',
-      description: 'Select method to use from categories of methods',
-      icon: const Icon(Symbols.package_2, size: 50),
-    ),
-    Item(
-      title: 'JS Execute',
-      description: 'Run built-in JS',
-      icon: const Icon(Symbols.javascript_rounded, size: 50),
-    ),
-    Item(
-      title: 'Animation Viewer',
-      description:
-          'Through Animation Viewer, view actual animation that will be performed',
-      icon: const Icon(Symbols.animated_images, size: 50),
-    ),
-  ];
+  late List<Item> items;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _initWidget({
     required SettingProvider settingProvider,
@@ -88,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUI() {
+    final los = AppLocalizations.of(context)!;
     final settingProvider = Provider.of<SettingProvider>(context);
     if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
       final screenWidth = MediaQuery.of(context).size.width;
@@ -139,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 15),
                       settingProvider.isValid
                           ? Container()
-                          : const Text('Toolchain is invalid'),
+                          : Text(los.toolchain_is_invalid),
                     ],
                   ),
                 ),
@@ -185,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
                     settingProvider.isValid
                         ? Container()
-                        : const Text('Toolchain is invalid'),
+                        : Text(los.toolchain_is_invalid),
                   ],
                 ),
                 onTap: settingProvider.isValid
@@ -206,9 +191,36 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _initItem() {
+    final los = AppLocalizations.of(context)!;
+    items = [
+      Item(
+        title: los.shell,
+        description: los.shell_description,
+        icon: const Icon(Symbols.terminal_rounded, size: 50),
+      ),
+      Item(
+        title: los.method_picker,
+        description: los.method_picker_description,
+        icon: const Icon(Symbols.package_2, size: 50),
+      ),
+      Item(
+        title: los.js_execute,
+        description: los.js_execute_description,
+        icon: const Icon(Symbols.javascript_rounded, size: 50),
+      ),
+      Item(
+        title: los.animation_viewer,
+        description: los.animation_viewer_description,
+        icon: const Icon(Symbols.animated_images, size: 50),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingProvider = Provider.of<SettingProvider>(context);
+    _initItem();
     _initWidget(settingProvider: settingProvider);
     return Padding(
       padding: const EdgeInsets.all(8.0),

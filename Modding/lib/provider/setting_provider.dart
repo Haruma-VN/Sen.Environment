@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingProvider with ChangeNotifier {
   String _theme = 'system';
 
+  String _locale = 'en';
+
   bool _sendNotification = false;
 
   String _toolchain = '';
@@ -13,6 +15,8 @@ class SettingProvider with ChangeNotifier {
   String get theme => _theme;
 
   bool get sendNotification => _sendNotification;
+
+  String get locale => _locale;
 
   String get toolChain => _toolchain;
 
@@ -38,11 +42,18 @@ class SettingProvider with ChangeNotifier {
     _loadOnNotification();
     _loadToolChain();
     _loadValid();
+    _loadLocale();
   }
 
   void setTheme(String value) async {
     _theme = value;
     await _saveTheme();
+    notifyListeners();
+  }
+
+  void setLocale(String value) async {
+    _locale = value;
+    await _saveLocale();
     notifyListeners();
   }
 
@@ -64,9 +75,22 @@ class SettingProvider with ChangeNotifier {
     return;
   }
 
+  Future<void> _saveLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('locale', _locale);
+    return;
+  }
+
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     _theme = prefs.getString('theme') ?? 'system';
+    notifyListeners();
+    return;
+  }
+
+  Future<void> _loadLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    _locale = prefs.getString('locale') ?? 'en';
     notifyListeners();
     return;
   }

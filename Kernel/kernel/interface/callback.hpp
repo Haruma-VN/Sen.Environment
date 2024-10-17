@@ -18,11 +18,7 @@ namespace Sen::Kernel::Interface {
 
 		private:
 
-			std::string_view argument;
-
 			ShellCallback callback;
-
-			std::vector<std::string> arguments;
 
 			std::unique_ptr<JS::Runtime> javascript;
 
@@ -31,10 +27,8 @@ namespace Sen::Kernel::Interface {
 		public:
 
 			explicit Callback(
-				std::string_view argument,
-				ShellCallback callback,
-				const std::vector<std::string> & arguments
-			) : argument(argument), callback(callback), arguments(std::move(arguments)), javascript(std::make_unique<JS::Runtime>())
+				ShellCallback callback
+			) : javascript(std::make_unique<JS::Runtime>())
 			{
 
 			}
@@ -53,30 +47,55 @@ namespace Sen::Kernel::Interface {
 			inline auto prepare(
 			) -> void
 			{
-				// kernel adapter : adapt -> javascript self-assign 
-				auto script_path = thiz.argument;
 				// test
 				javascript->add_proxy(Script::test, "Sen"_sv, "Kernel"_sv, "test"_sv);
 				// shell callback
 				{
 					{
-						auto is_gui = std::make_unique<CStringView>();
-						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}).get(), is_gui.get());
-						// is_gui
-						javascript->add_constant<bool>(static_cast<bool>(std::stoi(std::string{is_gui->value, static_cast<std::size_t>(is_gui->size)})), "Sen"_sv, "Shell"_sv, "is_gui"_sv);
+						javascript->add_proxy([](
+							JSContext* ctx,
+							JSValue val,
+							int argc,
+							JSValue* argv
+						) -> JSValue {
+							auto is_gui = std::make_unique<CStringView>();
+							Shell::callback(construct_string_list(std::vector<std::string>{std::string{"is_gui"}}).get(), is_gui.get());
+							return JS::Converter::to_bool(ctx, static_cast<bool>(std::stoi(std::string{is_gui->value, static_cast<std::size_t>(is_gui->size)})));
+						}, "Sen"_sv, "Shell"_sv, "is_gui"_sv);
 					}
 					{
-						auto shell_version = std::make_unique<CStringView>();
-						thiz.callback(construct_string_list(std::vector<std::string>{std::string{"version"}}).get(), shell_version.get());
-						// shell version
-						javascript->add_constant<int>(static_cast<int>(std::stoi(std::string{shell_version->value, static_cast<std::size_t>(shell_version->size)})), "Sen"_sv, "Shell"_sv, "version"_sv);
+						javascript->add_proxy([](
+							JSContext *ctx,
+							JSValue val,
+							int argc,
+							JSValue *argv
+						) -> JSValue {
+							auto shell_version = std::make_unique<CStringView>();
+							Shell:: callback(construct_string_list(std::vector<std::string>{std::string{"version"}}).get(), shell_version.get());
+							return JS::Converter::to_number(ctx, static_cast<int>(std::stoi(std::string{shell_version->value, static_cast<std::size_t>(shell_version->size)}))); 
+						}, "Sen"_sv, "Shell"_sv, "version"_sv);
 					}
 					// version
-					javascript->add_constant<int>(Kernel::version, "Sen"_sv, "Kernel"_sv, "version"_sv);
+					javascript->add_proxy([](
+						JSContext *ctx,
+						JSValue val,
+						int argc,
+						JSValue *argv
+					) -> JSValue {
+						return JS::Converter::to_number(ctx, Kernel::version); 
+					}, "Sen"_sv, "Kernel"_sv, "version"_sv);
 					// callback
 					javascript->add_proxy(Script::callback, "Sen"_sv, "Shell"_sv, "callback"_sv);
 					// arguments
-					javascript->add_constant(thiz.arguments, "Sen"_sv, "Kernel"_sv, "arguments"_sv);
+					javascript->add_proxy([](
+						JSContext *ctx,
+						JSValue val,
+						int argc,
+						JSValue *argv
+					) -> JSValue 
+					{
+						return JS::Converter::to_array(ctx, *Additional::arguments.get()); 
+					}, "Sen"_sv, "Kernel"_sv, "arguments"_sv);
 				}
 				// xml
 				{
@@ -103,7 +122,14 @@ namespace Sen::Kernel::Interface {
 				// home
 				{
 					// script path
-					javascript->add_constant<std::string_view>(String::to_posix_style(script_path.data()), "Sen"_sv, "Kernel"_sv, "Home"_sv, "script"_sv);
+					javascript->add_proxy([](
+						JSContext *ctx,
+						JSValue val,
+						int argc,
+						JSValue *argv
+					) -> JSValue {
+						return JS::Converter::to_string(ctx, String::to_posix_style(Additional::script.get()->data())); 
+					}, "Sen"_sv, "Kernel"_sv, "Home"_sv, "script"_sv);
 				}
 				// vcdiff
 				{
@@ -635,9 +661,9 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::DataStreamView::register_class<true>);
 				// Boolean
 				javascript->register_object(Script::Class::Boolean::register_class);
-				// Size
+				// // Size
 				javascript->register_object(Script::Class::Size::register_class);
-				// String
+				// // String
 				javascript->register_object(Script::Class::String::register_class);
 				// Character
 				javascript->register_object(Script::Class::Character::register_class<char>);
@@ -645,7 +671,7 @@ namespace Sen::Kernel::Interface {
 				javascript->register_object(Script::Class::Character::register_class<unsigned char>);
 				// WideCharacter
 				javascript->register_object(Script::Class::Character::register_class<wchar_t>);
-				// DimensionView
+				// // DimensionView
 				javascript->register_object(Script::Class::DimensionView::register_class);
 				// Rectangle
 				javascript->register_object(Script::Class::Rectangle::register_class);
@@ -692,7 +718,7 @@ namespace Sen::Kernel::Interface {
 				// FileWatcher
 				javascript->register_object(Script::FileWatcher::register_class);
 				// execute the script
-				javascript->evaluate_fs(script_path);
+				javascript->evaluate_fs(*Additional::script);
 				// Execute other Promise
 				while (javascript->has_promise()) {
 					javascript->execute_pending_job();
@@ -713,5 +739,4 @@ namespace Sen::Kernel::Interface {
 				return;
 			}
 	};
-
-}
+}		

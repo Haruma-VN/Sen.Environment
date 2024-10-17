@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:modding/model/script.dart';
 import 'package:modding/screen/shell_screen.dart';
 import 'package:modding/service/file_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class JsPick extends StatefulWidget {
   const JsPick({
@@ -29,9 +30,10 @@ class _JsPickState extends State<JsPick> {
 
   @override
   Widget build(BuildContext context) {
+    final los = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sen: Environment'),
+        title: Text(los.js_page),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
