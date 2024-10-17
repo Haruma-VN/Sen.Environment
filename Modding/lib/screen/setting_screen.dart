@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:modding/provider/setting_provider.dart';
+import 'package:modding/service/android_service.dart';
 import 'package:modding/service/file_service.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,19 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  bool _hasPermission = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.sync(() async {
+      var hasPermission = await _checkDefaultPermission();
+      setState(() {
+        _hasPermission = hasPermission;
+      });
+    });
+  }
+
   void _onChangeTheme() async {
     final settingProvider = Provider.of<SettingProvider>(
       context,
@@ -152,6 +166,13 @@ class _SettingScreenState extends State<SettingScreen> {
     return false;
   }
 
+  Future<bool> _checkDefaultPermission() async {
+    if (Platform.isAndroid) {
+      return await AndroidService.checkStoragePermission();
+    }
+    return true;
+  }
+
   bool _existScript(String path) {
     return FileService.isFile('$path/Script/main.js');
   }
@@ -210,50 +231,60 @@ class _SettingScreenState extends State<SettingScreen> {
     toolchainPath() => settingProvider.toolChain == ''
         ? 'Not specified'
         : settingProvider.toolChain;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Default setting'),
-        const SizedBox(height: 15),
-        ListTile(
-          leading: const Icon(Icons.dark_mode_outlined),
-          title: const Text('Theme'),
-          onTap: _onChangeTheme,
-        ),
-        const SizedBox(height: 10),
-        ListTile(
-          leading: const Icon(Icons.translate_outlined),
-          title: const Text('Language'),
-          onTap: () {},
-        ),
-        const SizedBox(height: 10),
-        const ListTile(
-          leading: Icon(Icons.person_2_outlined),
-          title: Text('Author'),
-          subtitle: Text('Haruma'),
-        ),
-        const Divider(),
-        const Text('Application setting'),
-        const SizedBox(height: 15),
-        ListTile(
-          leading: const Icon(Icons.notifications_outlined),
-          title: const Text('Send notification'),
-          onTap: _onChangeNotification,
-        ),
-        const SizedBox(height: 10),
-        ListTile(
-          leading: const Icon(Icons.storage_outlined),
-          title: const Text('Storage permission'),
-          onTap: () {},
-        ),
-        const SizedBox(height: 10),
-        ListTile(
-          leading: const Icon(Icons.build_outlined),
-          title: const Text('Toolchain'),
-          subtitle: Text(toolchainPath()),
-          onTap: _onChangeToolChain,
-        ),
-      ],
+    return Container(
+      margin: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Default setting'),
+          const SizedBox(height: 15),
+          ListTile(
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: const Text('Theme'),
+            onTap: _onChangeTheme,
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            leading: const Icon(Icons.translate_outlined),
+            title: const Text('Language'),
+            onTap: () {},
+          ),
+          const SizedBox(height: 10),
+          const ListTile(
+            leading: Icon(Icons.person_2_outlined),
+            title: Text('Author'),
+            subtitle: Text('Haruma'),
+          ),
+          const Divider(),
+          const Text('Application setting'),
+          const SizedBox(height: 15),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('Send notification'),
+            onTap: _onChangeNotification,
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            leading: const Icon(Icons.storage_outlined),
+            title: const Text('Storage permission'),
+            subtitle:
+                _hasPermission ? const Text('Granted') : const Text('Denied'),
+            onTap: !_hasPermission
+                ? () async {
+                    await AndroidService.requestStoragePermission();
+                  }
+                : null,
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            leading: const Icon(Icons.build_outlined),
+            title: const Text('Toolchain'),
+            subtitle: Text(toolchainPath()),
+            onTap: _onChangeToolChain,
+          ),
+        ],
+      ),
     );
   }
 }

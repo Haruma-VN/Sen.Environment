@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:modding/screen/home_screen.dart';
 import 'package:modding/screen/setting_screen.dart';
 import 'dart:io';
@@ -37,10 +38,12 @@ class _RootScreenState extends State<RootScreen> {
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home_filled),
             label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],

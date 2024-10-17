@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
             clipBehavior: Clip.hardEdge,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
-              onTap: settingProvider.isValid
+              onTap: !settingProvider.isValid
                   ? () {
                       Navigator.push(
                         context,
@@ -176,14 +176,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       item.description,
-                      textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 8),
                     settingProvider.isValid
                         ? Container()
                         : const Text('Toolchain is invalid'),

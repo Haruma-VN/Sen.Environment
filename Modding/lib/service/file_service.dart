@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:modding/service/android_service.dart';
 
 class FileService {
   static List<String> readDirectory({
@@ -64,7 +65,12 @@ class FileService {
   }
 
   static Future<String?> uploadDirectory() async {
-    var directory = await FilePicker.platform.getDirectoryPath();
+    var directory = null as String?;
+    if (Platform.isAndroid) {
+      directory = await AndroidService.pickDirectoryFromDocument();
+    } else {
+      directory = await FilePicker.platform.getDirectoryPath();
+    }
     if (directory == null || directory.isEmpty) {
       return null;
     }
@@ -73,10 +79,9 @@ class FileService {
 
   static Future<String?> uploadFile() async {
     if (Platform.isAndroid) {
-      // TODO : Handle this
-      return null;
+      return await AndroidService.pickFileFromDocument();
     }
-    return _uploadFilePicker();
+    return await _uploadFilePicker();
   }
 
   static Future<String?> _uploadFilePicker() async {

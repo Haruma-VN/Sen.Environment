@@ -234,7 +234,7 @@ class AnimationFrame {
   String label;
   bool stop;
   List<AnimationCommand> command;
-  List<BigInt> remove;
+  List<int> remove;
   List<AnimationAppend> append;
   List<AnimationMove> change;
 
@@ -254,9 +254,8 @@ class AnimationFrame {
       command: (json['command'] as List)
           .map((i) => AnimationCommand.fromJson(i))
           .toList(),
-      remove: (json['remove'] as List)
-          .map((i) => BigInt.parse(i.toString()))
-          .toList(),
+      remove:
+          (json['remove'] as List).map((i) => int.parse(i.toString())).toList(),
       append: (json['append'] as List)
           .map((i) => AnimationAppend.fromJson(i))
           .toList(),
