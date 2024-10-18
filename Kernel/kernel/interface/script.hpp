@@ -170,7 +170,9 @@ namespace Sen::Kernel::Interface::Script
 				auto js_obj = JS_NewObject(context);
 				for (auto &[key, value] : json.items())
 				{
-					JS_DefinePropertyValueStr(context, js_obj, key.data(), json_to_js_value(context, value), JS_PROP_C_W_E);
+					auto atom = JS_NewAtomLen(context, key.data(), key.size());
+					JS_DefinePropertyValue(context, js_obj, atom, json_to_js_value(context, value), JS_PROP_C_W_E);
+					JS_FreeAtom(context, atom);
 				}
 				return js_obj;
 			}
@@ -299,6 +301,7 @@ namespace Sen::Kernel::Interface::Script
 							}
 							JS_FreeAtom(context, tab[i].atom);
 							JS_FreeValue(context, val);
+							JS_FreeCString(context, key);
 						}
 						js_free(context, tab);
 					}
@@ -447,13 +450,15 @@ namespace Sen::Kernel::Interface::Script
 		.name = c_name, .prop_flags = JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE, .def_type = JS_DEF_CFUNC, .magic = 0, .u = {.func = {length, JS_CFUNC_generic, {.generic = func1}} } \
 	}
 
-#define JS_INSTANCE_OF_OBJ(ctx, obj, parent, name)          \
-	auto obj = JS_GetPropertyStr(ctx, parent, name.data()); \
-	if (JS_IsUndefined(obj))                                \
-	{                                                       \
-		obj = JS_NewObject(ctx);                            \
-		JS_SetPropertyStr(ctx, parent, name.data(), obj);   \
-	}
+	#define JS_INSTANCE_OF_OBJ(ctx, obj, parent, name)          \
+		auto obj = JS_GetPropertyStr(ctx, parent, name.data()); \
+		if (JS_IsUndefined(obj))                                \
+		{\
+			auto atom = JS_NewAtomLen(ctx, name.data(), name.size());\
+			obj = JS_NewObject(ctx);                            \
+			JS_DefinePropertyValue(ctx, parent, atom, obj, int{JS_PROP_C_W_E});\
+			JS_FreeAtom(ctx, atom);\
+		}
 
 		namespace DataStreamView
 		{
@@ -2526,7 +2531,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -2676,8 +2683,12 @@ namespace Sen::Kernel::Interface::Script
 				auto proto = JS_NewObject(ctx);
 				auto default_true_func_val = JS_NewCFunction(ctx, true_instance<true>, "true", 0);
 				auto default_false_func_val = JS_NewCFunction(ctx, true_instance<false>, "false", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "true", default_true_func_val, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "false", default_false_func_val, int{JS_PROP_C_W_E});
+				auto trueAtom = JS_NewAtomLen(ctx, "true", 4);
+				JS_DefinePropertyValue(ctx, point_ctor, trueAtom, default_true_func_val, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, trueAtom);
+				auto falseAtom = JS_NewAtomLen(ctx, "false", 5);
+				JS_DefinePropertyValue(ctx, point_ctor, falseAtom, default_false_func_val, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, falseAtom);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
@@ -2685,7 +2696,9 @@ namespace Sen::Kernel::Interface::Script
 				if (!JS_IsUndefined(obj1)) {
 					auto obj2 = JS_GetPropertyStr(ctx, obj1, "Kernel");
 					if (!JS_IsUndefined(obj2)) {
-						JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+						auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+						JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+						JS_FreeAtom(ctx, atom);
 						JS_FreeValue(ctx, obj2);
 					}
 					JS_FreeValue(ctx, obj1);
@@ -2894,7 +2907,9 @@ namespace Sen::Kernel::Interface::Script
 				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
-				JS_DefinePropertyValueStr(ctx, obj6, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj6, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -3086,7 +3101,9 @@ namespace Sen::Kernel::Interface::Script
 				JS_INSTANCE_OF_OBJ(ctx, obj4, obj3, "PopCap"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj5, obj4, "Animation"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj6, obj5, "Miscellaneous"_sv);
-				JS_DefinePropertyValueStr(ctx, obj6, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj6, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -3274,7 +3291,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -3459,7 +3478,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -3677,7 +3698,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -4023,7 +4046,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -4246,7 +4271,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -4448,7 +4475,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -4600,13 +4629,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, "instance", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom, instance_c, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atomData = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atomData, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atomData);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -4812,13 +4845,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor<T>, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance<T>, "instance", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, "instance", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom, instance_c, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions<T>, countof(proto_functions<T>));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atomData = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atomData, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atomData);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -5023,13 +5060,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, "instance", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom, instance_c, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atomData = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atomData, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atomData);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -5362,13 +5403,17 @@ namespace Sen::Kernel::Interface::Script
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, "instance", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom, instance_c, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atomData = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atomData, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atomData);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -6259,7 +6304,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -6434,7 +6481,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -6642,7 +6691,9 @@ namespace Sen::Kernel::Interface::Script
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -7153,32 +7204,50 @@ namespace Sen::Kernel::Interface::Script
 			// Adapter
 
 			inline static auto register_class(
-				JSContext *ctx) -> void
+				JSContext *ctx
+			) -> void
 			{
-				class_id = JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class);
+				JS_NewClassID(&class_id);
+				assert_conditional(JS_NewClass(JS_GetRuntime(ctx), class_id, &this_class) == 0, "ImageView class register failed", "register_class");
 				auto class_name = "ImageView"_sv;
 				auto point_ctor = JS_NewCFunction2(ctx, constructor, class_name.data(), 2, JS_CFUNC_constructor, 0);
 				auto proto = JS_NewObject(ctx);
 				auto instance_c = JS_NewCFunction(ctx, instance, "instance", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "instance", instance_c, int{JS_PROP_C_W_E});
+				auto instanceAtom = JS_NewAtomLen(ctx, "instance", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, instanceAtom, instance_c, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, instanceAtom);
 				auto default_cut = JS_NewCFunction(ctx, cut, "cut", 0);
 				auto default_resize = JS_NewCFunction(ctx, resize, "resize", 0);
 				auto default_scale = JS_NewCFunction(ctx, scale, "scale", 0);
 				auto default_rotate = JS_NewCFunction(ctx, rotate, "rotate", 0);
 				auto default_read_fs = JS_NewCFunction(ctx, read_fs, "read_fs", 0);
 				auto default_write_fs = JS_NewCFunction(ctx, write_fs, "write_fs", 0);
-				JS_DefinePropertyValueStr(ctx, point_ctor, "cut", default_cut, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "resize", default_resize, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "scale", default_scale, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "rotate", default_rotate, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "read_fs", default_read_fs, int{JS_PROP_C_W_E});
-				JS_DefinePropertyValueStr(ctx, point_ctor, "write_fs", default_write_fs, int{JS_PROP_C_W_E});
+				auto atom_cut = JS_NewAtomLen(ctx, "cut", 3_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_cut, default_cut, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_cut);
+				auto atom_resize = JS_NewAtomLen(ctx, "resize", 6_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_resize, default_resize, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_resize);
+				auto atom_scale = JS_NewAtomLen(ctx, "scale", 5_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_scale, default_scale, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_scale);
+				auto atom_rotate = JS_NewAtomLen(ctx, "rotate", 6_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_rotate, default_rotate, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_rotate);
+				auto atom_read_fs = JS_NewAtomLen(ctx, "read_fs", 7_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_read_fs, default_read_fs, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_read_fs);
+				auto atom_write_fs = JS_NewAtomLen(ctx, "write_fs", 8_size);
+				JS_DefinePropertyValue(ctx, point_ctor, atom_write_fs, default_write_fs, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom_write_fs);
 				JS_SetPropertyFunctionList(ctx, proto, proto_functions, countof(proto_functions));
 				JS_SetConstructor(ctx, point_ctor, proto);
 				auto global_obj = JS_GetGlobalObject(ctx);
 				JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 				JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-				JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+				auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+				JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx, atom);
 				JS_FreeValue(ctx, global_obj);
 				JS_FreeValue(ctx, obj1);
 				JS_FreeValue(ctx, obj2);
@@ -8440,10 +8509,18 @@ namespace Sen::Kernel::Interface::Script
 				auto area_func = JS_NewCFunction(context, area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
 				image_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				auto atom_width = JS_NewAtomLen(context, "width", 5_size);
+				JS_DefinePropertyValue(context, image_obj, atom_width, JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[0])), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_width);
+				auto atom_height = JS_NewAtomLen(context, "height", 6_size);
+				JS_DefinePropertyValue(context, image_obj, atom_height, JS_NewBigInt64(context, JS::Converter::get_bigint64(context, argv[1])), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_height);
+				auto atom_area = JS_NewAtomLen(context, "area", 4_size);
+				JS_DefinePropertyValue(context, image_obj, atom_area, area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_area);
+				auto atom_circumference = JS_NewAtomLen(context, "circumference", 13_size);
+				JS_DefinePropertyValue(context, image_obj, atom_circumference, circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_circumference);
 				return image_obj; }, "instance"_sv);
 		}
 
@@ -8465,16 +8542,36 @@ namespace Sen::Kernel::Interface::Script
 				auto area_func = JS_NewCFunction(context, area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, circumference, "circumference", 0);
 				image_obj = JS_NewObject(context);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, image.width));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, image.height));
-				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, image.bit_depth));
-				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, image.color_type));
-				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, image.interlace_type));
-				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, image.channels));
-				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, image.rowbytes));
-				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				auto atom_width = JS_NewAtomLen(context, "width", 5_size);
+				JS_DefinePropertyValue(context, image_obj, atom_width, JS_NewBigInt64(context, image.width), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_width);
+				auto atom_height = JS_NewAtomLen(context, "height", 6_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_height, JS_NewBigInt64(context, image.height), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_height);
+				auto atom_bit_depth = JS_NewAtomLen(context, "bit_depth", 9_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_bit_depth, JS_NewBigInt64(context, image.bit_depth), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_bit_depth);
+				auto atom_color_type = JS_NewAtomLen(context, "color_type", 10_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_color_type, JS_NewBigInt64(context, image.color_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_color_type);
+				auto atom_interlace_type = JS_NewAtomLen(context, "interlace_type", 14_size);
+				JS_DefinePropertyValue(context, image_obj, atom_interlace_type, JS_NewBigInt64(context, image.interlace_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_interlace_type);
+				auto atom_channels = JS_NewAtomLen(context, "channels", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_channels, JS_NewBigInt64(context, image.channels), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_channels);
+				auto atom_rowbytes = JS_NewAtomLen(context, "rowbytes", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_rowbytes, JS_NewBigInt64(context, image.rowbytes), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_rowbytes);
+				auto atom_data = JS_NewAtomLen(context, "data", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_data, JS_NewArrayBufferCopy(context, image.data().data(), image.data().size()), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_data);
+				auto atom_area = JS_NewAtomLen(context, "area", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_area, area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_area);
+				auto atom_circumference = JS_NewAtomLen(context, "circumference", 13_size);
+				JS_DefinePropertyValue(context, image_obj, atom_circumference, circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_circumference);
 				return image_obj; }, "open"_sv);
 		}
 
@@ -8736,16 +8833,36 @@ namespace Sen::Kernel::Interface::Script
 				auto image_obj = JS_NewObject(context);
 				auto area_func = JS_NewCFunction(context, Dimension::area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, Dimension::circumference, "circumference", 0);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, destination.width));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, destination.height));
-				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, destination.bit_depth));
-				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, destination.color_type));
-				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, destination.interlace_type));
-				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, destination.channels));
-				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, destination.rowbytes));
-				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, destination.data().data(), destination.data().size()));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				auto atom_width = JS_NewAtomLen(context, "width", 5_size);
+				JS_DefinePropertyValue(context, image_obj, atom_width, JS_NewBigInt64(context, destination.width), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_width);
+				auto atom_height = JS_NewAtomLen(context, "height", 6_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_height, JS_NewBigInt64(context, destination.height), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_height);
+				auto atom_bit_depth = JS_NewAtomLen(context, "bit_depth", 9_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_bit_depth, JS_NewBigInt64(context, destination.bit_depth), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_bit_depth);
+				auto atom_color_type = JS_NewAtomLen(context, "color_type", 10_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_color_type, JS_NewBigInt64(context, destination.color_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_color_type);
+				auto atom_interlace_type = JS_NewAtomLen(context, "interlace_type", 14_size);
+				JS_DefinePropertyValue(context, image_obj, atom_interlace_type, JS_NewBigInt64(context, destination.interlace_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_interlace_type);
+				auto atom_channels = JS_NewAtomLen(context, "channels", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_channels, JS_NewBigInt64(context, destination.channels), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_channels);
+				auto atom_rowbytes = JS_NewAtomLen(context, "rowbytes", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_rowbytes, JS_NewBigInt64(context, destination.rowbytes), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_rowbytes);
+				auto atom_data = JS_NewAtomLen(context, "data", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_data, JS_NewArrayBufferCopy(context, destination.data().data(), destination.data().size()), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_data);
+				auto atom_area = JS_NewAtomLen(context, "area", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_area, area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_area);
+				auto atom_circumference = JS_NewAtomLen(context, "circumference", 13_size);
+				JS_DefinePropertyValue(context, image_obj, atom_circumference, circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_circumference);
 				JS_FreeValue(context, width);
 				JS_FreeValue(context, height);
 				return image_obj; }, "join"_sv);
@@ -8818,16 +8935,36 @@ namespace Sen::Kernel::Interface::Script
 				auto image_obj = JS_NewObject(context);
 				auto area_func = JS_NewCFunction(context, Dimension::area, "area", 0);
 				auto circumference_func = JS_NewCFunction(context, Dimension::circumference, "circumference", 0);
-				JS_SetPropertyStr(context, image_obj, "width", JS_NewBigInt64(context, destination.width));
-				JS_SetPropertyStr(context, image_obj, "height", JS_NewBigInt64(context, destination.height));
-				JS_SetPropertyStr(context, image_obj, "bit_depth", JS_NewBigInt64(context, destination.bit_depth));
-				JS_SetPropertyStr(context, image_obj, "color_type", JS_NewBigInt64(context, destination.color_type));
-				JS_SetPropertyStr(context, image_obj, "interlace_type", JS_NewBigInt64(context, destination.interlace_type));
-				JS_SetPropertyStr(context, image_obj, "channels", JS_NewBigInt64(context, destination.channels));
-				JS_SetPropertyStr(context, image_obj, "rowbytes", JS_NewBigInt64(context, destination.rowbytes));
-				JS_SetPropertyStr(context, image_obj, "data", JS_NewArrayBufferCopy(context, destination.data().data(), destination.data().size()));
-				JS_DefinePropertyValueStr(context, image_obj, "area", area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-				JS_DefinePropertyValueStr(context, image_obj, "circumference", circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				auto atom_width = JS_NewAtomLen(context, "width", 5_size);
+				JS_DefinePropertyValue(context, image_obj, atom_width, JS_NewBigInt64(context, destination.width), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_width);
+				auto atom_height = JS_NewAtomLen(context, "height", 6_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_height, JS_NewBigInt64(context, destination.height), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_height);
+				auto atom_bit_depth = JS_NewAtomLen(context, "bit_depth", 9_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_bit_depth, JS_NewBigInt64(context, destination.bit_depth), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_bit_depth);
+				auto atom_color_type = JS_NewAtomLen(context, "color_type", 10_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_color_type, JS_NewBigInt64(context, destination.color_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_color_type);
+				auto atom_interlace_type = JS_NewAtomLen(context, "interlace_type", 14_size);
+				JS_DefinePropertyValue(context, image_obj, atom_interlace_type, JS_NewBigInt64(context, destination.interlace_type), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_interlace_type);
+				auto atom_channels = JS_NewAtomLen(context, "channels", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_channels, JS_NewBigInt64(context, destination.channels), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_channels);
+				auto atom_rowbytes = JS_NewAtomLen(context, "rowbytes", 8_size); 
+				JS_DefinePropertyValue(context, image_obj, atom_rowbytes, JS_NewBigInt64(context, destination.rowbytes), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_rowbytes);
+				auto atom_data = JS_NewAtomLen(context, "data", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_data, JS_NewArrayBufferCopy(context, destination.data().data(), destination.data().size()), int{JS_PROP_C_W_E});
+				JS_FreeAtom(context, atom_data);
+				auto atom_area = JS_NewAtomLen(context, "area", 4_size);  
+				JS_DefinePropertyValue(context, image_obj, atom_area, area_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_area);
+				auto atom_circumference = JS_NewAtomLen(context, "circumference", 13_size);
+				JS_DefinePropertyValue(context, image_obj, atom_circumference, circumference_func, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
+				JS_FreeAtom(context, atom_circumference);
 				JS_FreeValue(context, width);
 				JS_FreeValue(context, height);
 				return image_obj; }, "join_extend"_sv);
@@ -11851,10 +11988,18 @@ namespace Sen::Kernel::Interface::Script
 							auto destination = argv[1];
 							auto doc = Sen::Kernel::Support::PopCap::Animation::Miscellaneous::BasicDocument{};
 							Sen::Kernel::Support::PopCap::Animation::Miscellaneous::Dump::process_fs(source, doc);
-							JS_SetPropertyStr(context, destination, "sprite", JS::Converter::to_array(context, doc.sprite));
-							JS_SetPropertyStr(context, destination, "image", JS::Converter::to_array(context, doc.image));
-							JS_SetPropertyStr(context, destination, "media", JS::Converter::to_array(context, doc.media));
-							JS_SetPropertyStr(context, destination, "action", JS::Converter::to_array(context, doc.action));
+							auto atom_sprite = JS_NewAtomLen(context, "sprite", 6_size);  
+							JS_DefinePropertyValue(context, destination, atom_sprite, JS::Converter::to_array(context, doc.sprite), int{JS_PROP_C_W_E});
+							JS_FreeAtom(context, atom_sprite);
+							auto atom_image = JS_NewAtomLen(context, "image", 5_size);  
+							JS_DefinePropertyValue(context, destination, atom_image, JS::Converter::to_array(context, doc.image), int{JS_PROP_C_W_E});
+							JS_FreeAtom(context, atom_image);
+							auto atom_media = JS_NewAtomLen(context, "media", 5_size); 
+							JS_DefinePropertyValue(context, destination, atom_media, JS::Converter::to_array(context, doc.media), int{JS_PROP_C_W_E});
+							JS_FreeAtom(context, atom_media);
+							auto atom_action = JS_NewAtomLen(context, "action", 6_size);  
+							JS_DefinePropertyValue(context, destination, atom_action, JS::Converter::to_array(context, doc.action), int{JS_PROP_C_W_E});
+							JS_FreeAtom(context, atom_action);
 							return JS::Converter::get_undefined(); 
 						}, "dump_document"_sv);
 					}
@@ -12741,7 +12886,9 @@ namespace Sen::Kernel::Interface::Script
 			auto global_obj = JS_GetGlobalObject(ctx);
 			JS_INSTANCE_OF_OBJ(ctx, obj1, global_obj, "Sen"_sv);
 			JS_INSTANCE_OF_OBJ(ctx, obj2, obj1, "Kernel"_sv);
-			JS_DefinePropertyValueStr(ctx, obj2, class_name.data(), point_ctor, int{JS_PROP_C_W_E});
+			auto atom = JS_NewAtomLen(ctx, class_name.data(), class_name.size());
+			JS_DefinePropertyValue(ctx, obj2, atom, point_ctor, int{JS_PROP_C_W_E});
+			JS_FreeAtom(ctx, atom);
 			JS_FreeValue(ctx, global_obj);
 			JS_FreeValue(ctx, obj1);
 			JS_FreeValue(ctx, obj2);
@@ -12799,9 +12946,12 @@ namespace Sen::Kernel::Interface::Script
 						{
 							auto key = JS_AtomToCString(context, tab[i].atom);
 							auto val = JS_GetProperty(context, value, tab[i].atom);
-							JS_SetPropertyStr(context, json, key, deep_clone(context, val));
+							auto atom = JS_NewAtomLen(context, key, std::strlen(key));
+							JS_DefinePropertyValue(context, json, atom, deep_clone(context, val), int{JS_PROP_C_W_E});
+							JS_FreeAtom(context, atom);
 							JS_FreeAtom(context, tab[i].atom);
 							JS_FreeValue(context, val);
+							JS_FreeCString(context, key);
 						}
 						js_free(context, tab);
 					}

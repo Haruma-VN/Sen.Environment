@@ -92,7 +92,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			auto obj = JS_GetPropertyStr(ctx.get(), parent, name.data()); \
 			if (JS_IsUndefined(obj)) { \
 				obj = JS_NewObject(ctx.get()); \
-				JS_SetPropertyStr(ctx.get(), parent, name.data(), obj); \
+				auto atom = JS_NewAtomLen(ctx.get(), name.data(), name.size());\
+				JS_DefinePropertyValue(ctx.get(), parent, atom, obj, int{JS_PROP_C_W_E}); \
+				JS_FreeAtom(ctx.get(), atom);\
 			}
 
 			#define M_GET_GLOBAL_OBJECT()\
@@ -125,8 +127,11 @@ namespace Sen::Kernel::Definition::JavaScript
 				auto exception_stack = JS_ToCStringLen(thiz.ctx.get(), &size, exception);
 				result += std::string{exception_stack, size};
 				if(JS_IsError(thiz.ctx.get(), exception)){
-					auto js_stack = JS_GetPropertyStr(thiz.ctx.get(), exception, "stack");
-					if(JS::not_undefined(js_stack)){
+					auto atom = JS_NewAtomLen(thiz.ctx.get(), "stack", 5);
+					auto js_stack = JS_GetProperty(thiz.ctx.get(), exception, atom);
+					JS_FreeAtom(thiz.ctx.get(), atom);
+					if (JS::not_undefined(js_stack))
+					{
 						auto res_size = std::size_t{};
 						auto js_exception = JS_ToCStringLen(thiz.ctx.get(), &res_size, js_stack);
 						result += std::string{js_exception};
@@ -226,7 +231,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			) -> JSValue
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto val = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
+				auto atom = JS_NewAtomLen(ctx.get(), object_name.data(), object_name.size());
+				auto val = JS_GetProperty(ctx.get(), global_obj, atom);
+				JS_FreeAtom(ctx.get(), atom);
 				M_FREE_GLOBAL_OBJECT();
 				return val;
 			}
@@ -326,7 +333,9 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				JS_SetPropertyStr(ctx.get(), global_obj, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
+				auto atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, atom, JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -348,12 +357,19 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto myObject = JS_GetPropertyStr(ctx.get(), global_obj, object_name.data());
+				auto obj_atom = JS_NewAtomLen(ctx.get(), object_name.data(), object_name.size());
+				auto myObject = JS_GetProperty(ctx.get(), global_obj, obj_atom);
+				JS_FreeAtom(ctx.get(), obj_atom);
 				if (JS_IsUndefined(myObject)) {
 					myObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), myObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), global_obj, object_name.data(), myObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), myObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj_atom = JS_NewAtomLen(ctx.get(), object_name.data(), object_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj_atom, myObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -378,17 +394,28 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom); 
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom); 
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom); 
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -415,22 +442,37 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom); 
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middleObject = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto middleObject = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom);
 				if (JS_IsUndefined(middleObject)) {
 					middleObject = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middleObject, obj3_name.data());
+				auto obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), middleObject, obj3_atom);
+				JS_FreeAtom(ctx.get(), obj3_atom);
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middleObject, obj3_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middleObject);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				JS_DefinePropertyValue(ctx.get(), middleObject, obj3_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj3_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, middleObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom); 
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -458,27 +500,46 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom); 
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middle1Object = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto middle1Object = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom); 
 				if (JS_IsUndefined(middle1Object)) {
 					middle1Object = JS_NewObject(ctx.get());
 				}
-				auto middle2Object = JS_GetPropertyStr(ctx.get(), middle1Object, obj3_name.data());
+				auto obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto middle2Object = JS_GetProperty(ctx.get(), middle1Object, obj3_atom);
+				JS_FreeAtom(ctx.get(), obj3_atom);
 				if (JS_IsUndefined(middle2Object)) {
 					middle2Object = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middle2Object, obj4_name.data());
+				auto obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), middle2Object, obj4_atom);
+				JS_FreeAtom(ctx.get(), obj4_atom);
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middle2Object, obj4_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle2Object, obj4_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj4_atom);
+				obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle1Object, obj3_atom, middle2Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj3_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, middle1Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom);
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -508,32 +569,55 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middle1Object = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto middle1Object = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom);
 				if (JS_IsUndefined(middle1Object)) {
 					middle1Object = JS_NewObject(ctx.get());
 				}
-				auto middle2Object = JS_GetPropertyStr(ctx.get(), middle1Object, obj3_name.data());
+				auto obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto middle2Object = JS_GetProperty(ctx.get(), middle1Object, obj3_atom);
+				JS_FreeAtom(ctx.get(), obj3_atom);
 				if (JS_IsUndefined(middle2Object)) {
 					middle2Object = JS_NewObject(ctx.get());
 				}
-				auto middle3Object = JS_GetPropertyStr(ctx.get(), middle2Object, obj4_name.data());
+				auto obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				auto middle3Object = JS_GetProperty(ctx.get(), middle2Object, obj4_atom);
+				JS_FreeAtom(ctx.get(), obj4_atom);
 				if (JS_IsUndefined(middle3Object)) {
 					middle3Object = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middle3Object, obj5_name.data());
+				auto obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), middle3Object, obj5_atom);
+				JS_FreeAtom(ctx.get(), obj5_atom); 
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middle3Object, obj5_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), middle2Object, obj4_name.data(), middle3Object);
-				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom); 
+				obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle3Object, obj5_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj5_atom); 
+				obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle2Object, obj4_atom, middle3Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj4_atom);
+				obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle1Object, obj3_atom, middle2Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj3_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, middle1Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom);
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -566,37 +650,64 @@ namespace Sen::Kernel::Definition::JavaScript
 			) const -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middle1Object = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto middle1Object = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom);
 				if (JS_IsUndefined(middle1Object)) {
 					middle1Object = JS_NewObject(ctx.get());
 				}
-				auto middle2Object = JS_GetPropertyStr(ctx.get(), middle1Object, obj3_name.data());
+				auto obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto middle2Object = JS_GetProperty(ctx.get(), middle1Object, obj3_atom);
+				JS_FreeAtom(ctx.get(), obj3_atom);
 				if (JS_IsUndefined(middle2Object)) {
 					middle2Object = JS_NewObject(ctx.get());
 				}
-				auto middle3Object = JS_GetPropertyStr(ctx.get(), middle2Object, obj4_name.data());
+				auto obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				auto middle3Object = JS_GetProperty(ctx.get(), middle2Object, obj4_atom);
+				JS_FreeAtom(ctx.get(), obj4_atom);
 				if (JS_IsUndefined(middle3Object)) {
 					middle3Object = JS_NewObject(ctx.get());
 				}
-				auto middle4Object = JS_GetPropertyStr(ctx.get(), middle3Object, obj5_name.data());
+				auto obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				auto middle4Object = JS_GetProperty(ctx.get(), middle3Object, obj5_atom);
+				JS_FreeAtom(ctx.get(), obj5_atom);
 				if (JS_IsUndefined(middle4Object)) {
 					middle4Object = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middle4Object, obj6_name.data());
+				auto obj6_atom = JS_NewAtomLen(ctx.get(), obj6_name.data(), obj6_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), middle4Object, obj6_atom);
+				JS_FreeAtom(ctx.get(), obj6_atom);
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middle4Object, obj6_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), middle3Object, obj5_name.data(), middle4Object);
-				JS_SetPropertyStr(ctx.get(), middle2Object, obj4_name.data(), middle3Object);
-				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj6_atom = JS_NewAtomLen(ctx.get(), obj6_name.data(), obj6_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle4Object, obj6_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj6_atom);
+				obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle3Object, obj5_atom, middle4Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj5_atom);
+				obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle2Object, obj4_atom, middle3Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj4_atom);
+				obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle1Object, obj3_atom, middle2Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj3_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, middle1Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom);
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom); 
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -630,42 +741,73 @@ namespace Sen::Kernel::Definition::JavaScript
 			) -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, obj1_atom);
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middle1Object = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto middle1Object = JS_GetProperty(ctx.get(), outerObject, obj2_atom);
+				JS_FreeAtom(ctx.get(), obj2_atom);
 				if (JS_IsUndefined(middle1Object)) {
 					middle1Object = JS_NewObject(ctx.get());
 				}
-				auto middle2Object = JS_GetPropertyStr(ctx.get(), middle1Object, obj3_name.data());
+				auto obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto middle2Object = JS_GetProperty(ctx.get(), middle1Object, obj3_atom);
+				JS_FreeAtom(ctx.get(), obj3_atom);
 				if (JS_IsUndefined(middle2Object)) {
 					middle2Object = JS_NewObject(ctx.get());
 				}
-				auto middle3Object = JS_GetPropertyStr(ctx.get(), middle2Object, obj4_name.data());
+				auto obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				auto middle3Object = JS_GetProperty(ctx.get(), middle2Object, obj4_atom);
+				JS_FreeAtom(ctx.get(), obj4_atom);
 				if (JS_IsUndefined(middle3Object)) {
 					middle3Object = JS_NewObject(ctx.get());
 				}
-				auto middle4Object = JS_GetPropertyStr(ctx.get(), middle3Object, obj5_name.data());
+				auto obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				auto middle4Object = JS_GetProperty(ctx.get(), middle3Object, obj5_atom);
+				JS_FreeAtom(ctx.get(), obj5_atom);
 				if (JS_IsUndefined(middle4Object)) {
 					middle4Object = JS_NewObject(ctx.get());
 				}
-				auto middle5Object = JS_GetPropertyStr(ctx.get(), middle4Object, obj6_name.data());
+				auto obj6_atom = JS_NewAtomLen(ctx.get(), obj6_name.data(), obj6_name.size());
+				auto middle5Object = JS_GetProperty(ctx.get(), middle4Object, obj6_atom);
+				JS_FreeAtom(ctx.get(), obj6_atom);
 				if (JS_IsUndefined(middle5Object)) {
 					middle5Object = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middle5Object, obj7_name.data());
+				auto obj7_atom = JS_NewAtomLen(ctx.get(), obj7_name.data(), obj7_name.size());
+				auto innerObject = JS_GetProperty(ctx.get(), middle5Object, obj7_atom);
+				JS_FreeAtom(ctx.get(), obj7_atom);
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middle5Object, obj7_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), middle4Object, obj6_name.data(), middle5Object);
-				JS_SetPropertyStr(ctx.get(), middle3Object, obj5_name.data(), middle4Object);
-				JS_SetPropertyStr(ctx.get(), middle2Object, obj4_name.data(), middle3Object);
-				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				auto func_atom = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				JS_DefinePropertyValue(ctx.get(), innerObject, func_atom, 
+					JS_NewCFunction(ctx.get(), func, function_name.data(), 0), int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), func_atom);
+				obj7_atom = JS_NewAtomLen(ctx.get(), obj7_name.data(), obj7_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle5Object, obj7_atom, innerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj7_atom);
+				obj6_atom = JS_NewAtomLen(ctx.get(), obj6_name.data(), obj6_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle4Object, obj6_atom, middle5Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj6_atom);
+				obj5_atom = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle3Object, obj5_atom, middle4Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj5_atom);
+				obj4_atom = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle2Object, obj4_atom, middle3Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj4_atom);
+				obj3_atom = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				JS_DefinePropertyValue(ctx.get(), middle1Object, obj3_atom, middle2Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj3_atom);
+				obj2_atom = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				JS_DefinePropertyValue(ctx.get(), outerObject, obj2_atom, middle1Object, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj2_atom);
+				obj1_atom = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				JS_DefinePropertyValue(ctx.get(), global_obj, obj1_atom, outerObject, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), obj1_atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
@@ -702,64 +844,84 @@ namespace Sen::Kernel::Definition::JavaScript
 			) -> void 
 			{
 				M_GET_GLOBAL_OBJECT();
-				auto outerObject = JS_GetPropertyStr(ctx.get(), global_obj, obj1_name.data());
+				auto atom_obj1_name = JS_NewAtomLen(ctx.get(), obj1_name.data(), obj1_name.size());
+				auto atom_obj2_name = JS_NewAtomLen(ctx.get(), obj2_name.data(), obj2_name.size());
+				auto atom_obj3_name = JS_NewAtomLen(ctx.get(), obj3_name.data(), obj3_name.size());
+				auto atom_obj4_name = JS_NewAtomLen(ctx.get(), obj4_name.data(), obj4_name.size());
+				auto atom_obj5_name = JS_NewAtomLen(ctx.get(), obj5_name.data(), obj5_name.size());
+				auto atom_obj6_name = JS_NewAtomLen(ctx.get(), obj6_name.data(), obj6_name.size());
+				auto atom_obj7_name = JS_NewAtomLen(ctx.get(), obj7_name.data(), obj7_name.size());
+				auto atom_obj8_name = JS_NewAtomLen(ctx.get(), obj8_name.data(), obj8_name.size());
+				auto atom_function_name = JS_NewAtomLen(ctx.get(), function_name.data(), function_name.size());
+				auto outerObject = JS_GetProperty(ctx.get(), global_obj, atom_obj1_name);
 				if (JS_IsUndefined(outerObject)) {
 					outerObject = JS_NewObject(ctx.get());
 				}
-				auto middle1Object = JS_GetPropertyStr(ctx.get(), outerObject, obj2_name.data());
+				auto middle1Object = JS_GetProperty(ctx.get(), outerObject, atom_obj2_name);
 				if (JS_IsUndefined(middle1Object)) {
 					middle1Object = JS_NewObject(ctx.get());
 				}
-				auto middle2Object = JS_GetPropertyStr(ctx.get(), middle1Object, obj3_name.data());
+				auto middle2Object = JS_GetProperty(ctx.get(), middle1Object, atom_obj3_name);
 				if (JS_IsUndefined(middle2Object)) {
 					middle2Object = JS_NewObject(ctx.get());
 				}
-				auto middle3Object = JS_GetPropertyStr(ctx.get(), middle2Object, obj4_name.data());
+				auto middle3Object = JS_GetProperty(ctx.get(), middle2Object, atom_obj4_name);
 				if (JS_IsUndefined(middle3Object)) {
 					middle3Object = JS_NewObject(ctx.get());
 				}
-				auto middle4Object = JS_GetPropertyStr(ctx.get(), middle3Object, obj5_name.data());
+				auto middle4Object = JS_GetProperty(ctx.get(), middle3Object, atom_obj5_name);
 				if (JS_IsUndefined(middle4Object)) {
 					middle4Object = JS_NewObject(ctx.get());
 				}
-				auto middle5Object = JS_GetPropertyStr(ctx.get(), middle4Object, obj6_name.data());
+				auto middle5Object = JS_GetProperty(ctx.get(), middle4Object, atom_obj6_name);
 				if (JS_IsUndefined(middle5Object)) {
 					middle5Object = JS_NewObject(ctx.get());
 				}
-				auto middle6Object = JS_GetPropertyStr(ctx.get(), middle5Object, obj7_name.data());
+				auto middle6Object = JS_GetProperty(ctx.get(), middle5Object, atom_obj7_name);
 				if (JS_IsUndefined(middle6Object)) {
 					middle6Object = JS_NewObject(ctx.get());
 				}
-				auto innerObject = JS_GetPropertyStr(ctx.get(), middle6Object, obj8_name.data());
+				auto innerObject = JS_GetProperty(ctx.get(), middle6Object, atom_obj8_name);
 				if (JS_IsUndefined(innerObject)) {
 					innerObject = JS_NewObject(ctx.get());
 				}
-				JS_SetPropertyStr(ctx.get(), innerObject, function_name.data(), JS_NewCFunction(ctx.get(), func, function_name.data(), 0));
-				JS_SetPropertyStr(ctx.get(), middle6Object, obj8_name.data(), innerObject);
-				JS_SetPropertyStr(ctx.get(), middle5Object, obj7_name.data(), middle6Object);
-				JS_SetPropertyStr(ctx.get(), middle4Object, obj6_name.data(), middle5Object);
-				JS_SetPropertyStr(ctx.get(), middle3Object, obj5_name.data(), middle4Object);
-				JS_SetPropertyStr(ctx.get(), middle2Object, obj4_name.data(), middle3Object);
-				JS_SetPropertyStr(ctx.get(), middle1Object, obj3_name.data(), middle2Object);
-				JS_SetPropertyStr(ctx.get(), outerObject, obj2_name.data(), middle1Object);
-				JS_SetPropertyStr(ctx.get(), global_obj, obj1_name.data(), outerObject);
+				JS_DefinePropertyValue(ctx.get(), innerObject, atom_function_name, JS_NewCFunction(ctx.get(), func, function_name.data(), 0), JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle6Object, atom_obj8_name, innerObject, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle5Object, atom_obj7_name, middle6Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle4Object, atom_obj6_name, middle5Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle3Object, atom_obj5_name, middle4Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle2Object, atom_obj4_name, middle3Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), middle1Object, atom_obj3_name, middle2Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), outerObject, atom_obj2_name, middle1Object, JS_PROP_C_W_E);
+				JS_DefinePropertyValue(ctx.get(), global_obj, atom_obj1_name, outerObject, JS_PROP_C_W_E);
+				JS_FreeAtom(ctx.get(), atom_obj1_name);
+				JS_FreeAtom(ctx.get(), atom_obj2_name);
+				JS_FreeAtom(ctx.get(), atom_obj3_name);
+				JS_FreeAtom(ctx.get(), atom_obj4_name);
+				JS_FreeAtom(ctx.get(), atom_obj5_name);
+				JS_FreeAtom(ctx.get(), atom_obj6_name);
+				JS_FreeAtom(ctx.get(), atom_obj7_name);
+				JS_FreeAtom(ctx.get(), atom_obj8_name);
+				JS_FreeAtom(ctx.get(), atom_function_name);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}
 
 			#define M_WRAP_JSVALUE_AS_PRIMITIVE(obj, value_adapter, variable_name)\
+			auto atom = JS_NewAtomLen(ctx.get(), variable_name.data(), variable_name.size());\
 			if constexpr (std::is_same<T, bool>::value) {\
-				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBool(ctx.get(), value_adapter));\
+				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewBool(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
 			}\
 			if constexpr (std::is_same<T, std::string_view>::value) {\
-				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewStringLen(ctx.get(), value_adapter.data(), value_adapter.size()));\
+				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewStringLen(ctx.get(), value_adapter.data(), value_adapter.size()), int{JS_PROP_C_W_E});\
 			}\
 			if constexpr (std::is_integral<T>::value) {\
-				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewBigUint64(ctx.get(), value_adapter));\
+				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewBigUint64(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
 			}\
 			if constexpr (std::is_floating_point<T>::value) {\
-				JS_SetPropertyStr(ctx.get(), obj, variable_name.data(), JS_NewFloat64(ctx.get(), value_adapter));\
-			}
+				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewFloat64(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
+			}\
+			JS_FreeAtom(ctx.get(), atom);
 
 			#define M_WRAP_JSVALUE_AS_ARRAY(object, variable_name)\
 			auto jsarray = JS_NewArray(ctx.get());\
@@ -780,7 +942,9 @@ namespace Sen::Kernel::Definition::JavaScript
 				}\
 				JS_SetPropertyUint32(ctx.get(), jsarray, index, val);\
 			}\
-			JS_SetPropertyStr(ctx.get(), object, variable_name.data(), jsarray);
+			auto atom = JS_NewAtomLen(ctx.get(), variable_name.data(), variable_name.size());\
+			JS_DefinePropertyValue(ctx.get(), object, atom, jsarray, int{JS_PROP_C_W_E});\
+			JS_FreeAtom(ctx.get(), atom);
 
 
 			/**
@@ -939,7 +1103,9 @@ namespace Sen::Kernel::Definition::JavaScript
 				for (auto i : Range<size_t>(value.size())) {
 					JS_SetPropertyUint32(ctx.get(), js_array, i, JS_NewStringLen(ctx.get(), value[i].data(), value[i].size()));
 				}
-				JS_SetPropertyStr(ctx.get(), obj2, property_name.data(), js_array);
+				auto atom = JS_NewAtomLen(ctx.get(), property_name.data(), property_name.size());
+				JS_DefinePropertyValue(ctx.get(), obj2, atom, js_array, int{JS_PROP_C_W_E});
+				JS_FreeAtom(ctx.get(), atom);
 				M_FREE_GLOBAL_OBJECT();
 				return;
 			}

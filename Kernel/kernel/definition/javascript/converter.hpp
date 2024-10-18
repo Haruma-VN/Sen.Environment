@@ -295,7 +295,9 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const JSValue & that
 			) -> std::vector<T>
 			{
-				auto length_value = JS_GetPropertyStr(context, that, "length");
+				auto atom = JS_NewAtomLen(context, "length", 6);
+				auto length_value = JS_GetProperty(context, that, atom);
+				JS_FreeAtom(context, atom);
 				auto length = Converter::get_int32(context, length_value);
 				JS_FreeValue(context, length_value);
 				if constexpr (std::is_same<T, int>::value){
@@ -303,6 +305,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(JS::Converter::get_int32(context, value));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -311,6 +314,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(JS::Converter::get_bool(context, value));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -319,6 +323,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(Converter::get_int64(context, val));
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -327,6 +332,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(Converter::get_uint32(context, val));
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -335,6 +341,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(Converter::get_uint64(context, val));
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -343,6 +350,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(Converter::get_float32(context, val));
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -351,6 +359,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(Converter::get_float64(context, val));
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -359,6 +368,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto val = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(val);
+						JS_FreeValue(context, val);
 					}
 					return m_list;
 				}
@@ -374,7 +384,9 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const JSValue& that
 			) -> std::vector<T>
 			{
-				auto length_value = JS_GetPropertyStr(context, that, "length");
+				auto atom = JS_NewAtomLen(context, "length", 6);
+				auto length_value = JS_GetProperty(context, that, atom);
+				JS_FreeAtom(context, atom);
 				auto length = Converter::get_int32(context, length_value);
 				JS_FreeValue(context, length_value);
 				if constexpr (std::is_same<T, int>::value) {
@@ -382,6 +394,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -390,6 +403,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(JS::Converter::get_bool(context, value));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -398,6 +412,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -406,6 +421,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -414,6 +430,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_bigint64(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -422,6 +439,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_float32(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -430,6 +448,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range<int>(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(static_cast<T>(JS::Converter::get_float64(context, value)));
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -438,6 +457,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 					for (auto i : Range(length)) {
 						auto value = JS_GetPropertyUint32(context, that, i);
 						m_list.emplace_back(value);
+						JS_FreeValue(context, value);
 					}
 					return m_list;
 				}
@@ -453,13 +473,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const JSValue & that
 			) -> std::vector<std::string>
 			{
-				auto len_val = JS_GetPropertyStr(context, that, "length");
+				auto atom = JS_NewAtomLen(context, "length", 6);
+				auto len_val = JS_GetProperty(context, that, atom);
+				JS_FreeAtom(context, atom);
 				auto length = Converter::get_int32(context, len_val);
 				JS_FreeValue(context, len_val);
 				auto m_list = std::vector<std::string>{};
 				for (auto i : Range<int>(length)) {
 					auto val = JS_GetPropertyUint32(context, that, i);
 					m_list.emplace_back(Converter::get_string(context, val));
+    				JS_FreeValue(context, val);
 				}
 				return m_list;
 			}
@@ -474,13 +497,16 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 				const JSValue& that
 			) -> std::vector<std::string_view>
 			{
-				auto len_val = JS_GetPropertyStr(context, that, "length");
+				auto atom = JS_NewAtomLen(context, "length", 6);
+				auto len_val = JS_GetProperty(context, that, atom);
+				JS_FreeAtom(context, atom);
 				auto length = Converter::get_int32(context, len_val);
 				JS_FreeValue(context, len_val);
 				auto m_list = std::vector<std::string_view>{};
 				for (auto i : Range<int>(length)) {
 					auto val = JS_GetPropertyUint32(context, that, i);
 					m_list.emplace_back(Converter::get_string(context, val));
+					JS_FreeValue(context, val);
 				}
 				return m_list;
 			}
@@ -733,7 +759,7 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 								auto prop_key = JS_AtomToCString(ctx, atom);
 								auto str_len = std::strlen(prop_key);
 								auto prop_str_val = JS_ToCStringLen(ctx, &str_len, prop_val);
-								if (prop_key && prop_str_val) {
+								if (prop_key != nullptr && prop_str_val != nullptr) {
 									result[prop_key] = prop_str_val;
 								}
 								JS_FreeCString(ctx, prop_key);
