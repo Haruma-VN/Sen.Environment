@@ -47,5 +47,7 @@
     "android_storage_access_permission_required": "Android Storage Permission are required to read/write files",
     "go_to_settings": "Go to Settings",
     "shell_has_finished": "Shell has finished the job, back to application now!",
-    "use": "Use"
+    "use": "Use",
+    "select_option": "Select option",
+    "submit": "Submit"
 }

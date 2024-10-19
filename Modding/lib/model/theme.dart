@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart' as material;
 
 class MaterialDesign {
   static final material.ThemeData darkTheme = material.ThemeData(
     brightness: material.Brightness.dark,
-    fontFamily: 'GoogleSans',
+    fontFamily: _exchangeFont(),
     colorScheme: material.ColorScheme.fromSeed(
       seedColor: material.Colors.deepPurpleAccent,
       brightness: material.Brightness.dark,
@@ -18,8 +20,15 @@ class MaterialDesign {
     ),
   );
 
+  static String _exchangeFont() {
+    if (Platform.isWindows) {
+      return 'SegoeUI';
+    }
+    return 'GoogleSans';
+  }
+
   static final material.ThemeData lightTheme = material.ThemeData(
-    fontFamily: 'GoogleSans',
+    fontFamily: _exchangeFont(),
     colorScheme: material.ColorScheme.fromSeed(
       seedColor: material.Colors.deepPurple,
       brightness: material.Brightness.light,

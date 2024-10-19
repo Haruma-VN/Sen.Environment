@@ -50,3 +50,6 @@ flutter:
         - family: GoogleSans
           fonts:
               - asset: assets/font/GoogleSans-Regular.ttf
+        - family: Segoe UI
+          fonts:
+              - asset: assets/font/SegoeUI.ttf

@@ -21,7 +21,7 @@ Future<void> main(
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.setTitleBarStyle(TitleBarStyle.normal);
     await WindowManager.instance.ensureInitialized();
-    await windowManager.setMinimumSize(const Size(400, 400));
+    await windowManager.setMinimumSize(const Size(1280, 720));
     await windowManager.center();
     await windowManager.waitUntilReadyToShow();
     await windowManager.show();

@@ -685,5 +685,6 @@
     "xml.read_error": "Đọc XML lỗi, đường dẫn",
     "zlib.compress.failed": "Nén Zlib thất bại",
     "zlib.compress.invalid_level": "Cấp độ nén Zlib không hợp lệ, cấp độ dự kiến từ 0 đến 9",
-    "zlib.uncompress.failed": "Giải nén Zlib thất bại"
+    "zlib.uncompress.failed": "Giải nén Zlib thất bại",
+    "popcap.animation.add_library": "PopCap Animation: Thêm thư viện"
 }

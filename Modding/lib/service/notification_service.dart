@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:modding/model/build_distribution.dart';
+import 'package:window_manager/window_manager.dart';
 
 class NotificationService {
   static FlutterLocalNotificationsPlugin? _flutterLocalNotificationsPlugin;
@@ -44,10 +45,14 @@ class NotificationService {
     String description,
   ) async {
     if (Platform.isWindows) {
-      await LocalNotification(
+      final notification = LocalNotification(
         title: title,
         body: description,
-      ).show();
+      );
+      notification.onClick = () async {
+        await windowManager.focus();
+      };
+      notification.show();
     }
     if (Platform.isLinux ||
         Platform.isMacOS ||
@@ -59,7 +64,7 @@ class NotificationService {
         description,
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'com.haruma.sen.modding.notification_channel.main',
+            'com.haruma.sen.environment.notification_channel.main',
             'Main',
           ),
           iOS: DarwinNotificationDetails(),

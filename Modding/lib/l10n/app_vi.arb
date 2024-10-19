@@ -47,5 +47,7 @@
     "android_storage_access_permission_required": "Quyền truy cập Android Storage là cần thiết để đọc/viết tệp tin",
     "go_to_settings": "Đi đến cài đặt",
     "shell_has_finished": "Shell đã hoàn tất công việc, quay lại ứng dụng ngay!",
-    "use": "Sử dụng"
+    "use": "Sử dụng",
+    "select_option": "Chọn phương án",
+    "submit": "Gửi"
 }

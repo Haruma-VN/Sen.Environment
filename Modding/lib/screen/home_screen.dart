@@ -108,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         item.title,
                         textAlign: TextAlign.center,
                         maxLines: 4,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(

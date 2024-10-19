@@ -566,7 +566,7 @@ class _ShellScreenState extends State<ShellScreen> {
     final duration = _after.difference(_before).inSeconds;
     _scrollToBottom();
     final los = AppLocalizations.of(context)!;
-    if (duration > 30) {
+    if (duration > 15) {
       _pushNotification(los.shell_has_finished);
     }
     return Column(
@@ -636,19 +636,28 @@ class _ShellScreenState extends State<ShellScreen> {
           child: Column(
             children: [
               ...provider.recentFiles.map(
-                (e) => Card(
-                  child: ListTile(
-                    leading: FileService.isFile(e)
-                        ? const Icon(Icons.file_upload_outlined)
-                        : const Icon(Icons.folder_outlined),
-                    title: Text(e),
-                    trailing: TextButton(
-                      onPressed: () {
-                        _inputController!.text = e;
-                      },
-                      child: Text(los.use),
+                (e) => Column(
+                  children: [
+                    ListTile(
+                      leading: FileService.isFile(e)
+                          ? const Icon(Icons.file_copy_outlined)
+                          : const Icon(Icons.folder_outlined),
+                      title:
+                          Text(e, overflow: TextOverflow.ellipsis, maxLines: 1),
+                      trailing: TextButton(
+                        onPressed: () {
+                          _inputController!.text = e;
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          los.use,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    const Divider(),
+                    const SizedBox(height: 4),
+                  ],
                 ),
               ),
             ],
@@ -708,6 +717,7 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   Widget _buildInputStringStage() {
+    final los = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
@@ -716,13 +726,19 @@ class _ShellScreenState extends State<ShellScreen> {
             onSubmitted: (e) => _onSendString(),
           ),
         ),
-        IconButton(
-          onPressed: _onSelect,
-          icon: const Icon(Icons.add_circle_sharp),
+        Tooltip(
+          message: los.select_option,
+          child: IconButton(
+            onPressed: _onSelect,
+            icon: const Icon(Icons.add_circle_sharp),
+          ),
         ),
-        IconButton(
-          onPressed: _onSendString,
-          icon: const Icon(Icons.send_outlined),
+        Tooltip(
+          message: los.submit,
+          child: IconButton(
+            onPressed: _onSendString,
+            icon: const Icon(Icons.send_outlined),
+          ),
         ),
       ],
     );
@@ -763,12 +779,16 @@ class _ShellScreenState extends State<ShellScreen> {
         });
       },
     );
+    final los = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(child: list),
-        IconButton(
-          onPressed: _onSendEnumeration,
-          icon: const Icon(Icons.send_outlined),
+        Tooltip(
+          message: los.submit,
+          child: IconButton(
+            onPressed: _onSendEnumeration,
+            icon: const Icon(Icons.send_outlined),
+          ),
         ),
       ],
     );
@@ -778,18 +798,25 @@ class _ShellScreenState extends State<ShellScreen> {
     _completer!.complete(_value);
   }
 
+  bool _canBeRow() {
+    return MediaQuery.of(context).size.width > 1000;
+  }
+
   Widget _buildInputBooleanStage() {
     final los = AppLocalizations.of(context)!;
     final radioButton = RadioButton(
       options: [los.yes, los.no],
-      isRowProvider: false,
+      isRowProvider: _canBeRow(),
     );
     return Row(
       children: [
         Expanded(child: radioButton),
-        IconButton(
-          onPressed: () => _onSendBoolean(radioButton.currentOption),
-          icon: const Icon(Icons.send_outlined),
+        Tooltip(
+          message: los.submit,
+          child: IconButton(
+            onPressed: () => _onSendBoolean(radioButton.currentOption),
+            icon: const Icon(Icons.send_outlined),
+          ),
         ),
       ],
     );

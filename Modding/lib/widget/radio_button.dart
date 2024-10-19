@@ -34,9 +34,11 @@ class _RadioButtonState extends State<RadioButton> {
               value: e,
               groupValue: widget._currentOption,
               onChanged: (ex) {
-                setState(() {
-                  widget._currentOption = ex.toString();
-                });
+                setState(
+                  () {
+                    widget._currentOption = ex.toString();
+                  },
+                );
               },
             ),
           ),
