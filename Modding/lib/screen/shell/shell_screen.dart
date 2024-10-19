@@ -21,12 +21,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ShellScreen extends StatefulWidget {
-  final String holderPath;
   final List<String> arguments;
 
   const ShellScreen({
     super.key,
-    required this.holderPath,
     required this.arguments,
   });
 

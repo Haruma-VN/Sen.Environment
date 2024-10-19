@@ -53,7 +53,6 @@ class _JsPickState extends State<JsPick> {
                       duration: const Duration(milliseconds: 300),
                       type: PageTransitionType.rightToLeft,
                       child: ShellScreen(
-                        holderPath: widget.holder,
                         arguments: [
                           '-method',
                           'js.evaluate',

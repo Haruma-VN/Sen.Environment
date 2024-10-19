@@ -30,15 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _initWidget({
     required SettingProvider settingProvider,
   }) {
-    _initShellWidget(
-      holderPath: settingProvider.toolChain,
-    );
-    _initMethodPicker(
-      holderPath: settingProvider.toolChain,
-    );
-    _initJSModule(
-      holderPath: settingProvider.toolChain,
-    );
+    _initShellWidget();
+    _initMethodPicker();
+    _initJSModule(holder: settingProvider.toolChain);
     _initAnimationViewer();
   }
 
@@ -48,25 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  void _initShellWidget({
-    required String holderPath,
-  }) {
+  void _initShellWidget() {
     items[0].onWidget = () {
-      return ShellScreen(holderPath: holderPath, arguments: const []);
+      return const ShellScreen(arguments: []);
     };
   }
 
   void _initJSModule({
-    required String holderPath,
+    required String holder,
   }) {
     items[2].onWidget = () {
-      return JsPick(holder: holderPath);
+      return JsPick(
+        holder: holder,
+      );
     };
   }
 
-  void _initMethodPicker({
-    required String holderPath,
-  }) {
+  void _initMethodPicker() {
     items[1].onWidget = () {
       return const MethodPicker();
     };

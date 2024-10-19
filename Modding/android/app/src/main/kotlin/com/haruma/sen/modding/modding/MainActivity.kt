@@ -21,6 +21,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import android.os.Bundle
 
 class MainActivity: FlutterActivity() {
 
@@ -32,7 +33,7 @@ class MainActivity: FlutterActivity() {
 
     private val continuation = Channel<Any?>()
 
-    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+    public override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -40,6 +41,13 @@ class MainActivity: FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             CoroutineScope(Dispatchers.Main).launch { this@MainActivity.handle(call, result) }
 			return@setMethodCallHandler
+        }
+    }
+
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        CoroutineScope(Dispatchers.Main).launch {
+            this@MainActivity.handleIncomingIntent(intent)
         }
     }
 
@@ -97,6 +105,18 @@ class MainActivity: FlutterActivity() {
 		}
 		return
 	}
+
+    private suspend fun handleIncomingIntent(intent: Intent?) {
+        if (intent?.action == "com.haruma.sen.environment.FORWARD") {
+            val resources = intent.getParcelableArrayListExtra<Uri>("resources")
+            sendResourcesAsArguments(resources)
+        }
+    }
+
+    private suspend fun sendResourcesAsArguments(resources: ArrayList<Uri>?) {
+        val resourcePaths = resources?.map { resolveUri(it) } ?: emptyList()
+        MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, channel).invokeMethod("onResourcesReceived", resourcePaths)
+    }
     
     private suspend fun handle(
         call: MethodCall,

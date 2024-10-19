@@ -39,7 +39,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Shared
 
     inline auto write_bytes(
         std::string const &destination,
-        std::vector<uint8_t> const &data) -> void
+        std::vector<uint8_t> const &data
+    ) -> void
     {
         FileSystem::create_directory(Path::getParents(destination));
         FileSystem::write_binary(destination, data);

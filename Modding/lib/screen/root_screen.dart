@@ -4,7 +4,9 @@ import 'package:modding/screen/home_screen.dart';
 import 'package:modding/screen/setting_screen.dart';
 import 'dart:io';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:modding/screen/shell/shell_screen.dart';
 import 'package:modding/service/android_service.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
 class RootScreen extends StatefulWidget {
@@ -21,10 +23,17 @@ class _RootScreenState extends State<RootScreen> {
 
   final _labelBehavior = NavigationDestinationLabelBehavior.alwaysShow;
 
+  bool _hasNavigated = false;
+
   final List<Widget> _destinations = const [
     HomeScreen(),
     SettingScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _changeScreen(int index) {
     setState(() {
@@ -119,9 +128,35 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
+  void _loadArgumentOnAndroid() {
+    if (!Platform.isAndroid) return;
+    if (AndroidService.arguments != null) {
+      _hasNavigated = true;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          Navigator.of(context).push(
+            PageTransition(
+              child: ShellScreen(
+                arguments: AndroidService.arguments!,
+              ),
+              type: PageTransitionType.fade,
+              duration: const Duration(
+                milliseconds: 300,
+              ),
+            ),
+          );
+        },
+      );
+      _hasNavigated = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _requestAndroidPermissionFirstTime();
+    if (!_hasNavigated) {
+      _loadArgumentOnAndroid();
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

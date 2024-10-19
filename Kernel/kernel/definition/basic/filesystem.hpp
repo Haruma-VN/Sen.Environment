@@ -465,7 +465,7 @@ namespace Sen::Kernel::FileSystem
 				auto file = std::unique_ptr<FILE, decltype(close_file)>(_wfopen(String::utf8view_to_utf16(fmt::format("\\\\?\\{}",
 				String::to_windows_style(filepath.data()))).data(), L"wb"), close_file);
 		#else
-				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(filepath.data(), "wb"), close_file);
+				auto file = std::unique_ptr<FILE, decltype(close_file)>(std::fopen(String::to_posix_style(std::string{filepath.data(), filepath.size()}).data(), "wb"), close_file);
 		#endif
 		if(file == nullptr){
 			throw Exception(fmt::format("{}: {}", Language::get("write_file_error"), String::to_posix_style(filepath.data())), std::source_location::current(), "write_binary");

@@ -1,7 +1,6 @@
 import 'package:modding/model/dimension.dart';
 import 'package:modding/service/file_service.dart';
 import 'package:image/image.dart';
-import 'dart:io';
 
 /// Document : https://github.com/brendan-duncan/image/blob/main/doc/README.md
 
