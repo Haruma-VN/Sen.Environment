@@ -30,10 +30,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"Sen: Environment", origin, size)) {
     return EXIT_FAILURE;
   }
-  // HWND hwnd = window.GetHandle();
-  // SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_THICKFRAME);
-  // window.SetQuitOnClose(true);
-
+  window.SetQuitOnClose(true);
   ::MSG msg;
   while (::GetMessage(&msg, nullptr, 0, 0)) {
     ::TranslateMessage(&msg);

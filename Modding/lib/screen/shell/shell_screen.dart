@@ -733,7 +733,7 @@ class _ShellScreenState extends State<ShellScreen> {
   void _onSendString() {
     final inputData = _inputController!.text;
     if (FileService.isFile(inputData) || FileService.isDirectory(inputData)) {
-      final provider = Provider.of<RecentProvider>(context);
+      final provider = Provider.of<RecentProvider>(context, listen: false);
       provider.addFile(inputData);
     }
     _completer!.complete(inputData);
