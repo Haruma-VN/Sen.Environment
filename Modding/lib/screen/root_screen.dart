@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/home_screen.dart';
 import 'package:modding/screen/setting_screen.dart';
 import 'dart:io';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:modding/service/android_service.dart';
+import 'package:provider/provider.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key, required this.title});
@@ -81,8 +84,44 @@ class _RootScreenState extends State<RootScreen> {
     return const SizedBox.shrink();
   }
 
+  Future<void> _displayAllowDialog() async {
+    final los = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(los.android_request),
+        content: Text(los.android_storage_access_permission_required),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(los.go_to_settings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _requestAndroidPermissionFirstTime() {
+    if (!Platform.isAndroid) return;
+    Future.sync(
+      () async {
+        final provider = Provider.of<SettingProvider>(context, listen: false);
+        if (!provider.requestedPermission) {
+          if (!(await AndroidService.checkStoragePermission())) {
+            await _displayAllowDialog();
+            await AndroidService.requestStoragePermission();
+          }
+        }
+        provider.setRequestedPermission(true);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    _requestAndroidPermissionFirstTime();
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -91,7 +130,18 @@ class _RootScreenState extends State<RootScreen> {
         children: [
           _makeNavigationRail(),
           Expanded(
-            child: _destinations[_currentPageIndex],
+            child: AnimatedSwitcher(
+              duration: const Duration(
+                milliseconds: 100,
+              ),
+              child: _destinations[_currentPageIndex],
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
           ),
         ],
       ),

@@ -40,5 +40,12 @@
     "elapsed_time": "Elapsed time",
     "upload_file": "Upload file",
     "recent_files": "Recent files",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "invalid_request": "Invalid Request",
+    "shell_request_behavior": "Shell cannot be closed until finished",
+    "android_request": "Android Request",
+    "android_storage_access_permission_required": "Android Storage Permission are required to read/write files",
+    "go_to_settings": "Go to Settings",
+    "shell_has_finished": "Shell has finished the job, back to application now!",
+    "use": "Use"
 }

@@ -95,7 +95,7 @@ BEGIN
             VALUE "InternalName", "modding" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.haruma.sen.modding. All rights reserved." "\0"
             VALUE "OriginalFilename", "modding.exe" "\0"
-            VALUE "ProductName", "modding" "\0"
+            VALUE "ProductName", "Sen: Environment" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

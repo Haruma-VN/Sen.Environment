@@ -40,5 +40,12 @@
     "elapsed_time": "Thời gian trôi qua",
     "upload_file": "Tải tệp tin",
     "recent_files": "Tệp tin gần đây nhất",
-    "cancel": "Huỷ"
+    "cancel": "Huỷ",
+    "invalid_request": "Yêu cầu không hợp lệ",
+    "shell_request_behavior": "Shell không thể đóng đến khi hoàn thành",
+    "android_request": "Yêu cầu Android",
+    "android_storage_access_permission_required": "Quyền truy cập Android Storage là cần thiết để đọc/viết tệp tin",
+    "go_to_settings": "Đi đến cài đặt",
+    "shell_has_finished": "Shell đã hoàn tất công việc, quay lại ứng dụng ngay!",
+    "use": "Sử dụng"
 }

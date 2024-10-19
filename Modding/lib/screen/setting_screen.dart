@@ -291,6 +291,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   void _requestPermission() async {
     await AndroidService.requestStoragePermission();
+    setState(() {});
   }
 
   @override
@@ -301,54 +302,64 @@ class _SettingScreenState extends State<SettingScreen> {
         ? 'Not specified'
         : settingProvider.toolChain;
     return Container(
-      margin: const EdgeInsets.all(8.0),
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(los.default_setting),
-          const SizedBox(height: 15),
-          ListTile(
-            leading: const Icon(Icons.dark_mode_outlined),
-            title: Text(los.theme),
-            onTap: _onChangeTheme,
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
+      child: SingleChildScrollView(
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,
           ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.translate_outlined),
-            title: Text(los.language),
-            subtitle: Text(_exchangeLocale(settingProvider.locale)),
-            onTap: _onChangeLocale,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(los.default_setting),
+              const SizedBox(height: 15),
+              ListTile(
+                leading: const Icon(Icons.dark_mode_outlined),
+                title: Text(los.theme),
+                onTap: _onChangeTheme,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.translate_outlined),
+                title: Text(los.language),
+                subtitle: Text(_exchangeLocale(settingProvider.locale)),
+                onTap: _onChangeLocale,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.person_2_outlined),
+                title: Text(los.author),
+                subtitle: Text(los.author_of_this_locale),
+              ),
+              const Divider(),
+              Text(los.application_setting),
+              const SizedBox(height: 15),
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined),
+                title: Text(los.send_notification),
+                onTap: _onChangeNotification,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.storage_outlined),
+                title: Text(los.storage_permission),
+                subtitle: _hasPermission ? Text(los.granted) : Text(los.denied),
+                onTap: !_hasPermission ? _requestPermission : null,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.build_outlined),
+                title: Text(los.toolchain),
+                subtitle: Text(toolchainPath()),
+                onTap: _onChangeToolChain,
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.person_2_outlined),
-            title: Text(los.author),
-            subtitle: Text(los.author_of_this_locale),
-          ),
-          const Divider(),
-          Text(los.application_setting),
-          const SizedBox(height: 15),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: Text(los.send_notification),
-            onTap: _onChangeNotification,
-          ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.storage_outlined),
-            title: Text(los.storage_permission),
-            subtitle: _hasPermission ? Text(los.granted) : Text(los.denied),
-            onTap: !_hasPermission ? _requestPermission : null,
-          ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.build_outlined),
-            title: Text(los.toolchain),
-            subtitle: Text(toolchainPath()),
-            onTap: _onChangeToolChain,
-          ),
-        ],
+        ),
       ),
     );
   }

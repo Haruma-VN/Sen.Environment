@@ -22,11 +22,9 @@ class SettingProvider with ChangeNotifier {
 
   bool get isValid => _isValid;
 
-  void setIsValid(bool value) async {
-    _isValid = value;
-    await _saveIsValid();
-    notifyListeners();
-  }
+  bool _requestedPermission = false;
+
+  bool get requestedPermission => _requestedPermission;
 
   ThemeMode get themeData {
     final Map<String, ThemeMode> exchanger = {
@@ -43,11 +41,25 @@ class SettingProvider with ChangeNotifier {
     _loadToolChain();
     _loadValid();
     _loadLocale();
+    _loadRequestedPermission();
+    notifyListeners();
   }
 
   void setTheme(String value) async {
     _theme = value;
     await _saveTheme();
+    notifyListeners();
+  }
+
+  void setIsValid(bool value) async {
+    _isValid = value;
+    await _saveIsValid();
+    notifyListeners();
+  }
+
+  void setRequestedPermission(bool value) async {
+    _requestedPermission = value;
+    await _saveRequestedPermission();
     notifyListeners();
   }
 
@@ -84,21 +96,24 @@ class SettingProvider with ChangeNotifier {
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     _theme = prefs.getString('theme') ?? 'system';
-    notifyListeners();
     return;
   }
 
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
     _locale = prefs.getString('locale') ?? 'en';
-    notifyListeners();
     return;
   }
 
   Future<void> _loadValid() async {
     final prefs = await SharedPreferences.getInstance();
     _isValid = prefs.getBool('isValid') ?? false;
-    notifyListeners();
+    return;
+  }
+
+  Future<void> _loadRequestedPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    _requestedPermission = prefs.getBool('requestedPermission') ?? false;
     return;
   }
 
@@ -114,10 +129,15 @@ class SettingProvider with ChangeNotifier {
     return;
   }
 
+  Future<void> _saveRequestedPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('requestedPermission', _requestedPermission);
+    return;
+  }
+
   Future<void> _loadToolChain() async {
     final prefs = await SharedPreferences.getInstance();
     _toolchain = prefs.getString('toolchain') ?? '';
-    notifyListeners();
     return;
   }
 
@@ -130,7 +150,6 @@ class SettingProvider with ChangeNotifier {
   Future<void> _loadOnNotification() async {
     final prefs = await SharedPreferences.getInstance();
     _sendNotification = prefs.getBool('sendNotification') ?? false;
-    notifyListeners();
     return;
   }
 }

@@ -1,5 +1,5 @@
 name: modding
-description: "Sen: Modding Environment"
+description: "Sen: Environment"
 publish_to: "none"
 version: 1.0.0+1
 environment:
@@ -21,15 +21,31 @@ dependencies:
     window_manager: ^0.3.9
     desktop_drop: ^0.5.0
     image: ^4.2.0
+    dynamic_color: ^1.7.0
     flutter_localizations:
         sdk: flutter
+    page_transition: ^2.1.0
+    flutter_local_notifications: ^17.2.3
+    local_notifier: ^0.1.6
+    flutter_launcher_icons: ^0.14.1
 dev_dependencies:
     flutter_test:
         sdk: flutter
     flutter_lints: ^3.0.0
+flutter_launcher_icons:
+    android: true
+    ios: true
+    window: true
+    linux: true
+    macintosh: true
+    image_path: "assets/images/logo.png"
+    remove_alpha_ios: true
 flutter:
     uses-material-design: true
     generate: true
+    assets:
+        - assets/
+        - assets/images/
     fonts:
         - family: GoogleSans
           fonts:

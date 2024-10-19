@@ -63,6 +63,19 @@ namespace Sen::Kernel::Definition::JavaScript
 				(JS_NewContext(thiz.rt.get()), free_context);
 
 			/**
+			 * Mutex to protect from local thread
+			 */
+
+			std::mutex mutex;
+
+			/**
+			 * Check if current JS is module to load
+			 */
+
+
+			bool is_module;
+
+			/**
 			 * Free JS Value
 			*/
 
@@ -110,7 +123,7 @@ namespace Sen::Kernel::Definition::JavaScript
 
 			explicit Runtime(
 
-			)
+			) : mutex{}, is_module{false}
 			{
 
 			}
@@ -249,14 +262,14 @@ namespace Sen::Kernel::Definition::JavaScript
 			}
 
 			inline static auto custom_module_loader(
-				JSContext * ctx,
-				char const * module_name,
-				void * opaque
-			) -> JSModuleDef *
+				JSContext* ctx,
+				char const* module_name,
+				void* opaque
+			) -> JSModuleDef*
 			{
 				auto source = std::string{module_name, std::strlen(module_name)};
 				auto file = FileSystem::read_file(source);
-				auto module_val = JS_Eval(ctx, file.data(), file.size(), module_name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+				auto module_val = JS_Eval(ctx, file.data(), file.size(), module_name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY | JS_EVAL_FLAG_STRICT);
 				if (JS_IsException(module_val)) {
 					JS_FreeValue(ctx, module_val);
 					JS_ThrowInternalError(ctx, "Cannot read module: %s", module_name);
@@ -270,6 +283,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			inline auto enable_module_load (
 			) -> void
 			{
+				thiz.is_module = true;
 				JS_SetModuleLoaderFunc(thiz.rt.get(), nullptr, &custom_module_loader, nullptr);
 				return;
 			}
@@ -277,6 +291,7 @@ namespace Sen::Kernel::Definition::JavaScript
 			inline auto disable_module_load (
 			) -> void
 			{
+				thiz.is_module = false;
 				JS_SetModuleLoaderFunc(thiz.rt.get(), nullptr, nullptr, nullptr);
 				return;
 			}
@@ -297,6 +312,13 @@ namespace Sen::Kernel::Definition::JavaScript
 				return;
 			}
 
+			inline auto constexpr evaluate_flag(
+
+			) -> int
+			{
+				return thiz.is_module ? JS_EVAL_TYPE_MODULE : JS_EVAL_TYPE_GLOBAL;
+			}
+
 			/**
 			 * ------------------------------------------------------------
 			 * Evaluate JavaScript
@@ -311,10 +333,12 @@ namespace Sen::Kernel::Definition::JavaScript
 				std::string_view source_file
 			) -> JSValue
 			{
-				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_FLAG_STRICT | JS_EVAL_TYPE_GLOBAL);
+				thiz.mutex.lock();
+				auto eval_result = JS_Eval(thiz.ctx.get(), source_data.data(), source_data.size(), source_file.data(), JS_EVAL_FLAG_STRICT | thiz.evaluate_flag());
 				if(JS_IsException(eval_result)){
 					throw Exception(thiz.exception(), std::source_location::current(), "evaluate");
 				}
+				thiz.mutex.unlock();
 				return eval_result;
 			}
 
@@ -907,666 +931,18 @@ namespace Sen::Kernel::Definition::JavaScript
 				return;
 			}
 
-			#define M_WRAP_JSVALUE_AS_PRIMITIVE(obj, value_adapter, variable_name)\
-			auto atom = JS_NewAtomLen(ctx.get(), variable_name.data(), variable_name.size());\
-			if constexpr (std::is_same<T, bool>::value) {\
-				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewBool(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
-			}\
-			if constexpr (std::is_same<T, std::string_view>::value) {\
-				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewStringLen(ctx.get(), value_adapter.data(), value_adapter.size()), int{JS_PROP_C_W_E});\
-			}\
-			if constexpr (std::is_integral<T>::value) {\
-				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewBigUint64(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
-			}\
-			if constexpr (std::is_floating_point<T>::value) {\
-				JS_DefinePropertyValue(ctx.get(), obj, atom, JS_NewFloat64(ctx.get(), value_adapter), int{JS_PROP_C_W_E});\
-			}\
-			JS_FreeAtom(ctx.get(), atom);
-
-			#define M_WRAP_JSVALUE_AS_ARRAY(object, variable_name)\
-			auto jsarray = JS_NewArray(ctx.get());\
-			for (auto index : Range<size_t>(value.size())) {\
-				auto item = value[index];\
-				auto val = JSValue{};\
-				if constexpr (std::is_same_v<T, bool>) {\
-					val = JS_NewBool(ctx.get(), item);\
-				}\
-				if constexpr (std::is_same_v<T, std::string_view>) {\
-					val = JS_NewStringLen(ctx.get(), item.data(), item.size());\
-				}\
-				if constexpr (std::is_integral<T>::value) {\
-					val = JS_NewBigUint64(ctx.get(), item);\
-				}\
-				if constexpr (std::is_floating_point<T>::value) {\
-					val = JS_NewFloat64(ctx.get(), item);\
-				}\
-				JS_SetPropertyUint32(ctx.get(), jsarray, index, val);\
-			}\
-			auto atom = JS_NewAtomLen(ctx.get(), variable_name.data(), variable_name.size());\
-			JS_DefinePropertyValue(ctx.get(), object, atom, jsarray, int{JS_PROP_C_W_E});\
-			JS_FreeAtom(ctx.get(), atom);
-
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the C string value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view var_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_WRAP_JSVALUE_AS_PRIMITIVE(global_obj, value, var_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the C string value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view var_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_WRAP_JSVALUE_AS_ARRAY(global_obj, var_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param object_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view object_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, object_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj1, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value from C
-			 * @param value: the C string value
-			 * @param var_name: JS variable name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T>& value,
-				std::string_view object_name,
-				std::string_view var_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(my_object, global_obj, object_name);
-				M_WRAP_JSVALUE_AS_ARRAY(my_object, var_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj2, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T>& value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj2, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			inline auto add_constant(
-				const std::vector<std::string> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				auto js_array = JS_NewArray(ctx.get());
-				for (auto i : Range<size_t>(value.size())) {
-					JS_SetPropertyUint32(ctx.get(), js_array, i, JS_NewStringLen(ctx.get(), value[i].data(), value[i].size()));
-				}
-				auto atom = JS_NewAtomLen(ctx.get(), property_name.data(), property_name.size());
-				JS_DefinePropertyValue(ctx.get(), obj2, atom, js_array, int{JS_PROP_C_W_E});
-				JS_FreeAtom(ctx.get(), atom);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			#pragma region comment
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			#pragma endregion
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj3, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj3, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj4, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj4, value);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj5, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj5, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj6, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj6, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj7, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				const std::vector<T> & value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
-				M_WRAP_JSVALUE_AS_ARRAY(obj7, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C string value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view property_name
-			) -> void
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
-				M_INSTANCE_OF_OBJECT(obj8, obj7, obj8_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj8, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
-			/**
-			 * --------------------------------------
-			 * Add a constant JS value to an object from C
-			 * @param value: the C float value
-			 * @param obj1_name: JS object name
-			 * @param obj2_name: JS object name
-			 * @param obj3_name: JS object name
-			 * @param obj4_name: JS object name
-			 * @param obj5_name: JS object name
-			 * @param obj6_name: JS object name
-			 * @param obj7_name: JS object name
-			 * @param obj8_name: JS object name
-			 * @param obj9_name: JS object name
-			 * @param property_name: JS property name
-			 * --------------------------------------
-			*/
-			template <typename T> requires PrimitiveJSValue<T>
-			inline auto add_constant(
-				T value,
-				std::string_view obj1_name,
-				std::string_view obj2_name,
-				std::string_view obj3_name,
-				std::string_view obj4_name,
-				std::string_view obj5_name,
-				std::string_view obj6_name,
-				std::string_view obj7_name,
-				std::string_view obj8_name,
-				std::string_view obj9_name,
-				std::string_view property_name
-			) -> void 
-			{
-				M_GET_GLOBAL_OBJECT();
-				M_INSTANCE_OF_OBJECT(obj1, global_obj, obj1_name);
-				M_INSTANCE_OF_OBJECT(obj2, obj1, obj2_name);
-				M_INSTANCE_OF_OBJECT(obj3, obj2, obj3_name);
-				M_INSTANCE_OF_OBJECT(obj4, obj3, obj4_name);
-				M_INSTANCE_OF_OBJECT(obj5, obj4, obj5_name);
-				M_INSTANCE_OF_OBJECT(obj6, obj5, obj6_name);
-				M_INSTANCE_OF_OBJECT(obj7, obj6, obj7_name);
-				M_INSTANCE_OF_OBJECT(obj8, obj7, obj8_name);
-				M_INSTANCE_OF_OBJECT(obj9, obj8, obj9_name);
-				M_WRAP_JSVALUE_AS_PRIMITIVE(obj9, value, property_name);
-				M_FREE_GLOBAL_OBJECT();
-				return;
-			}
-
 			/**
 			 * Destructor
-			*/
+			 */
 
 			~Runtime(
 
 			) 
 			{
-				if (ctx != nullptr) {
-            		JS_RunGC(rt.get());
-        		}
+				if (thiz.ctx != nullptr)
+				{
+					JS_RunGC(thiz.rt.get());
+				}
 				thiz.ctx.reset();
 				thiz.rt.reset();
 			}

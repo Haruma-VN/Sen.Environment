@@ -256,7 +256,7 @@ namespace Sen.Script {
         export function make_exception(e: Error): string {
             if (Shell.is_gui()) {
                 Console.error(e.message);
-                Console.display(`stack`, `${make_stack(e.stack!)}`, Definition.Console.Color.RED);
+                Console.display(`${Kernel.Language.get("stack")}`, `${make_stack(e.stack!).replace(/\n$/, "")}`, Definition.Console.Color.RED);
                 return undefined!;
             }
             return make_exception_cli(e);

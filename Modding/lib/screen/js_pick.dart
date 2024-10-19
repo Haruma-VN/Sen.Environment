@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:modding/model/script.dart';
-import 'package:modding/screen/shell_screen.dart';
+import 'package:modding/screen/shell/shell_screen.dart';
 import 'package:modding/service/file_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:page_transition/page_transition.dart';
 
 class JsPick extends StatefulWidget {
   const JsPick({
@@ -48,8 +49,10 @@ class _JsPickState extends State<JsPick> {
                 subtitle: Text(item.description),
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ShellScreen(
+                    PageTransition(
+                      duration: const Duration(milliseconds: 300),
+                      type: PageTransitionType.rightToLeft,
+                      child: ShellScreen(
                         holderPath: widget.holder,
                         arguments: [
                           '-method',

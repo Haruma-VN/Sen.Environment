@@ -7,7 +7,8 @@ import 'package:modding/provider/setting_provider.dart';
 import 'package:modding/screen/animation_viewer/main_screen.dart';
 import 'package:modding/screen/js_pick.dart';
 import 'package:modding/screen/method_picker.dart';
-import 'package:modding/screen/shell_screen.dart';
+import 'package:modding/screen/shell/shell_screen.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -89,15 +90,17 @@ class _HomeScreenState extends State<HomeScreen> {
           return Tooltip(
             message: item.title,
             child: Card(
-              clipBehavior: Clip.hardEdge,
+              clipBehavior: Clip.none,
               child: InkWell(
                 splashColor: Colors.blue.withAlpha(30),
                 onTap: settingProvider.isValid
                     ? () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => item.onWidget(),
+                          PageTransition(
+                            duration: const Duration(milliseconds: 300),
+                            type: PageTransitionType.rightToLeft,
+                            child: item.onWidget(),
                           ),
                         );
                       }
@@ -138,51 +141,58 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return Card(
-            clipBehavior: Clip.hardEdge,
-            child: InkWell(
-              splashColor: Colors.blue.withAlpha(30),
-              onTap: !settingProvider.isValid
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => item.onWidget(),
-                        ),
-                      );
-                    }
-                  : null,
-              child: ListTile(
-                leading: item.icon,
-                title: Text(
-                  item.title,
-                  maxLines: 4,
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 2),
-                    Text(
-                      item.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    settingProvider.isValid
-                        ? Container()
-                        : Text(los.toolchain_is_invalid),
-                  ],
-                ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Card(
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                splashColor: Colors.blue.withAlpha(30),
                 onTap: settingProvider.isValid
                     ? () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => item.onWidget(),
+                          PageTransition(
+                            duration: const Duration(milliseconds: 300),
+                            type: PageTransitionType.rightToLeft,
+                            child: item.onWidget(),
                           ),
                         );
                       }
                     : null,
+                child: ListTile(
+                  leading: item.icon,
+                  title: Text(
+                    item.title,
+                    maxLines: 4,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 2),
+                      Text(
+                        item.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      settingProvider.isValid
+                          ? Container()
+                          : Text(los.toolchain_is_invalid),
+                    ],
+                  ),
+                  onTap: settingProvider.isValid
+                      ? () {
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                              duration: const Duration(milliseconds: 300),
+                              type: PageTransitionType.rightToLeft,
+                              child: item.onWidget(),
+                            ),
+                          );
+                        }
+                      : null,
+                ),
               ),
             ),
           );
@@ -223,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _initItem();
     _initWidget(settingProvider: settingProvider);
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: _buildUI(),
     );
   }

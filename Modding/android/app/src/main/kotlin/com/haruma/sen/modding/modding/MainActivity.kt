@@ -1,4 +1,4 @@
-package com.haruma.sen.modding.modding
+package com.haruma.sen.environment
 
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 
 class MainActivity: FlutterActivity() {
 
@@ -104,12 +105,12 @@ class MainActivity: FlutterActivity() {
         try {
             when (call.method) {
                 "pick_file" -> {
-                    val destination = this.pickStorageFileFromDocument()
-                    result.success(destination)
+                    val destination = Uri.parse(this.pickStorageFileFromDocument())
+                    result.success(resolveUri(destination))
                 }
                 "pick_directory" -> {
-                    val destination = this.pickDirectoryFromDocument()
-                    result.success(destination)
+                    val destination = Uri.parse(this.pickDirectoryFromDocument())
+                    result.success(resolveUri(destination))
                 }
                 "request_storage_permission" -> {
                     val hasPermission = this@MainActivity.requestStoragePermission()
@@ -151,7 +152,7 @@ class MainActivity: FlutterActivity() {
     }
 
 
-    private fun requestStoragePermission(): Boolean {
+    private suspend fun requestStoragePermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             this@MainActivity.requestPermissions(
                 arrayOf(
@@ -165,6 +166,7 @@ class MainActivity: FlutterActivity() {
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:${this@MainActivity.packageName}"))
             this@MainActivity.startActivityForResult(intent, REQUEST_REQUEST_EXTERNAL_STORAGE_PERMISSION)
         }
+        this.continuation.receive()
         return this@MainActivity.checkStoragePermission()
     }
 
@@ -178,6 +180,70 @@ class MainActivity: FlutterActivity() {
             state = Environment.isExternalStorageManager()
         }
         return state
+    }
+
+    private suspend fun resolveUri(uri: Uri): String? {
+        var result: String? = null
+        val provider = uri.authority
+        var path = uri.path?.let { Uri.decode(it) }
+        when (provider) {
+            // AOSP DocumentsUI
+            "com.android.externalstorage.documents" -> {
+                // /document/primary:<path-relative-external-storage>
+                if (path?.startsWith("/document/primary:") == true) {
+                    result = path.substring("/document/primary:".length)
+                    result = "${queryExternalStoragePath()}${if (result.isNullOrEmpty()) "" else "/$result"}"
+                }
+                // /tree/primary:<path-relative-external-storage>
+                if (path?.startsWith("/tree/primary:") == true) {
+                    result = path.substring("/tree/primary:".length)
+                    result = "${queryExternalStoragePath()}${if (result.isNullOrEmpty()) "" else "/$result"}"
+                }
+            }
+            // Material Files
+            "me.zhanghai.android.files.file_provider" -> {
+                path = Uri.decode(path ?: "")
+                // /file://<path-absolute>
+                if (path?.startsWith("/file://") == true) {
+                    result = Uri.parse(path.substring(1)).path
+                }
+            }
+            // Root Explorer
+            "com.speedsoftware.rootexplorer.fileprovider" -> {
+                // /root/<path-relative-root>
+                if (path?.startsWith("/root/") == true) {
+                    result = path.substring("/root".length)
+                }
+            }
+            // Solid Explorer
+            "pl.solidexplorer2.files" -> {
+                result = path
+            }
+            // MT Manager
+            "bin.mt.plus.fp" -> {
+                result = path
+            }
+            // NMM
+            "in.mfile.files" -> {
+                result = path
+            }
+            else -> {
+                if (path != null && path.startsWith("/") && exist(path)) {
+                    result = path
+                }
+            }
+        }
+
+        return result
+    }
+
+    private suspend fun queryExternalStoragePath(): String {
+        return Environment.getExternalStorageDirectory().absolutePath
+    }
+
+    private suspend fun exist(path: String): Boolean {
+        val file = File(path)
+        return file.exists()
     }
 
 }
