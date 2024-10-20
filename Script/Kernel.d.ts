@@ -2065,26 +2065,31 @@ declare namespace Sen {
                      *
                      * The specific meaning of each flag value (0n, 1n, 2n, 3n) is likely dependent on the implementation.
                      */
-                    export type flag = 0n | 1n | 2n | 3n;
+                    export type CompressionFlags = 0n | 1n | 2n | 3n;
 
-                    /**
-                     * Interface representing information about a texture in an RSB bundle.
-                     */
-                    export interface PTXInfo extends Record<string, unknown> {
-                        /** Unique identifier for the texture. */
-                        id: bigint;
-                        /** Format of the texture data (interpretation depends on implementation). */
-                        format: bigint;
+                    export interface TextureDimension extends Record<string, unknown> {
                         /** Width of the texture in pixels. */
                         width: bigint;
                         /** Height of the texture in pixels. */
                         height: bigint;
+                    }
+
+                    /**
+                     * Interface representing information about a texture in an RSB bundle.
+                     */
+                    export interface TextureInfo extends Record<string, unknown> {
+                        /** Unique identifier for the texture. */
+                        //  id: bigint;
+                        /** Format of the texture data (interpretation depends on implementation). */
+                        format: bigint;
+                        /**  */
+                        dimension: TextureDimension;
                         /** Number of bytes per scanline (pitch). */
                         pitch: bigint;
                         /** Number of bits per alpha channel (optional). */
                         alpha_size?: bigint;
-                        /** Format of the alpha channel data (optional). */
-                        alpha_format?: bigint;
+
+                        scale?: bigint;
                     }
 
                     /**
@@ -2094,7 +2099,7 @@ declare namespace Sen {
                         /** Path to the resource within the bundle. */
                         path: string;
                         /** Information about the texture associated with the resource (optional). */
-                        ptx_info?: PTXInfo;
+                        additional?: TextureInfo;
                     }
 
                     /**
@@ -2102,17 +2107,26 @@ declare namespace Sen {
                      */
                     export interface ResourceStreamGroupPacketInfo extends Record<string, unknown> {
                         /** Compression flags used for the resources in the packet. */
-                        compression_flags: flag;
+                        compression: CompressionFlags;
                         /** Array of resources associated with the packet. */
                         res: Array<ResourceStreamGroupResInfo>;
                     }
+
+                    /**
+                     * 
+                     */
+                    export interface Category extends Record<string, unknown> {
+                        resolution: null | bigint;
+                        locale: null | string;
+                    }
+
 
                     /**
                      * Interface representing information about a resource stream group in an RSB bundle.
                      */
                     export interface ResourceStreamGroupInfo extends Record<string, unknown> {
                         /** Category of the resource stream group (interpretation depends on implementation). Can be null. */
-                        category: [null | bigint, null | bigint];
+                        category: null | Category;
                         /** Information about the packet contained within the group. */
                         packet_info: ResourceStreamGroupPacketInfo;
                     }
@@ -2122,7 +2136,7 @@ declare namespace Sen {
                      */
                     export interface ResourceStreamGroupPool extends Record<string, unknown> {
                         /** Indicates whether the pool is a composite pool (likely nested structure). */
-                        is_composite: boolean;
+                        composite: boolean;
                         /** Mapping of subgroup names to their corresponding resource stream group information. */
                         subgroup: Record<string, ResourceStreamGroupInfo>;
                     }
@@ -2134,7 +2148,7 @@ declare namespace Sen {
                         /** Version of the RSB bundle format. */
                         version: bigint;
                         /** Size of a PTXInfo structure in bytes. */
-                        ptx_info_size: bigint;
+                        texture_information_version: bigint;
                         /** Mapping of group names to their corresponding resource stream group pool information. */
                         group: Record<string, ResourceStreamGroupPool>;
                     }
@@ -2208,30 +2222,42 @@ declare namespace Sen {
                      */
                     export type CompressionFlags = 0n | 1n | 2n | 3n;
 
-                    /**
-                     * Metadata for a PTX (Possibly Texture) resource.
-                     */
-                    export type PTXInfo = {
-                        id: bigint; // Unique identifier for the resource
-                        width: bigint; // Width of the resource in pixels
-                        height: bigint; // Height of the resource in pixels
-                    };
+                    export interface TextureDimension extends Record<string, unknown> {
+                        /** Width of the texture in pixels. */
+                        width: bigint;
+                        /** Height of the texture in pixels. */
+                        height: bigint;
+                    }
 
                     /**
-                     * Information for a resource within the RSG file.
+                     * Interface representing information about a texture in an RSB bundle.
                      */
-                    export type ResInfo = {
-                        path: string; // Path to the resource data within the archive
-                        ptx_info?: PTXInfo; // **(Optional)** Additional metadata specific to PTX resources
-                    };
+                    export interface TextureInfo extends Record<string, unknown> {
+                        /** Unique identifier for the texture. */
+                        //  id: bigint;
+                        /** Format of the texture data (interpretation depends on implementation). */
+                        format: bigint;
+                        /**  */
+                        dimension: TextureDimension;
+                    }
+
+                    /**
+                     * Interface representing information about a resource within a group in an RSB bundle.
+                     */
+                    export interface ResourceStreamGroupResInfo extends Record<string, unknown> {
+                        /** Path to the resource within the bundle. */
+                        path: string;
+                        /** Information about the texture associated with the resource (optional). */
+                        additional?: TextureInfo;
+                    }
 
                     /**
                      * Interface defining the structure of an RSG file header.
                      */
                     export interface Definition {
                         version: Version; // Version of the RSG file format
-                        compression_flags: CompressionFlags; // Compression flags used in the archive
-                        res: Array<ResInfo>; // Array containing information for each resource in the file
+                        compression: CompressionFlags; // Compression flags used in the archive
+                        res: Array<ResourceStreamGroupResInfo>; // Array containing information for each resource in the file
                     }
                     /**
                      * JavaScript RSG Unpack method for file (modding purposes)

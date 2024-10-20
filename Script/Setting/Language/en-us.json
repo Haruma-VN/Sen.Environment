@@ -686,5 +686,6 @@
     "zlib.compress.failed": "Zlib compress failed",
     "zlib.compress.invalid_level": "Invalid Zlib compression level, expected level from 0 to 9",
     "zlib.uncompress.failed": "Zlib uncompress failed",
-    "popcap.animation.add_library": "PopCap Animation: Add library content"
+    "popcap.animation.add_library": "PopCap Animation: Add library content",
+    "popcap.rsb.to_ios": "PopCap RSB: Convert Android RSB to iOS RSB"
 }

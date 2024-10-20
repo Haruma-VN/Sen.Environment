@@ -17,7 +17,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
         resources: Array<ResourceSubInfo>;
     }
 
-    const RSBResolutionX = [
+    export const RSBResolutionX = [
         "high_quality_resolution", // 1536
         "low_quality_resolution", // 768
     ];
@@ -41,14 +41,26 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
             Kernel.Support.PopCap.RSG.unpack_modding(`${source}/packet/${subgroup}.rsg`, `${source}/resource`);
             const packet_info = manifest.group[group].subgroup[subgroup].packet_info;
             for (const e of packet_info.res) {
-                const ptx_info = e.ptx_info!;
-                switch (ptx_info!.format) {
+                const additional = e.additional!;
+                switch (additional!.format) {
                     case 0n: {
-                        Kernel.Support.Texture.decode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, ptx_info.width, ptx_info.height, Texture.Format.RGBA_8888);
+                        Kernel.Support.Texture.decode_fs(
+                            `${source}/resource/${e.path}`,
+                            `${source}/resource/${e.path}`,
+                            additional.dimension.width,
+                            additional.dimension.height,
+                            Texture.Format.RGBA_8888,
+                        );
                         break;
                     }
                     case 147n: {
-                        Kernel.Support.Texture.decode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, ptx_info.width, ptx_info.height, Texture.Format.RGB_ETC1_A_8);
+                        Kernel.Support.Texture.decode_fs(
+                            `${source}/resource/${e.path}`,
+                            `${source}/resource/${e.path}`,
+                            additional.dimension.width,
+                            additional.dimension.height,
+                            Texture.Format.RGB_ETC1_A_8,
+                        );
                         break;
                     }
                     default: {
@@ -56,16 +68,16 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
                     }
                 }
                 const convert_whole = (info_format: bigint, format: Texture.Format) => {
-                    ptx_info.format = info_format;
+                    additional.format = info_format;
                     Kernel.Support.Texture.encode_fs(`${source}/resource/${e.path}`, `${source}/resource/${e.path}`, format);
                 };
                 // if (format_148.includes(subgroup.toUpperCase())) {
                 //     convert_whole(148n, Texture.Format.RGB_PVRTC_4BPP_A_8);
                 //     continue;
                 // }
-                // if (ptx_info.width === ptx_info.height && is_power_of_2(ptx_info.width)) {
+                // if (additional.width === additional.height && is_power_of_2(additional.width)) {
                 //     convert_whole(30n, Texture.Format.RGBA_PVRTC_4BPP);
-                //     ptx_info.pitch = ptx_info.width / 2n;
+                //     additional.pitch = additional.width / 2n;
                 //     continue;
                 // }
                 convert_whole(0n, Texture.Format.ARGB_8888);
@@ -91,7 +103,7 @@ namespace Sen.Script.Support.PopCap.ResourceStreamBundle.Miscellaneous.ConvertAn
         }
         Kernel.Support.PopCap.RSG.pack(`${source}/resource`, `${source}/packet/GLOBAL_DATA.rsg`, { version, ...packet_info });
         manifest.group["Global_Data"] = {
-            is_composite: false,
+            composite: false,
             subgroup: {
                 Global_Data: manifest.group[group].subgroup[subgroups[0]],
             },
