@@ -201,14 +201,32 @@ class _AnimationViewerState extends State<AnimationViewer> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: MediaQuery.of(context).platformBrightness ==
-                          Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.3),
                   width: 2,
                 ),
+                gradient: LinearGradient(
+                  colors: Theme.of(context).brightness == Brightness.dark
+                      ? [Colors.grey[900]!, Colors.grey[800]!]
+                      : [Colors.white, Colors.grey[200]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black.withOpacity(0.5)
+                        : Colors.grey.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-              child: _screen[1],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _screen[1],
+              ),
             ),
           ),
           Flexible(flex: 12, child: _screen[0]),

@@ -11,7 +11,7 @@ class LabelScreen extends StatefulWidget {
 
   final List<String> label;
 
-  late void Function() updateUI;
+  void Function()? updateUI;
 
   @override
   State<LabelScreen> createState() => _LabelScreenState();
@@ -22,19 +22,22 @@ class _LabelScreenState extends State<LabelScreen> {
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: widget.label.length,
-      itemBuilder: (context, index) => Card(
-        child: ListTile(
-          leading: const Icon(Symbols.animation),
-          trailing: IconButton(
-            icon: const Icon(Symbols.play_arrow),
-            onPressed: () {
-              setState(() {
-                VisualHelper.currentLabel = widget.label[index];
-              });
-              widget.updateUI();
-            },
+      itemBuilder: (context, index) => Tooltip(
+        message: widget.label[index],
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Symbols.animation),
+            trailing: IconButton(
+              icon: const Icon(Symbols.play_arrow),
+              onPressed: () {
+                setState(() {
+                  VisualHelper.currentLabel = widget.label[index];
+                });
+                widget.updateUI?.call();
+              },
+            ),
+            title: Text(widget.label[index]),
           ),
-          title: Text(widget.label[index]),
         ),
       ),
     );
