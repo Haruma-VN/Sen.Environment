@@ -192,52 +192,55 @@ class _AnimationViewerState extends State<AnimationViewer> {
     if (Platform.isAndroid || Platform.isIOS) {
       return _screen[_selectedIndex];
     } else {
-      return Row(
-        children: [
-          Flexible(
-            flex: 4,
-            child: Container(
-              margin: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.3),
-                  width: 2,
-                ),
-                gradient: LinearGradient(
-                  colors: Theme.of(context).brightness == Brightness.dark
-                      ? [Colors.grey[900]!, Colors.grey[800]!]
-                      : [Colors.white, Colors.grey[200]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Flexible(
+              flex: 4,
+              child: Container(
+                margin: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.5)
-                        : Colors.grey.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                        ? Colors.white.withOpacity(0.3)
+                        : Colors.black.withOpacity(0.3),
+                    width: 2,
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _screen[1],
+                  gradient: LinearGradient(
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? [Colors.grey[900]!, Colors.grey[800]!]
+                        : [Colors.white, Colors.grey[200]!],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black.withOpacity(0.5)
+                          : Colors.grey.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _screen[1],
+                ),
               ),
             ),
-          ),
-          Flexible(flex: 12, child: _screen[0]),
-          Flexible(
-            flex: 4,
-            child: Container(
-              margin: const EdgeInsets.only(left: 12.0, bottom: 12.0),
-              child: _screen[2],
+            Flexible(flex: 12, child: _screen[0]),
+            Flexible(
+              flex: 4,
+              child: Container(
+                margin: const EdgeInsets.only(left: 12.0, bottom: 12.0),
+                child: _screen[2],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
   }
