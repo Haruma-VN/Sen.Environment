@@ -49,5 +49,14 @@
     "shell_has_finished": "Shell has finished the job, back to application now!",
     "use": "Use",
     "select_option": "Select option",
-    "submit": "Submit"
+    "submit": "Submit",
+    "x": "X",
+    "y": "Y",
+    "label": "Label",
+    "media": "Media",
+    "sprite": "Sprite",
+    "image": "Image",
+    "upload_media": "Upload media",
+    "drop_file_to_upload": "Drop file to upload",
+    "upload_file_to_continue": "Upload file to continue..."
 }

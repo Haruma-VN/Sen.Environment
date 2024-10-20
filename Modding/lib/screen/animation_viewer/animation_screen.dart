@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
-import 'package:modding/screen/animation_viewer/animation_painter.dart';
+import 'package:modding/screen/animation_viewer/label_screen.dart';
+import 'package:modding/screen/animation_viewer/media_screen.dart';
+import 'package:modding/screen/animation_viewer/visual_helper.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AnimationScreen extends StatefulWidget {
   const AnimationScreen({
@@ -10,6 +13,8 @@ class AnimationScreen extends StatefulWidget {
     required this.hasFile,
     required this.onUploadFile,
     required this.onDragFile,
+    required this.mediaScreen,
+    required this.labelScreen,
   });
 
   final bool hasFile;
@@ -18,23 +23,34 @@ class AnimationScreen extends StatefulWidget {
 
   final void Function(String value) onDragFile;
 
+  final MediaScreen mediaScreen;
+
+  final LabelScreen labelScreen;
+
   @override
   State<AnimationScreen> createState() => _AnimationScreenState();
 }
 
-class _AnimationScreenState extends State<AnimationScreen> {
+class _AnimationScreenState extends State<AnimationScreen>
+    with SingleTickerProviderStateMixin {
   double xOffset = 0.0;
   double yOffset = 0.0;
   bool _dragging = false;
+  double scale = 1.0;
+
+  late Widget? _animationVisual;
+  late AnimationController _animationController;
+  bool _isPause = false;
 
   Widget _uploadFile() {
+    final los = AppLocalizations.of(context)!;
     return InkWell(
       splashColor: Colors.blue.withAlpha(30),
       onTap: widget.onUploadFile,
       child: Center(
         child: _dragging
-            ? const Text('Drop file to upload...')
-            : const Text('Upload file to continue...'),
+            ? Text(los.drop_file_to_upload)
+            : Text(los.upload_file_to_continue),
       ),
     );
   }
@@ -58,19 +74,76 @@ class _AnimationScreenState extends State<AnimationScreen> {
         if (details.files.isNotEmpty) {
           var file = details.files.first;
           widget.onDragFile(file.path);
+          if (VisualHelper.hasAnimation) {
+            VisualHelper.workingFrameRate =
+                VisualHelper.animation.frameRate.toDouble();
+          }
         }
       },
       child: data,
     );
   }
 
+  void _loadWorkingSprite(int index) {
+    setState(() {
+      final labelInfo = VisualHelper.labelInfo[VisualHelper.currentLabel]!;
+      final duration = ((labelInfo.endIndex - labelInfo.startIndex) /
+              VisualHelper.workingFrameRate *
+              1000)
+          .toInt();
+      _animationController.duration = Duration(milliseconds: duration);
+      _animationVisual =
+          VisualHelper.visualizeSprite(index, _animationController);
+      _animationVisual = SizedBox.fromSize(
+        size: Size(VisualHelper.animation.size.width,
+            VisualHelper.animation.size.height),
+        child: UnconstrainedBox(
+          child: SizedOverflowBox(
+            alignment: AlignmentDirectional.topStart,
+            size: Size(VisualHelper.animation.size.width,
+                VisualHelper.animation.size.height),
+            child: _animationVisual,
+          ),
+        ),
+      );
+      if (!_isPause) {
+        _animationController.repeat();
+      }
+    });
+  }
+
+  void _resetUI() {
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(vsync: this);
+    _animationVisual = null;
+    widget.mediaScreen.updateUI = _resetUI;
+    widget.labelScreen.updateUI = _resetUI;
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+    return;
+  }
+
   Widget _painterOrUpload() {
-    if (widget.hasFile) {
+    if (VisualHelper.hasAnimation && VisualHelper.hasMedia) {
+      _loadWorkingSprite(VisualHelper.animation.sprite.length);
       return ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: CustomPaint(
-          painter: AnimationPainter(x: xOffset, y: yOffset),
-        ),
+        child: Transform(
+            transform:
+                VisualHelper.transformMatrixFromVariant([xOffset, yOffset]),
+            child: Transform.scale(
+              scale: scale,
+              child: _animationVisual,
+            )),
       );
     } else {
       return ClipRRect(
@@ -82,6 +155,7 @@ class _AnimationScreenState extends State<AnimationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final los = AppLocalizations.of(context)!;
     return Column(
       children: [
         Expanded(
@@ -109,18 +183,30 @@ class _AnimationScreenState extends State<AnimationScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
-                    const Text('X'),
+                    Text(los.x),
                     Expanded(
                       child: Slider(
                         value: xOffset,
-                        min: 0,
-                        max: 1000,
+                        min: -800,
+                        max: 800,
                         onChanged: (value) {
-                          setState(() {
-                            xOffset = value;
-                          });
+                          setState(
+                            () {
+                              xOffset = value;
+                            },
+                          );
                         },
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        scale *= 2;
+                        if (scale > 300) {
+                          scale = 300;
+                        }
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.zoom_in),
                     ),
                   ],
                 ),
@@ -129,18 +215,28 @@ class _AnimationScreenState extends State<AnimationScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
-                    const Text('Y'),
+                    Text(los.y),
                     Expanded(
                       child: Slider(
                         value: yOffset,
-                        min: 0,
-                        max: 200,
+                        min: -400,
+                        max: 400,
                         onChanged: (value) {
                           setState(() {
                             yOffset = value;
                           });
                         },
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        scale /= 2;
+                        if (scale < 0.1) {
+                          scale = 0.1;
+                        }
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.zoom_out),
                     ),
                   ],
                 ),
@@ -155,15 +251,38 @@ class _AnimationScreenState extends State<AnimationScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () {},
+                onPressed: () {
+                  VisualHelper.workingFrameRate /= 2;
+                  if (VisualHelper.workingFrameRate <= 0) {
+                    VisualHelper.workingFrameRate = 1;
+                  }
+                  setState(() {});
+                },
               ),
               IconButton(
-                icon: const Icon(Icons.play_arrow),
-                onPressed: () {},
+                icon: !_isPause
+                    ? const Icon(Icons.play_arrow)
+                    : const Icon(Icons.pause),
+                onPressed: () {
+                  if (!_isPause) {
+                    _isPause = true;
+                    _animationController.stop();
+                  } else {
+                    _isPause = false;
+                    _animationController.forward();
+                  }
+                  setState(() {});
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward),
-                onPressed: () {},
+                onPressed: () {
+                  VisualHelper.workingFrameRate *= 2;
+                  if (VisualHelper.workingFrameRate > 240) {
+                    VisualHelper.workingFrameRate = 240;
+                  }
+                  setState(() {});
+                },
               ),
             ],
           ),

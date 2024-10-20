@@ -5,7 +5,8 @@ import 'package:modding/screen/animation_viewer/animation_screen.dart';
 import 'package:modding/screen/animation_viewer/label_screen.dart';
 import 'package:modding/screen/animation_viewer/media_screen.dart';
 import 'package:modding/service/file_service.dart';
-import 'package:modding/model/animation.dart' as animation;
+import 'package:modding/screen/animation_viewer/visual_helper.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AnimationViewer extends StatefulWidget {
   const AnimationViewer({super.key});
@@ -21,44 +22,118 @@ class _AnimationViewerState extends State<AnimationViewer> {
   late List<String> _image;
   late List<String> _media;
   late List<String> _label;
+  late TextEditingController _controller;
 
-  bool _hasFile = false;
+  Future<void> _onUploadMedia() async {
+    final los = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(los.upload_media),
+        content: Row(
+          children: [
+            const Icon(Icons.abc_outlined),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+              ),
+            ),
+            IconButton(
+              onPressed: () async {
+                final directory = await FileService.uploadDirectory();
+                if (directory != null) {
+                  _controller.text = directory;
+                }
+              },
+              icon: const Icon(Icons.drive_folder_upload_outlined),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              VisualHelper.loadImageSource(_controller.text);
+              VisualHelper.hasMedia = true;
+              Navigator.of(context).pop();
+            },
+            child: Text(los.okay),
+          ),
+        ],
+      ),
+    );
+  }
 
-  late animation.SexyAnimation _animation;
+  void _loadMedia() {
+    for (final image in VisualHelper.animation.image) {
+      _image.add(image.path);
+      _media.add('${image.path}.png');
+      VisualHelper.selectImageList.add(true);
+    }
+    for (final sprite in VisualHelper.animation.sprite) {
+      _sprite.add(sprite.name);
+      VisualHelper.selectSpriteList.add(true);
+    }
+    var labelName = "main";
+    _label.add("main");
+    VisualHelper.labelInfo[labelName] = LabelInfo(
+        startIndex: 0,
+        endIndex: VisualHelper.animation.mainSprite.frame.length - 1);
+    for (int frameIndex = 0;
+        frameIndex < VisualHelper.animation.mainSprite.frame.length;
+        ++frameIndex) {
+      final frameLabelName =
+          VisualHelper.animation.mainSprite.frame[frameIndex].label;
+      if (frameLabelName != "" && frameLabelName != labelName) {
+        labelName = frameLabelName;
+        VisualHelper.labelInfo[labelName] =
+            LabelInfo(startIndex: frameIndex, endIndex: frameIndex);
+        _label.add(labelName);
+      }
+      ++VisualHelper.labelInfo[labelName]!.endIndex;
+    }
+  }
 
   void _onUploadFile() async {
     final file = await FileService.uploadFile();
     if (file != null) {
-      _animation = animation.SexyAnimation.fromJson(
-        await FileService.readJson(source: file),
-      );
+      await VisualHelper.loadAnimation(file);
+      VisualHelper.hasAnimation = true;
+      await _onUploadMedia();
+      _loadMedia();
       setState(() {
-        _hasFile = true;
         _updateScreens();
       });
     }
   }
 
   void _onDragFile(String file) async {
-    _animation = animation.SexyAnimation.fromJson(
-      await FileService.readJson(source: file),
-    );
+    await VisualHelper.loadAnimation(file);
+    VisualHelper.hasAnimation = true;
+    _onUploadMedia();
+    _loadMedia();
     setState(() {
-      _hasFile = true;
       _updateScreens();
     });
   }
 
   void _updateScreens() {
+    final mediaScreen = MediaScreen(
+      sprite: _sprite,
+      image: _image,
+      media: _media,
+    );
+    final labelScreen = LabelScreen(label: _label);
     _screen = <Widget>[
       AnimationScreen(
-        key: ValueKey(_hasFile),
-        hasFile: _hasFile,
+        key: ValueKey(VisualHelper.hasAnimation),
         onUploadFile: _onUploadFile,
         onDragFile: _onDragFile,
+        hasFile: false,
+        mediaScreen: mediaScreen,
+        labelScreen: labelScreen,
       ),
-      LabelScreen(label: _label),
-      MediaScreen(sprite: _sprite, image: _image, media: _media),
+      labelScreen,
+      mediaScreen,
     ];
   }
 
@@ -70,6 +145,14 @@ class _AnimationViewerState extends State<AnimationViewer> {
     _media = [];
     _label = [];
     _updateScreens();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+    VisualHelper.dispose();
   }
 
   late List<Widget> _screen;
@@ -81,22 +164,23 @@ class _AnimationViewerState extends State<AnimationViewer> {
   }
 
   Widget? _navigationBar() {
+    final los = AppLocalizations.of(context)!;
     if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
       return null;
     }
     return BottomNavigationBar(
-      items: const <BottomNavigationBarItem>[
+      items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
+          icon: const Icon(Icons.home),
+          label: los.home,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.label_outline),
-          label: 'Label',
+          icon: const Icon(Icons.label_outline),
+          label: los.label,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.image_outlined),
-          label: 'Media',
+          icon: const Icon(Icons.image_outlined),
+          label: los.media,
         ),
       ],
       currentIndex: _selectedIndex,
@@ -111,7 +195,7 @@ class _AnimationViewerState extends State<AnimationViewer> {
       return Row(
         children: [
           Flexible(
-            flex: 2,
+            flex: 4,
             child: Container(
               margin: const EdgeInsets.only(left: 8.0, bottom: 8.0),
               decoration: BoxDecoration(
@@ -127,9 +211,9 @@ class _AnimationViewerState extends State<AnimationViewer> {
               child: _screen[1],
             ),
           ),
-          Flexible(flex: 15, child: _screen[0]),
+          Flexible(flex: 12, child: _screen[0]),
           Flexible(
-            flex: 3,
+            flex: 4,
             child: Container(
               margin: const EdgeInsets.only(left: 12.0, bottom: 12.0),
               child: _screen[2],
@@ -142,9 +226,10 @@ class _AnimationViewerState extends State<AnimationViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final los = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Animation Viewer'),
+        title: Text(los.animation_viewer),
       ),
       body: _buildUI(),
       bottomNavigationBar: _navigationBar(),

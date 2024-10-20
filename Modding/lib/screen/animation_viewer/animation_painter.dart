@@ -26,7 +26,7 @@ class AnimationPainter extends CustomPainter {
         }
       default:
         {
-          throw Exception('invalid convert');
+          throw Exception('Invalid convert');
         }
     }
   }

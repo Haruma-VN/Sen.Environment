@@ -49,5 +49,14 @@
     "shell_has_finished": "Shell đã hoàn tất công việc, quay lại ứng dụng ngay!",
     "use": "Sử dụng",
     "select_option": "Chọn phương án",
-    "submit": "Gửi"
+    "submit": "Gửi",
+    "x": "X",
+    "y": "Y",
+    "label": "Nhãn",
+    "media": "Media",
+    "sprite": "Sprite",
+    "image": "Image",
+    "upload_media": "Tải lên ảnh",
+    "drop_file_to_upload": "Thả tệp để tải",
+    "upload_file_to_continue": "Tải tệp để tiếp tục..."
 }

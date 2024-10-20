@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:modding/screen/animation_viewer/visual_helper.dart';
 
+// ignore: must_be_immutable
 class MediaScreen extends StatelessWidget {
   final List<String> sprite;
 
@@ -7,7 +9,9 @@ class MediaScreen extends StatelessWidget {
 
   final List<String> media;
 
-  const MediaScreen({
+  late void Function() updateUI;
+
+  MediaScreen({
     super.key,
     required this.sprite,
     required this.image,
@@ -42,8 +46,14 @@ class MediaScreen extends StatelessWidget {
         body: TabBarView(
           children: <Widget>[
             _MediaPage(media: media),
-            _ImagePage(image: image),
-            _SpritePage(sprite: sprite),
+            _ImagePage(
+              image: image,
+              updateUI: updateUI,
+            ),
+            _SpritePage(
+              sprite: sprite,
+              updateUI: updateUI,
+            ),
           ],
         ),
       ),
@@ -63,48 +73,87 @@ class _MediaPage extends StatelessWidget {
     return ListView.builder(
       itemCount: media.length,
       itemBuilder: (context, index) => ListTile(
-        leading: const Icon(Icons.image_outlined),
+        leading: VisualHelper.imageSource[index] == null
+            ? const Icon(Icons.broken_image_outlined)
+            : Image(
+                image: VisualHelper.imageSource[index]!,
+                width: 40,
+                height: 40,
+              ),
         title: Text(media[index]),
       ),
     );
   }
 }
 
-class _ImagePage extends StatelessWidget {
+class _ImagePage extends StatefulWidget {
   const _ImagePage({
     required this.image,
+    required this.updateUI,
   });
 
   final List<String> image;
 
+  final void Function() updateUI;
+
+  @override
+  State<_ImagePage> createState() => _ImagePageState();
+}
+
+class _ImagePageState extends State<_ImagePage> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: image.length,
+      itemCount: widget.image.length,
       itemBuilder: (context, index) => ListTile(
         leading: const Icon(Icons.image_outlined),
-        title: Text(image[index]),
-        trailing: Checkbox(value: true, onChanged: (e) {}),
+        title: Text(widget.image[index]),
+        trailing: Checkbox(
+          value: VisualHelper.selectImageList[index],
+          onChanged: (bool? value) {
+            setState(() {
+              VisualHelper.selectImageList[index] =
+                  value ?? !VisualHelper.selectImageList[index];
+            });
+            widget.updateUI();
+          },
+        ),
       ),
     );
   }
 }
 
-class _SpritePage extends StatelessWidget {
+class _SpritePage extends StatefulWidget {
   const _SpritePage({
     required this.sprite,
+    required this.updateUI,
   });
 
   final List<String> sprite;
 
+  final void Function() updateUI;
+
+  @override
+  State<_SpritePage> createState() => _SpritePageState();
+}
+
+class _SpritePageState extends State<_SpritePage> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: sprite.length,
+      itemCount: widget.sprite.length,
       itemBuilder: (context, index) => ListTile(
         leading: const Icon(Icons.image_outlined),
-        title: Text(sprite[index]),
-        trailing: Checkbox(value: true, onChanged: (e) {}),
+        title: Text(widget.sprite[index]),
+        trailing: Checkbox(
+            value: VisualHelper.selectSpriteList[index],
+            onChanged: (bool? value) {
+              setState(() {
+                VisualHelper.selectSpriteList[index] =
+                    value ?? !VisualHelper.selectSpriteList[index];
+              });
+              widget.updateUI();
+            }),
       ),
     );
   }
