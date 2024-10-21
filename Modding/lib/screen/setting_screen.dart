@@ -272,6 +272,11 @@ class _SettingScreenState extends State<SettingScreen> {
               title: los.vi,
               value: 'vi',
             ),
+            _buildLocaleOptionTitle(
+              settingProvider: settingProvider,
+              title: los.es,
+              value: 'es',
+            ),
             const SizedBox(height: 10),
             _onCloseButton(),
           ],
@@ -285,6 +290,7 @@ class _SettingScreenState extends State<SettingScreen> {
     final Map<String, String> data = {
       'en': localization.en,
       'vi': localization.vi,
+      'es': localization.es,
     };
     return data[key] ?? key;
   }
@@ -299,7 +305,7 @@ class _SettingScreenState extends State<SettingScreen> {
     final los = AppLocalizations.of(context)!;
     final settingProvider = Provider.of<SettingProvider>(context);
     toolchainPath() => settingProvider.toolChain == ''
-        ? 'Not specified'
+        ? los.not_specified
         : settingProvider.toolChain;
     return Container(
       margin: const EdgeInsets.symmetric(

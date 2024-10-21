@@ -75,6 +75,7 @@ class Application extends StatelessWidget {
         supportedLocales: const [
           Locale('en'),
           Locale('vi'),
+          Locale('es'),
         ],
         locale: Locale(Provider.of<SettingProvider>(context).locale),
       ),

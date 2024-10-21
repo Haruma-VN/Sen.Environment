@@ -231,22 +231,6 @@ class _AnimationScreenState extends State<AnimationScreen>
                 : Colors.black.withOpacity(0.3),
             width: 2,
           ),
-          gradient: LinearGradient(
-            colors: Theme.of(context).brightness == Brightness.dark
-                ? [Colors.grey[900]!, Colors.grey[800]!]
-                : [Colors.white, Colors.grey[200]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(0.5)
-                  : Colors.grey.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
         ),
         child: _painterOrUpload(),
       ),

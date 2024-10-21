@@ -31,13 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
     required SettingProvider settingProvider,
   }) {
     _initShellWidget();
-    _initMethodPicker();
+    //_initMethodPicker();
     _initJSModule(holder: settingProvider.toolChain);
     _initAnimationViewer();
   }
 
   void _initAnimationViewer() {
-    items[3].onWidget = () {
+    items[2].onWidget = () {
       return const AnimationViewer();
     };
   }
@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _initJSModule({
     required String holder,
   }) {
-    items[2].onWidget = () {
+    items[1].onWidget = () {
       return JsPick(
         holder: holder,
       );
@@ -202,11 +202,11 @@ class _HomeScreenState extends State<HomeScreen> {
         description: los.shell_description,
         icon: const Icon(Symbols.terminal_rounded, size: 50),
       ),
-      Item(
-        title: los.method_picker,
-        description: los.method_picker_description,
-        icon: const Icon(Symbols.package_2, size: 50),
-      ),
+      // Item(
+      //   title: los.method_picker,
+      //   description: los.method_picker_description,
+      //   icon: const Icon(Symbols.package_2, size: 50),
+      // ),
       Item(
         title: los.js_execute,
         description: los.js_execute_description,

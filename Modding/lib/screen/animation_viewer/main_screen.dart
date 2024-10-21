@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:modding/screen/animation_viewer/animation_screen.dart';
 import 'package:modding/screen/animation_viewer/label_screen.dart';
@@ -93,23 +92,67 @@ class _AnimationViewerState extends State<AnimationViewer> {
     }
   }
 
+  void _onErrorDialog(String message, StackTrace stack) async {
+    final los = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(los.invalid_request),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(message),
+                  content: Text(stack.toString()),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(los.okay),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: const Text('Detail'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(los.okay),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onUploadFile() async {
     final file = await FileService.uploadFile();
     if (file != null) {
-      await VisualHelper.loadAnimation(file);
-      VisualHelper.hasAnimation = true;
-      await _onUploadMedia();
-      _loadMedia();
-      setState(() {
-        _updateScreens();
-      });
+      try {
+        await VisualHelper.loadAnimation(file);
+        VisualHelper.hasAnimation = true;
+        await _onUploadMedia();
+        _loadMedia();
+        setState(() {
+          _updateScreens();
+        });
+      } catch (e, s) {
+        _onErrorDialog(e.toString(), s);
+      }
     }
   }
 
   void _onDragFile(String file) async {
     await VisualHelper.loadAnimation(file);
     VisualHelper.hasAnimation = true;
-    _onUploadMedia();
+    await _onUploadMedia();
     _loadMedia();
     setState(() {
       _updateScreens();
@@ -208,22 +251,6 @@ class _AnimationViewerState extends State<AnimationViewer> {
                         : Colors.black.withOpacity(0.3),
                     width: 2,
                   ),
-                  gradient: LinearGradient(
-                    colors: Theme.of(context).brightness == Brightness.dark
-                        ? [Colors.grey[900]!, Colors.grey[800]!]
-                        : [Colors.white, Colors.grey[200]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withOpacity(0.5)
-                          : Colors.grey.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -251,6 +278,12 @@ class _AnimationViewerState extends State<AnimationViewer> {
     return Scaffold(
       appBar: AppBar(
         title: Text(los.animation_viewer),
+        actions: [
+          IconButton(
+            onPressed: _onUploadFile,
+            icon: const Icon(Icons.file_upload_outlined),
+          ),
+        ],
       ),
       body: _buildUI(),
       bottomNavigationBar: _navigationBar(),
