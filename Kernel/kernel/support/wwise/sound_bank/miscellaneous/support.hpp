@@ -26,7 +26,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
             InjectionMusicStruct definition = *FileSystem::read_json(fmt::format("{}/data.json", source));
             SoundBankInformation soundbank = *FileSystem::read_json(fmt::format("{}/data.json", global_data_source));
 
-            auto event_exist = std::map<uint32_t, bool>{
+            auto event_exist = std::unordered_map<uint32_t, bool>{
                 std::pair(923409649, false),
                 std::pair(892548578, false),
                 std::pair(386715391, false),
@@ -168,7 +168,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
             {
                 auto hierarchy = Hierarchy{};
             };
-            debug(definition.switches.size());
+            //debug(definition.switches.size());
             group_bank.switches.resize(definition.switches.size());
             group_bank.states.resize(definition.switches.size());
             /*
@@ -218,7 +218,7 @@ namespace Sen::Kernel::Support::WWise::SoundBank::Miscellaneous
                             {
                                 auto group_index = position.group_index[index];
                                 auto child_index = position.child_index[index];
-                                debug(fmt::format("{}, {}", group_index, child_index));
+                                //debug(fmt::format("{}, {}", group_index, child_index));
                                 assert_conditional(group_index < definition.switches.size(), fmt::format("invalid_group_index: {}", group_index), "create_soundbank");
                                 auto &switch_group = definition.switches[group_index];
                                 assert_conditional(child_index < switch_group.child.size(), fmt::format("invalid_child_index: {}", child_index), "create_soundbank");

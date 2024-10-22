@@ -17,7 +17,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceGroup {
 				nlohmann::ordered_json &resource
 			) -> void
 			{
-				auto slot_group = std::map<std::string, size_t>();
+				auto slot_group = std::unordered_map<std::string, size_t>();
 				for(auto &e : resource["groups"]){
 					if(e.find("resources") == e.end()){
 						continue;

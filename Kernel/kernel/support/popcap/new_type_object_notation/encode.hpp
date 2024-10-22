@@ -22,7 +22,7 @@ namespace Sen::Kernel::Support::PopCap::NewTypeObjectNotation {
 			 * Resource Enumeration
 			*/
 
-			inline static std::map<std::string, unsigned char> const ResourceTypeEnumeration = std::map<std::string, unsigned char> {
+			inline static std::unordered_map<std::string, unsigned char> const ResourceTypeEnumeration = std::unordered_map<std::string, unsigned char> {
 				{"Image", 0x01_byte},
 				{"PopAnim", 0x02_byte},
 				{"SoundBank", 0x03_byte},

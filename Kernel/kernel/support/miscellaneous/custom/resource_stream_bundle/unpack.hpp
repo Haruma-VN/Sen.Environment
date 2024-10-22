@@ -20,7 +20,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
         inline static auto exchange_manifest_group(
             CustomResourceInformation &resource_info,
             DataSectionViewStored &packet_data_section_view_stored,
-            ManifestGroupInfo &manifest_info, 
+            ManifestGroupInfo &manifest_info,
             std::string_view destination) -> void
         {
             auto manifest_string = "__MANIFESTGROUP__"_sv;
@@ -31,18 +31,21 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                     manifest_info.resource_additional_name = packet_id.substr(manifest_string.size(), packet_id.size() - manifest_string.size());
                     auto convertion = [&](nlohmann::ordered_json const &data, bool newtype) -> void
                     {
-                       // resource_info.expand_path = Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::get_expand_path(data);
+                        // resource_info.expand_path = Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::get_expand_path(data);
                         auto res_temp = data;
-                        if (newtype) {
+                        if (newtype)
+                        {
                             Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::exchange_custom_resource_info<true>(res_temp, resource_info);
-                           // manifest_info.expand_path = ExpandPath::String;
+                            // manifest_info.expand_path = ExpandPath::String;
                         }
-                        else {
+                        else
+                        {
                             Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::exchange_custom_resource_info<false>(res_temp, resource_info);
-                           // manifest_info.expand_path = ExpandPath::Array;
+                            // manifest_info.expand_path = ExpandPath::Array;
                         }
                         auto group_size_left = k_none_size;
-                        for (auto &group : res_temp["groups"]) {
+                        for (auto &group : res_temp["groups"])
+                        {
                             write_json(fmt::format("{}/unuse_resource/{}.json", destination, group["id"].get<std::string>()), group);
                             ++group_size_left;
                         }
@@ -113,7 +116,7 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                     for (auto &[id, data] : resource_data_section_view_stored)
                     {
                         check_rton_is_encrypted(data) ? ++rton_encrypted_count : --rton_encrypted_count;
-                        async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/{}", destination, id), data));
+                        async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/{}", destination, Kernel::Path::to_posix_style(id)), data));
                     }
                     packages_info.chinese = rton_encrypted_count > static_cast<int>(resource_data_section_view_stored.size() / 2_size);
                     packages_info.encode = true;
@@ -137,21 +140,24 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
         }
 
         inline static auto try_find_subgroup_information(
-            std::string const &group_id, 
+            std::string const &group_id,
             std::string const &subgroup_id,
             BundleStructure &bundle,
-            Sen::Kernel::Support::PopCap::ResourceStreamBundle::SubgroupInformation &subgroup_information
-        ) -> bool
+            Sen::Kernel::Support::PopCap::ResourceStreamBundle::SubgroupInformation &subgroup_information) -> bool
         {
-            try 
+            try
             {
                 subgroup_information = bundle.group.at(toupper_back(group_id)).subgroup.at(toupper_back(subgroup_id));
                 return true;
             }
-            catch (std::out_of_range& e) {
-                for (auto &[group_id, group_value] : bundle.group) {
-                    for (auto &[id, subgroup_value] : group_value.subgroup) {
-                        if (compare_string(subgroup_id, id)) {
+            catch (std::out_of_range &e)
+            {
+                for (auto &[group_id, group_value] : bundle.group)
+                {
+                    for (auto &[id, subgroup_value] : group_value.subgroup)
+                    {
+                        if (compare_string(subgroup_id, id))
+                        {
                             subgroup_information = subgroup_value;
                             return true;
                         }
@@ -222,8 +228,9 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                             assert_conditional(process_done, fmt::format("{}: {}", Language::get("popcap.rsb.custom.cannot_find_image_in_packet"), packet_value.path), "exchange_packet");
                         }
                     }
-                    else {
-                        //subgroup_raw_content.info.general.locale = subgroup_information.category.locale;
+                    else
+                    {
+                        // subgroup_raw_content.info.general.locale = subgroup_information.category.locale;
                         assert_conditional(subgroup_raw_content.info.general.locale == subgroup_information.category.locale, fmt::format("mismatch_locale_at_{}", subgroup_id), "exchange_packet");
                     }
                     packet_data_section_view_stored.erase(toupper_back(subgroup_id));
@@ -234,7 +241,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                     async_work_process.emplace_back(std::async(&exchange_stream, packet_original_information, fmt::format("{}/packet/{}.scg", destination, group_id)));
                 }
             }
-            for (auto &[packet_id, packet_data] : packet_data_section_view_stored) {
+            for (auto &[packet_id, packet_data] : packet_data_section_view_stored)
+            {
                 async_work_process.emplace_back(std::async(&write_bytes, fmt::format("{}/unuse_packet/{}.scg", destination, packet_id), packet_data));
             }
             async_process_list<void>(async_work_process);

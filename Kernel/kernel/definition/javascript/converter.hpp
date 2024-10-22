@@ -739,15 +739,15 @@ namespace Sen::Kernel::Definition::JavaScript::Converter {
 
 
 			/**
-			 * Convert JSValue to std::map
+			 * Convert JSValue to std::unordered_map
 			*/
 
 			inline static auto get_map(
 				JSContext *ctx, 
 				JSValueConst val
-			) -> std::map<std::string, std::string>
+			) -> std::unordered_map<std::string, std::string>
 			{
-				auto result = std::map<std::string, std::string>{};
+				auto result = std::unordered_map<std::string, std::string>{};
 				if (JS_IsObject(val)) {
 					auto tab = static_cast<JSPropertyEnum *>(nullptr);
 					auto tab_len = uint32_t{};

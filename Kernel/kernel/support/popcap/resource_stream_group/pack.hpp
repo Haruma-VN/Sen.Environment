@@ -40,7 +40,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
                 }
                 if constexpr (std::is_same<Args, std::string>::value)
                 {
-                    resource_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/resource/{}", args, resource_definition_path)));
+                    resource_data = std::move(FileSystem::read_binary<uint8_t>(fmt::format("{}/resource/{}", args, resource_definition.path)));
                 }
                 auto resource_information = ResourceInformation{};
                 auto current_resource_type = k_general_type_string;
@@ -61,8 +61,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamGroup
             }
             stream.writeNull(information_header_section_size);
             auto information_structure_header = HeaderInformaiton{
-                .resource_information_section_offset = static_cast<uint32_t>(stream.write_pos)
-            };
+                .resource_information_section_offset = static_cast<uint32_t>(stream.write_pos)};
             CompiledMapData::encode(stream, resource_information_structure, &exchange_from_resource_infomation);
             information_structure_header.resource_information_section_size = stream.write_pos - information_structure_header.resource_information_section_offset;
             stream.writeNull(compute_padding_size(stream.write_pos, k_padding_unit_size));

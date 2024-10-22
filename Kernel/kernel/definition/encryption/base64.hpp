@@ -87,7 +87,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			) -> void 
 			{
 				auto threads = std::vector<std::thread>{};
-				auto file_mutexes = std::map<std::string, std::mutex>{};
+				auto file_mutexes = std::unordered_map<std::string, std::mutex>{};
 				for (const auto & data : paths) {
 					threads.emplace_back([=, &file_mutexes]() { 
 					auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);
@@ -110,7 +110,7 @@ namespace Sen::Kernel::Definition::Encryption {
 			) -> void 
 			{
 				auto threads = std::vector<std::thread>{};
-				auto file_mutexes = std::map<std::string, std::mutex>{};
+				auto file_mutexes = std::unordered_map<std::string, std::mutex>{};
 				for (const auto & data : paths) {
 					threads.emplace_back([=, &file_mutexes]() { 
 					auto lock_source = std::lock_guard<std::mutex>(file_mutexes[data[0]]);

@@ -164,7 +164,7 @@ namespace Sen::Kernel::Support::PopCap::ResourceStreamBundle::Miscellaneous
 					// assert_conditional(pool_information.texture_resource_begin == 0_ui, "invalid_texture_resource");
 					// assert_conditional(pool_information.texture_resource_count == 0_ui, "invalid_texture_resource");
 					auto packet_stream = DataStreamView{};
-					debug(fmt::format("{}. pos: {}, size: {}", subgroup_id, basic_subgroup_information.offset, basic_subgroup_information.size));
+					//debug(fmt::format("{}. pos: {}, size: {}", subgroup_id, basic_subgroup_information.offset, basic_subgroup_information.size));
 					if (static_cast<size_t>(basic_subgroup_information.offset) + k_resource_information_section_offset_in_packet + 4_size >= stream.size()) {
 						continue;
 					}

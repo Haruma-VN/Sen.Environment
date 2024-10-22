@@ -109,8 +109,9 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             }
             else
             {
-                for (auto & element : packages_list)
+                for (auto &element : packages_list)
                 {
+                    //debug(element);
                     if (compare_string(Path::getExtension(element), ".rton"_sv))
                     {
                         read_rton(element);
@@ -141,10 +142,12 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
             {
                 auto group_stream = DataStreamView{fmt::format("{}/{}.scg", packet_source, group_id)};
                 auto packet_original_information = PacketOriginalInformation{};
-                try {
+                try
+                {
                     Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::exchange_stream_resource_group(packet_original_information, group_stream);
                 }
-                catch (Exception &ex) {
+                catch (Exception &ex)
+                {
                     assert_conditional(false, fmt::format("{} at {}", ex.what(), group_id), "exchange_packet");
                 }
                 Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::compare_conditional(packet_original_information.version, definition.version, group_id, "popcap.rsb.custom.mismatch_scg_version");
@@ -180,8 +183,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                                         if (compare_string(resource.path, fmt::format("{}.ptx", packet_value.path)))
                                         {
                                             resource.texture_additional.value.texture_resource_information_section_block_size = bundle.texture_information_section_size;
-                                            //resource.texture_additional.value.dimension.width = static_cast<uint32_t>(packet_value.dimension.width);
-                                            //resource.texture_additional.value.dimension.height = static_cast<uint32_t>(packet_value.dimension.height);
+                                            // resource.texture_additional.value.dimension.width = static_cast<uint32_t>(packet_value.dimension.width);
+                                            // resource.texture_additional.value.dimension.height = static_cast<uint32_t>(packet_value.dimension.height);
                                             resource.texture_additional.value.texture_infomation.format = static_cast<uint32_t>(packet_value.additional.format);
                                             resource.texture_additional.value.texture_infomation.pitch = static_cast<uint32_t>(packet_value.additional.pitch);
                                             resource.texture_additional.value.texture_infomation.alpha_size = static_cast<uint32_t>(packet_value.additional.alpha_size);
@@ -221,11 +224,13 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
                 .version = bundle.version};
             Sen::Kernel::Support::PopCap::ResourceStreamGroup::Common::packet_compression_from_data(manifest_info.compression, packet_definition.compression);
             auto result = nlohmann::ordered_json{};
-            if (manifest_info.allow_new_type_resource) {
-                
+            if (manifest_info.allow_new_type_resource)
+            {
+
                 Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::exchange_custom_resource_info<true>(resource_info, result);
             }
-            else {
+            else
+            {
                 Sen::Kernel::Support::Miscellaneous::Custom::StreamCompressedGroup::Common::exchange_custom_resource_info<false>(resource_info, result);
             }
             auto resources_name = toupper_back(fmt::format("resources{}", manifest_info.resource_additional_name));
@@ -266,8 +271,8 @@ namespace Sen::Kernel::Support::Miscellaneous::Custom::ResourceStreamBundle
         {
             assert_conditional(definition.version == 4_ui, fmt::format("{}", Language::get("popcap.rsb.custom.version_is_not_support")), "exchange_bundle");
             auto bundle = BundleStructure{
-                    .version = definition.version,
-                    .texture_information_section_size = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(definition.texture_information_version)};
+                .version = definition.version,
+                .texture_information_section_size = Sen::Kernel::Support::PopCap::ResourceStreamBundle::Common::exchange_texture_information_version(definition.texture_information_version)};
             auto manifest = ManifestStructure{};
             auto packet_data_section_view_stored = DataSectionViewStored{};
             auto resource_info = CustomResourceInformation{};

@@ -18,7 +18,7 @@ namespace Sen::Kernel::Language
 	 * DO NOT USE THIS, THIS IS LANGUAGE CONTAINER
 	*/
 
-	static std::map<std::string, std::string> language;
+	static std::unordered_map<std::string, std::string> language;
 
 	/**
 	 * Lambda auto close file

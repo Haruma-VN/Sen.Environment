@@ -52,7 +52,7 @@ class NotificationService {
       notification.onClick = () async {
         await windowManager.focus();
       };
-      notification.show();
+      await notification.show();
     }
     if (Platform.isLinux ||
         Platform.isMacOS ||
